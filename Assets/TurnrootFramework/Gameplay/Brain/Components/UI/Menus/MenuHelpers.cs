@@ -1,5 +1,6 @@
 using System.Collections;
 using Turnroot.GameSettings;
+using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -38,8 +39,13 @@ namespace Turnroot.Gameplay.Brain.Segments
             GetValidatedMenuLocation(() => prebattleUnitsMenuLocation, "Pre-battle units");
         }
 
-        public void SetupMenuInputActions(MenuBase menu) =>
-            InputActionFactory.SetupMenuNavigation(menu);
+        public void SetupMenuInputActions(MenuBase menu)
+        {
+            // Enable shared UI input actions for menus.
+            UIInputActionDefaults.NavigateUp?.Enable();
+            UIInputActionDefaults.NavigateDown?.Enable();
+            UIInputActionDefaults.Select?.Enable();
+        }
 
         public void SetupSettingsUIBindings(GameObject instance) =>
             _settingsBindingManager?.BindSettings(

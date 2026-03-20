@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -56,8 +57,8 @@ namespace Turnroot.Graphics2D.Utilities
             var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer == null)
             {
-                Debug.LogError(
-                    $"Could not find TextureImporter for '{tex?.name ?? "(null)"}' at path '{path}'."
+                $"Could not find TextureImporter for '{tex?.name ?? "(null)"}' at path '{path}'.".LogError(
+                    "TextureValidator.MakeReadable"
                 );
                 return false;
             }
@@ -150,7 +151,9 @@ namespace Turnroot.Graphics2D.Utilities
             }
             catch (System.Exception)
             {
-                Debug.LogError($"Failed to read PNG file at path '{path}'.");
+                $"Failed to read PNG file at path '{path}'.".LogError(
+                    "TextureValidator.IsGrayscalePNG"
+                );
                 return false;
             }
 #endif
@@ -172,7 +175,7 @@ namespace Turnroot.Graphics2D.Utilities
             {
                 if (!string.IsNullOrEmpty(context))
                 {
-                    Debug.LogWarning($"{context}: texture is null.");
+                    $"{context}: texture is null.".LogWarning();
                 }
 
                 return false;
@@ -181,9 +184,7 @@ namespace Turnroot.Graphics2D.Utilities
             if (tex.width != expectedWidth || tex.height != expectedHeight)
             {
                 var ctx = string.IsNullOrEmpty(context) ? "Texture" : context;
-                Debug.LogWarning(
-                    $"{ctx}: size mismatch. Expected {expectedWidth}x{expectedHeight}, got {tex.width}x{tex.height}."
-                );
+                $"{ctx}: size mismatch. Expected {expectedWidth}x{expectedHeight}, got {tex.width}x{tex.height}.".LogWarning();
                 return false;
             }
 
@@ -202,9 +203,7 @@ namespace Turnroot.Graphics2D.Utilities
             if (expected == null || actual == null)
             {
                 var ctx = string.IsNullOrEmpty(context) ? "Texture match" : context;
-                Debug.LogWarning(
-                    $"{ctx}: one or both textures are null (expected='{expected?.name ?? "(null)"}', actual='{actual?.name ?? "(null)"}')."
-                );
+                $"{ctx}: one or both textures are null (expected='{expected?.name ?? "(null)"}', actual='{actual?.name ?? "(null)"}').".LogWarning();
                 return false;
             }
 
@@ -228,9 +227,7 @@ namespace Turnroot.Graphics2D.Utilities
             if (expectedSprite == null || actualSprite == null)
             {
                 var ctx = string.IsNullOrEmpty(context) ? "Sprite match" : context;
-                Debug.LogWarning(
-                    $"{ctx}: one or both sprites are null (expected='{expectedSprite?.name ?? "(null)"}', actual='{actualSprite?.name ?? "(null)"}')."
-                );
+                $"{ctx}: one or both sprites are null (expected='{expectedSprite?.name ?? "(null)"}', actual='{actualSprite?.name ?? "(null)"}').".LogWarning();
                 return false;
             }
             return ValidateMatch(

@@ -21,5 +21,5 @@ EditorBuildSettings:
     path: Assets/Demos/1  - StartHere.unity
     guid: 1f51a10ae6cb03d4bbadd956b017e2d0
   m_configObjects:
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   m_UseUCBPForAssetBundles: 0

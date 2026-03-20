@@ -11,6 +11,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public string[] RefreshShopsForNewDay(GameDate currentDay)
         {
             var results = new List<string>();
+            if (AllShops == null)
+                return results.ToArray();
             foreach (var shop in AllShops)
             {
                 var result = shop.RefreshShopForNewDay(currentDay);

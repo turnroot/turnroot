@@ -1,5 +1,6 @@
 using System;
 using Turnroot.GameSettings;
+using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
@@ -163,11 +164,11 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Assign the correct input action for the chosen button
             if (role == SimpleButtonRole.Back)
             {
-                chosen.AssignSelectAction(InputActionFactory.CreateBack());
+                chosen.AssignSelectAction(UIInputActionDefaults.Back);
             }
             else if (role == SimpleButtonRole.Details)
             {
-                chosen.AssignSelectAction(InputActionFactory.CreateDetails());
+                chosen.AssignSelectAction(UIInputActionDefaults.Confirm);
             }
 
             if (handler != null)
@@ -202,16 +203,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                         simpleButton.OnSelected -= handler;
                     }
 
-                    // Dispose of any assigned input action to avoid leaks
-                    try
-                    {
-                        if (simpleButton.SelectAction != null)
-                        {
-                            simpleButton.SelectAction.Disable();
-                            simpleButton.SelectAction.Dispose();
-                        }
-                    }
-                    catch { }
+                    // Do not disable or dispose shared UI actions.
+                    // We only clear references so the shared actions remain available globally.
+                    // The SimpleButton class handles wiring the action's performed event.
                 }
 
                 Destroy(targetPrefabField);

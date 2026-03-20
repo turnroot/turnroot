@@ -2,6 +2,7 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
+using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.UI.Components.SimpleButton;
@@ -154,19 +155,12 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            try
-            {
-                if (sb.SelectAction != null)
-                {
-                    sb.SelectAction.Disable();
-                    sb.SelectAction.Dispose();
-                }
-            }
-            catch { }
+            // Don't dispose shared actions; we keep the shared UI actions enabled at all times.
+            // The SimpleButton component is responsible for managing its own subscriptions.
 
             if (sb.Role == SimpleButtonRole.Back)
             {
-                sb.AssignSelectAction(InputActionFactory.CreateBack());
+                sb.AssignSelectAction(UIInputActionDefaults.Back);
                 // Ensure the Back handler is present (rebinding may have caused subscriptions to be lost)
                 try
                 {
@@ -177,7 +171,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
             else if (sb.Role == SimpleButtonRole.Details)
             {
-                sb.AssignSelectAction(InputActionFactory.CreateDetails());
+                sb.AssignSelectAction(UIInputActionDefaults.Confirm);
                 try
                 {
                     sb.OnSelected -= HandleDetailsButtonPressed;

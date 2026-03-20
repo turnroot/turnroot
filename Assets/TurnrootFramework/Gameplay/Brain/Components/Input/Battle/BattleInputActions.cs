@@ -1,3 +1,4 @@
+using Turnroot.UI;
 using UnityEngine.InputSystem;
 
 namespace Turnroot.Gameplay.Brain
@@ -13,15 +14,15 @@ namespace Turnroot.Gameplay.Brain
         public InputAction Cancel { get; private set; }
         public InputAction Menu { get; private set; }
 
-        public InputAction RotateMapCamera { get; private set; }
+        public InputAction RotateCamera { get; private set; }
 
         public BattleInputActions()
         {
-            Navigate = CreateNavigateAction();
-            Confirm = CreateConfirmAction();
-            Cancel = CreateCancelAction();
-            Menu = CreateMenuAction();
-            RotateMapCamera = CreateRotateMapCameraAction();
+            Navigate = UIInputActionDefaults.Navigate;
+            Confirm = UIInputActionDefaults.Confirm;
+            Cancel = UIInputActionDefaults.Cancel;
+            Menu = UIInputActionDefaults.Menu;
+            RotateCamera = UIInputActionDefaults.RotateCamera;
         }
 
         public void Enable()
@@ -30,7 +31,7 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Enable();
             Cancel?.Enable();
             Menu?.Enable();
-            RotateMapCamera?.Enable();
+            RotateCamera?.Enable();
         }
 
         public void Disable()
@@ -39,7 +40,7 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Disable();
             Cancel?.Disable();
             Menu?.Disable();
-            RotateMapCamera?.Disable();
+            RotateCamera?.Disable();
         }
 
         public void Dispose()
@@ -48,74 +49,16 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Dispose();
             Cancel?.Dispose();
             Menu?.Dispose();
-            RotateMapCamera?.Dispose();
+            RotateCamera?.Dispose();
 
             Navigate = null;
             Confirm = null;
             Cancel = null;
             Menu = null;
-            RotateMapCamera = null;
+            RotateCamera = null;
         }
 
-        private InputAction CreateNavigateAction()
-        {
-            var action = new InputAction("Navigate", InputActionType.Value);
-
-            action
-                .AddCompositeBinding("2DVector")
-                .With("Up", "<Keyboard>/w")
-                .With("Down", "<Keyboard>/s")
-                .With("Left", "<Keyboard>/a")
-                .With("Right", "<Keyboard>/d");
-
-            action
-                .AddCompositeBinding("2DVector")
-                .With("Up", "<Keyboard>/upArrow")
-                .With("Down", "<Keyboard>/downArrow")
-                .With("Left", "<Keyboard>/leftArrow")
-                .With("Right", "<Keyboard>/rightArrow");
-
-            action.AddBinding("<Gamepad>/leftStick");
-            action.AddBinding("<Gamepad>/dpad");
-
-            return action;
-        }
-
-        private InputAction CreateConfirmAction()
-        {
-            var action = new InputAction(
-                "Confirm",
-                InputActionType.Button,
-                "<Gamepad>/buttonSouth"
-            );
-            action.AddBinding("<Keyboard>/enter");
-            action.AddBinding("<Keyboard>/space");
-            return action;
-        }
-
-        private InputAction CreateCancelAction()
-        {
-            var action = new InputAction("Cancel", InputActionType.Button, "<Gamepad>/buttonEast");
-            action.AddBinding("<Keyboard>/escape");
-            return action;
-        }
-
-        private InputAction CreateMenuAction()
-        {
-            var action = new InputAction("Menu", InputActionType.Button, "<Gamepad>/start");
-            action.AddBinding("<Keyboard>/tab");
-            return action;
-        }
-
-        private InputAction CreateRotateMapCameraAction()
-        {
-            var action = new InputAction("RotateMapCamera", InputActionType.Value);
-            action
-                .AddCompositeBinding("1DAxis")
-                .With("Negative", "<Keyboard>/leftBracket")
-                .With("Positive", "<Keyboard>/rightBracket");
-            action.AddBinding("<Gamepad>/rightStick/x");
-            return action;
-        }
+        // The battle input actions are now sourced from the shared UI input defaults.
+        // This ensures bindings remain consistent and configurable via InputActionAsset.
     }
 }

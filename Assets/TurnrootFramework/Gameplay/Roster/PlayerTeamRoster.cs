@@ -60,7 +60,7 @@ namespace Turnroot.Characters
                     {
                         _playerCharacters[i] = p;
                     }
-                    else
+                    else if (v != null)
                     {
                         var copy = new PlayerTeamRosterUnitPlacement();
                         copy.CharacterData = v.CharacterData;

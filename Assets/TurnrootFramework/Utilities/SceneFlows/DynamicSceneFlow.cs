@@ -63,7 +63,7 @@ namespace Turnroot.Utilities.AbstractScripts
                 brain = FindFirstObjectByType<Brain>();
                 if (brain == null)
                 {
-                    "DynamicSceneFlow: No Brain found in scene!".LogError();
+                    "DynamicSceneFlow: No Brain found in scene!".LogError("DynamicSceneFlow.Start");
                 }
             }
 
@@ -180,11 +180,15 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 if (brain == null)
                 {
-                    "DynamicSceneFlow: Cannot set state - brain is null".LogError();
+                    "DynamicSceneFlow: Cannot set state - brain is null".LogError(
+                        "DynamicSceneFlow.SetBrainStateFromSegment"
+                    );
                 }
                 else if (brain.stateBrain == null)
                 {
-                    "DynamicSceneFlow: Cannot set state - stateBrain is null".LogError();
+                    "DynamicSceneFlow: Cannot set state - stateBrain is null".LogError(
+                        "DynamicSceneFlow.SetBrainStateFromSegment"
+                    );
                 }
                 return;
             }

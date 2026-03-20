@@ -323,15 +323,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         public void RefreshShipForNewDay(GameDate currentDay)
         {
-            foreach (ShopItem item in NormalGoodsForSale)
+            if (NormalGoodsForSale != null)
             {
-                var status = item.Refresh(currentDay);
-                currentStock[item] = status.AvailableQuantity;
+                foreach (ShopItem item in NormalGoodsForSale)
+                {
+                    var status = item.Refresh(currentDay);
+                    currentStock[item] = status.AvailableQuantity;
+                }
             }
-            foreach (SmuggledItem item in SmuggledGoodsForSale)
+            if (SmuggledGoodsForSale != null)
             {
-                var status = item.Refresh(currentDay, Trust);
-                currentSmuggledStock[item] = status.AvailableQuantity;
+                foreach (SmuggledItem item in SmuggledGoodsForSale)
+                {
+                    var status = item.Refresh(currentDay, Trust);
+                    currentSmuggledStock[item] = status.AvailableQuantity;
+                }
             }
         }
 

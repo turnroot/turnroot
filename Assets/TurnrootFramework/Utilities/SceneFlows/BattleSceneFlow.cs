@@ -131,7 +131,7 @@ namespace Turnroot.Utilities.AbstractScripts
                 }
 
                 // TODO: Add "are you still there?" system for long player input waits
-                // If _interruptIsWaitingForPlayerInput is true for more than X minutes (5-10?),
+                // If _interruptIsWaitingForPlayerInput is true for more than 5 minutes,
                 // show a non-intrusive prompt asking if player is still present.
                 // This prevents AFK players from blocking the system indefinitely.
             }

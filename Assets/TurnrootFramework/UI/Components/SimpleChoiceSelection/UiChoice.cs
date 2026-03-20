@@ -13,103 +13,13 @@ namespace Turnroot.UI
     public class UiChoice : MonoBehaviour
     {
         // static shared input actions used by all menus
-        public static InputAction SelectAction { get; private set; }
-        public static InputAction BackAction { get; private set; }
-        public static InputAction NavigateUpAction { get; private set; }
-        public static InputAction NavigateDownAction { get; private set; }
-        public static InputAction NavigateLeftAction { get; private set; }
-        public static InputAction NavigateRightAction { get; private set; }
-
-        static UiChoice()
-        {
-            SelectAction = new InputAction(
-                "UI_Select",
-                InputActionType.Button,
-                "<Gamepad>/buttonEast",
-                interactions: "press"
-            );
-            SelectAction.AddBinding("<Keyboard>/enter");
-            SelectAction.AddBinding("<Keyboard>/space");
-
-            BackAction = new InputAction(
-                "UI_Back",
-                InputActionType.Button,
-                "<Gamepad>/buttonSouth",
-                interactions: "press"
-            );
-            BackAction.AddBinding("<Keyboard>/backspace");
-            BackAction.AddBinding("<Keyboard>/escape");
-            BackAction.AddBinding("<Keyboard>/delete");
-
-            NavigateUpAction = new InputAction(
-                "UI_NavigateUp",
-                InputActionType.Button,
-                interactions: "press"
-            );
-            NavigateUpAction.AddBinding("<Gamepad>/dpad/up");
-            NavigateUpAction.AddBinding("<Gamepad>/leftStick/up");
-            NavigateUpAction.AddBinding("<Keyboard>/w");
-            NavigateUpAction.AddBinding("<Keyboard>/upArrow");
-
-            NavigateDownAction = new InputAction(
-                "UI_NavigateDown",
-                InputActionType.Button,
-                interactions: "press"
-            );
-            NavigateDownAction.AddBinding("<Gamepad>/dpad/down");
-            NavigateDownAction.AddBinding("<Gamepad>/leftStick/down");
-            NavigateDownAction.AddBinding("<Keyboard>/s");
-            NavigateDownAction.AddBinding("<Keyboard>/downArrow");
-
-            NavigateLeftAction = new InputAction(
-                "UI_NavigateLeft",
-                InputActionType.Button,
-                interactions: "press"
-            );
-            NavigateLeftAction.AddBinding("<Gamepad>/dpad/left");
-            NavigateLeftAction.AddBinding("<Gamepad>/leftStick/left");
-            NavigateLeftAction.AddBinding("<Keyboard>/a");
-            NavigateLeftAction.AddBinding("<Keyboard>/leftArrow");
-
-            NavigateRightAction = new InputAction(
-                "UI_NavigateRight",
-                InputActionType.Button,
-                interactions: "press"
-            );
-            NavigateRightAction.AddBinding("<Gamepad>/dpad/right");
-            NavigateRightAction.AddBinding("<Gamepad>/leftStick/right");
-            NavigateRightAction.AddBinding("<Keyboard>/d");
-            NavigateRightAction.AddBinding("<Keyboard>/rightArrow");
-        }
-
-        private static int _actionEnableCount = 0;
-
-        public static void EnableActions()
-        {
-            if (_actionEnableCount++ == 0)
-            {
-                SelectAction.Enable();
-                BackAction.Enable();
-                NavigateUpAction.Enable();
-                NavigateDownAction.Enable();
-                NavigateLeftAction.Enable();
-                NavigateRightAction.Enable();
-            }
-        }
-
-        public static void DisableActions()
-        {
-            if (--_actionEnableCount <= 0)
-            {
-                SelectAction.Disable();
-                BackAction.Disable();
-                NavigateUpAction.Disable();
-                NavigateDownAction.Disable();
-                NavigateLeftAction.Disable();
-                NavigateRightAction.Disable();
-                _actionEnableCount = 0;
-            }
-        }
+        public static InputAction SelectAction => UIInputActionDefaults.Select;
+        public static InputAction BackAction => UIInputActionDefaults.Back;
+        public static InputAction NavigateUpAction => UIInputActionDefaults.NavigateUp;
+        public static InputAction NavigateDownAction => UIInputActionDefaults.NavigateDown;
+        public static InputAction NavigateLeftAction => UIInputActionDefaults.NavigateLeft;
+        public static InputAction NavigateRightAction => UIInputActionDefaults.NavigateRight;
+        public static InputAction StartAction => UIInputActionDefaults.Start;
 
         public RectTransform ToScale => GetComponent<RectTransform>();
         public UIEffect Effect;
@@ -124,8 +34,6 @@ namespace Turnroot.UI
         public Color TextHighlightColor = Color.yellow;
         private Color originalTextColor;
         public bool CanBeSelected = true;
-
-        [ShowIf(nameof(ChangeTextColor))]
         public Color TextColorIfDisabled = Color.gray;
 
         private void Awake()
@@ -134,7 +42,7 @@ namespace Turnroot.UI
             {
                 originalTextColor = TextToChangeColor.color;
             }
-            if (!CanBeSelected && ChangeTextColor && TextToChangeColor != null)
+            if (!CanBeSelected && TextToChangeColor != null)
             {
                 TextToChangeColor.color = TextColorIfDisabled;
             }

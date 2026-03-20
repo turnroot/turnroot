@@ -30,6 +30,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public BattleContextAIHelper AIHelper { get; private set; }
         public UI.Components.BattleOverlayManager OverlayManager { get; private set; }
 
+        private void OnDestroy()
+        {
+            AIHelper?.Cleanup();
+        }
+
         /// <summary>
         /// Initialize the BattleContext with required dependencies. Throws if brain is null.
         /// </summary>
@@ -45,7 +50,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             AIHelper = new BattleContextAIHelper(this);
 
             // ensure the overlay manager component exists and is initialized
-            var overlay = GetComponent<UI.Components.BattleOverlayManager>() ?? gameObject.AddComponent<UI.Components.BattleOverlayManager>();
+            var overlay =
+                GetComponent<UI.Components.BattleOverlayManager>()
+                ?? gameObject.AddComponent<UI.Components.BattleOverlayManager>();
             OverlayManager = overlay;
         }
 

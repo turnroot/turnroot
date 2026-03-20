@@ -49,6 +49,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleSubLocationInput(string action)
         {
+            if (hubManager == null)
+                hubManager = GetComponent<HubManager>();
+
             if (action == "Select")
             {
                 // check if there is a highlighted POI and can be selected

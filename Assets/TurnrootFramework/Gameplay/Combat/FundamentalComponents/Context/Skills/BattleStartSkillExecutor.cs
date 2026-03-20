@@ -44,6 +44,7 @@ namespace Turnroot.Gameplay.Brain
             if (Brain != null)
             {
                 Brain.OnBattleStarted -= HandleBattleStartSkills;
+                Brain.OnPrecomputeCompleted -= EvaluateBattleStartSkills;
                 Brain.OnTurnBegin -= EvaluateBattleStartSkills;
                 Brain.OnPlayerTurnStarted -= OnPlayerTurnStartedHandler;
                 Brain.OnEnemyTurnStarted -= EvaluateBattleStartSkills;

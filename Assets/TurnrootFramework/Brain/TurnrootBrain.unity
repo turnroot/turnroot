@@ -150,6 +150,7 @@ GameObject:
   - component: {fileID: 1357883696}
   - component: {fileID: 1357883697}
   - component: {fileID: 1357883698}
+  - component: {fileID: 1357883699}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -370,47 +371,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiSettings: {fileID: 0}
   settingsMenuLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
   gameSettingsGraphicsLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
   gameSettingsGameplayLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
   gameSettingsAudioLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
   gameSettingsControlsLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
   preBattleMenuLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
   prebattleMapMenuLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
   prebattleUnitsMenuLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
   battleActionSelectMenuLocation:
-    parentMenuName: 0
     menuName: 0
     style: 0
     prefab: {fileID: 0}
@@ -528,10 +520,43 @@ MonoBehaviour:
     displayName: 
     isHub: 0
     persistWhenLeaving: 0
+    SpecificChapter: 0
+    ChapterName: 
+    ChapterNumber: 0
     editorPosition: {x: 0, y: 0}
     notes: 
+    TimePasses: 0
+    MonthForThisScene: 0
+    DayForThisScene: 1
+    HasYear: 0
+    YearForThisScene: 1
   useLoadingScreen: 1
   minimumLoadingTime: 0.5
+  loadingFadeInTime: 0.75
+--- !u!114 &1357883699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1357883673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 676041203edc8854491e2a3777e70f5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turnroot.UI.UIInputActionBootstrap
+  Select: {fileID: 2033726153967148330, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  Back: {fileID: -8619626377133356767, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  NavigateUp: {fileID: -9118109209242674938, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  NavigateDown: {fileID: -7002231937099001039, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  NavigateLeft: {fileID: 170035112579692444, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  NavigateRight: {fileID: -3676630026911591939, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  Navigate: {fileID: -4771218353558461949, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  Confirm: {fileID: 2033726153967148330, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  Cancel: {fileID: -8619626377133356767, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  Menu: {fileID: 0}
+  RotateCamera: {fileID: 0}
+  Start: {fileID: -472219190135712309, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

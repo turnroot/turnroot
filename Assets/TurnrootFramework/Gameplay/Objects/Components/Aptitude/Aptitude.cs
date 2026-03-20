@@ -1,5 +1,7 @@
 using System;
 using Turnroot.CommonAncestors;
+using Turnroot.GameSettings;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects.Components
 {
@@ -13,5 +15,19 @@ namespace Turnroot.Gameplay.Objects.Components
 
         public Aptitude(string value)
             : base(value) { }
+
+        public Sprite GetLetterIcon()
+        {
+            return Value switch
+            {
+                "S" => GamewideUiSettings.Instance.LetterIcons.S,
+                "A" => GamewideUiSettings.Instance.LetterIcons.A,
+                "B" => GamewideUiSettings.Instance.LetterIcons.B,
+                "C" => GamewideUiSettings.Instance.LetterIcons.C,
+                "D" => GamewideUiSettings.Instance.LetterIcons.D,
+                "E" => GamewideUiSettings.Instance.LetterIcons.E,
+                _ => null,
+            };
+        }
     }
 }

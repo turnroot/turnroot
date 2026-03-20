@@ -46,6 +46,10 @@ namespace Turnroot.Characters
             }
 
             var hpStat = GetBoundedStat(BoundedStatType.Health);
+            if (hpStat == null)
+            {
+                return OperationResult.Failure("CharacterInstance.LevelUp: HP stat not found");
+            }
 
             // HP growth roll based on combined personal + class rates
             float hpGrowth = GetEffectiveHpGrowthRate();
@@ -243,7 +247,9 @@ namespace Turnroot.Characters
                 }
 
                 var data = JsonUtility.FromJson<GrowthRatesDto>(json);
-                return data?.growthRates == null || !data.growthRates.ContainsKey("Health") ? null : data.growthRates["Health"];
+                return data?.growthRates == null || !data.growthRates.ContainsKey("Health")
+                    ? null
+                    : data.growthRates["Health"];
             }
             catch (System.Exception ex)
             {

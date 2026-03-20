@@ -6,12 +6,12 @@ namespace Turnroot.UI.Components.GridMenu
         {
             base.HandleKeyboardNavigation(); // handles up/down via base
 
-            if (NavigateLeftAction != null && NavigateLeftAction.WasPressedThisFrame())
+            if (UIInputActionDefaults.NavigateLeft?.WasPressedThisFrame() == true)
             {
                 NavigateLeft();
             }
 
-            if (NavigateRightAction != null && NavigateRightAction.WasPressedThisFrame())
+            if (UIInputActionDefaults.NavigateRight?.WasPressedThisFrame() == true)
             {
                 NavigateRight();
             }

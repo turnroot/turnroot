@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain.Components
@@ -70,18 +71,14 @@ namespace Turnroot.Gameplay.Brain.Components
                     }
                     else
                     {
-                        Debug.LogWarning(
-                            $"JsonPlayerPrefs: invalid or empty JSON at {savePath}, starting fresh."
-                        );
+                        $"JsonPlayerPrefs: invalid or empty JSON at {savePath}, starting fresh.".LogWarning();
                         playerPrefs = new List<PlayerPref>();
                     }
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogWarning(
-                    $"JsonPlayerPrefs: failed to load prefs from {savePath}: {ex.Message}"
-                );
+                $"JsonPlayerPrefs: failed to load prefs from {savePath}: {ex.Message}".LogWarning();
                 playerPrefs = new List<PlayerPref>();
             }
         }

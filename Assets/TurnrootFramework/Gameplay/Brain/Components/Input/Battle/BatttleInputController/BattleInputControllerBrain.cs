@@ -150,9 +150,18 @@ namespace Turnroot.Gameplay.Brain
                 return true;
             }
 
-            if (_inputActions.RotateMapCamera?.enabled == true)
+            if (_inputActions.RotateCamera?.enabled == true)
             {
-                var rotateValue = _inputActions.RotateMapCamera.ReadValue<float>();
+                // RotateCamera is configured as a Vector2 (e.g. right stick). Use the X axis for left/right rotation.
+                var rotateVec = _inputActions.RotateCamera.ReadValue<Vector2>();
+                var rotateValue = rotateVec.x;
+
+                // Fall back to floating value if the action is configured as 1D
+                if (Mathf.Approximately(rotateValue, 0f))
+                {
+                    rotateValue = _inputActions.RotateCamera.ReadValue<float>();
+                }
+
                 if (Mathf.Abs(rotateValue) > 0.1f)
                 {
                     Brain.cameraBrain.RotateBattleCamera(rotateValue);

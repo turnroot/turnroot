@@ -1,5 +1,6 @@
 using System.Collections;
 using Turnroot.GameSettings;
+using Turnroot.UI;
 using Turnroot.UI.Components;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
@@ -161,24 +162,11 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
 
                 // Set up any PanelRows-based submenus (used by settings screens)
+                // PanelRows now uses shared UIInputActionDefaults directly.
                 var panelRows =
                     instance.GetComponentsInChildren<UI.Components.Menu.Submenu.PanelRows>(true);
                 foreach (var rows in panelRows)
                 {
-                    // Ensure input actions exist (they may be missing in prefab)
-                    rows.navigateUpAction ??= InputActionFactory.CreateNavigateUp();
-                    rows.navigateDownAction ??= InputActionFactory.CreateNavigateDown();
-                    rows.navigateLeftAction ??= InputActionFactory.CreateNavigateLeft();
-                    rows.navigateRightAction ??= InputActionFactory.CreateNavigateRight();
-                    rows.selectAction ??= InputActionFactory.CreateSelect();
-
-                    // Enable and initialize selection
-                    rows.navigateUpAction?.Enable();
-                    rows.navigateDownAction?.Enable();
-                    rows.navigateLeftAction?.Enable();
-                    rows.navigateRightAction?.Enable();
-                    rows.selectAction?.Enable();
-
                     rows.Initialize();
                 }
 
@@ -187,7 +175,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 var simpleButtons = menu.GetComponentsInChildren<SimpleButton>(true);
                 foreach (var sb in simpleButtons)
                 {
-                    sb.AssignSelectAction(menu.selectAction);
+                    sb.AssignSelectAction(UIInputActionDefaults.Select);
                 }
             }
 
@@ -195,18 +183,6 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 radial.uiBrain = _brain;
                 radial.OnItemSelected += itemHandler;
-                radial.navigateAction.Enable();
-
-                if (radial.selectAction == null || radial.selectAction.bindings.Count == 0)
-                {
-                    radial.selectAction?.Disable();
-                    radial.selectAction?.Dispose();
-                    radial.selectAction = InputActionFactory.CreateSelect();
-                }
-                else
-                {
-                    radial.selectAction.Enable();
-                }
             }
 
             _brain.SetupSettingsUIBindings(instance);

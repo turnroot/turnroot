@@ -42,6 +42,9 @@ namespace Turnroot.Characters
             for (int i = 0; i < roster.characters.Length; i++)
             {
                 var src = roster.characters[i];
+                if (src == null)
+                    continue;
+
                 _runtimePlacements[i] = new UnitPlacement
                 {
                     CharacterData = src.CharacterData,
@@ -72,6 +75,9 @@ namespace Turnroot.Characters
                 for (int i = 0; i < placements.Length; i++)
                 {
                     var src = placements[i];
+                    if (src == null)
+                        continue;
+
                     _runtimePlacements[i] = new UnitPlacement
                     {
                         CharacterData = src.CharacterData,
@@ -100,7 +106,7 @@ namespace Turnroot.Characters
             {
                 foreach (var placement in _runtimePlacements)
                 {
-                    if (placement.CharacterData == data)
+                    if (placement != null && placement.CharacterData == data)
                     {
                         return placement;
                     }
@@ -112,7 +118,7 @@ namespace Turnroot.Characters
             {
                 foreach (var placement in roster.characters)
                 {
-                    if (placement.CharacterData == data)
+                    if (placement != null && placement.CharacterData == data)
                     {
                         return placement;
                     }
@@ -132,7 +138,7 @@ namespace Turnroot.Characters
 
             for (int i = 0; i < _runtimePlacements.Length; i++)
             {
-                if (_runtimePlacements[i].CharacterData == data)
+                if (_runtimePlacements[i] != null && _runtimePlacements[i].CharacterData == data)
                 {
                     _runtimePlacements[i].Order = order;
                     OnRosterModified?.Invoke();

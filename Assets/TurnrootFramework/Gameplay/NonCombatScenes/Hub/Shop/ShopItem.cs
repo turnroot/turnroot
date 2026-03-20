@@ -11,6 +11,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
     /// </summary>
     public struct ShopItem
     {
+        [HideInInspector]
+        public ShopItemUiRefs UiRefs;
         public ObjectItem Item;
         public Status CurrentStatus;
         public int MaxQuantity;

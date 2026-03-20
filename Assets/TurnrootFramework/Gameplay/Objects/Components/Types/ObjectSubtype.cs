@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects.Components
@@ -16,6 +17,12 @@ namespace Turnroot.Gameplay.Objects.Components
         public const string Shield = "Shield";
         public const string Magic = "Magic";
         public const string Consumable = "Consumable";
+        public const string Accessory = "Accessory";
+        public const string KeyItem = "Key";
+        public const string Ingredient = "Ingredient";
+
+        public const string ForgeRepair = "ForgeRepair";
+        public const string Bait = "Bait";
         public const string Equipable = "Equipable";
         public const string Gift = "Gift";
         public const string LostItem = "LostItem";
@@ -41,9 +48,7 @@ namespace Turnroot.Gameplay.Objects.Components
                 }
                 else
                 {
-                    Debug.LogWarning(
-                        $"Invalid or disabled ObjectSubtype value: {value}. Using Weapon as default."
-                    );
+                    $"Invalid or disabled ObjectSubtype value: {value}. Using Weapon as default.".LogWarning();
                     _value = Weapon;
                 }
             }
@@ -57,13 +62,31 @@ namespace Turnroot.Gameplay.Objects.Components
         public bool IsEquipable => _value == Equipable;
         public bool IsGift => _value == Gift;
         public bool IsLostItem => _value == LostItem;
+        public bool IsAccessory => _value == Accessory;
+        public bool IsKeyItem => _value == KeyItem;
+        public bool IsIngredient => _value == Ingredient;
+
+        public bool IsForgeRepair => _value == ForgeRepair;
+        public bool IsBait => _value == Bait;
 
         /// <summary>
         /// Gets all valid ObjectSubtype values based on current GameplayGeneralSettings.
         /// </summary>
         public static string[] GetValidValues()
         {
-            var values = new List<string> { Weapon, Shield, Magic, Consumable, Equipable };
+            var values = new List<string>
+            {
+                Weapon,
+                Shield,
+                Magic,
+                Consumable,
+                Equipable,
+                Accessory,
+                KeyItem,
+                Ingredient,
+                ForgeRepair,
+                Bait,
+            };
 
             var settings = GameplayGeneralSettings.Instance;
             if (settings != null)
@@ -92,14 +115,36 @@ namespace Turnroot.Gameplay.Objects.Components
         /// Checks if a value is valid (exists in the defined constants).
         /// </summary>
         public static bool IsValid(string value) =>
-            value is Weapon or Magic or Consumable or Equipable or Gift or LostItem;
+            value
+                is Weapon
+                    or Magic
+                    or Consumable
+                    or Equipable
+                    or Gift
+                    or LostItem
+                    or Accessory
+                    or KeyItem
+                    or Ingredient
+                    or ForgeRepair
+                    or Bait;
 
         /// <summary>
         /// Checks if a value is enabled based on GameplayGeneralSettings.
         /// </summary>
         public static bool IsEnabled(string value)
         {
-            if (value is Weapon or Magic or Consumable or Equipable)
+            if (
+                value
+                is Weapon
+                    or Magic
+                    or Consumable
+                    or Equipable
+                    or Accessory
+                    or KeyItem
+                    or Ingredient
+                    or ForgeRepair
+                    or Bait
+            )
             {
                 return true;
             }

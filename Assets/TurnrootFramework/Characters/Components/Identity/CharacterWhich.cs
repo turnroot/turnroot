@@ -48,6 +48,7 @@ namespace Turnroot.Characters.Components
         public static bool IsValid(string value) => value is AVATAR or ENEMY or ALLY or NPC;
 
         public static implicit operator string(CharacterWhich which) => which?._value;
+        public static explicit operator CharacterWhich(int v) => throw new NotImplementedException();
 
         public override string ToString() => _value;
     }

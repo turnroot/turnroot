@@ -56,5 +56,10 @@ namespace Turnroot.Gameplay.Objects.Components
             get => _trianglePosition;
             set => _trianglePosition = value;
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

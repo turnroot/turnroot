@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.PlayerSettings;
+using Turnroot.UI;
 using UnityEngine;
 
 namespace Turnroot.UI.Components.RadialMenu
@@ -41,7 +42,8 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void HandleNavigationInput()
         {
-            if (navigateAction == null || (menuItems.Count == 0 && centerItem == null))
+            var navigate = UIInputActionDefaults.Navigate;
+            if (navigate == null || (menuItems.Count == 0 && centerItem == null))
             {
                 return;
             }
@@ -60,7 +62,7 @@ namespace Turnroot.UI.Components.RadialMenu
                 return;
             }
 
-            Vector2 input = navigateAction.ReadValue<Vector2>();
+            Vector2 input = navigate.ReadValue<Vector2>();
             bool hasInput = input.magnitude > joystickDeadzone;
             Vector2 direction = GetCardinalDirection(input);
 
@@ -158,7 +160,7 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void HandleGamepadRadialNavigation()
         {
-            Vector2 input = navigateAction.ReadValue<Vector2>();
+            Vector2 input = UIInputActionDefaults.Navigate.ReadValue<Vector2>();
             if (input.magnitude <= joystickDeadzone)
             {
                 // Stick released — if a center item exists, move to it; otherwise keep selection.

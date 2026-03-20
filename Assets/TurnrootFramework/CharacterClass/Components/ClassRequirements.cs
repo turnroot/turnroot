@@ -128,7 +128,10 @@ namespace Turnroot.Characters.CharacterClass
 
             if (AllowedSpecies.Count > 0)
             {
-                var speciesNames = string.Join(", ", AllowedSpecies.ConvertAll(s => s.Name));
+                var speciesNames = string.Join(
+                    ", ",
+                    AllowedSpecies.FindAll(s => s != null).ConvertAll(s => s.Name)
+                );
                 parts.Add($"Species: {speciesNames}");
             }
 

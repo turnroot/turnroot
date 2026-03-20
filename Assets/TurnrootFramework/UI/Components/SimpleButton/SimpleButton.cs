@@ -26,7 +26,9 @@ namespace Turnroot.UI.Components.SimpleButton
             IPointerExitHandler,
             IPointerClickHandler
     {
+        [HideInInspector]
         public InputAction SelectAction;
+
         public event Action OnSelected;
         public SimpleButtonRole Role;
 
@@ -37,32 +39,82 @@ namespace Turnroot.UI.Components.SimpleButton
         /// </summary>
         public void AssignSelectAction(InputAction action)
         {
-            // Remove any previous subscription to avoid duplicates
+            // Use the explicitly assigned action over the inspector reference.
+            UnsubscribeFromSelectAction();
+            SelectAction = action;
+            SubscribeToSelectAction();
+        }
+
+        private InputAction GetEffectiveSelectAction()
+        {
             if (SelectAction != null)
+                return SelectAction;
+
+            return Role switch
             {
-                try
-                {
-                    SelectAction.performed -= OnSelectActionPerformed;
-                }
-                catch { }
+                SimpleButtonRole.Back => UIInputActionDefaults.Back,
+                SimpleButtonRole.Details => UIInputActionDefaults.ToggleDetails,
+                _ => UIInputActionDefaults.Select,
+            };
+        }
+
+        private void SubscribeToSelectAction()
+        {
+            var action = GetEffectiveSelectAction();
+            if (action == null)
+            {
+                return;
             }
 
-            SelectAction = action;
-
-            if (SelectAction != null)
+            try
             {
-                // Ensure callback is attached and action is enabled if component is active
-                try
-                {
-                    SelectAction.performed -= OnSelectActionPerformed;
-                }
-                catch { }
-                SelectAction.performed += OnSelectActionPerformed;
+                action.performed -= OnSelectActionPerformed;
+            }
+            catch { }
 
-                if (gameObject.activeInHierarchy)
-                {
-                    SelectAction.Enable();
-                }
+            action.performed += OnSelectActionPerformed;
+
+            if (gameObject.activeInHierarchy)
+            {
+                action.Enable();
+            }
+        }
+
+        private static bool IsSharedUiInputAction(InputAction action)
+        {
+            return action == UIInputActionDefaults.Select
+                || action == UIInputActionDefaults.Back
+                || action == UIInputActionDefaults.NavigateUp
+                || action == UIInputActionDefaults.NavigateDown
+                || action == UIInputActionDefaults.NavigateLeft
+                || action == UIInputActionDefaults.NavigateRight
+                || action == UIInputActionDefaults.Start
+                || action == UIInputActionDefaults.Confirm
+                || action == UIInputActionDefaults.Cancel
+                || action == UIInputActionDefaults.Menu
+                || action == UIInputActionDefaults.Navigate
+                || action == UIInputActionDefaults.RotateCamera
+                || action == UIInputActionDefaults.ToggleDetails;
+        }
+
+        private void UnsubscribeFromSelectAction()
+        {
+            var action = GetEffectiveSelectAction();
+            if (action == null)
+            {
+                return;
+            }
+
+            try
+            {
+                action.performed -= OnSelectActionPerformed;
+            }
+            catch { }
+
+            // Do not disable shared UI actions: they should stay enabled at all times.
+            if (!IsSharedUiInputAction(action))
+            {
+                action.Disable();
             }
         }
 
@@ -142,31 +194,12 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private void OnEnable()
         {
-            if (SelectAction != null)
-            {
-                // Always remove first to avoid duplicate subscriptions
-                try
-                {
-                    SelectAction.performed -= OnSelectActionPerformed;
-                }
-                catch { }
-
-                SelectAction.performed += OnSelectActionPerformed;
-                SelectAction.Enable();
-            }
+            SubscribeToSelectAction();
         }
 
         private void OnDisable()
         {
-            if (SelectAction != null)
-            {
-                try
-                {
-                    SelectAction.performed -= OnSelectActionPerformed;
-                }
-                catch { }
-                SelectAction.Disable();
-            }
+            UnsubscribeFromSelectAction();
         }
 
         private void OnSelectActionPerformed(InputAction.CallbackContext context)

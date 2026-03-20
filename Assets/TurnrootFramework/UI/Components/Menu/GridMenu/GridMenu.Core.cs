@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.UI.Components.Menu;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components.GridMenu
 {
@@ -13,15 +12,12 @@ namespace Turnroot.UI.Components.GridMenu
         [Min(1)]
         public int Columns = 1;
 
-        public InputAction NavigateLeftAction;
-        public InputAction NavigateRightAction;
         private int _selectedIndex = -1;
 
         protected override void Awake()
         {
             base.Awake();
-            NavigateLeftAction?.Enable();
-            NavigateRightAction?.Enable();
+
             // Keep MenuBase informed when pointer hovers items so we can track hover-based selection
             OnNavigate += HandleNavigateTo;
         }
@@ -29,15 +25,11 @@ namespace Turnroot.UI.Components.GridMenu
         protected override void OnEnable()
         {
             base.OnEnable();
-            NavigateLeftAction?.Enable();
-            NavigateRightAction?.Enable();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            NavigateLeftAction?.Disable();
-            NavigateRightAction?.Disable();
 
             OnNavigate -= HandleNavigateTo;
         }

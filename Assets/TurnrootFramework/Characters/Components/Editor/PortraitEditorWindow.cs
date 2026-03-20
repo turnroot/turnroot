@@ -37,14 +37,13 @@ namespace Turnroot.Characters.Subclasses.Editor
 
         private void CreateNewPortrait(string proposedName)
         {
-            var portraitsDict = _currentOwner.Portraits;
             string newKey = string.IsNullOrWhiteSpace(proposedName)
                 ? _currentOwner.FullName + "_Portrait"
                 : proposedName;
 
             string baseKey = newKey;
             int suffix = 1;
-            while (portraitsDict.ContainsKey(newKey))
+            while (_currentOwner.ContainsPortraitKey(newKey))
             {
                 newKey = baseKey + "_" + suffix++;
             }
@@ -52,10 +51,10 @@ namespace Turnroot.Characters.Subclasses.Editor
             var p = new Portrait();
             p.SetOwner(_currentOwner);
             p.SetKey(newKey);
-            portraitsDict[newKey] = p;
+            _currentOwner.AddOrUpdatePortrait(newKey, p);
             _currentOwner.InvalidatePortraitArrayCache();
             EditorUtility.SetDirty(_currentOwner);
-            _selectedImageIndex = portraitsDict.Count - 1;
+            _selectedImageIndex = _currentOwner.PortraitCount - 1;
             UpdateCurrentImage();
 
             // The ImageStack ScriptableObject has been removed.
@@ -85,7 +84,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                 UpdateCurrentImage();
                 _newPortraitName = _currentOwner.FullName + "_Portrait";
                 _quickPortraitName =
-                    $"{_currentOwner.FullName}_Portrait{(_currentOwner.Portraits?.Count ?? 0) + 1}";
+                    $"{_currentOwner.FullName}_Portrait{_currentOwner.PortraitCount + 1}";
             }
 
             if (_currentOwner == null)
@@ -97,8 +96,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                 return;
             }
 
-            var portraitsDict = _currentOwner.Portraits;
-            if (portraitsDict == null || portraitsDict.Count == 0)
+            if (_currentOwner.PortraitCount == 0)
             {
                 EditorGUILayout.HelpBox(
                     $"This {OwnerFieldLabel} has no portraits.",
@@ -115,7 +113,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                 return;
             }
 
-            var keys = portraitsDict.Keys.ToArray();
+            var keys = _currentOwner.GetPortraitKeys();
 
             GUILayout.BeginHorizontal();
             int newIndex = EditorGUILayout.Popup("Select Portrait", _selectedImageIndex, keys);
@@ -149,7 +147,7 @@ namespace Turnroot.Characters.Subclasses.Editor
                     var p = new Portrait();
                     p.SetOwner(_currentOwner);
                     p.SetKey(keys[_selectedImageIndex]);
-                    _currentOwner.Portraits[keys[_selectedImageIndex]] = p;
+                    _currentOwner.AddOrUpdatePortrait(keys[_selectedImageIndex], p);
                     _currentOwner.InvalidatePortraitArrayCache();
                     EditorUtility.SetDirty(_currentOwner);
                     var arr = _currentOwner.PortraitArray;
@@ -762,7 +760,7 @@ namespace Turnroot.Characters.Subclasses.Editor
 
         protected override Portrait[] GetImagesFromOwner(CharacterData owner)
         {
-            if (owner?.Portraits == null)
+            if (owner == null || owner.PortraitCount == 0)
             {
                 return null;
             }

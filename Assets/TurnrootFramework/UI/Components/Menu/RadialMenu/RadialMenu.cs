@@ -70,13 +70,6 @@ namespace Turnroot.UI.Components.RadialMenu
         [SerializeField]
         private float inputRepeatDelay = 0.2f;
 
-        [Header("Input Actions")]
-        [SerializeField]
-        public InputAction navigateAction;
-
-        [SerializeField]
-        public InputAction selectAction;
-
         private int _selectedIndex = 0;
         private bool _centerSelected = false;
         private float _rotStep;
@@ -129,17 +122,9 @@ namespace Turnroot.UI.Components.RadialMenu
             }
         }
 
-        private void OnEnable()
-        {
-            navigateAction?.Enable();
-            selectAction?.Enable();
-        }
+        private void OnEnable() { }
 
-        private void OnDisable()
-        {
-            navigateAction?.Disable();
-            selectAction?.Disable();
-        }
+        private void OnDisable() { }
 
         private void Start() => Canvas.willRenderCanvases += OnFirstRender;
 
@@ -158,9 +143,10 @@ namespace Turnroot.UI.Components.RadialMenu
         private void OnDestroy()
         {
             Canvas.willRenderCanvases -= OnFirstRender;
-            if (selectAction != null)
+            var select = UIInputActionDefaults.Select;
+            if (select != null)
             {
-                selectAction.performed -= OnSelectPerformed;
+                select.performed -= OnSelectPerformed;
             }
         }
 
@@ -196,9 +182,10 @@ namespace Turnroot.UI.Components.RadialMenu
                 SetupCenterItem();
             }
 
-            if (selectAction != null)
+            var select = UIInputActionDefaults.Select;
+            if (select != null)
             {
-                selectAction.performed += OnSelectPerformed;
+                select.performed += OnSelectPerformed;
             }
 
             // Ensure item 0 is visually highlighted from the start — prevents the phantom

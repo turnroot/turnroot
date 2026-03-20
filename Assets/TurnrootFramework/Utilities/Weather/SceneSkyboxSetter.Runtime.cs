@@ -149,7 +149,7 @@ namespace Turnroot.Utilities.Weather
                     chosenIndex = HubDayRandom.Range(0, selectedSkyboxes.Length);
 
                     // Persist the chosen skybox index so it stays consistent across exits
-                    var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
+                    var brain = FindFirstObjectByType<Brain>();
                     if (brain != null)
                     {
                         HubDayStateStore.SetSkyboxIndex(brain, chosenIndex);

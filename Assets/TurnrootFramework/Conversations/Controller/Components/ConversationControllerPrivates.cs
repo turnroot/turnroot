@@ -47,7 +47,7 @@ namespace Turnroot.Conversations
 
         private static bool LogError(string message)
         {
-            message.LogError();
+            message.LogError("ConversationController.ValidateConversationStart");
             return false;
         }
 
@@ -99,6 +99,7 @@ namespace Turnroot.Conversations
                 : RunLinearConversation(conversation, sceneFlow);
 
             instance?.OnConversationFinished?.Invoke();
+            UnsubscribeAdvanceInput();
             OnAnyConversationFinished?.Invoke();
 
             // Complete any battle scene interrupt that was waiting for this conversation
@@ -123,7 +124,9 @@ namespace Turnroot.Conversations
             var nodes = conversation.GetGraphNodes();
             if (nodes == null || nodes.Count == 0)
             {
-                $"Branching conversation '{conversation.name}' has no nodes.".LogError();
+                $"Branching conversation '{conversation.name}' has no nodes.".LogError(
+                    "ConversationController.RunBranchingConversation"
+                );
                 ResetUI();
                 yield break;
             }
@@ -261,18 +264,10 @@ namespace Turnroot.Conversations
             }
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             CleanupTweens();
-
-            if (_conversationRoutine != null)
-            {
-                StopCoroutine(_conversationRoutine);
-                _conversationRoutine = null;
-            }
         }
-
-        private void OnDestroy() => CleanupTweens();
 
         private void CleanupTweens() => CancelActiveTweens();
     }

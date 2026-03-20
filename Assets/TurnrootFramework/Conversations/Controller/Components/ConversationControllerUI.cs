@@ -1,6 +1,8 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
@@ -14,20 +16,40 @@ namespace Turnroot.Conversations
     {
         private void UpdateUIForLayer(ConversationLayer layer)
         {
+            if (layer == null)
+            {
+                "ConversationControllerUI: UpdateUIForLayer called with null layer.".LogWarning();
+                return;
+            }
+
             if (_dialogueText != null)
             {
                 _dialogueText.text = layer.Dialogue;
             }
+            else
+            {
+                "ConversationControllerUI: _dialogueText is not assigned.".LogWarning();
+            }
 
             var activeSlot = layer.GetActiveSlot();
+            if (activeSlot == null)
+            {
+                "ConversationControllerUI: Layer has no active speaker slot; skipping speaker name update.".LogWarning();
+            }
+
             if (_speakerNameText != null)
             {
                 _speakerNameText.text = GetSpeakerName(activeSlot);
             }
+            else
+            {
+                "ConversationControllerUI: _speakerNameText is not assigned.".LogWarning();
+            }
 
-            var currentActiveSprite = layer.ActivePortrait?.SavedSprite;
+            var currentActiveSprite = layer.ActivePortrait?.SavedSprite ?? layer.PortraitSprite;
             if (_lastActiveSprite != currentActiveSprite)
             {
+                $"ConversationControllerUI: Setting portrait sprite to {currentActiveSprite?.name ?? "null"}.".LogInfo();
                 ApplyPortraitForLayer(layer);
                 _lastActiveSprite = currentActiveSprite;
             }
@@ -35,6 +57,11 @@ namespace Turnroot.Conversations
 
         private string GetSpeakerName(ConversationLayer.SpeakerSlot slot)
         {
+            if (slot == null)
+            {
+                return "???";
+            }
+
             return !string.IsNullOrWhiteSpace(slot.DisplayName) ? slot.DisplayName
                 : slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName)
                     ? slot.Speaker.DisplayName
@@ -48,9 +75,15 @@ namespace Turnroot.Conversations
                 return;
             }
 
+            if (_speakerPortraitImageActive == null)
+            {
+                "ConversationControllerUI: _speakerPortraitImageActive is not assigned; cannot apply portrait.".LogWarning();
+                return;
+            }
+
             var activeIsPrimary =
                 layer.ActiveSpeaker == ConversationLayer.ActiveSpeakerType.Primary;
-            var activeSprite = layer.ActivePortrait?.SavedSprite;
+            var activeSprite = layer.ActivePortrait?.SavedSprite ?? layer.PortraitSprite;
             var inactiveSprite = activeIsPrimary
                 ? layer.SecondaryPortraitSprite
                 : layer.PortraitSprite;
@@ -103,23 +136,37 @@ namespace Turnroot.Conversations
         {
             var activeIsPrimary =
                 layer.ActiveSpeaker == ConversationLayer.ActiveSpeakerType.Primary;
-            var activeSprite = layer.ActivePortrait?.SavedSprite;
+            var activeSprite = layer.ActivePortrait?.SavedSprite ?? layer.PortraitSprite;
             var inactiveSprite = activeIsPrimary
                 ? layer.SecondaryPortraitSprite
                 : layer.PortraitSprite;
 
             if (WillSwapForBehavior(behavior))
             {
-                Graphics2DUtils.SetSprite(_speakerPortraitImageActive, activeSprite);
-                Graphics2DUtils.SetSprite(_speakerPortraitImageInactive, inactiveSprite);
+                if (_speakerPortraitImageActive != null)
+                {
+                    Graphics2DUtils.SetSprite(_speakerPortraitImageActive, activeSprite);
+                }
+
+                if (_speakerPortraitImageInactive != null)
+                {
+                    Graphics2DUtils.SetSprite(_speakerPortraitImageInactive, inactiveSprite);
+                }
             }
             else
             {
-                Graphics2DUtils.SetSprite(_speakerPortraitImageActive, layer.PortraitSprite);
-                Graphics2DUtils.SetSprite(
-                    _speakerPortraitImageInactive,
-                    layer.SecondaryPortraitSprite
-                );
+                if (_speakerPortraitImageActive != null)
+                {
+                    Graphics2DUtils.SetSprite(_speakerPortraitImageActive, layer.PortraitSprite);
+                }
+
+                if (_speakerPortraitImageInactive != null)
+                {
+                    Graphics2DUtils.SetSprite(
+                        _speakerPortraitImageInactive,
+                        layer.SecondaryPortraitSprite
+                    );
+                }
             }
         }
 
@@ -137,19 +184,38 @@ namespace Turnroot.Conversations
                 ? _speakerPortraitImageInactive
                 : (activeIsPrimary ? _speakerPortraitImageInactive : _speakerPortraitImageActive);
 
+            // If only one portrait image is assigned, fall back to it for both roles.
+            if (active == null && inactive != null)
+            {
+                active = inactive;
+            }
+
+            if (inactive == null && active != null)
+            {
+                inactive = active;
+            }
+
             return (active, inactive);
         }
 
         private void ResetPortraitColors()
         {
-            if (_speakerPortraitImageActive.enabled)
+            if (_speakerPortraitImageActive != null && _speakerPortraitImageActive.enabled)
             {
                 _speakerPortraitImageActive.color = Color.white;
             }
+            else if (_speakerPortraitImageActive == null)
+            {
+                "ConversationControllerUI: _speakerPortraitImageActive is not assigned.".LogWarning();
+            }
 
-            if (_speakerPortraitImageInactive.enabled)
+            if (_speakerPortraitImageInactive != null && _speakerPortraitImageInactive.enabled)
             {
                 _speakerPortraitImageInactive.color = Color.white;
+            }
+            else if (_speakerPortraitImageInactive == null)
+            {
+                "ConversationControllerUI: _speakerPortraitImageInactive is not assigned (this is valid for single‑portrait setups).".LogInfo();
             }
         }
 
@@ -162,6 +228,18 @@ namespace Turnroot.Conversations
             float duration
         )
         {
+            if (activeImg == null)
+            {
+                return;
+            }
+
+            // If only one portrait image is assigned, use it for both roles so we don't accidentally
+            // attempt to operate on a missing object.
+            if (inactiveImg == null)
+            {
+                inactiveImg = activeImg;
+            }
+
             var targetActiveColor = activeIsPrimary
                 ? layer.PrimaryPortraitTint
                 : layer.SecondaryPortraitTint;
@@ -171,7 +249,18 @@ namespace Turnroot.Conversations
 
             var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
 
-            switch (behavior)
+            // When only a single portrait image is present, behaviors like swapping or hiding
+            // don't make sense since there is no second image to act upon.
+            var effectiveBehavior = behavior;
+            if (
+                inactiveImg == activeImg
+                && behavior != SecondaryConversationPortraitInactiveBehavior.None
+            )
+            {
+                effectiveBehavior = SecondaryConversationPortraitInactiveBehavior.None;
+            }
+
+            switch (effectiveBehavior)
             {
                 case SecondaryConversationPortraitInactiveBehavior.Hide:
                     StartTween(
@@ -350,9 +439,23 @@ namespace Turnroot.Conversations
 
         private void KillImageTweens(params Image[] images)
         {
-            if (GfxSettings?.AnimatePortraitTransitions ?? true)
+            if (!(GfxSettings?.AnimatePortraitTransitions ?? true))
             {
-                Graphics2DUtils.KillImageTweens(images);
+                return;
+            }
+
+            var nonNullImages = new List<Image>();
+            foreach (var img in images)
+            {
+                if (img != null)
+                {
+                    nonNullImages.Add(img);
+                }
+            }
+
+            if (nonNullImages.Count > 0)
+            {
+                Graphics2DUtils.KillImageTweens(nonNullImages.ToArray());
             }
         }
     }

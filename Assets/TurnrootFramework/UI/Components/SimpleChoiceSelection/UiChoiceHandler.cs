@@ -80,7 +80,12 @@ namespace Turnroot.UI
                 }
                 currentIndex = (currentIndex + 1) % maxCount;
             }
-            else if (action == "Select")
+            else if (
+                action == "Select"
+                || action == "Start"
+                || action == "Confirm"
+                || action == "Submit"
+            )
             {
                 try
                 {
