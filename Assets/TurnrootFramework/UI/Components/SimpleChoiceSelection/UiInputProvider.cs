@@ -1,5 +1,4 @@
 using System;
-using Turnroot.Conversations;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -37,18 +36,6 @@ namespace Turnroot.UI
         private InputAction _subscribedNavigateRight;
         private InputAction _subscribedStart;
 
-        // Used to reject the first accidental input event after one-shot conversation finishes.
-        private bool _suppressNextInput;
-
-        public void SuppressNextInput()
-        {
-            _suppressNextInput = true;
-            if (LogInputActions)
-            {
-                "UiInputProvider: suppressing next input event".LogInfo("UiInputProvider");
-            }
-        }
-
         private void Awake()
         {
             // Always register for initialization so we can bind once the shared actions are ready.
@@ -63,22 +50,6 @@ namespace Turnroot.UI
         {
             "UiInputProvider: OnEnable".LogInfo("UiInputProvider");
             Subscribe();
-        }
-
-        private void OnDisable()
-        {
-            "UiInputProvider: OnDisable".LogInfo("UiInputProvider");
-            Unsubscribe();
-        }
-
-        private void OnDestroy()
-        {
-            if (_initializedHandlerRegistered)
-            {
-                UIInputActionDefaults.RemoveInitializedHandler(Subscribe);
-                _initializedHandlerRegistered = false;
-            }
-            Unsubscribe();
         }
 
         private void Subscribe()
@@ -233,115 +204,32 @@ namespace Turnroot.UI
             }
         }
 
-        private bool IsConversationActive()
+        private void OnDestroy()
         {
-            return ConversationController.Instance != null
-                && ConversationController.Instance.IsConversationActive;
+            if (_initializedHandlerRegistered)
+            {
+                UIInputActionDefaults.RemoveInitializedHandler(Subscribe);
+                _initializedHandlerRegistered = false;
+            }
         }
 
-        private bool ShouldBlockInput(string action)
-        {
-            // In case this callback hits a destroyed Unity object, guard against exceptions.
-            if (this == null)
-            {
-                return true;
-            }
+        private void HandleSelect(InputAction.CallbackContext ctx) => OnInput?.Invoke("Select");
 
-            // Honor the component enabled state so disabling the provider truly blocks input.
-            if (!isActiveAndEnabled)
-            {
-                if (LogInputActions)
-                {
-                    $"UiInputProvider: input blocked because provider is disabled ({action})".LogInfo();
-                }
-                return true;
-            }
+        private void HandleBack(InputAction.CallbackContext ctx) => OnInput?.Invoke("Back");
 
-            if (_suppressNextInput)
-            {
-                _suppressNextInput = false;
-                if (LogInputActions)
-                {
-                    $"UiInputProvider: blocked one immediate post-conversation input ({action})".LogInfo();
-                }
-                return true;
-            }
-
-            if (IsConversationActive())
-            {
-                if (LogInputActions)
-                {
-                    $"UiInputProvider: input blocked because conversation is active ({action})".LogInfo();
-                }
-                return true;
-            }
-
-            return false;
-        }
-
-        private void HandleSelect(InputAction.CallbackContext ctx)
-        {
-            if (ShouldBlockInput("Select"))
-            {
-                return;
-            }
-            OnInput?.Invoke("Select");
-        }
-
-        private void HandleBack(InputAction.CallbackContext ctx)
-        {
-            if (ShouldBlockInput("Back"))
-            {
-                return;
-            }
-            OnInput?.Invoke("Back");
-            Debug.Log("UiInputProvider: Back action received.");
-        }
-
-        private void HandleNavigateUp(InputAction.CallbackContext ctx)
-        {
-            if (ShouldBlockInput("NavigateUp"))
-            {
-                return;
-            }
+        private void HandleNavigateUp(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke("NavigateUp");
-        }
 
-        private void HandleNavigateDown(InputAction.CallbackContext ctx)
-        {
-            if (ShouldBlockInput("NavigateDown"))
-            {
-                return;
-            }
+        private void HandleNavigateDown(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke("NavigateDown");
-        }
 
-        private void HandleNavigateLeft(InputAction.CallbackContext ctx)
-        {
-            if (ShouldBlockInput("NavigateLeft"))
-            {
-                return;
-            }
+        private void HandleNavigateLeft(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke("NavigateLeft");
-        }
 
-        private void HandleNavigateRight(InputAction.CallbackContext ctx)
-        {
-            if (ShouldBlockInput("NavigateRight"))
-            {
-                return;
-            }
+        private void HandleNavigateRight(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke("NavigateRight");
-        }
 
-        private void HandleStart(InputAction.CallbackContext ctx)
-        {
-            if (ShouldBlockInput("Start"))
-            {
-                return;
-            }
-            OnInput?.Invoke("Start");
-        }
+        private void HandleStart(InputAction.CallbackContext ctx) => OnInput?.Invoke("Start");
 
         /// <summary>
         /// Helper wrapping <see cref="UiChoiceHandler.HandleNavigation"/> that
