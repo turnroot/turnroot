@@ -8,14 +8,16 @@ using UnityEngine.UI;
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 {
     [RequireComponent(typeof(Shop))]
-    public class ShopUi : MonoBehaviour
+    public partial class ShopUi : MonoBehaviour
     {
         public Shop ShopData => GetComponent<Shop>();
+
+        private Brain.Brain brain;
 
         [HideInInspector]
         public ShopItemUiRefs[] ItemUiRefs;
 
-        private UiChoice[] itemChoices;
+        private System.Collections.Generic.List<UiChoice> itemChoices;
 
         [Header("UI References")]
         public UIFade ShopUiFade;
@@ -40,20 +42,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public float PageIndicatorSize = 30f;
         public int ItemsPerPage = 6;
 
+        public AudioSource PageChangeAudioSource;
+        public AudioClip PageChangeAudioClip;
+
+        private readonly System.Collections.Generic.List<GameObject> pageIndicatorObjects = new();
+
         private int totalPages;
         public int CurrentPage { get; private set; } = 0;
+
+        public int CurrentSelectionIndex { get; private set; } = 0;
 
         public void RefreshShopDisplay()
         {
             // Destroy previously instantiated item UI objects so they don't accumulate
-            // across visits to different shops.
+            // across visits to different shops
             ClearInstantiatedItems();
 
             if (ShopNameText != null)
+            {
                 ShopNameText.text = ShopData.ShopName ?? string.Empty;
+            }
+
             if (ShopDescriptionText != null)
+            {
                 ShopDescriptionText.text = ShopData.ShopDescription ?? string.Empty;
+            }
+
             var stock = ShopData.ItemsStocked;
+
+            ItemsPerPage = Mathf.Max(1, ItemsPerPage);
 
             if (stock == null || stock.Length == 0)
             {
@@ -61,19 +78,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 return;
             }
 
-            var brain = ShopData.brain;
+            brain = ShopData.brain;
             if (TotalGoldText != null && brain?.storehouseBrain != null)
+            {
                 TotalGoldText.text = $"Gold: {brain.storehouseBrain.PlayerGold}G";
+            }
             else if (TotalGoldText != null)
+            {
                 TotalGoldText.text = "Gold: ???";
+            }
 
-            itemChoices = new UiChoice[stock.Length];
+            itemChoices = new System.Collections.Generic.List<UiChoice>(stock.Length);
 
             for (var i = 0; i < stock.Length; i++)
             {
                 var item = stock[i];
                 if (item.Item == null)
+                {
                     continue;
+                }
 
                 if (item.UiRefs == null || item.UiRefs.ShopItemChoice == null)
                 {
@@ -86,195 +109,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     stock[i] = item;
                 }
 
-                if (item.UiRefs != null)
+                if (item.UiRefs != null && item.UiRefs.ShopItemChoice != null)
                 {
-                    itemChoices[i] = item.UiRefs.ShopItemChoice;
-                    // set up item,
-                    item.UiRefs.ItemNameText.text = item.Item.Name;
-                    if (item.Item.IsWeaponOrMagicSubtype())
-                    {
-                        item.UiRefs.ItemCategoryText.gameObject.SetActive(true);
-                        if (item.Item.WeaponType != null)
-                        {
-                            item.UiRefs.ItemCategoryText.text = item.Item.WeaponType.ToString();
-                            item.UiRefs.ItemIcon.sprite = item.Item.WeaponType.Icon;
-                        }
-                        else
-                        {
-                            item.UiRefs.ItemCategoryText.text = "???";
-                            item.UiRefs.ItemIcon.sprite = null;
-                        }
-                        if (item.Item.MinWeaponTypeAptitude != null)
-                        {
-                            item.UiRefs.LetterIcon.sprite =
-                                item.Item.MinWeaponTypeAptitude.GetLetterIcon();
-                            item.UiRefs.LetterIcon.color = Color.white;
-                        }
-                        else
-                        {
-                            item.UiRefs.LetterIcon.color = new Color(1, 1, 1, 0);
-                        }
-                    }
-                    else
-                    {
-                        item.UiRefs.ItemCategoryText.gameObject.SetActive(false);
-                        item.UiRefs.LetterIcon.color = new Color(1, 1, 1, 0); // hide letter icon for non-weapon items
-
-                        var itemTypeIcons = GamewideUiSettings.Instance.ItemTypeIcons;
-                        if (itemTypeIcons != null && itemTypeIcons.Length > 0)
-                        {
-                            var iconIndex = System.Array.FindIndex(
-                                itemTypeIcons,
-                                x => x.Subtype == item.Item.Subtype
-                            );
-
-                            if (iconIndex >= 0)
-                            {
-                                var iconEntry = itemTypeIcons[iconIndex];
-                                if (iconEntry.Icon != null)
-                                {
-                                    item.UiRefs.ItemIcon.sprite = iconEntry.Icon;
-                                }
-                                else
-                                {
-                                    item.UiRefs.ItemIcon.sprite = null;
-                                }
-                            }
-                            else
-                            {
-                                item.UiRefs.ItemIcon.sprite = null;
-                            }
-                        }
-                        else
-                        {
-                            item.UiRefs.ItemIcon.sprite = null; // no icon table provided
-                        }
-                    }
-                    item.UiRefs.PriceText.text = item.CurrentStatus.IsOnSale
-                        ? $"{item.SalePrice}G"
-                        : $"{item.Item.BasePrice}G";
-
-                    item.UiRefs.PriceText.color =
-                        (
-                            brain?.storehouseBrain != null
-                            && !brain.storehouseBrain.CanAfford(item.Item.BasePrice)
-                        )
-                            ? item.UiRefs.TooExpensivePriceColor
-                        : item.CurrentStatus.IsOnSale ? item.UiRefs.OnSalePriceColor
-                        : item.UiRefs.DefaultPriceColor;
-
-                    item.UiRefs.SaleBadge.gameObject.SetActive(item.CurrentStatus.IsOnSale);
-                    item.UiRefs.QuantityText.text =
-                        brain?.storehouseBrain != null
-                            ? $"Buy 1 of {item.CurrentStatus.AvailableQuantity}\nOwn: {brain.storehouseBrain.GetItemCountInStorehouse(item.Item)}"
-                            : $"Buy 1 of {item.CurrentStatus.AvailableQuantity}";
+                    itemChoices.Add(item.UiRefs.ShopItemChoice);
+                    ConfigureItemUi(item);
                 }
             }
             ShopData.ItemsStocked = stock;
             totalPages = Mathf.CeilToInt((float)ShopData.ItemsStocked.Length / ItemsPerPage);
             CurrentPage = 0;
 
-            // Ensure only first item is selected by default
-            for (var i = 0; i < itemChoices.Length; i++)
-            {
-                if (itemChoices[i] == null)
-                {
-                    continue;
-                }
-                if (i == 0)
-                {
-                    itemChoices[0].Select();
-                    HandeSelectedItem(ShopData.ItemsStocked[0]);
-                }
-                else
-                {
-                    itemChoices[i].Deselect();
-                }
-            }
-
-            // spawn a page indicator for each page, and set them all to inactive except the first one
-            for (var i = 0; i < totalPages; i++)
-            {
-                var pageIndicatorObj = new GameObject($"PageIndicator_{i}", typeof(Image));
-                pageIndicatorObj.transform.SetParent(PageIndicatorContainer.transform);
-                var image = pageIndicatorObj.GetComponent<Image>();
-                image.sprite =
-                    i == CurrentPage ? ActivePageIndicatorSprite : InactivePageIndicatorSprite;
-                var rectTransform = pageIndicatorObj.GetComponent<RectTransform>();
-                rectTransform.sizeDelta = new Vector2(PageIndicatorSize, PageIndicatorSize);
-            }
+            InitializePageIndicators();
+            UpdateVisiblePageItems();
+            RefreshSelection();
+            UpdatePaginationIndicators();
 
             ShopUiFade.Show();
-        }
-
-        public void HandeSelectedItem(ShopItem selectedItem)
-        {
-            if (selectedItem.Item == null)
-                return;
-
-            ItemDescriptionText.text = selectedItem.Item.FlavorText;
-            if (selectedItem.Item.IsWeaponOrMagicSubtype())
-            {
-                WeaponExtraDetails.SetActive(true);
-                WeaponMightText.text = $"{selectedItem.Item.Might}";
-                WeaponHitText.text = $"{selectedItem.Item.Hit}";
-                WeaponCritText.text = $"{selectedItem.Item.Critical}";
-                if (selectedItem.Item.IsWeaponOrMagicSubtypeAndIsDurability())
-                {
-                    WeaponDurabilityText.text += $"({selectedItem.Item.MaxUses})";
-                }
-                else
-                {
-                    WeaponDurabilityText.text = "--";
-                }
-            }
-            else
-            {
-                WeaponExtraDetails.SetActive(false);
-            }
-            if (selectedItem.Item.IsWeaponOrMagicSubtypeAndIsDurability())
-            {
-                WeaponDurabilityText.text += $"({selectedItem.Item.MaxUses})";
-            }
-            else
-            {
-                WeaponDurabilityText.text = "--";
-            }
-        }
-
-        private void ClearInstantiatedItems()
-        {
-            // Destroy all child item objects from the items container.
-            if (ItemsParentContainer != null)
-            {
-                for (int i = ItemsParentContainer.transform.childCount - 1; i >= 0; i--)
-                {
-                    Destroy(ItemsParentContainer.transform.GetChild(i).gameObject);
-                }
-            }
-
-            // Destroy all child page indicator objects.
-            if (PageIndicatorContainer != null)
-            {
-                for (int i = PageIndicatorContainer.transform.childCount - 1; i >= 0; i--)
-                {
-                    Destroy(PageIndicatorContainer.transform.GetChild(i).gameObject);
-                }
-            }
-
-            // Clear the cached UiRefs on each stocked item so they'll be re-created.
-            var stock = ShopData.ItemsStocked;
-            if (stock != null)
-            {
-                for (int i = 0; i < stock.Length; i++)
-                {
-                    var item = stock[i];
-                    item.UiRefs = null;
-                    stock[i] = item;
-                }
-            }
-
-            itemChoices = null;
         }
     }
 }

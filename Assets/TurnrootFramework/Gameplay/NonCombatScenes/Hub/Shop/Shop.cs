@@ -15,8 +15,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public AudioClip Audio;
     }
 
+    [RequireComponent(typeof(ShopUi))]
     public class Shop : MonoBehaviour
     {
+        public ShopUi Ui => GetComponent<ShopUi>();
         public ShopItem[] ItemsStocked;
         private Dictionary<ShopItem, int> currentStock = new();
 

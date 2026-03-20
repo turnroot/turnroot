@@ -110,6 +110,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (_waitingForShopExitDialogue)
             {
+                $"SpecificUiHandler: Ignoring input '{action}' while waiting for shop exit dialogue to finish.".LogInfo();
                 // Ignore input while waiting for the exit dialogue to finish.
                 return;
             }
@@ -139,6 +140,46 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
 
                 CompleteShopExit();
+            }
+            if (action is InputActionConstants.NavigateRight or InputActionConstants.NavigateLeft)
+            {
+                // shop?
+                // increase or decrease the buying quantity of the selected item
+                // also increase the price text to match
+                // increase up to available quantity or decrease down to 0 or increase up to maximum buying power (whichever is smaller)
+                if (_activeShop != null)
+                {
+                    _activeShop.Ui.HandleQuantityChangeInput(action);
+                }
+            }
+            if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
+            {
+                // shop?
+                // move up or down item list
+                if (_activeShop != null)
+                {
+                    _activeShop.Ui.HandleItemChangeInput(action);
+                }
+            }
+            if (action == InputActionConstants.Submit || action == InputActionConstants.Select)
+            {
+                // shop?
+                // confirm the purchase of the currently selected item and quantity
+                if (_activeShop != null)
+                {
+                    $"SpecificUiHandler: Received purchase confirmation input for active shop '{_activeShop.name}'".LogInfo();
+                    _activeShop.Ui.HandlePurchaseConfirmationInput();
+                }
+            }
+            if (action is InputActionConstants.ScrollLeft or InputActionConstants.ScrollRight)
+            {
+                // shop?
+                // change the page
+                if (_activeShop != null)
+                {
+                    $"SpecificUiHandler: Received page change input '{action}' for active shop '{_activeShop.name}'".LogInfo();
+                    _activeShop.Ui.ChangePageInput(action);
+                }
             }
         }
 
