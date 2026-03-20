@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.UI.Components.Menu;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Turnroot.UI.Components.GridMenu
 {
@@ -13,22 +12,11 @@ namespace Turnroot.UI.Components.GridMenu
         [Min(1)]
         public int Columns = 1;
 
-        public InputActionReference NavigateLeftAction;
-        public InputActionReference NavigateRightAction;
         private int _selectedIndex = -1;
-
-        private InputAction GetNavigateLeftAction() =>
-            NavigateLeftAction?.action ?? UIInputActionDefaults.NavigateLeft;
-
-        private InputAction GetNavigateRightAction() =>
-            NavigateRightAction?.action ?? UIInputActionDefaults.NavigateRight;
 
         protected override void Awake()
         {
             base.Awake();
-
-            UIInputActionDefaults.WhenInitialized(EnableNavigateActions);
-            EnableNavigateActions();
 
             // Keep MenuBase informed when pointer hovers items so we can track hover-based selection
             OnNavigate += HandleNavigateTo;
@@ -37,7 +25,6 @@ namespace Turnroot.UI.Components.GridMenu
         protected override void OnEnable()
         {
             base.OnEnable();
-            EnableNavigateActions();
         }
 
         protected override void OnDisable()
@@ -45,23 +32,6 @@ namespace Turnroot.UI.Components.GridMenu
             base.OnDisable();
 
             OnNavigate -= HandleNavigateTo;
-        }
-
-        private void OnDestroy()
-        {
-            UIInputActionDefaults.RemoveInitializedHandler(EnableNavigateActions);
-        }
-
-        private void EnableNavigateActions()
-        {
-            GetNavigateLeftAction()?.Enable();
-            GetNavigateRightAction()?.Enable();
-        }
-
-        private void DisableNavigateActions()
-        {
-            // Shared input actions should remain enabled; navigation should be filtered
-            // by the active menu/context instead of disabling the action.
         }
 
         // Grid structure (rows of indices) built from item positions; used for smarter navigation

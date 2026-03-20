@@ -117,7 +117,7 @@ namespace Turnroot.Characters
 
         public int GetMaxRange()
         {
-            int maxRange = settings.UnitCanAttackWithoutWeapons ? 1 : 0;
+            int maxRange = (settings?.UnitCanAttackWithoutWeapons ?? false) ? 1 : 0;
             if (RangeWeaponsCache != null && RangeWeaponsCache.Count > 0)
             {
                 foreach (var weapon in RangeWeaponsCache)

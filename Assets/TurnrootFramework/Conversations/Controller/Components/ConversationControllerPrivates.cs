@@ -99,6 +99,7 @@ namespace Turnroot.Conversations
                 : RunLinearConversation(conversation, sceneFlow);
 
             instance?.OnConversationFinished?.Invoke();
+            UnsubscribeAdvanceInput();
             OnAnyConversationFinished?.Invoke();
 
             // Complete any battle scene interrupt that was waiting for this conversation
@@ -266,10 +267,6 @@ namespace Turnroot.Conversations
         private void OnDestroy()
         {
             CleanupTweens();
-            if (Instance == this)
-            {
-                Instance = null;
-            }
         }
 
         private void CleanupTweens() => CancelActiveTweens();

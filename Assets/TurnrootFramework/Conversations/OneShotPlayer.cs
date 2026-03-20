@@ -1,4 +1,3 @@
-using System.Linq;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -6,7 +5,7 @@ namespace Turnroot.Conversations
 {
     /// <summary>
     /// Helper component for playing single-shot flavor dialogue (OneShot) without needing a full Conversation flow.
-    /// Uses ConversationController.Instance to render the UI and play the line.
+    /// Finds the scene's ConversationController to render the UI and play the line.
     /// Optionally plays audio using an AudioSource.
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
@@ -19,7 +18,6 @@ namespace Turnroot.Conversations
 
         private void Awake()
         {
-            _controller = ConversationController.Instance;
             _audioSource ??= GetComponent<AudioSource>();
             if (_audioSource != null)
             {
@@ -43,21 +41,14 @@ namespace Turnroot.Conversations
                 _audioSource.PlayOneShot(oneShot.Audio);
             }
 
-            var controller = _controller ?? ConversationController.Instance;
-            if (controller == null)
+            // Use Unity-aware bool check (!_controller) instead of == null
+            // to detect destroyed-but-not-GC'd objects across scene transitions.
+            if (!_controller)
             {
-                controller = FindFirstObjectByType<ConversationController>();
-                if (controller == null)
-                {
-                    controller = Resources
-                        .FindObjectsOfTypeAll<ConversationController>()
-                        .FirstOrDefault();
-                }
-
-                _controller = controller;
+                _controller = FindFirstObjectByType<ConversationController>();
             }
 
-            if (controller == null)
+            if (!_controller)
             {
                 "OneShotPlayer: ConversationController instance not found. Ensure a ConversationController exists in the scene.".LogWarning();
 
@@ -66,7 +57,7 @@ namespace Turnroot.Conversations
 
             $"OneShotPlayer: calling PlayOneShot (dialogue='{oneShot.Dialogue}', speaker='{oneShot.SpeakerName}').".LogInfo();
 
-            controller.PlayOneShot(oneShot);
+            _controller.PlayOneShot(oneShot);
         }
     }
 }

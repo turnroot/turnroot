@@ -230,9 +230,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 case HubSublocationName.Market:
                     _shop = TryGetComponent<Shop.Shop>(out var shop) ? shop : null;
-                    if (_shop?.ShopOpen(hubmanager.gameDate) == false)
+                    if (
+                        _shop == null
+                        || (hubmanager != null && !_shop.ShopOpen(hubmanager.gameDate))
+                    )
                     {
-                        LabelText = "Not Open";
+                        LabelText = _shop == null ? "Unavailable" : "Not Open";
                         CanSelect = false;
                         SetBadgeTexture(ForbiddenBadgeTexture);
                         SetLabel(LabelText);
@@ -366,6 +369,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #region Selection
         public void Select()
         {
+            if (hubmanager == null)
+            {
+                $"HubPoiUi: No HubManager found for {name}, cannot select.".LogWarning();
+                return;
+            }
+
             UiFx?.PlayOneShot(PoiSelectSound);
 
             var subLocation = GetComponentInParent<HubSubLocation>();
@@ -400,7 +409,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 if (MoveCameraOnSelect)
                 {
-                    if (GameplayPlayerSettings.Instance.AnimatedCameraMovement)
+                    if (
+                        hubmanager._brain?.cameraBrain != null
+                        && GameplayPlayerSettings.Instance.AnimatedCameraMovement
+                    )
                     {
                         hubmanager._brain.cameraBrain.StartCameraTransition(
                             hubmanager.GeneralCamera,
@@ -408,7 +420,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                             fadeDuration
                         );
                     }
-                    else
+                    else if (hubmanager._brain?.cameraBrain != null)
                     {
                         hubmanager._brain.cameraBrain.MoveCameraInstant(
                             hubmanager.GeneralCamera,

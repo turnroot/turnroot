@@ -183,13 +183,6 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 radial.uiBrain = _brain;
                 radial.OnItemSelected += itemHandler;
-
-                // RadialMenu uses InputActionReferences for binding, but we want it to fall back
-                // to the shared default Select action when the reference is missing.
-                if (radial.selectAction == null || radial.selectAction.action == null)
-                {
-                    // Nothing to do here; RadialMenu will use UIInputActionDefaults.Select internally.
-                }
             }
 
             _brain.SetupSettingsUIBindings(instance);

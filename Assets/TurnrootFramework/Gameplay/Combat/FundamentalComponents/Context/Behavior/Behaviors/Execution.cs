@@ -49,7 +49,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    context.EndTurn();
                     context.AttackTarget(
                         _context.Unit.UnitInstance,
                         goal.Target,

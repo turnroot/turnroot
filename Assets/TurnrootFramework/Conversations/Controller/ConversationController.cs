@@ -17,11 +17,6 @@ namespace Turnroot.Conversations
     /// </summary>
     public partial class ConversationController : MonoBehaviour
     {
-        /// <summary>
-        /// Global access to the active ConversationController in the scene.
-        /// </summary>
-        public static ConversationController Instance { get; private set; }
-
         private Coroutine _conversationRoutine;
         private int _tweenRunId;
         private readonly List<Coroutine> _activeTweens = new();
@@ -128,31 +123,39 @@ namespace Turnroot.Conversations
 
         private void Awake()
         {
-            Instance ??= this;
             EnsureAudioSource();
             OnAwake?.Invoke();
         }
 
-        private void OnEnable()
-        {
-            Instance ??= this;
+        private bool _inputSubscribed;
 
+        private void SubscribeAdvanceInput()
+        {
+            if (_inputSubscribed)
+                return;
             var action = UIInputActionDefaults.Select;
             if (action != null)
             {
                 action.performed += OnAdvanceInputPerformed;
-                action.Enable();
+                _inputSubscribed = true;
             }
         }
 
-        private void OnDisable()
+        private void UnsubscribeAdvanceInput()
         {
+            if (!_inputSubscribed)
+                return;
             var action = UIInputActionDefaults.Select;
             if (action != null)
             {
                 action.performed -= OnAdvanceInputPerformed;
-                action.Disable();
             }
+            _inputSubscribed = false;
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeAdvanceInput();
 
             CleanupTweens();
 
@@ -171,8 +174,15 @@ namespace Turnroot.Conversations
 
         private void OnAdvanceInputPerformed(InputAction.CallbackContext context)
         {
-            // Only advance while the conversation UI is active.
             if (!gameObject.activeInHierarchy)
+                return;
+
+            // Only advance when a conversation or one-shot is actually in progress.
+            if (
+                _activeOneShotLayer == null
+                && _activeBranchingLayer == null
+                && SelectedConversation?.CurrentLayer == null
+            )
             {
                 return;
             }
@@ -319,6 +329,7 @@ namespace Turnroot.Conversations
             OnAnyConversationStart?.Invoke();
 
             _runningInstance = instance;
+            SubscribeAdvanceInput();
             _conversationRoutine = StartCoroutine(RunConversation(instance));
         }
 
@@ -390,6 +401,7 @@ namespace Turnroot.Conversations
                 _oneShotRoutine = null;
             }
 
+            SubscribeAdvanceInput();
             _oneShotRoutine = StartCoroutine(RunOneShot(oneShot));
         }
 
@@ -472,6 +484,7 @@ namespace Turnroot.Conversations
 
             _activeOneShotLayer = null;
             _oneShotRoutine = null;
+            UnsubscribeAdvanceInput();
             OnAnyConversationFinished?.Invoke();
             HideConversationUI();
         }

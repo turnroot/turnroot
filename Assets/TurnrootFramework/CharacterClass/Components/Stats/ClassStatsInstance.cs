@@ -48,7 +48,7 @@ namespace Turnroot.Characters.CharacterClass
                 character
             );
 
-            if (classData?.Mastery?.InnateSkills != null)
+            if (classData?.Mastery?.InnateSkills != null && character.SkillInstances != null)
             {
                 foreach (var skill in classData.Mastery.InnateSkills)
                 {
@@ -58,7 +58,7 @@ namespace Turnroot.Characters.CharacterClass
                     }
 
                     var exists =
-                        character.SkillInstances?.Find(s => s.SkillTemplate == skill) != null;
+                        character.SkillInstances.Find(s => s.SkillTemplate == skill) != null;
                     if (!exists)
                     {
                         character.AddSkill(skill);

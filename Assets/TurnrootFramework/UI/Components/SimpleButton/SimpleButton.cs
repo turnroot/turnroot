@@ -29,9 +29,6 @@ namespace Turnroot.UI.Components.SimpleButton
         [HideInInspector]
         public InputAction SelectAction;
 
-        [Header("Input")]
-        public InputActionReference SelectActionReference;
-
         public event Action OnSelected;
         public SimpleButtonRole Role;
 
@@ -50,7 +47,15 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private InputAction GetEffectiveSelectAction()
         {
-            return SelectAction ?? SelectActionReference?.action;
+            if (SelectAction != null)
+                return SelectAction;
+
+            return Role switch
+            {
+                SimpleButtonRole.Back => UIInputActionDefaults.Back,
+                SimpleButtonRole.Details => UIInputActionDefaults.ToggleDetails,
+                _ => UIInputActionDefaults.Select,
+            };
         }
 
         private void SubscribeToSelectAction()
@@ -88,7 +93,8 @@ namespace Turnroot.UI.Components.SimpleButton
                 || action == UIInputActionDefaults.Cancel
                 || action == UIInputActionDefaults.Menu
                 || action == UIInputActionDefaults.Navigate
-                || action == UIInputActionDefaults.RotateCamera;
+                || action == UIInputActionDefaults.RotateCamera
+                || action == UIInputActionDefaults.ToggleDetails;
         }
 
         private void UnsubscribeFromSelectAction()

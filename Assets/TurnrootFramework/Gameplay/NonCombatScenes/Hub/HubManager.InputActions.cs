@@ -157,6 +157,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var tracker = _brain?.uiBrain?.GetMenuTracker();
             if (tracker != null)
             {
+                // Unsubscribe any existing handler to prevent leaks from double-open.
+                if (_menuDepthChangedHandler != null)
+                {
+                    tracker.OnDepthChanged -= _menuDepthChangedHandler;
+                }
+
                 _menuDepthChangedHandler = () =>
                 {
                     if (tracker.CurrentDepth == 0)

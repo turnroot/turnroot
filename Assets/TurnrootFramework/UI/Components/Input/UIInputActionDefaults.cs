@@ -49,6 +49,7 @@ namespace Turnroot.UI
         public static InputAction RotateCamera;
         public static InputAction RotateMapCamera; // legacy alias
         public static InputAction Start;
+        public static InputAction ToggleDetails;
 
         private static bool _enforceActionsAlwaysEnabled;
 
@@ -64,7 +65,8 @@ namespace Turnroot.UI
             InputActionReference cancel,
             InputActionReference menu,
             InputActionReference rotateCamera,
-            InputActionReference start
+            InputActionReference start,
+            InputActionReference toggleDetails
         )
         {
             Select = select?.action;
@@ -80,6 +82,7 @@ namespace Turnroot.UI
             Menu = menu?.action;
             RotateCamera = rotateCamera?.action;
             Start = start?.action;
+            ToggleDetails = toggleDetails?.action;
 
             // Always keep the shared UI actions enabled and prevent any other code
             // from disabling them.
@@ -127,6 +130,7 @@ namespace Turnroot.UI
             TryEnable(Menu);
             TryEnable(RotateCamera);
             TryEnable(Start);
+            TryEnable(ToggleDetails);
         }
 
         private static void EnsureSharedActionsStayEnabled()
@@ -176,7 +180,8 @@ namespace Turnroot.UI
                 || action == Cancel
                 || action == Menu
                 || action == RotateCamera
-                || action == Start;
+                || action == Start
+                || action == ToggleDetails;
         }
     }
 }

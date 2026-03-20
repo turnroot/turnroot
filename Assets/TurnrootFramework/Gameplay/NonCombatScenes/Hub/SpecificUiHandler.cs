@@ -1,4 +1,5 @@
 using Turnroot.Conversations;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
@@ -21,28 +22,46 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         // Used to pause the back/exit behavior until the shop exit dialogue finishes.
         private bool _waitingForShopExitDialogue;
 
+        // Stored reference so unsubscribe always targets the same object we subscribed to.
+        private ConversationController _subscribedController;
+
         private void Awake()
         {
             hubManager = GetComponent<HubManager>();
         }
 
-        private void OnEnable()
+        private void OnDisable()
         {
-            if (ConversationController.Instance != null)
+            UnsubscribeFromConversationFinished();
+        }
+
+        private ConversationController FindConversationController()
+        {
+            return FindFirstObjectByType<ConversationController>();
+        }
+
+        private void SubscribeToConversationFinished()
+        {
+            var cc = FindConversationController();
+            if (cc != null)
             {
-                ConversationController.Instance.OnAnyConversationFinished.AddListener(
-                    OnConversationFinished
-                );
+                _subscribedController = cc;
+                cc.OnAnyConversationFinished.AddListener(OnConversationFinished);
+            }
+            else
+            {
+                "SpecificUiHandler: No ConversationController found — exit dialogue completion will not be detected.".LogWarning();
             }
         }
 
-        private void OnDisable()
+        private void UnsubscribeFromConversationFinished()
         {
-            if (ConversationController.Instance != null)
+            if (_subscribedController != null)
             {
-                ConversationController.Instance.OnAnyConversationFinished.RemoveListener(
+                _subscribedController.OnAnyConversationFinished.RemoveListener(
                     OnConversationFinished
                 );
+                _subscribedController = null;
             }
         }
 
@@ -54,6 +73,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _waitingForShopExitDialogue = false;
+            UnsubscribeFromConversationFinished();
             CompleteShopExit();
         }
 
@@ -76,13 +96,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (newShop != null && newShop != _activeShop)
             {
                 _activeShop = newShop;
+                // NotifyShopVisited already plays the welcome dialogue internally.
                 _activeShop.NotifyShopVisited();
-
-                var welcome = _activeShop.GetRandomWelcomeOneShot();
-                if (!string.IsNullOrWhiteSpace(welcome.Dialogue))
-                {
-                    ConversationController.Instance?.PlayOneShot(welcome);
-                }
             }
             else if (newShop == null)
             {
@@ -104,16 +119,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 // If we are currently inside a shop, play the exit dialogue first.
                 if (_activeShop != null)
                 {
-                    // Decide whether we have an exit dialogue to play.
+                    // Check whether the shop has a farewell dialogue.
                     var exitOneShot = _activeShop.GetRandomFarewellOneShot();
                     bool hasExitDialogue = !string.IsNullOrWhiteSpace(exitOneShot.Dialogue);
 
+                    // NotifyShopExited already plays the farewell dialogue internally.
                     _activeShop.NotifyShopExited();
 
-                    if (hasExitDialogue && ConversationController.Instance != null)
+                    if (hasExitDialogue)
                     {
+                        // Subscribe now — guaranteed ConversationController.Instance exists
+                        // because NotifyShopExited just used it to play the dialogue.
                         _waitingForShopExitDialogue = true;
-                        ConversationController.Instance.PlayOneShot(exitOneShot);
+                        SubscribeToConversationFinished();
                         return;
                     }
 
@@ -126,6 +144,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void CompleteShopExit()
         {
+            // Hide the shop UI before clearing the shop reference.
+            if (_activeShop != null && _activeShop.TryGetComponent<Shop.ShopUi>(out var shopUi))
+            {
+                shopUi.ShopUiFade.Hide();
+            }
+
             // Restore the camera to the last user-controlled position/rotation (before selecting a POI)
             if (hasSavedCameraTransform && hubManager?.GeneralCamera != null)
             {

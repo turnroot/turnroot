@@ -71,6 +71,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
         }
 
+        public void Cleanup()
+        {
+            if (_context?.Brain != null)
+            {
+                _context.Brain.OnUnitTurnEnded -= HandleUnitTurnEnded;
+            }
+        }
+
         private void HandleUnitTurnEnded(CharacterInstance unit)
         {
             // If the unit ending its turn is the one this helper is currently tracking, record position

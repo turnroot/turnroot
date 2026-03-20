@@ -76,24 +76,49 @@ namespace Turnroot.Characters.CharacterClass
             {
                 if (minimum.value > 0)
                 {
-                    var stat = character.GetUnboundedStat(minimum.unboundedStatType);
-                    if (stat != null && stat.Current < minimum.value)
+                    if (minimum.isBounded)
                     {
-                        float oldVal = stat.Current;
-                        stat.SetCurrent(minimum.value);
-                        float newVal = stat.Current;
-
-                        if (logChanges)
+                        var stat = character.GetBoundedStat(minimum.boundedStatType);
+                        if (stat != null && stat.Current < minimum.value)
                         {
-                            $"Enforced minimum: {minimum.unboundedStatType} raised to {minimum.value}".LogInfo();
-                        }
+                            float oldVal = stat.Current;
+                            stat.SetCurrent(minimum.value);
+                            float newVal = stat.Current;
 
-                        brain?.PublishCharacterUnboundedStatChanged(
-                            character,
-                            minimum.unboundedStatType,
-                            oldVal,
-                            newVal
-                        );
+                            if (logChanges)
+                            {
+                                $"Enforced minimum: {minimum.boundedStatType} raised to {minimum.value}".LogInfo();
+                            }
+
+                            brain?.PublishCharacterBoundedStatChanged(
+                                character,
+                                minimum.boundedStatType,
+                                oldVal,
+                                newVal
+                            );
+                        }
+                    }
+                    else
+                    {
+                        var stat = character.GetUnboundedStat(minimum.unboundedStatType);
+                        if (stat != null && stat.Current < minimum.value)
+                        {
+                            float oldVal = stat.Current;
+                            stat.SetCurrent(minimum.value);
+                            float newVal = stat.Current;
+
+                            if (logChanges)
+                            {
+                                $"Enforced minimum: {minimum.unboundedStatType} raised to {minimum.value}".LogInfo();
+                            }
+
+                            brain?.PublishCharacterUnboundedStatChanged(
+                                character,
+                                minimum.unboundedStatType,
+                                oldVal,
+                                newVal
+                            );
+                        }
                     }
                 }
             }

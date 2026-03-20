@@ -84,8 +84,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopVisited()
         {
-            Debug.Log($"Shop '{name}': NotifyShopVisited called.");
+            $"Shop '{name}': NotifyShopVisited called.".LogInfo();
             GetBrain()?.PublishShopVisited(this);
+
+            // Guard: nothing to sell or show if there are no items
+            if (ItemsStocked == null || ItemsStocked.Length == 0)
+            {
+                $"Shop '{name}': No items stocked, skipping display.".LogInfo();
+                return;
+            }
+
             // Ensure shop stock is refreshed from LongTermMemory on every visit,
             // even on the same calendar day.
             var brain = GetBrain();
@@ -123,36 +131,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopExited()
         {
-            Debug.Log($"Shop '{name}': NotifyShopExited called.");
+            $"Shop '{name}': NotifyShopExited called.".LogInfo();
             GetBrain()?.PublishShopExited(this);
 
             var farewellOneShot = GetRandomFarewellOneShot();
             var shopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
-            var conversationController =
-                ConversationController.Instance ?? FindFirstObjectByType<ConversationController>();
 
             if (!string.IsNullOrWhiteSpace(farewellOneShot.Dialogue))
             {
-                Debug.Log($"Shop '{name}': farewell dialogue exists, shopUi={(shopUi != null)}");
+                $"Shop '{name}': farewell dialogue exists, shopUi={(shopUi != null)}".LogInfo();
                 // Let SpecificUiHandler handle OnAnyConversationFinished for shop exit cleanup.
 
                 var player = GetOrCreateOneShotPlayer();
                 if (player == null)
                 {
                     "Shop: Could not create OneShotPlayer for dialogue playback.".LogWarning();
-                    Debug.LogWarning($"Shop '{name}': player is null, hiding shop UI immediately.");
+                    $"Shop '{name}': player is null, hiding shop UI immediately.".LogWarning();
                     shopUi?.ShopUiFade.Hide();
                     return;
                 }
 
-                Debug.Log($"Shop '{name}': playing farewell one-shot dialogue.");
+                $"Shop '{name}': playing farewell one-shot dialogue.".LogInfo();
                 player.PlayOneShot(farewellOneShot);
             }
             else
             {
                 $"Shop '{name}': No farewell dialogue to play".LogInfo();
-                Debug.Log($"Shop '{name}': no farewell dialogue, hiding shop UI now.");
-                shopUi?.ShopUiFade.Hide();
+                // No farewell dialogue — SpecificUiHandler.CompleteShopExit will hide the UI.
             }
         }
 
@@ -239,6 +244,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public string RefreshShopForNewDay(GameDate currentDay)
         {
+            if (ItemsStocked == null || ItemsStocked.Length == 0)
+                return "";
+
             var brain = GetBrain();
             bool hasSavedShopStock = HubDayStateStore.HasShopStock(name);
             bool isDailyUpdateAlreadyProcessed = HubDayStateStore.HasProcessedDailyUpdates;

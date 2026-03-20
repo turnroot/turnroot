@@ -70,13 +70,6 @@ namespace Turnroot.UI.Components.RadialMenu
         [SerializeField]
         private float inputRepeatDelay = 0.2f;
 
-        [Header("Input Actions")]
-        [SerializeField]
-        public InputActionReference navigateAction;
-
-        [SerializeField]
-        public InputActionReference selectAction;
-
         private int _selectedIndex = 0;
         private bool _centerSelected = false;
         private float _rotStep;
@@ -91,12 +84,6 @@ namespace Turnroot.UI.Components.RadialMenu
         /// Passes the menu instance so managers can subscribe and act on it.
         /// </summary>
         public event Action<RadialMenu> OnMenuReady;
-
-        private InputAction GetNavigateInputAction() =>
-            navigateAction?.action ?? UIInputActionDefaults.Navigate;
-
-        private InputAction GetSelectInputAction() =>
-            selectAction?.action ?? UIInputActionDefaults.Select;
 
         private void Awake()
         {
@@ -133,28 +120,11 @@ namespace Turnroot.UI.Components.RadialMenu
                 _canvasGroup.blocksRaycasts = false;
                 _canvasGroup.interactable = false;
             }
-
-            // Make sure input actions are enabled once the input system is initialized.
-            UIInputActionDefaults.WhenInitialized(EnableInputActions);
-            EnableInputActions();
         }
 
-        private void OnEnable()
-        {
-            EnableInputActions();
-        }
+        private void OnEnable() { }
 
-        private void OnDisable()
-        {
-            // Keep the input actions enabled so they remain available globally.
-            // Context should decide what to do with input events.
-        }
-
-        private void EnableInputActions()
-        {
-            GetNavigateInputAction()?.Enable();
-            GetSelectInputAction()?.Enable();
-        }
+        private void OnDisable() { }
 
         private void Start() => Canvas.willRenderCanvases += OnFirstRender;
 
@@ -173,13 +143,11 @@ namespace Turnroot.UI.Components.RadialMenu
         private void OnDestroy()
         {
             Canvas.willRenderCanvases -= OnFirstRender;
-            var select = GetSelectInputAction();
+            var select = UIInputActionDefaults.Select;
             if (select != null)
             {
                 select.performed -= OnSelectPerformed;
             }
-
-            UIInputActionDefaults.RemoveInitializedHandler(EnableInputActions);
         }
 
         private void InitializeMenu()
@@ -214,7 +182,7 @@ namespace Turnroot.UI.Components.RadialMenu
                 SetupCenterItem();
             }
 
-            var select = GetSelectInputAction();
+            var select = UIInputActionDefaults.Select;
             if (select != null)
             {
                 select.performed += OnSelectPerformed;

@@ -24,6 +24,9 @@ namespace Turnroot.UI
         public InputActionReference RotateCamera;
         public InputActionReference Start;
 
+        [Header("Battle Action References")]
+        public InputActionReference ToggleDetails;
+
         protected override void Awake()
         {
             base.Awake();
@@ -54,7 +57,8 @@ namespace Turnroot.UI
                 Cancel,
                 Menu,
                 RotateCamera,
-                Start
+                Start,
+                ToggleDetails
             );
 
             // Enable everything immediately so all consumers can listen to all actions.
@@ -94,6 +98,7 @@ namespace Turnroot.UI
             TryEnable(UIInputActionDefaults.Menu);
             TryEnable(UIInputActionDefaults.RotateCamera);
             TryEnable(UIInputActionDefaults.Start);
+            TryEnable(UIInputActionDefaults.ToggleDetails);
         }
     }
 }
