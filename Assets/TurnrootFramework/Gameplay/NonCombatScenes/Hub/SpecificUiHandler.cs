@@ -115,7 +115,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (action == "Back")
+            if (action == "Back" || action == InputActionConstants.Cancel)
             {
                 // If we are currently inside a shop, play the exit dialogue first.
                 if (_activeShop != null)

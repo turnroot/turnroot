@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
@@ -52,7 +53,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (hubManager == null)
                 hubManager = GetComponent<HubManager>();
 
-            if (action == "Select")
+            if (
+                action == InputActionConstants.Select
+                || action == InputActionConstants.Start
+                || action == InputActionConstants.Submit
+                || action == InputActionConstants.Confirm
+            )
             {
                 // check if there is a highlighted POI and can be selected
                 if (targetCollider != null)
@@ -65,7 +71,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
-            if (action == "Back")
+            if (action == "Back" || action == InputActionConstants.Cancel)
             {
                 hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
             }

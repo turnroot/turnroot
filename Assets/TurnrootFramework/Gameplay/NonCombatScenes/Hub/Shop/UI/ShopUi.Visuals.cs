@@ -11,11 +11,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
     [RequireComponent(typeof(Shop))]
     public partial class ShopUi : MonoBehaviour
     {
-        private void ConfigureItemUi(ShopItem item)
+        private bool CanBuy = true;
+
+        private void ConfigureItemUi(ShopItem item, int SelectionCount)
         {
+            CanBuy = true;
             if (item.Item == null || item.UiRefs == null)
             {
                 return;
+            }
+
+            if (SelectionCount >= item.CurrentStatus.AvailableQuantity)
+            {
+                SelectionCount = item.CurrentStatus.AvailableQuantity;
+                SelectionCountCache = SelectionCount;
+            }
+
+            if (SelectionCount <= 0)
+            {
+                SelectionCount = 1;
+                SelectionCountCache = SelectionCount;
             }
 
             ItemDescriptionText.text = item.Item.FlavorText;
@@ -109,23 +124,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
 
             item.UiRefs.PriceText.text = item.CurrentStatus.IsOnSale
-                ? $"{item.SalePrice}G"
-                : $"{item.Item.BasePrice}G";
+                ? $"{item.SalePrice * SelectionCount}G"
+                : $"{item.Item.BasePrice * SelectionCount}G";
 
             item.UiRefs.PriceText.color =
                 (
                     brain?.storehouseBrain != null
-                    && !brain.storehouseBrain.CanAfford(item.Item.BasePrice)
+                    && !brain.storehouseBrain.CanAfford(item.Item.BasePrice * SelectionCount)
                 )
                     ? item.UiRefs.TooExpensivePriceColor
                 : item.CurrentStatus.IsOnSale ? item.UiRefs.OnSalePriceColor
                 : item.UiRefs.DefaultPriceColor;
 
+            if (item.UiRefs.TooExpensivePriceColor == item.UiRefs.PriceText.color)
+            {
+                CanBuy = false;
+            }
+
             item.UiRefs.SaleBadge.gameObject.SetActive(item.CurrentStatus.IsOnSale);
             item.UiRefs.QuantityText.text =
                 brain?.storehouseBrain != null
-                    ? $"Buy 1 of {item.CurrentStatus.AvailableQuantity}\nOwn: {brain.storehouseBrain.GetItemCountInStorehouse(item.Item)}"
-                    : $"Buy 1 of {item.CurrentStatus.AvailableQuantity}";
+                    ? $"Buy {SelectionCount} of {item.CurrentStatus.AvailableQuantity}\nOwn: {brain.storehouseBrain.GetItemCountInStorehouse(item.Item)}"
+                    : $"Buy {SelectionCount} of {item.CurrentStatus.AvailableQuantity}";
         }
 
         private void PlayPageChangeSound()
@@ -254,6 +274,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 else
                 {
                     itemChoices[i].Deselect();
+
+                    var uiRefs = itemChoices[i].GetComponent<ShopItemUiRefs>();
+                    if (uiRefs != null && uiRefs.QuantityText != null)
+                    {
+                        uiRefs.QuantityText.text = ""; // clear quantity text on deselect to avoid confusion about which item it applies to
+                    }
+                    else
+                    {
+                        $"ShopUi: Missing ShopItemUiRefs/QuantityText for deselected item at index {i}.".LogWarning();
+                    }
                 }
             }
         }

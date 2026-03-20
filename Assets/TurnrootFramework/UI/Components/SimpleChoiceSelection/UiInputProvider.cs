@@ -220,9 +220,11 @@ namespace Turnroot.UI
             }
         }
 
-        private void HandleSelect(InputAction.CallbackContext ctx) => OnInput?.Invoke("Select");
+        private void HandleSelect(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.Submit);
 
-        private void HandleBack(InputAction.CallbackContext ctx) => OnInput?.Invoke("Back");
+        private void HandleBack(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.Cancel);
 
         private void HandleNavigateUp(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke(InputActionConstants.NavigateUp);

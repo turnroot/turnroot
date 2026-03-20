@@ -94,6 +94,7 @@ namespace Turnroot.Graphics2D
                     ProcessInput(Vector2.right);
                     break;
                 case InputActionConstants.Submit:
+                case InputActionConstants.Select:
                     ProcessSelect();
                     break;
             }

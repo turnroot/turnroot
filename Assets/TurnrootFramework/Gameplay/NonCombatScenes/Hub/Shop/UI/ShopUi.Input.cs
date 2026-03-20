@@ -11,8 +11,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
     [RequireComponent(typeof(Shop))]
     public partial class ShopUi : MonoBehaviour
     {
+        private int SelectionCountCache = 1;
+
         public void HandleItemChangeInput(string action)
         {
+            SelectionCountCache = 1;
             if (itemChoices == null)
             {
                 $"ShopUi: No item choices available to change selection.".LogWarning();
@@ -72,6 +75,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void ChangePage(int page = 0)
         {
+            if (totalPages <= 1)
+            {
+                return;
+            }
             if (page == 0)
             {
                 page = CurrentPage;
@@ -99,7 +106,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             RefreshSelection();
         }
 
-        public void HandleQuantityChangeInput(string action) { }
+        public void HandleQuantityChangeInput(string action)
+        {
+            if (action == InputActionConstants.NavigateRight)
+            {
+                if (!CanBuy)
+                {
+                    return; // already can't afford the selected quantity so couldn't go higher anyway
+                }
+                SelectionCountCache++;
+            }
+            else if (action == InputActionConstants.NavigateLeft)
+            {
+                SelectionCountCache--;
+            }
+
+            ConfigureItemUi(ShopData.ItemsStocked[CurrentSelectionIndex], SelectionCountCache);
+        }
 
         public void HandlePurchaseConfirmationInput() { }
 
@@ -111,7 +134,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 return;
             }
 
-            ConfigureItemUi(selectedItem);
+            ConfigureItemUi(selectedItem, SelectionCountCache);
         }
     }
 }

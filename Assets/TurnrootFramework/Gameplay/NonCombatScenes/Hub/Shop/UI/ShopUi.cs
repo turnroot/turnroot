@@ -112,7 +112,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 if (item.UiRefs != null && item.UiRefs.ShopItemChoice != null)
                 {
                     itemChoices.Add(item.UiRefs.ShopItemChoice);
-                    ConfigureItemUi(item);
+                    ConfigureItemUi(item, SelectionCountCache);
                 }
             }
             ShopData.ItemsStocked = stock;
