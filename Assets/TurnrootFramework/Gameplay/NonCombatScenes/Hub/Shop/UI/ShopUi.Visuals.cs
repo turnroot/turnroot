@@ -163,12 +163,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         private void PlayPageChangeSound()
         {
-            if (PageChangeAudioSource == null || PageChangeAudioClip == null)
+            if (AudioPlayer == null || PageChangeAudioClip == null)
             {
                 return;
             }
 
-            PageChangeAudioSource.PlayOneShot(PageChangeAudioClip);
+            AudioPlayer.PlayOneShot(PageChangeAudioClip);
         }
 
         private void InitializePageIndicators()
@@ -279,7 +279,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 if (i == CurrentSelectionIndex)
                 {
                     itemChoices[i].Select();
-                    if (ShopData?.ItemsStocked != null && i < ShopData.ItemsStocked.Length)
+                    if (
+                        ShopData?.ItemsStocked != null
+                        && i < ShopData.ItemsStocked.Length
+                        && ShopData.ItemsStocked[i].Item != null
+                        && ShopData.ItemsStocked[i].UiRefs != null
+                    )
                     {
                         HandeSelectedItem(ShopData.ItemsStocked[i]);
                     }

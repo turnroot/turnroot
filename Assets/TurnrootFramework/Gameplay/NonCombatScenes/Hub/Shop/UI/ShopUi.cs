@@ -44,8 +44,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public float PageIndicatorSize = 30f;
         public int ItemsPerPage = 6;
 
-        public AudioSource PageChangeAudioSource;
+        public AudioSource AudioPlayer;
         public AudioClip PageChangeAudioClip;
+        public AudioClip NavigateAudioClip;
 
         private readonly System.Collections.Generic.List<GameObject> pageIndicatorObjects = new();
 

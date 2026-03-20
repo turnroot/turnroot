@@ -27,9 +27,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public CharacterData Shopkeeper;
 
         public ShopDialogue[] WelcomeDialogues;
+
+        private ShopDialogue[] cachedWelcomeDialogues;
         public ShopDialogue[] ShopKeeperSellsDialogues;
         public ShopDialogue[] ShopKeeperBuysDialogues;
         public ShopDialogue[] FarewellDialogues;
+
+        public string SoldOutDialogueText;
 
         private OneShot[] WelcomeDialogueConversations;
         private OneShot[] SellDialogueConversations;
@@ -50,11 +54,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void Awake()
         {
+            cachedWelcomeDialogues = WelcomeDialogues;
             WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
             SellDialogueConversations = ConvertToOneShots(ShopKeeperSellsDialogues);
             BuyDialogueConversations = ConvertToOneShots(ShopKeeperBuysDialogues);
             FarewellDialogueConversations = ConvertToOneShots(FarewellDialogues);
         }
+
+        public void OnDestroy() => WelcomeDialogues = cachedWelcomeDialogues;
 
         private OneShot[] ConvertToOneShots(ShopDialogue[] dialogues)
         {
@@ -284,6 +291,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
             }
 
+            var totalStock = 0;
             foreach (ShopItem item in ItemsStocked)
             {
                 // always evaluate sale status every display/refresh
@@ -296,6 +304,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
                 var status = item.CurrentStatus;
                 currentStock[item] = status.AvailableQuantity;
+                totalStock += status.AvailableQuantity;
 
                 // Persist the updated quantity into HubDayStateStore for this day.
                 if (brain != null)
@@ -314,6 +323,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 {
                     return $"A rare item is in stock at";
                 }
+            }
+            $"Shop '{name}': Total stock after refresh is {totalStock}.".LogInfo();
+            if (totalStock == 0)
+            {
+                var i = -1;
+                foreach (var dialogue in WelcomeDialogues)
+                {
+                    i++;
+                    var d = WelcomeDialogues[i];
+                    d.Dialogue = SoldOutDialogueText;
+                    WelcomeDialogues[i] = d;
+                }
+                WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
             }
             return "";
         }

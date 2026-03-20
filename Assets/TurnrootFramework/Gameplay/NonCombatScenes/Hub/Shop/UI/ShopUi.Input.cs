@@ -60,6 +60,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
             CurrentSelectionIndex = candidateIndex;
             RefreshSelection();
+            AudioPlayer.PlayOneShot(NavigateAudioClip);
         }
 
         public void ChangePageInput(string action)
@@ -123,6 +124,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
 
             ConfigureItemUi(ShopData.ItemsStocked[CurrentSelectionIndex], SelectionCountCache);
+            AudioPlayer.PlayOneShot(NavigateAudioClip);
         }
 
         public void HandlePurchaseConfirmationInput()
@@ -175,16 +177,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                         );
                     }
 
-                    if (item.CurrentStatus.AvailableQuantity <= 0)
-                    {
-                        // Remove out-of-stock items immediately from display.
-                        RefreshShopDisplay();
-                    }
-                    else
-                    {
-                        ConfigureItemUi(item, SelectionCountCache);
-                        RefreshShopDisplay();
-                    }
+                    // Rebuild UI after quantity update (handles sold-out removal and updates reliably).
+                    RefreshShopDisplay();
                 }
             }
         }
