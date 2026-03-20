@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
@@ -17,9 +18,7 @@ namespace Turnroot.Conversations
         {
             if (layer == null)
             {
-                UnityEngine.Debug.LogWarning(
-                    "ConversationControllerUI: UpdateUIForLayer called with null layer."
-                );
+                "ConversationControllerUI: UpdateUIForLayer called with null layer.".LogWarning();
                 return;
             }
 
@@ -29,17 +28,13 @@ namespace Turnroot.Conversations
             }
             else
             {
-                UnityEngine.Debug.LogWarning(
-                    "ConversationControllerUI: _dialogueText is not assigned."
-                );
+                "ConversationControllerUI: _dialogueText is not assigned.".LogWarning();
             }
 
             var activeSlot = layer.GetActiveSlot();
             if (activeSlot == null)
             {
-                UnityEngine.Debug.LogWarning(
-                    "ConversationControllerUI: Layer has no active speaker slot; skipping speaker name update."
-                );
+                "ConversationControllerUI: Layer has no active speaker slot; skipping speaker name update.".LogWarning();
             }
 
             if (_speakerNameText != null)
@@ -48,17 +43,13 @@ namespace Turnroot.Conversations
             }
             else
             {
-                UnityEngine.Debug.LogWarning(
-                    "ConversationControllerUI: _speakerNameText is not assigned."
-                );
+                "ConversationControllerUI: _speakerNameText is not assigned.".LogWarning();
             }
 
             var currentActiveSprite = layer.ActivePortrait?.SavedSprite ?? layer.PortraitSprite;
             if (_lastActiveSprite != currentActiveSprite)
             {
-                UnityEngine.Debug.Log(
-                    $"ConversationControllerUI: Setting portrait sprite to {currentActiveSprite?.name ?? "null"}."
-                );
+                $"ConversationControllerUI: Setting portrait sprite to {currentActiveSprite?.name ?? "null"}.".LogInfo();
                 ApplyPortraitForLayer(layer);
                 _lastActiveSprite = currentActiveSprite;
             }
@@ -86,9 +77,7 @@ namespace Turnroot.Conversations
 
             if (_speakerPortraitImageActive == null)
             {
-                UnityEngine.Debug.LogWarning(
-                    "ConversationControllerUI: _speakerPortraitImageActive is not assigned; cannot apply portrait."
-                );
+                "ConversationControllerUI: _speakerPortraitImageActive is not assigned; cannot apply portrait.".LogWarning();
                 return;
             }
 
@@ -217,9 +206,7 @@ namespace Turnroot.Conversations
             }
             else if (_speakerPortraitImageActive == null)
             {
-                UnityEngine.Debug.LogWarning(
-                    "ConversationControllerUI: _speakerPortraitImageActive is not assigned."
-                );
+                "ConversationControllerUI: _speakerPortraitImageActive is not assigned.".LogWarning();
             }
 
             if (_speakerPortraitImageInactive != null && _speakerPortraitImageInactive.enabled)
@@ -228,9 +215,7 @@ namespace Turnroot.Conversations
             }
             else if (_speakerPortraitImageInactive == null)
             {
-                UnityEngine.Debug.Log(
-                    "ConversationControllerUI: _speakerPortraitImageInactive is not assigned (this is valid for single‑portrait setups)."
-                );
+                "ConversationControllerUI: _speakerPortraitImageInactive is not assigned (this is valid for single‑portrait setups).".LogInfo();
             }
         }
 

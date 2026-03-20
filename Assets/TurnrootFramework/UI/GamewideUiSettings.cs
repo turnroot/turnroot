@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NaughtyAttributes;
+using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -99,6 +100,41 @@ namespace Turnroot.GameSettings
         ]
         public Sprite NoPortraitSprite;
 
+        [System.Serializable]
+        public class ItemTypeIcon
+        {
+            public ObjectSubtype Subtype;
+            public Sprite Icon;
+        }
+
+        [Header("Shop Item Type Icons"), Tooltip("Assign icons by object subtype.")]
+        public ItemTypeIcon[] ItemTypeIcons;
+
+        [System.Serializable]
+        public class LetterIconMapping
+        {
+            [Tooltip("Sprite for S-letter aptitude")]
+            public Sprite S;
+
+            [Tooltip("Sprite for A-letter aptitude")]
+            public Sprite A;
+
+            [Tooltip("Sprite for B-letter aptitude")]
+            public Sprite B;
+
+            [Tooltip("Sprite for C-letter aptitude")]
+            public Sprite C;
+
+            [Tooltip("Sprite for D-letter aptitude")]
+            public Sprite D;
+
+            [Tooltip("Sprite for E-letter aptitude")]
+            public Sprite E;
+        }
+
+        [Header("Aptitude Letter Icons")]
+        public LetterIconMapping LetterIcons = new LetterIconMapping();
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -137,9 +173,6 @@ namespace Turnroot.GameSettings
             _menuEntryCache[menuName] = entry;
             return entry;
         }
-
-        // Compatibility wrapper for legacy code using "GetMenuLocation".
-        public MenuEntry GetMenuLocation(MenuName menuName) => GetMenuEntry(menuName);
 
         public MenuEntry GetPreBattleMenu() => GetMenuEntry(MenuName.PreBattleMenu);
 

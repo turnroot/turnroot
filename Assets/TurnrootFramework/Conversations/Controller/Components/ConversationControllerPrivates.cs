@@ -47,7 +47,7 @@ namespace Turnroot.Conversations
 
         private static bool LogError(string message)
         {
-            message.LogError();
+            message.LogError("ConversationController.ValidateConversationStart");
             return false;
         }
 
@@ -123,7 +123,9 @@ namespace Turnroot.Conversations
             var nodes = conversation.GetGraphNodes();
             if (nodes == null || nodes.Count == 0)
             {
-                $"Branching conversation '{conversation.name}' has no nodes.".LogError();
+                $"Branching conversation '{conversation.name}' has no nodes.".LogError(
+                    "ConversationController.RunBranchingConversation"
+                );
                 ResetUI();
                 yield break;
             }

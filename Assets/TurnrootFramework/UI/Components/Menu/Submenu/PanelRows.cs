@@ -34,6 +34,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
             }
 
             Initialize();
+
+            UIInputActionDefaults.WhenInitialized(EnableInputActions);
+            EnableInputActions();
         }
 
         public void Initialize()
@@ -44,25 +47,24 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         private void OnEnable()
         {
-            UIInputActionDefaults.NavigateUp?.Enable();
-            UIInputActionDefaults.NavigateDown?.Enable();
-            // PanelRows currently uses a select action for confirming selection
-            UIInputActionDefaults.Select?.Enable();
+            EnableInputActions();
         }
 
         private void OnDisable()
         {
-            UIInputActionDefaults.NavigateUp?.Disable();
-            UIInputActionDefaults.NavigateDown?.Disable();
-            UIInputActionDefaults.Select?.Disable();
+            // Shared UI actions remain enabled globally; do not disable them here.
         }
 
         private void OnDestroy()
         {
-            // For shared UI input actions, we do not dispose them here.
-            UIInputActionDefaults.NavigateUp?.Disable();
-            UIInputActionDefaults.NavigateDown?.Disable();
-            UIInputActionDefaults.Select?.Disable();
+            UIInputActionDefaults.RemoveInitializedHandler(EnableInputActions);
+        }
+
+        private void EnableInputActions()
+        {
+            UIInputActionDefaults.NavigateUp?.Enable();
+            UIInputActionDefaults.NavigateDown?.Enable();
+            UIInputActionDefaults.Select?.Enable();
         }
 
         private void Update() => HandleInput();

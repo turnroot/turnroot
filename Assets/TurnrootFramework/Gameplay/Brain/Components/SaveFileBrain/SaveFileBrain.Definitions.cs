@@ -11,13 +11,6 @@ namespace Turnroot.Gameplay.Brain
         public Sprite AvatarPortrait;
         public AvatarBody AvatarBodyType;
         public int Progress;
-
-        // stored in UTC, never local time; ensures stable play‑time calculations across
-        // timezone changes and clock drift
-        // previously stored the last write timestamp; now unused because
-        // playtime is tracked using delta time.  kept here in case legacy
-        // data must be migrated, but ignored otherwise.
-        // public System.DateTime LastModified;
         public string CurrentScene;
 
         public string ChapterName;

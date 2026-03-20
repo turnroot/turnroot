@@ -14,7 +14,7 @@ namespace Turnroot.Gameplay.Brain
         public InputAction Cancel { get; private set; }
         public InputAction Menu { get; private set; }
 
-        public InputAction RotateMapCamera { get; private set; }
+        public InputAction RotateCamera { get; private set; }
 
         public BattleInputActions()
         {
@@ -22,7 +22,7 @@ namespace Turnroot.Gameplay.Brain
             Confirm = UIInputActionDefaults.Confirm;
             Cancel = UIInputActionDefaults.Cancel;
             Menu = UIInputActionDefaults.Menu;
-            RotateMapCamera = UIInputActionDefaults.RotateMapCamera;
+            RotateCamera = UIInputActionDefaults.RotateCamera;
         }
 
         public void Enable()
@@ -31,7 +31,7 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Enable();
             Cancel?.Enable();
             Menu?.Enable();
-            RotateMapCamera?.Enable();
+            RotateCamera?.Enable();
         }
 
         public void Disable()
@@ -40,7 +40,7 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Disable();
             Cancel?.Disable();
             Menu?.Disable();
-            RotateMapCamera?.Disable();
+            RotateCamera?.Disable();
         }
 
         public void Dispose()
@@ -49,13 +49,13 @@ namespace Turnroot.Gameplay.Brain
             Confirm?.Dispose();
             Cancel?.Dispose();
             Menu?.Dispose();
-            RotateMapCamera?.Dispose();
+            RotateCamera?.Dispose();
 
             Navigate = null;
             Confirm = null;
             Cancel = null;
             Menu = null;
-            RotateMapCamera = null;
+            RotateCamera = null;
         }
 
         // The battle input actions are now sourced from the shared UI input defaults.

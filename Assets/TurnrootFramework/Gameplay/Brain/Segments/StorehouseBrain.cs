@@ -57,23 +57,21 @@ namespace Turnroot.Gameplay.Brain
             {
                 PlayerGold = 0;
                 SaveGoldToLTM();
-                SaveCurrentStorehouse();
             }
             else
             {
                 PlayerGold = tryLoadGold;
             }
+
+            LoadStorehouse();
         }
 
         private LongTermMemory _ltm;
 
-        [SerializeField, HideInInspector]
-        private List<ObjectItemInstance> _storedItems = new();
-
         private Dictionary<ObjectItem, int> _materials = new();
 
         [HideInInspector]
-        private int PlayerGold { get; set; } = 0;
+        public int PlayerGold;
 
         [HideInInspector]
         public GoldDisplay GoldDisplayNames;
@@ -111,7 +109,7 @@ namespace Turnroot.Gameplay.Brain
             var recalled = _ltm.Recall(LtmKeys.StorehousePurchasingPower);
             if (recalled == null)
             {
-                return 0;
+                return GameplayGeneralSettings.Instance.StartingGold;
             }
 
             var decoded = _brain.DecodeString(recalled);
@@ -130,8 +128,6 @@ namespace Turnroot.Gameplay.Brain
                     material.Value
                 );
             }
-            var itemIds = string.Join(",", _storedItems.ConvertAll(i => i.InstanceID.ToString()));
-            _ltm.Remember(LtmKeys.StorehouseStoredItems, itemIds);
         }
 
         public void LoadStorehouse()
@@ -141,7 +137,8 @@ namespace Turnroot.Gameplay.Brain
                 int.TryParse(_ltm.Recall(LtmKeys.StorehousePurchasingPower), out int recalledGold)
                 && recalledGold >= 0
                     ? recalledGold
-                    : 0;
+                    : GameplayGeneralSettings.Instance.StartingGold;
+
             // loop through all known materials and load their counts
             _materials.Clear();
             var allMaterialKeys = _ltm.RecallKeysByPrefix(LtmKeys.StorehouseMaterialPrefix)
@@ -156,47 +153,22 @@ namespace Turnroot.Gameplay.Brain
                     _materials[materialItem] = materialCount;
                 }
             }
-
-            // Load stored items by their IDs
-            _storedItems.Clear();
-            var storedItemIdsString = _ltm.Recall(LtmKeys.StorehouseStoredItems);
-            if (!string.IsNullOrEmpty(storedItemIdsString))
-            {
-                var itemIds = storedItemIdsString.Split(',');
-                var allItems =
-                    Brain.inventoryBrain?.GetAllItems() ?? new List<ObjectItemInstance>();
-                foreach (var id in itemIds)
-                {
-                    if (string.IsNullOrEmpty(id))
-                    {
-                        continue;
-                    }
-
-                    var item = allItems.Find(i => i.InstanceID == id);
-                    if (item != null)
-                    {
-                        _storedItems.Add(item);
-                    }
-                    else
-                    {
-                        $"StorehouseBrain.LoadStorehouse: Could not find item with ID '{id}'".LogWarning();
-                    }
-                }
-            }
         }
 
         public OperationResult DepositItem(ObjectItemInstance item)
         {
-            if (item == null)
+            if (item == null || item.Template == null)
             {
                 return OperationResult.Failure("Invalid item.");
             }
 
-            _storedItems.Add(item);
+            var material = item.Template;
+            _materials.TryGetValue(material, out var existingCount);
+            _materials[material] = existingCount + 1;
             SaveCurrentStorehouse();
-            Brain.PublishItemDeposited(item);
 
-            $"Deposited {item.Template.name} into storehouse.".LogInfo();
+            Brain.PublishItemDeposited(item);
+            $"Deposited {item.Template.name} into storehouse (total {GetItemCountInStorehouse(material)}).".LogInfo();
 
             return OperationResult.Successful();
         }
@@ -206,12 +178,13 @@ namespace Turnroot.Gameplay.Brain
             CharacterInventoryInstance targetInventory
         )
         {
-            if (item == null)
+            if (item == null || item.Template == null)
             {
                 return OperationResult.Failure("Invalid item.");
             }
 
-            if (!_storedItems.Contains(item))
+            var material = item.Template;
+            if (!_materials.TryGetValue(material, out var count) || count <= 0)
             {
                 return OperationResult.Failure("Item not in storehouse.");
             }
@@ -221,7 +194,6 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Target inventory is full.");
             }
 
-            // Attempt to add to target inventory first to ensure transfer succeeds
             if (targetInventory != null)
             {
                 var addRes = targetInventory.AddToInventory(item);
@@ -231,12 +203,19 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            _ = _storedItems.Remove(item);
-            SaveCurrentStorehouse();
+            if (count <= 1)
+            {
+                _materials.Remove(material);
+            }
+            else
+            {
+                _materials[material] = count - 1;
+            }
 
+            SaveCurrentStorehouse();
             Brain.PublishItemWithdrawn(item, targetInventory);
 
-            $"Withdrew {item.Template.name} from storehouse.".LogInfo();
+            $"Withdrew {item.Template.name} from storehouse (remaining {GetItemCountInStorehouse(material)}).".LogInfo();
             return OperationResult.Successful();
         }
 
@@ -290,10 +269,13 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Queries
-        public List<ObjectItemInstance> GetStoredItems() => new(_storedItems);
 
         public Dictionary<ObjectItem, int> GetAllMaterials() => new(_materials);
 
+        public int GetItemCountInStorehouse(ObjectItem item) =>
+            item == null ? 0 : (_materials.TryGetValue(item, out var count) ? count : 0);
+
+        public List<ObjectItemInstance> GetStoredItems() => new(); // old semantics removed, use material counts instead.
         #endregion
     }
 }

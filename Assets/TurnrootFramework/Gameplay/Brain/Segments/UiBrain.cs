@@ -155,15 +155,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            // Don't dispose shared actions - just clear any previously assigned action.
-            try
-            {
-                if (sb.SelectAction != null)
-                {
-                    sb.SelectAction.Disable();
-                }
-            }
-            catch { }
+            // Don't dispose shared actions; we keep the shared UI actions enabled at all times.
+            // The SimpleButton component is responsible for managing its own subscriptions.
 
             if (sb.Role == SimpleButtonRole.Back)
             {

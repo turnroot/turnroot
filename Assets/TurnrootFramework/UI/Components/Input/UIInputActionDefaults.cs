@@ -1,3 +1,5 @@
+using System;
+using Turnroot.Utilities;
 using UnityEngine.InputSystem;
 
 namespace Turnroot.UI
@@ -10,6 +12,28 @@ namespace Turnroot.UI
     /// </summary>
     public static class UIInputActionDefaults
     {
+        public static bool Initialized { get; private set; }
+        public static event Action OnInitialized;
+
+        public static void WhenInitialized(Action callback)
+        {
+            // Always subscribe so that re-initialization (e.g. after a reload)
+            // will trigger the callback again.
+            OnInitialized += callback;
+
+            // If we're already initialized, invoke immediately so callers don't
+            // have to wait for the next Initialize() call.
+            if (Initialized)
+            {
+                callback?.Invoke();
+            }
+        }
+
+        public static void RemoveInitializedHandler(Action callback)
+        {
+            OnInitialized -= callback;
+        }
+
         public static InputAction Select;
         public static InputAction Back;
         public static InputAction NavigateUp;
@@ -22,8 +46,11 @@ namespace Turnroot.UI
         public static InputAction Confirm;
         public static InputAction Cancel;
         public static InputAction Menu;
-        public static InputAction RotateMapCamera;
+        public static InputAction RotateCamera;
+        public static InputAction RotateMapCamera; // legacy alias
         public static InputAction Start;
+
+        private static bool _enforceActionsAlwaysEnabled;
 
         public static void Initialize(
             InputActionReference select,
@@ -36,7 +63,7 @@ namespace Turnroot.UI
             InputActionReference confirm,
             InputActionReference cancel,
             InputActionReference menu,
-            InputActionReference rotateMapCamera,
+            InputActionReference rotateCamera,
             InputActionReference start
         )
         {
@@ -51,8 +78,105 @@ namespace Turnroot.UI
             Confirm = confirm?.action;
             Cancel = cancel?.action;
             Menu = menu?.action;
-            RotateMapCamera = rotateMapCamera?.action;
+            RotateCamera = rotateCamera?.action;
             Start = start?.action;
+
+            // Always keep the shared UI actions enabled and prevent any other code
+            // from disabling them.
+            EnableAllSharedActions();
+            EnsureSharedActionsStayEnabled();
+
+            // Expose legacy name for backwards compatibility
+            RotateMapCamera = RotateCamera;
+
+            Initialized = true;
+
+            "UIInputActionDefaults initialized".LogInfo("UIInputActionDefaults");
+
+            OnInitialized?.Invoke();
+
+            if (Select == null)
+            {
+                "Select action is null".LogWarning("UIInputActionDefaults");
+            }
+            if (Start == null)
+            {
+                "Start action is null".LogWarning("UIInputActionDefaults");
+            }
+        }
+
+        private static void EnableAllSharedActions()
+        {
+            void TryEnable(InputAction action)
+            {
+                if (action != null && !action.enabled)
+                {
+                    action.Enable();
+                }
+            }
+
+            TryEnable(Select);
+            TryEnable(Back);
+            TryEnable(NavigateUp);
+            TryEnable(NavigateDown);
+            TryEnable(NavigateLeft);
+            TryEnable(NavigateRight);
+            TryEnable(Navigate);
+            TryEnable(Confirm);
+            TryEnable(Cancel);
+            TryEnable(Menu);
+            TryEnable(RotateCamera);
+            TryEnable(Start);
+        }
+
+        private static void EnsureSharedActionsStayEnabled()
+        {
+            if (_enforceActionsAlwaysEnabled)
+            {
+                return;
+            }
+
+            _enforceActionsAlwaysEnabled = true;
+            InputSystem.onActionChange += OnInputActionChange;
+        }
+
+        private static void OnInputActionChange(object actionObj, InputActionChange change)
+        {
+            // Only react when a shared action is explicitly disabled.
+            if (change != InputActionChange.ActionDisabled)
+            {
+                return;
+            }
+
+            if (actionObj is not InputAction action)
+            {
+                return;
+            }
+
+            if (IsSharedAction(action))
+            {
+                // Re-enable immediately if something disables it.
+                action.Enable();
+                "UIInputActionDefaults: Re-enabled shared input action".LogInfo(
+                    "UIInputActionDefaults"
+                );
+            }
+        }
+
+        private static bool IsSharedAction(InputAction action)
+        {
+            return action == Select
+                || action == Back
+                || action == NavigateUp
+                || action == NavigateDown
+                || action == NavigateLeft
+                || action == NavigateRight
+                || action == Navigate
+                || action == Confirm
+                || action == Cancel
+                || action == Menu
+                || action == RotateCamera
+                || action == Start;
         }
     }
 }

@@ -104,7 +104,7 @@ namespace Turnroot.Gameplay.Maps
 
             if (grid == null)
             {
-                Debug.LogError("MapGridRenderer: Cannot render null grid");
+                "MapGridRenderer: Cannot render null grid".LogError();
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace Turnroot.Gameplay.Maps
             string savePath = GetMapSavePath();
             if (string.IsNullOrEmpty(savePath))
             {
-                Debug.LogError("MapGridRenderer: Could not determine save path");
+                "MapGridRenderer: Could not determine save path".LogError();
                 return;
             }
 
@@ -158,9 +158,7 @@ namespace Turnroot.Gameplay.Maps
                 Object.DestroyImmediate(unexploredMap);
             }
 
-
-            $"MapGridRenderer: Successfully rendered map images for '{mapName}'"
-        .LogInfo();
+            $"MapGridRenderer: Successfully rendered map images for '{mapName}'".LogInfo();
         }
 
         private Texture2D RenderFullMap(MapGrid grid)
@@ -383,9 +381,7 @@ namespace Turnroot.Gameplay.Maps
             int width = grid.GridWidth;
             int height = grid.GridHeight;
 
-
-            $"MapGridRenderer: Rendering full grid area - Rows [{minRow}-{maxRow}], Cols [{minCol}-{maxCol}], Size: {width}x{height}"
-        .LogInfo();
+            $"MapGridRenderer: Rendering full grid area - Rows [{minRow}-{maxRow}], Cols [{minCol}-{maxCol}], Size: {width}x{height}".LogInfo();
 
             return (minRow, maxRow, minCol, maxCol, width, height);
         }
@@ -645,7 +641,7 @@ namespace Turnroot.Gameplay.Maps
             }
             else
             {
-                Debug.LogError($"Failed to load sprite from: {assetPath}");
+                $"Failed to load sprite from: {assetPath}".LogError("MapGridRenderer.SaveTexture");
             }
 
             return sprite;
@@ -656,14 +652,18 @@ namespace Turnroot.Gameplay.Maps
             var gamePackageSettings = GamePackage.GamePackageSettings.Instance;
             if (gamePackageSettings == null)
             {
-                Debug.LogError("Could not find GamePackageSettings in Resources");
+                "Could not find GamePackageSettings in Resources".LogError(
+                    "MapGridRenderer.GetMapSavePath"
+                );
                 return null;
             }
 
             string gamePackageSettingsPath = AssetDatabase.GetAssetPath(gamePackageSettings);
             if (string.IsNullOrEmpty(gamePackageSettingsPath))
             {
-                Debug.LogError("Could not determine GamePackageSettings location");
+                "Could not determine GamePackageSettings location".LogError(
+                    "MapGridRenderer.GetMapSavePath"
+                );
                 return null;
             }
 
@@ -675,8 +675,8 @@ namespace Turnroot.Gameplay.Maps
 
             if (!resourcesPath.EndsWith("/Resources"))
             {
-                Debug.LogError(
-                    $"GamePackageSettings is not in a Resources folder: {gamePackageSettingsPath}"
+                $"GamePackageSettings is not in a Resources folder: {gamePackageSettingsPath}".LogError(
+                    "MapGridRenderer.GetMapSavePath"
                 );
                 return null;
             }
@@ -704,5 +704,3 @@ namespace Turnroot.Gameplay.Maps
     }
 }
 #endif
-
-

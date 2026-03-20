@@ -28,7 +28,7 @@ namespace Turnroot.Utilities
                 + (ex != null ? $"\nException: {ex}" : string.Empty);
             try
             {
-                UnityEngine.Debug.LogError(fullMessage);
+                fullMessage.LogError("OperationResult.LogFailure");
             }
             catch { }
             try
@@ -139,7 +139,7 @@ namespace Turnroot.Utilities
                 + (ex != null ? $"\nException: {ex}" : string.Empty);
             try
             {
-                UnityEngine.Debug.LogError(fullMessage);
+                fullMessage.LogError("OperationResult<T>.LogFailureGeneric");
             }
             catch { }
             try

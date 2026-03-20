@@ -19,35 +19,7 @@ namespace Turnroot.UI
         public static InputAction NavigateDownAction => UIInputActionDefaults.NavigateDown;
         public static InputAction NavigateLeftAction => UIInputActionDefaults.NavigateLeft;
         public static InputAction NavigateRightAction => UIInputActionDefaults.NavigateRight;
-
-        private static int _actionEnableCount = 0;
-
-        public static void EnableActions()
-        {
-            if (_actionEnableCount++ == 0)
-            {
-                UIInputActionDefaults.Select?.Enable();
-                UIInputActionDefaults.Back?.Enable();
-                UIInputActionDefaults.NavigateUp?.Enable();
-                UIInputActionDefaults.NavigateDown?.Enable();
-                UIInputActionDefaults.NavigateLeft?.Enable();
-                UIInputActionDefaults.NavigateRight?.Enable();
-            }
-        }
-
-        public static void DisableActions()
-        {
-            if (--_actionEnableCount <= 0)
-            {
-                UIInputActionDefaults.Select?.Disable();
-                UIInputActionDefaults.Back?.Disable();
-                UIInputActionDefaults.NavigateUp?.Disable();
-                UIInputActionDefaults.NavigateDown?.Disable();
-                UIInputActionDefaults.NavigateLeft?.Disable();
-                UIInputActionDefaults.NavigateRight?.Disable();
-                _actionEnableCount = 0;
-            }
-        }
+        public static InputAction StartAction => UIInputActionDefaults.Start;
 
         public RectTransform ToScale => GetComponent<RectTransform>();
         public UIEffect Effect;
@@ -62,8 +34,6 @@ namespace Turnroot.UI
         public Color TextHighlightColor = Color.yellow;
         private Color originalTextColor;
         public bool CanBeSelected = true;
-
-        [ShowIf(nameof(ChangeTextColor))]
         public Color TextColorIfDisabled = Color.gray;
 
         private void Awake()
@@ -72,7 +42,7 @@ namespace Turnroot.UI
             {
                 originalTextColor = TextToChangeColor.color;
             }
-            if (!CanBeSelected && ChangeTextColor && TextToChangeColor != null)
+            if (!CanBeSelected && TextToChangeColor != null)
             {
                 TextToChangeColor.color = TextColorIfDisabled;
             }

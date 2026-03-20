@@ -203,16 +203,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                         simpleButton.OnSelected -= handler;
                     }
 
-                    // Dispose of any assigned input action to avoid leaks
-                    try
-                    {
-                        if (simpleButton.SelectAction != null)
-                        {
-                            simpleButton.SelectAction.Disable();
-                            simpleButton.SelectAction.Dispose();
-                        }
-                    }
-                    catch { }
+                    // Do not disable or dispose shared UI actions.
+                    // We only clear references so the shared actions remain available globally.
+                    // The SimpleButton class handles wiring the action's performed event.
                 }
 
                 Destroy(targetPrefabField);

@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -142,7 +143,7 @@ namespace Turnroot.Graphics2D
                 }
                 else
                 {
-                    Debug.LogError("UITwinkleMask: Could not find shader 'UI/TwinkleMask'");
+                    "UITwinkleMask: Could not find shader 'UI/TwinkleMask'".LogError();
                 }
             }
 

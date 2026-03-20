@@ -551,12 +551,12 @@ MonoBehaviour:
   NavigateDown: {fileID: -7002231937099001039, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   NavigateLeft: {fileID: 170035112579692444, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   NavigateRight: {fileID: -3676630026911591939, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
-  Navigate: {fileID: 0}
-  Confirm: {fileID: 0}
-  Cancel: {fileID: 0}
+  Navigate: {fileID: -4771218353558461949, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  Confirm: {fileID: 2033726153967148330, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  Cancel: {fileID: -8619626377133356767, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   Menu: {fileID: 0}
-  RotateMapCamera: {fileID: 0}
-  Start: {fileID: 0}
+  RotateCamera: {fileID: 0}
+  Start: {fileID: -472219190135712309, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

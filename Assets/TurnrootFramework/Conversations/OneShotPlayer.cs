@@ -1,4 +1,5 @@
 using System.Linq;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Conversations
@@ -35,9 +36,6 @@ namespace Turnroot.Conversations
             }
         }
 
-        /// <summary>
-        /// Plays a one-shot dialogue line.
-        /// </summary>
         public void PlayOneShot(OneShot oneShot)
         {
             if (oneShot.Audio != null && _audioSource != null)
@@ -48,8 +46,7 @@ namespace Turnroot.Conversations
             var controller = _controller ?? ConversationController.Instance;
             if (controller == null)
             {
-                // Try a full scene lookup (including inactive objects) as a fallback.
-                controller = FindObjectOfType<ConversationController>(true);
+                controller = FindFirstObjectByType<ConversationController>();
                 if (controller == null)
                 {
                     controller = Resources
@@ -62,15 +59,12 @@ namespace Turnroot.Conversations
 
             if (controller == null)
             {
-                UnityEngine.Debug.LogWarning(
-                    "OneShotPlayer: ConversationController instance not found. Ensure a ConversationController exists in the scene."
-                );
+                "OneShotPlayer: ConversationController instance not found. Ensure a ConversationController exists in the scene.".LogWarning();
+
                 return;
             }
 
-            UnityEngine.Debug.Log(
-                $"OneShotPlayer: calling PlayOneShot (dialogue='{oneShot.Dialogue}', speaker='{oneShot.SpeakerName}')."
-            );
+            $"OneShotPlayer: calling PlayOneShot (dialogue='{oneShot.Dialogue}', speaker='{oneShot.SpeakerName}').".LogInfo();
 
             controller.PlayOneShot(oneShot);
         }

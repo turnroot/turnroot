@@ -37,11 +37,15 @@ namespace Turnroot.Gameplay.Objects
         [Foldout("Identity"), SerializeField, HorizontalLine(color: EColor.Black)]
         private string _name = "New Item";
 
+        public string Name => _name;
+
         [Foldout("Identity")]
         private readonly string _id = System.Guid.NewGuid().ToString();
 
         [TextArea, Foldout("Identity"), SerializeField]
         private string _flavorText = "A new item";
+
+        public string FlavorText => _flavorText;
 
         [field: Foldout("Pricing"), SerializeField, HorizontalLine(color: EColor.Gray)]
         public int BasePrice { get; set; } = 100;
@@ -198,7 +202,7 @@ namespace Turnroot.Gameplay.Objects
             HorizontalLine(color: EColor.Violet),
             ShowIf(nameof(IsWeaponOrMagicSubtype))
         ]
-        private Aptitude _minWeaponTypeAptitude = new(CommonAncestors.LeveledLetteredField.E);
+        public Aptitude MinWeaponTypeAptitude = new(CommonAncestors.LeveledLetteredField.E);
 
         [Foldout("Visuals"), HorizontalLine(color: EColor.Yellow)]
         public GameObject Prefab;
@@ -269,7 +273,7 @@ namespace Turnroot.Gameplay.Objects
 
         private bool IsWeaponSubtype() => Subtype == ObjectSubtype.Weapon;
 
-        private bool IsWeaponOrMagicSubtype() =>
+        public bool IsWeaponOrMagicSubtype() =>
             Subtype == new ObjectSubtype(ObjectSubtype.Weapon)
             || Subtype == new ObjectSubtype(ObjectSubtype.Magic);
 
@@ -280,7 +284,7 @@ namespace Turnroot.Gameplay.Objects
 
         private bool IsGiftSubtype() => Subtype == ObjectSubtype.Gift;
 
-        private bool IsWeaponOrMagicSubtypeAndIsDurability() =>
+        public bool IsWeaponOrMagicSubtypeAndIsDurability() =>
             IsWeaponOrMagicSubtype() && Durability;
 
         private bool IsWeaponOrMagicOrStaffSubtypeAndIsRangeAdjusted() =>

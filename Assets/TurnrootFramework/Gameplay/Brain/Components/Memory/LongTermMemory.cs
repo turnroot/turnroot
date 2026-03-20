@@ -99,7 +99,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             if (prefs == null)
             {
-                Debug.LogWarning("LongTermMemory: Attempted to Remember before initialization.");
+                "LongTermMemory: Attempted to Remember before initialization.".LogWarning();
                 return value;
             }
             prefs.SetString(key, value);
@@ -114,7 +114,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             if (prefs == null)
             {
-                Debug.LogWarning("LongTermMemory: Attempted to RememberInt before initialization.");
+                "LongTermMemory: Attempted to RememberInt before initialization.".LogWarning();
                 return value;
             }
             prefs.SetInt(key, value);
@@ -129,9 +129,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             if (prefs == null)
             {
-                Debug.LogWarning(
-                    "LongTermMemory: Attempted to RememberBool before initialization."
-                );
+                "LongTermMemory: Attempted to RememberBool before initialization.".LogWarning();
                 return value;
             }
             prefs.SetBool(key, value);
@@ -147,7 +145,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             if (prefs == null)
             {
-                Debug.LogWarning("LongTermMemory: Attempted to Recall before initialization.");
+                "LongTermMemory: Attempted to Recall before initialization.".LogWarning();
                 return null;
             }
             return prefs.GetString(key, null);
@@ -161,7 +159,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             if (prefs == null)
             {
-                Debug.LogWarning("LongTermMemory: Attempted to RecallInt before initialization.");
+                "LongTermMemory: Attempted to RecallInt before initialization.".LogWarning();
                 return -1;
             }
             return prefs.GetInt(key, -1);
@@ -175,7 +173,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             if (prefs == null)
             {
-                Debug.LogWarning("LongTermMemory: Attempted to RecallBool before initialization.");
+                "LongTermMemory: Attempted to RecallBool before initialization.".LogWarning();
                 return false;
             }
             return prefs.GetBool(key, false);
@@ -256,7 +254,7 @@ namespace Turnroot.Gameplay.Brain.Components
         /// </summary>
         public static string EncodeKey(string key)
         {
-            var result = Utilities.DeviceDataCipher.EncryptToBase64(key);
+            var result = DeviceDataCipher.EncryptToBase64(key);
             return result.Success ? result.Value : key;
         }
 
@@ -265,7 +263,7 @@ namespace Turnroot.Gameplay.Brain.Components
         /// </summary>
         public static string DecodeKey(string encodedKey)
         {
-            var result = Utilities.DeviceDataCipher.DecryptFromBase64(encodedKey);
+            var result = DeviceDataCipher.DecryptFromBase64(encodedKey);
             return result.Success ? result.Value : encodedKey;
         }
 
@@ -278,9 +276,7 @@ namespace Turnroot.Gameplay.Brain.Components
         {
             if (prefs == null)
             {
-                Debug.LogWarning(
-                    "LongTermMemory: Attempted to set game date before initialization."
-                );
+                "LongTermMemory: Attempted to set game date before initialization.".LogWarning();
                 return;
             }
 
@@ -300,9 +296,7 @@ namespace Turnroot.Gameplay.Brain.Components
             var result = GameDate.Default;
             if (prefs == null)
             {
-                Debug.LogWarning(
-                    "LongTermMemory: Attempted to get game date before initialization."
-                );
+                "LongTermMemory: Attempted to get game date before initialization.".LogWarning();
                 return result;
             }
 

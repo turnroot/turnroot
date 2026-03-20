@@ -92,6 +92,12 @@ namespace Turnroot.UI.Components.RadialMenu
         /// </summary>
         public event Action<RadialMenu> OnMenuReady;
 
+        private InputAction GetNavigateInputAction() =>
+            navigateAction?.action ?? UIInputActionDefaults.Navigate;
+
+        private InputAction GetSelectInputAction() =>
+            selectAction?.action ?? UIInputActionDefaults.Select;
+
         private void Awake()
         {
             // Load UI settings and apply them
@@ -127,24 +133,27 @@ namespace Turnroot.UI.Components.RadialMenu
                 _canvasGroup.blocksRaycasts = false;
                 _canvasGroup.interactable = false;
             }
+
+            // Make sure input actions are enabled once the input system is initialized.
+            UIInputActionDefaults.WhenInitialized(EnableInputActions);
+            EnableInputActions();
         }
-
-        private InputAction GetNavigateInputAction() =>
-            navigateAction?.action ?? UIInputActionDefaults.Navigate;
-
-        private InputAction GetSelectInputAction() =>
-            selectAction?.action ?? UIInputActionDefaults.Select;
 
         private void OnEnable()
         {
-            GetNavigateInputAction()?.Enable();
-            GetSelectInputAction()?.Enable();
+            EnableInputActions();
         }
 
         private void OnDisable()
         {
-            GetNavigateInputAction()?.Disable();
-            GetSelectInputAction()?.Disable();
+            // Keep the input actions enabled so they remain available globally.
+            // Context should decide what to do with input events.
+        }
+
+        private void EnableInputActions()
+        {
+            GetNavigateInputAction()?.Enable();
+            GetSelectInputAction()?.Enable();
         }
 
         private void Start() => Canvas.willRenderCanvases += OnFirstRender;
@@ -169,6 +178,8 @@ namespace Turnroot.UI.Components.RadialMenu
             {
                 select.performed -= OnSelectPerformed;
             }
+
+            UIInputActionDefaults.RemoveInitializedHandler(EnableInputActions);
         }
 
         private void InitializeMenu()

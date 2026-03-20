@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Memory.JSON;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain.Components
 {
@@ -243,9 +244,7 @@ namespace Turnroot.Gameplay.Brain.Components
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogWarning(
-                    $"Failed to deserialize CharacterData template: {ex.Message}"
-                );
+                $"Failed to deserialize CharacterData template: {ex.Message}".LogWarning();
                 return null;
             }
         }

@@ -75,6 +75,22 @@ namespace Turnroot.UI.Components.SimpleButton
             }
         }
 
+        private static bool IsSharedUiInputAction(InputAction action)
+        {
+            return action == UIInputActionDefaults.Select
+                || action == UIInputActionDefaults.Back
+                || action == UIInputActionDefaults.NavigateUp
+                || action == UIInputActionDefaults.NavigateDown
+                || action == UIInputActionDefaults.NavigateLeft
+                || action == UIInputActionDefaults.NavigateRight
+                || action == UIInputActionDefaults.Start
+                || action == UIInputActionDefaults.Confirm
+                || action == UIInputActionDefaults.Cancel
+                || action == UIInputActionDefaults.Menu
+                || action == UIInputActionDefaults.Navigate
+                || action == UIInputActionDefaults.RotateCamera;
+        }
+
         private void UnsubscribeFromSelectAction()
         {
             var action = GetEffectiveSelectAction();
@@ -89,7 +105,11 @@ namespace Turnroot.UI.Components.SimpleButton
             }
             catch { }
 
-            action.Disable();
+            // Do not disable shared UI actions: they should stay enabled at all times.
+            if (!IsSharedUiInputAction(action))
+            {
+                action.Disable();
+            }
         }
 
         public void Select() => StartCoroutine(SelectCoroutine());

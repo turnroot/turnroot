@@ -19,6 +19,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
     {
         public ShopItem[] ItemsStocked;
         private Dictionary<ShopItem, int> currentStock = new();
+
+        public string ShopName;
         public string ShopDescription;
         public CharacterData Shopkeeper;
 
@@ -32,13 +34,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         private OneShot[] BuyDialogueConversations;
         private OneShot[] FarewellDialogueConversations;
 
-        private Brain.Brain brain;
+        public Brain.Brain brain;
 
         private Brain.Brain GetBrain()
         {
             if (brain == null)
             {
-                brain = UnityEngine.Object.FindFirstObjectByType<Brain.Brain>();
+                brain = FindFirstObjectByType<Brain.Brain>();
             }
             return brain;
         }
@@ -82,18 +84,34 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopVisited()
         {
+            Debug.Log($"Shop '{name}': NotifyShopVisited called.");
             GetBrain()?.PublishShopVisited(this);
+            // Ensure shop stock is refreshed from LongTermMemory on every visit,
+            // even on the same calendar day.
+            var brain = GetBrain();
+            if (brain?.ltm != null)
+            {
+                var date = brain.ltm.GetGameDate();
+                _ = RefreshShopForNewDay(date);
+            }
+
+            var ShopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
+            if (ShopUi == null)
+            {
+                $"Shop '{name}': No ShopUi component found for dialogue playback.".LogWarning();
+            }
+            else
+            {
+                ShopUi.RefreshShopDisplay();
+            }
 
             var welcomeOneShot = GetRandomWelcomeOneShot();
             if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
             {
-                $"Shop '{name}': Playing welcome dialogue".LogInfo();
                 var player = GetOrCreateOneShotPlayer();
                 if (player == null)
                 {
-                    UnityEngine.Debug.LogWarning(
-                        "Shop: Could not create OneShotPlayer for dialogue playback."
-                    );
+                    "Shop: Could not create OneShotPlayer for dialogue playback.".LogWarning();
                 }
                 player?.PlayOneShot(welcomeOneShot);
             }
@@ -105,24 +123,36 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopExited()
         {
+            Debug.Log($"Shop '{name}': NotifyShopExited called.");
             GetBrain()?.PublishShopExited(this);
 
             var farewellOneShot = GetRandomFarewellOneShot();
+            var shopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
+            var conversationController =
+                ConversationController.Instance ?? FindFirstObjectByType<ConversationController>();
+
             if (!string.IsNullOrWhiteSpace(farewellOneShot.Dialogue))
             {
-                $"Shop '{name}': Playing farewell dialogue".LogInfo();
+                Debug.Log($"Shop '{name}': farewell dialogue exists, shopUi={(shopUi != null)}");
+                // Let SpecificUiHandler handle OnAnyConversationFinished for shop exit cleanup.
+
                 var player = GetOrCreateOneShotPlayer();
                 if (player == null)
                 {
-                    UnityEngine.Debug.LogWarning(
-                        "Shop: Could not create OneShotPlayer for dialogue playback."
-                    );
+                    "Shop: Could not create OneShotPlayer for dialogue playback.".LogWarning();
+                    Debug.LogWarning($"Shop '{name}': player is null, hiding shop UI immediately.");
+                    shopUi?.ShopUiFade.Hide();
+                    return;
                 }
-                player?.PlayOneShot(farewellOneShot);
+
+                Debug.Log($"Shop '{name}': playing farewell one-shot dialogue.");
+                player.PlayOneShot(farewellOneShot);
             }
             else
             {
                 $"Shop '{name}': No farewell dialogue to play".LogInfo();
+                Debug.Log($"Shop '{name}': no farewell dialogue, hiding shop UI now.");
+                shopUi?.ShopUiFade.Hide();
             }
         }
 
@@ -133,7 +163,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             var buyOneShot = GetRandomBuyOneShot();
             if (!string.IsNullOrWhiteSpace(buyOneShot.Dialogue))
             {
-                $"Shop '{name}': Playing buy dialogue".LogInfo();
                 GetOrCreateOneShotPlayer()?.PlayOneShot(buyOneShot);
             }
             else
@@ -149,7 +178,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             var sellOneShot = GetRandomSellOneShot();
             if (!string.IsNullOrWhiteSpace(sellOneShot.Dialogue))
             {
-                $"Shop '{name}': Playing sell dialogue".LogInfo();
                 GetOrCreateOneShotPlayer()?.PlayOneShot(sellOneShot);
             }
             else
@@ -211,29 +239,58 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public string RefreshShopForNewDay(GameDate currentDay)
         {
-            // Attempt to load persisted quantities for this hub day before restocking logic
             var brain = GetBrain();
-            if (brain != null)
+            bool hasSavedShopStock = HubDayStateStore.HasShopStock(name);
+            bool isDailyUpdateAlreadyProcessed = HubDayStateStore.HasProcessedDailyUpdates;
+
+            // If this shop has no existing persistent stock data, initialize normal items to max
+            if (!hasSavedShopStock && brain != null)
             {
-                foreach (ShopItem item in ItemsStocked)
+                for (int i = 0; i < ItemsStocked.Length; i++)
                 {
+                    var item = ItemsStocked[i];
+                    if (item.RareItem)
+                    {
+                        continue;
+                    }
+
+                    item.CurrentStatus.AvailableQuantity = item.MaxQuantity;
+                    ItemsStocked[i] = item; // Ensure struct value is updated in the array.
+                    currentStock[item] = item.MaxQuantity;
+
+                    string itemName = item.Item != null ? item.Item.name : string.Empty;
+                    HubDayStateStore.SetShopItemQuantity(brain, name, itemName, item.MaxQuantity);
+                }
+            }
+            else if (brain != null)
+            {
+                for (int i = 0; i < ItemsStocked.Length; i++)
+                {
+                    var item = ItemsStocked[i];
                     string itemName = item.Item != null ? item.Item.name : string.Empty;
                     int persistedQuantity = HubDayStateStore.GetShopItemQuantity(
                         name,
                         itemName,
-                        -1
+                        item.MaxQuantity
                     );
 
-                    if (persistedQuantity >= 0)
-                    {
-                        currentStock[item] = persistedQuantity;
-                    }
+                    item.CurrentStatus.AvailableQuantity = persistedQuantity;
+                    ItemsStocked[i] = item;
+                    currentStock[item] = persistedQuantity;
                 }
             }
 
             foreach (ShopItem item in ItemsStocked)
             {
-                var status = item.Refresh(currentDay);
+                // always evaluate sale status every display/refresh
+                item.IsOnSale(currentDay);
+
+                if (!isDailyUpdateAlreadyProcessed)
+                {
+                    item.RestockIfNeeded(currentDay);
+                }
+
+                var status = item.CurrentStatus;
                 currentStock[item] = status.AvailableQuantity;
 
                 // Persist the updated quantity into HubDayStateStore for this day.
@@ -248,7 +305,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     );
                 }
 
-                if (item.RareItem && status.AvailableQuantity > 0)
+                // Only show rare item notification when this call is the daily update path (not on repeated same-day slip-ins)
+                if (!isDailyUpdateAlreadyProcessed && item.RareItem && status.AvailableQuantity > 0)
                 {
                     return $"A rare item is in stock at";
                 }

@@ -37,25 +37,34 @@ namespace Turnroot.UI.Components.Menu
             // Initialize menu items
             RefreshMenuItems();
 
-            // Set up input actions if they exist
-            UIInputActionDefaults.NavigateUp?.Enable();
-            UIInputActionDefaults.NavigateDown?.Enable();
-            UIInputActionDefaults.Select?.Enable();
+            // If input actions are not yet available, ensure they get enabled when ready.
+            UIInputActionDefaults.WhenInitialized(EnableMenuInputActions);
+
+            // Set up input actions if they exist right now.
+            EnableMenuInputActions();
         }
 
         protected virtual void OnEnable()
         {
             // Use shared UI input actions from UIInputActionDefaults.
-            UIInputActionDefaults.NavigateUp?.Enable();
-            UIInputActionDefaults.NavigateDown?.Enable();
-            UIInputActionDefaults.Select?.Enable();
+            EnableMenuInputActions();
         }
 
         protected virtual void OnDisable()
         {
-            UIInputActionDefaults.NavigateUp?.Disable();
-            UIInputActionDefaults.NavigateDown?.Disable();
-            UIInputActionDefaults.Select?.Disable();
+            // Do not disable shared input actions; they are always available.
+        }
+
+        private void OnDestroy()
+        {
+            UIInputActionDefaults.RemoveInitializedHandler(EnableMenuInputActions);
+        }
+
+        private void EnableMenuInputActions()
+        {
+            UIInputActionDefaults.NavigateUp?.Enable();
+            UIInputActionDefaults.NavigateDown?.Enable();
+            UIInputActionDefaults.Select?.Enable();
         }
 
         protected virtual void Update()

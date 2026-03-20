@@ -109,6 +109,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             return entry?.Quantity ?? defaultValue;
         }
 
+        public static bool HasShopStock(string shopName)
+        {
+            if (_currentState == null || _currentState.ShopStock == null)
+            {
+                return false;
+            }
+
+            string shopKey = LongTermMemory.EncodeKey(shopName);
+            return _currentState.ShopStock.Exists(x => x.ShopKey == shopKey);
+        }
+
         public static void MarkDailyUpdatesProcessed(Brain.Brain brain)
         {
             if (brain?.ltm == null || _currentState == null)

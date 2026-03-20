@@ -4,6 +4,7 @@ using System.Linq;
 using Assets.AbstractScripts.Graphics2D;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Graphics2D.Tags;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Graphics2D
@@ -88,15 +89,11 @@ namespace Turnroot.Graphics2D
             if (!string.IsNullOrEmpty(key))
             {
                 _key = key;
-
-                Debug.Log($"StackedImage key set to: {_key}");
             }
             else
             {
                 // If empty/null key is passed, generate a new one
                 EnsureKeyInitialized();
-
-                Debug.Log($"Generated new stackedImage key: {_key}");
             }
         }
 
@@ -111,7 +108,7 @@ namespace Turnroot.Graphics2D
             _validationMessage = message;
             _hasValidationError = true;
 
-            Debug.LogError(message);
+            message.LogError("StackedImage.SetValidationError");
         }
 
         private void EnsureKeyInitialized()
@@ -148,8 +145,6 @@ namespace Turnroot.Graphics2D
             if (string.IsNullOrEmpty(_key))
             {
                 EnsureKeyInitialized();
-
-                Debug.Log($"Generated new stackedImage key: {_key}");
             }
 
             // Initialize tint colors array if null
@@ -229,7 +224,7 @@ namespace Turnroot.Graphics2D
             // Validate that we have layers to render
             if (Layers == null || Layers.Count == 0)
             {
-                Debug.LogWarning("Cannot render stackedImage: No layers present.");
+                "Cannot render stackedImage: No layers present.".LogWarning();
                 return;
             }
 
@@ -237,16 +232,14 @@ namespace Turnroot.Graphics2D
             if (string.IsNullOrEmpty(_key))
             {
                 EnsureKeyInitialized();
-                Debug.LogWarning($"StackedImage key was empty, generated new key: {_key}");
+                $"StackedImage key was empty, generated new key: {_key}".LogWarning();
             }
-
-            Debug.Log($"Rendering stackedImage with key: {_key}");
 
             // Use compositor to create the final texture
             Texture2D composited = CompositeLayers();
             if (composited == null)
             {
-                Debug.LogError("Failed to composite layers.");
+                "Failed to composite layers.".LogError("StackedImage.Render");
                 return;
             }
 
@@ -268,7 +261,7 @@ namespace Turnroot.Graphics2D
         {
             if (Layers == null || Layers.Count == 0)
             {
-                Debug.LogWarning("CompositeLayers: no layers available to composite.");
+                "CompositeLayers: no layers available to composite.".LogWarning();
                 return null;
             }
 
@@ -288,8 +281,8 @@ namespace Turnroot.Graphics2D
 
             if (settings == null)
             {
-                Debug.LogError(
-                    "Graphics2DSettings not found in Resources/GameSettings (expected under Resources/GameSettings/*). Using default 512x512."
+                "Graphics2DSettings not found in Resources/GameSettings (expected under Resources/GameSettings/*). Using default 512x512.".LogError(
+                    "StackedImage.CompositeLayers"
                 );
 
                 // Create a single cached fallback instance so we don't create multiple in-memory duplicates
@@ -383,9 +376,7 @@ namespace Turnroot.Graphics2D
 
             if (correctedScale)
             {
-                Debug.LogWarning(
-                    $"CompositeLayers: One or more layers in image '{_key}' had non-positive Scale and were temporarily normalized to 1.0 for preview/compositing. Consider fixing the layer data."
-                );
+                $"CompositeLayers: One or more layers in image '{_key}' had non-positive Scale and were temporarily normalized to 1.0 for preview/compositing. Consider fixing the layer data.".LogWarning();
             }
 
             // Extract masks from the (normalized) layers array
@@ -460,13 +451,11 @@ namespace Turnroot.Graphics2D
             if (!System.IO.Directory.Exists(portraitSavePath))
             {
                 System.IO.Directory.CreateDirectory(portraitSavePath);
-                Debug.Log($"Created directory: {portraitSavePath}");
             }
 
             // Save the texture as PNG
             byte[] pngData = texture.EncodeToPNG();
             System.IO.File.WriteAllBytes(fullPath, pngData);
-            Debug.Log($"Successfully saved stacked image texture: {fileName} to {fullPath}");
 
             // Refresh the asset database so Unity sees the new file
             UnityEditor.AssetDatabase.Refresh();
@@ -525,15 +514,15 @@ namespace Turnroot.Graphics2D
             // Build the portrait load path: {ResourcesPath}/Components/Characters/Portraits
             string assetPath = $"{resourcesPath}/Components/Characters/Portraits/{_key}.png";
 
-            Debug.Log($"Attempting to load sprite from: {assetPath}");
-
             // Import the texture with sprite settings
             UnityEditor.TextureImporter importer =
                 UnityEditor.AssetImporter.GetAtPath(assetPath) as UnityEditor.TextureImporter;
 
             if (importer == null)
             {
-                Debug.LogError($"Could not get TextureImporter for: {assetPath}");
+                $"Could not get TextureImporter for: {assetPath}".LogError(
+                    "StackedImage.LoadSavedSprite"
+                );
                 return;
             }
 
@@ -551,8 +540,6 @@ namespace Turnroot.Graphics2D
                     UnityEditor.ImportAssetOptions.ForceUpdate
                 );
                 UnityEditor.AssetDatabase.SaveAssets();
-
-                Debug.Log($"Configured texture as sprite: {assetPath}");
             }
 
             // Load the sprite
@@ -560,8 +547,6 @@ namespace Turnroot.Graphics2D
 
             if (_savedSprite != null)
             {
-                Debug.Log($"Successfully loaded saved sprite: {_savedSprite.name}");
-
                 if (_owner != null)
                 {
                     var ownerPath = UnityEditor.AssetDatabase.GetAssetPath(
@@ -576,7 +561,7 @@ namespace Turnroot.Graphics2D
             }
             else
             {
-                Debug.LogError($"Failed to load sprite from: {assetPath}");
+                $"Failed to load sprite from: {assetPath}".LogError("StackedImage.LoadSavedSprite");
             }
 #endif
         }

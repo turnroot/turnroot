@@ -246,8 +246,8 @@ namespace Turnroot.UI.Components.Menu.Submenu
             {
                 case RowType.Slider:
                 {
-                    // Determine step size: Quality slider uses 4 discrete steps (0,1/3,2/3,1),
-                    // other sliders keep the legacy 0.1 increments.
+                    // quality slider uses 4 discrete steps (0,1/3,2/3,1),
+                    // other sliders use y 0.1 increment
                     float step;
                     string normalized = string.Empty;
                     string[] candidates = new string[]

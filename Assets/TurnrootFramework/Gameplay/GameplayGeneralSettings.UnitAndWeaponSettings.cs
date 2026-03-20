@@ -76,5 +76,8 @@ namespace Turnroot.GameSettings
         [BoxGroup("Hub")]
         [Tooltip("Maximum number of units allowed at a single hub location.")]
         public int MaxUnitsPerHubLocation = 6;
+
+        [BoxGroup("General Gameplay")]
+        public int StartingGold = 2500;
     }
 }

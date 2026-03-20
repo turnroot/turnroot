@@ -26,8 +26,10 @@ namespace Turnroot.UI.Components.GridMenu
         protected override void Awake()
         {
             base.Awake();
-            GetNavigateLeftAction()?.Enable();
-            GetNavigateRightAction()?.Enable();
+
+            UIInputActionDefaults.WhenInitialized(EnableNavigateActions);
+            EnableNavigateActions();
+
             // Keep MenuBase informed when pointer hovers items so we can track hover-based selection
             OnNavigate += HandleNavigateTo;
         }
@@ -35,17 +37,31 @@ namespace Turnroot.UI.Components.GridMenu
         protected override void OnEnable()
         {
             base.OnEnable();
-            GetNavigateLeftAction()?.Enable();
-            GetNavigateRightAction()?.Enable();
+            EnableNavigateActions();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            GetNavigateLeftAction()?.Disable();
-            GetNavigateRightAction()?.Disable();
 
             OnNavigate -= HandleNavigateTo;
+        }
+
+        private void OnDestroy()
+        {
+            UIInputActionDefaults.RemoveInitializedHandler(EnableNavigateActions);
+        }
+
+        private void EnableNavigateActions()
+        {
+            GetNavigateLeftAction()?.Enable();
+            GetNavigateRightAction()?.Enable();
+        }
+
+        private void DisableNavigateActions()
+        {
+            // Shared input actions should remain enabled; navigation should be filtered
+            // by the active menu/context instead of disabling the action.
         }
 
         // Grid structure (rows of indices) built from item positions; used for smarter navigation
