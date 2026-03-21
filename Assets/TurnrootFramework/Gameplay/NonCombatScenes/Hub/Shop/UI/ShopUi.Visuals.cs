@@ -74,7 +74,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             if (WeaponDurabilityText != null)
             {
                 WeaponDurabilityText.text = item.Item.IsWeaponOrMagicSubtypeAndIsDurability()
-                    ? $"({item.Item.MaxUses})"
+                    ? $"{item.Item.MaxUses}"
                     : "--";
             }
 
@@ -90,7 +90,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 else
                 {
                     item.UiRefs.ItemCategoryText.text = "Magic";
-                    item.UiRefs.ItemIcon.sprite = null;
+                    item.UiRefs.ItemIcon.sprite =
+                        GamewideUiSettings.Instance?.MagicTypeIcon != null
+                            ? GamewideUiSettings.Instance.MagicTypeIcon
+                            : null;
                 }
                 if (item.Item.MinWeaponTypeAptitude != null)
                 {

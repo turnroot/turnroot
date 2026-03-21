@@ -127,7 +127,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _daysToStayAtSea = 0;
         }
 
-        private void OnDestroy() => SaveState();
+        private void OnDestroy()
+        {
+            // During application shutdown, other systems may already be destroyed.
+            // Avoid noisy failure logs when brain/LTM is unavailable in late teardown.
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+
+            if (_brain == null)
+            {
+                _brain = FindFirstObjectByType<Brain.Brain>();
+            }
+
+            if (_brain?.ltm == null)
+            {
+                return;
+            }
+
+            SaveState();
+        }
 
         #endregion
 

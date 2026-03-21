@@ -107,8 +107,12 @@ namespace Turnroot.GameSettings
             public Sprite Icon;
         }
 
-        [Header("Shop Item Type Icons"), Tooltip("Assign icons by object subtype.")]
+        [Header("Shop Item Type Icons")]
+        [Tooltip("Assign icons by object subtype.")]
         public ItemTypeIcon[] ItemTypeIcons;
+
+        [Tooltip("Icon shown for magic weapon items")]
+        public Sprite MagicTypeIcon;
 
         [System.Serializable]
         public class LetterIconMapping
@@ -287,7 +291,7 @@ namespace Turnroot.GameSettings
         [Range(0.1f, 1f)]
         public float CameraPanSpeed = 0.6f;
 
-        [Range(.01f, .3f)]
+        [Range(0.01f, .3f)]
         public float CameraPanStopDistance = 0.01f;
 
         [

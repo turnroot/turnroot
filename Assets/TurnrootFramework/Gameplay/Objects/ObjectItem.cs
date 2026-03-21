@@ -91,8 +91,11 @@ namespace Turnroot.Gameplay.Objects
         [field:
             Foldout("Repair"),
             SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems)),
-            HideIf(nameof(OneRepairItemCoversFullRepair))
+            ShowIf(
+                nameof(
+                    IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItemsAndOneRepairItemDoesNotCoverFullRepair
+                )
+            ),
         ]
         public int RepairItemAmountPerUse { get; set; } = 1;
 
@@ -325,5 +328,8 @@ namespace Turnroot.Gameplay.Objects
 
         private bool IsDurabilityAndIsReplenishUsesAfterBattle() =>
             _replenishUsesAfterBattle && Durability;
+
+        private bool IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItemsAndOneRepairItemDoesNotCoverFullRepair() =>
+            IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems() && !OneRepairItemCoversFullRepair;
     }
 }
