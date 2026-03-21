@@ -85,6 +85,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // The EndOfDay scene is responsible for doing end-of-day work and
             // then returning to the hub when ready.
             IncrementGameDateForHubLoad();
+            _brain.storehouseBrain.SaveCurrentStorehouse();
+            _brain.storehouseBrain.SaveGoldToLTM();
 
             if (_brain?.sceneFlowBrain != null)
             {

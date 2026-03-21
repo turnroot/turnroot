@@ -15,8 +15,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public AudioClip Audio;
     }
 
+    [RequireComponent(typeof(ShopUi))]
     public class Shop : MonoBehaviour
     {
+        public ShopUi Ui => GetComponent<ShopUi>();
         public ShopItem[] ItemsStocked;
         private Dictionary<ShopItem, int> currentStock = new();
 
@@ -25,15 +27,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public CharacterData Shopkeeper;
 
         public ShopDialogue[] WelcomeDialogues;
+
+        private ShopDialogue[] cachedWelcomeDialogues;
         public ShopDialogue[] ShopKeeperSellsDialogues;
         public ShopDialogue[] ShopKeeperBuysDialogues;
         public ShopDialogue[] FarewellDialogues;
+
+        public string SoldOutDialogueText;
 
         private OneShot[] WelcomeDialogueConversations;
         private OneShot[] SellDialogueConversations;
         private OneShot[] BuyDialogueConversations;
         private OneShot[] FarewellDialogueConversations;
 
+        [HideInInspector]
         public Brain.Brain brain;
 
         private Brain.Brain GetBrain()
@@ -47,11 +54,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void Awake()
         {
+            cachedWelcomeDialogues = WelcomeDialogues;
             WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
             SellDialogueConversations = ConvertToOneShots(ShopKeeperSellsDialogues);
             BuyDialogueConversations = ConvertToOneShots(ShopKeeperBuysDialogues);
             FarewellDialogueConversations = ConvertToOneShots(FarewellDialogues);
         }
+
+        public void OnDestroy() => WelcomeDialogues = cachedWelcomeDialogues;
 
         private OneShot[] ConvertToOneShots(ShopDialogue[] dialogues)
         {
@@ -84,7 +94,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopVisited()
         {
-            $"Shop '{name}': NotifyShopVisited called.".LogInfo();
             GetBrain()?.PublishShopVisited(this);
 
             // Guard: nothing to sell or show if there are no items
@@ -131,7 +140,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopExited()
         {
-            $"Shop '{name}': NotifyShopExited called.".LogInfo();
             GetBrain()?.PublishShopExited(this);
 
             var farewellOneShot = GetRandomFarewellOneShot();
@@ -139,19 +147,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
             if (!string.IsNullOrWhiteSpace(farewellOneShot.Dialogue))
             {
-                $"Shop '{name}': farewell dialogue exists, shopUi={(shopUi != null)}".LogInfo();
-                // Let SpecificUiHandler handle OnAnyConversationFinished for shop exit cleanup.
-
                 var player = GetOrCreateOneShotPlayer();
                 if (player == null)
                 {
-                    "Shop: Could not create OneShotPlayer for dialogue playback.".LogWarning();
                     $"Shop '{name}': player is null, hiding shop UI immediately.".LogWarning();
                     shopUi?.ShopUiFade.Hide();
                     return;
                 }
 
-                $"Shop '{name}': playing farewell one-shot dialogue.".LogInfo();
                 player.PlayOneShot(farewellOneShot);
             }
             else
@@ -176,9 +179,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
         }
 
-        public void NotifyShopkeeperSells(ShopItem[] itemsSold)
+        public void NotifyShopkeeperSells(ShopItem itemSold)
         {
-            GetBrain()?.PublishShopkeeperSells(this, itemsSold ?? Array.Empty<ShopItem>());
+            GetBrain()?.PublishShopkeeperSells(this, itemSold);
 
             var sellOneShot = GetRandomSellOneShot();
             if (!string.IsNullOrWhiteSpace(sellOneShot.Dialogue))
@@ -288,6 +291,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
             }
 
+            var totalStock = 0;
             foreach (ShopItem item in ItemsStocked)
             {
                 // always evaluate sale status every display/refresh
@@ -300,6 +304,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
                 var status = item.CurrentStatus;
                 currentStock[item] = status.AvailableQuantity;
+                totalStock += status.AvailableQuantity;
 
                 // Persist the updated quantity into HubDayStateStore for this day.
                 if (brain != null)
@@ -317,6 +322,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 if (!isDailyUpdateAlreadyProcessed && item.RareItem && status.AvailableQuantity > 0)
                 {
                     return $"A rare item is in stock at";
+                }
+            }
+            $"Shop '{name}': Total stock after refresh is {totalStock}.".LogInfo();
+            if (totalStock == 0)
+            {
+                if (SoldOutDialogueText != null)
+                {
+                    var i = -1;
+                    foreach (var dialogue in WelcomeDialogues)
+                    {
+                        i++;
+                        var d = WelcomeDialogues[i];
+                        d.Dialogue = SoldOutDialogueText;
+                        WelcomeDialogues[i] = d;
+                    }
+                    WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
                 }
             }
             return "";

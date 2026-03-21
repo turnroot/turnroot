@@ -293,7 +293,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4f1ed36196161d4e93871b31933d7c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _storedItems: []
+  PlayerGold: 0
   GoldDisplayNames:
     OneLetter: 
     FullName: 
@@ -551,12 +551,15 @@ MonoBehaviour:
   NavigateDown: {fileID: -7002231937099001039, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   NavigateLeft: {fileID: 170035112579692444, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   NavigateRight: {fileID: -3676630026911591939, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  ScrollLeft: {fileID: -6046010991758052016, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  ScrollRight: {fileID: 5465184582192424060, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   Navigate: {fileID: -4771218353558461949, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   Confirm: {fileID: 2033726153967148330, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   Cancel: {fileID: -8619626377133356767, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
   Menu: {fileID: 0}
   RotateCamera: {fileID: 0}
   Start: {fileID: -472219190135712309, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
+  ToggleDetails: {fileID: 3236334046250011413, guid: 2125a052b6e49e44bb3f730c582036c4, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

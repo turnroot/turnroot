@@ -36,6 +36,9 @@ namespace Turnroot.UI
         private InputAction _subscribedNavigateRight;
         private InputAction _subscribedStart;
 
+        private InputAction _subscribedScrollLeft;
+        private InputAction _subscribedScrollRight;
+
         private void Awake()
         {
             // Always register for initialization so we can bind once the shared actions are ready.
@@ -70,6 +73,8 @@ namespace Turnroot.UI
                     && _subscribedNavigateDown == UiChoice.NavigateDownAction
                     && _subscribedNavigateLeft == UiChoice.NavigateLeftAction
                     && _subscribedNavigateRight == UiChoice.NavigateRightAction
+                    && _subscribedScrollLeft == UiChoice.ScrollLeftAction
+                    && _subscribedScrollRight == UiChoice.ScrollRightAction
                 )
                 {
                     return;
@@ -89,19 +94,6 @@ namespace Turnroot.UI
 
             // Ensure any previous subscriptions are cleared (useful if actions were re-created).
             Unsubscribe();
-
-            if (LogInputActions)
-            {
-                var select = UiChoice.SelectAction;
-                var start = UiChoice.StartAction;
-
-                (
-                    $"UiInputProvider.Subscribe: Select={(select != null ? select.name : "<null>")}, "
-                    + $"Start={(start != null ? start.name : "<null>")}, "
-                    + $"Select.enabled={(select != null ? select.enabled.ToString() : "-")}, "
-                    + $"Start.enabled={(start != null ? start.enabled.ToString() : "-")}"
-                ).LogInfo();
-            }
 
             if (UiChoice.SelectAction == null && UiChoice.StartAction == null)
             {
@@ -131,6 +123,8 @@ namespace Turnroot.UI
             _subscribedNavigateLeft = UiChoice.NavigateLeftAction;
             _subscribedNavigateRight = UiChoice.NavigateRightAction;
             _subscribedStart = UiChoice.StartAction;
+            _subscribedScrollLeft = UiChoice.ScrollLeftAction;
+            _subscribedScrollRight = UiChoice.ScrollRightAction;
 
             if (_subscribedSelect != null)
             {
@@ -159,6 +153,14 @@ namespace Turnroot.UI
             if (_subscribedStart != null)
             {
                 _subscribedStart.performed += HandleStart;
+            }
+            if (_subscribedScrollLeft != null)
+            {
+                _subscribedScrollLeft.performed += HandleScrollLeft;
+            }
+            if (_subscribedScrollRight != null)
+            {
+                _subscribedScrollRight.performed += HandleScrollRight;
             }
         }
 
@@ -202,32 +204,45 @@ namespace Turnroot.UI
                 _subscribedStart.performed -= HandleStart;
                 _subscribedStart = null;
             }
-        }
-
-        private void OnDestroy()
-        {
-            if (_initializedHandlerRegistered)
+            if (_subscribedScrollLeft != null)
+            {
+                _subscribedScrollLeft.performed -= HandleScrollLeft;
+                _subscribedScrollLeft = null;
+            }
+            if (_subscribedScrollRight != null)
+            {
+                _subscribedScrollRight.performed -= HandleScrollRight;
+                _subscribedScrollRight = null;
+            }
             {
                 UIInputActionDefaults.RemoveInitializedHandler(Subscribe);
                 _initializedHandlerRegistered = false;
             }
         }
 
-        private void HandleSelect(InputAction.CallbackContext ctx) => OnInput?.Invoke("Select");
+        private void HandleSelect(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.Submit);
 
-        private void HandleBack(InputAction.CallbackContext ctx) => OnInput?.Invoke("Back");
+        private void HandleBack(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.Cancel);
 
         private void HandleNavigateUp(InputAction.CallbackContext ctx) =>
-            OnInput?.Invoke("NavigateUp");
+            OnInput?.Invoke(InputActionConstants.NavigateUp);
 
         private void HandleNavigateDown(InputAction.CallbackContext ctx) =>
-            OnInput?.Invoke("NavigateDown");
+            OnInput?.Invoke(InputActionConstants.NavigateDown);
 
         private void HandleNavigateLeft(InputAction.CallbackContext ctx) =>
-            OnInput?.Invoke("NavigateLeft");
+            OnInput?.Invoke(InputActionConstants.NavigateLeft);
 
         private void HandleNavigateRight(InputAction.CallbackContext ctx) =>
-            OnInput?.Invoke("NavigateRight");
+            OnInput?.Invoke(InputActionConstants.NavigateRight);
+
+        private void HandleScrollLeft(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.ScrollLeft);
+
+        private void HandleScrollRight(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.ScrollRight);
 
         private void HandleStart(InputAction.CallbackContext ctx) => OnInput?.Invoke("Start");
 

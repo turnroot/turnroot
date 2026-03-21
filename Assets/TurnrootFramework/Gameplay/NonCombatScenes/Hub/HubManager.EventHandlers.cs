@@ -105,6 +105,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             foreach (var message in rareItemStrings)
             {
+                if (string.IsNullOrEmpty(message))
+                {
+                    continue;
+                }
                 notifications.SetMessage(message);
                 foreach (var type in notifications.types)
                 {

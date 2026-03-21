@@ -180,6 +180,15 @@ namespace Turnroot.Gameplay.Objects
         [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         public WeaponType[] WeaponTypesEffectiveAgainst { get; set; } = new WeaponType[0];
 
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public bool EffectiveAgainstFlying { get; set; } = false;
+
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public bool EffectiveAgainstArmored { get; set; } = false;
+
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        public bool EffectiveAgainstRiding { get; set; } = false;
+
         [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         private Skill _weaponEffect;
 

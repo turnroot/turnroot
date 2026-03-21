@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
@@ -7,11 +8,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     [RequireComponent(typeof(HubManager))]
     public class HubSubInput : MonoBehaviour
     {
-        // absolute degree limits from the base orientation; use positive values.
+        // absolute degree limits from the default hub sublocation base orientation; use positive values.
+        // World-space tilt is clamped to [default - left,right] and [default - up,down], even when returning from POI.
         public float MaxTiltLeft;
         public float MaxTiltRight;
         public float MaxTiltUp;
         public float MaxTiltDown;
+
+        private Vector3 _defaultRotation;
+        private bool _hasDefaultRotation;
 
         [Tooltip("Time it takes to reach the target rotation (seconds)")]
         public float lookSmoothTime = 0.15f;
@@ -52,7 +57,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (hubManager == null)
                 hubManager = GetComponent<HubManager>();
 
-            if (action == "Select")
+            if (
+                action == InputActionConstants.Select
+                || action == InputActionConstants.Start
+                || action == InputActionConstants.Submit
+                || action == InputActionConstants.Confirm
+            )
             {
                 // check if there is a highlighted POI and can be selected
                 if (targetCollider != null)
@@ -65,7 +75,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
-            if (action == "Back")
+            if (action == "Back" || action == InputActionConstants.Cancel)
             {
                 hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
             }
@@ -116,6 +126,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _baseRotation = hubCamera.transform.localEulerAngles;
                 _baseRotation.x = hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.x);
                 _baseRotation.y = hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.y);
+
+                if (!_hasDefaultRotation)
+                {
+                    _defaultRotation = _baseRotation;
+                    _hasDefaultRotation = true;
+                }
+
                 _hasBaseRotation = true;
             }
 
@@ -132,16 +149,59 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             float upLimit = Mathf.Abs(MaxTiltUp);
             float downLimit = Mathf.Abs(MaxTiltDown);
 
-            _yawOffset = Mathf.Clamp(
-                _yawOffset + h * lookStep * Time.deltaTime,
-                -leftLimit,
-                rightLimit
-            );
-            _pitchOffset = Mathf.Clamp(
-                _pitchOffset - v * lookStep * Time.deltaTime,
-                -upLimit,
-                downLimit
-            );
+            _yawOffset += h * lookStep * Time.deltaTime;
+            _pitchOffset -= v * lookStep * Time.deltaTime;
+
+            if (_hasDefaultRotation)
+            {
+                float desiredWorldYaw = hubManager._brain.cameraBrain.NormalizeAngle(
+                    _baseRotation.y + _yawOffset
+                );
+                float desiredWorldPitch = hubManager._brain.cameraBrain.NormalizeAngle(
+                    _baseRotation.x + _pitchOffset
+                );
+
+                float defaultYaw = hubManager._brain.cameraBrain.NormalizeAngle(_defaultRotation.y);
+                float defaultPitch = hubManager._brain.cameraBrain.NormalizeAngle(
+                    _defaultRotation.x
+                );
+
+                float minWorldYaw = hubManager._brain.cameraBrain.NormalizeAngle(
+                    defaultYaw - leftLimit
+                );
+                float maxWorldYaw = hubManager._brain.cameraBrain.NormalizeAngle(
+                    defaultYaw + rightLimit
+                );
+                float minWorldPitch = hubManager._brain.cameraBrain.NormalizeAngle(
+                    defaultPitch - upLimit
+                );
+                float maxWorldPitch = hubManager._brain.cameraBrain.NormalizeAngle(
+                    defaultPitch + downLimit
+                );
+
+                float clampedWorldYaw = ClampAngleToRange(
+                    desiredWorldYaw,
+                    minWorldYaw,
+                    maxWorldYaw
+                );
+                float clampedWorldPitch = ClampAngleToRange(
+                    desiredWorldPitch,
+                    minWorldPitch,
+                    maxWorldPitch
+                );
+
+                _yawOffset = hubManager._brain.cameraBrain.NormalizeAngle(
+                    clampedWorldYaw - _baseRotation.y
+                );
+                _pitchOffset = hubManager._brain.cameraBrain.NormalizeAngle(
+                    clampedWorldPitch - _baseRotation.x
+                );
+            }
+            else
+            {
+                _yawOffset = Mathf.Clamp(_yawOffset, -leftLimit, rightLimit);
+                _pitchOffset = Mathf.Clamp(_pitchOffset, -upLimit, downLimit);
+            }
 
             Vector3 targetRotation = new Vector3(
                 hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.x + _pitchOffset),
@@ -255,6 +315,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 ref _fovVelocity,
                 fovSmoothTime
             );
+        }
+
+        private float ClampAngleToRange(float angle, float min, float max)
+        {
+            angle = hubManager._brain.cameraBrain.NormalizeAngle(angle);
+            min = hubManager._brain.cameraBrain.NormalizeAngle(min);
+            max = hubManager._brain.cameraBrain.NormalizeAngle(max);
+
+            bool isInRange;
+            if (min <= max)
+            {
+                isInRange = angle >= min && angle <= max;
+            }
+            else
+            {
+                // wrapped interval across -180/180 boundary
+                isInRange = angle >= min || angle <= max;
+            }
+
+            if (isInRange)
+            {
+                return angle;
+            }
+
+            float deltaToMin = Mathf.Abs(Mathf.DeltaAngle(angle, min));
+            float deltaToMax = Mathf.Abs(Mathf.DeltaAngle(angle, max));
+            return deltaToMin < deltaToMax ? min : max;
         }
 
         private Vector2 GetLookInput()

@@ -15,16 +15,14 @@ namespace Turnroot.UI
         public InputActionReference NavigateDown;
         public InputActionReference NavigateLeft;
         public InputActionReference NavigateRight;
-
-        [Header("General Input Action References")]
+        public InputActionReference ScrollLeft;
+        public InputActionReference ScrollRight;
         public InputActionReference Navigate;
         public InputActionReference Confirm;
         public InputActionReference Cancel;
         public InputActionReference Menu;
         public InputActionReference RotateCamera;
         public InputActionReference Start;
-
-        [Header("Battle Action References")]
         public InputActionReference ToggleDetails;
 
         protected override void Awake()
@@ -52,6 +50,8 @@ namespace Turnroot.UI
                 NavigateDown,
                 NavigateLeft,
                 NavigateRight,
+                ScrollLeft,
+                ScrollRight,
                 Navigate,
                 Confirm,
                 Cancel,
@@ -63,14 +63,6 @@ namespace Turnroot.UI
 
             // Enable everything immediately so all consumers can listen to all actions.
             EnableAllActions();
-
-            var brainName =
-                _brain != null
-                    ? $"{_brain.gameObject.name}({_brain.GetInstanceID()})"
-                    : "<no brain>";
-            $"UIInputActionBootstrap Initialized:  Select={Select?.action != null}, Back={Back?.action != null},  Navigate={Navigate?.action != null},  Start={Start?.action != null},  RotateCamera={RotateCamera?.action != null}, Brain={brainName}".LogInfo(
-                "UIInputActionBootstrap"
-            );
 
             // Notify any systems that are waiting for the input actions to be ready.
             _brain?.NotifyInputsReady();
@@ -92,6 +84,8 @@ namespace Turnroot.UI
             TryEnable(UIInputActionDefaults.NavigateDown);
             TryEnable(UIInputActionDefaults.NavigateLeft);
             TryEnable(UIInputActionDefaults.NavigateRight);
+            TryEnable(UIInputActionDefaults.ScrollLeft);
+            TryEnable(UIInputActionDefaults.ScrollRight);
             TryEnable(UIInputActionDefaults.Navigate);
             TryEnable(UIInputActionDefaults.Confirm);
             TryEnable(UIInputActionDefaults.Cancel);

@@ -19,7 +19,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         // Track the active shop for notifying visited/exited events.
         private Shop.Shop _activeShop;
 
-        // Used to pause the back/exit behavior until the shop exit dialogue finishes.
+        // Used to pause shop input while welcome/exit dialogue is running.
+        private bool _waitingForShopEntryDialogue;
         private bool _waitingForShopExitDialogue;
 
         // Stored reference so unsubscribe always targets the same object we subscribed to.
@@ -67,6 +68,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnConversationFinished()
         {
+            if (_waitingForShopEntryDialogue)
+            {
+                _waitingForShopEntryDialogue = false;
+                UnsubscribeFromConversationFinished();
+                return;
+            }
+
             if (!_waitingForShopExitDialogue)
             {
                 return;
@@ -96,6 +104,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (newShop != null && newShop != _activeShop)
             {
                 _activeShop = newShop;
+
+                // If the shop is going to play welcome dialogue, block shop input until it's complete.
+                var welcomeOneShot = _activeShop.GetRandomWelcomeOneShot();
+                if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
+                {
+                    _waitingForShopEntryDialogue = true;
+                    SubscribeToConversationFinished();
+                }
+
                 // NotifyShopVisited already plays the welcome dialogue internally.
                 _activeShop.NotifyShopVisited();
             }
@@ -108,13 +125,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleInput(string action)
         {
-            if (_waitingForShopExitDialogue)
+            if (_waitingForShopEntryDialogue || _waitingForShopExitDialogue)
             {
-                // Ignore input while waiting for the exit dialogue to finish.
+                $"SpecificUiHandler: Ignoring input '{action}' while waiting for shop dialogue to finish.".LogInfo();
+                // Ignore input while waiting for the shop welcome or exit dialogue to finish.
                 return;
             }
 
-            if (action == "Back")
+            if (action == "Back" || action == InputActionConstants.Cancel)
             {
                 // If we are currently inside a shop, play the exit dialogue first.
                 if (_activeShop != null)
@@ -139,6 +157,46 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
 
                 CompleteShopExit();
+            }
+            if (action is InputActionConstants.NavigateRight or InputActionConstants.NavigateLeft)
+            {
+                // shop?
+                // increase or decrease the buying quantity of the selected item
+                // also increase the price text to match
+                // increase up to available quantity or decrease down to 0 or increase up to maximum buying power (whichever is smaller)
+                if (_activeShop != null)
+                {
+                    _activeShop.Ui.HandleQuantityChangeInput(action);
+                }
+            }
+            if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
+            {
+                // shop?
+                // move up or down item list
+                if (_activeShop != null)
+                {
+                    _activeShop.Ui.HandleItemChangeInput(action);
+                }
+            }
+            if (action == InputActionConstants.Submit || action == InputActionConstants.Select)
+            {
+                // shop?
+                // confirm the purchase of the currently selected item and quantity
+                if (_activeShop != null)
+                {
+                    $"SpecificUiHandler: Received purchase confirmation input for active shop '{_activeShop.name}'".LogInfo();
+                    _activeShop.Ui.HandlePurchaseConfirmationInput();
+                }
+            }
+            if (action is InputActionConstants.ScrollLeft or InputActionConstants.ScrollRight)
+            {
+                // shop?
+                // change the page
+                if (_activeShop != null)
+                {
+                    $"SpecificUiHandler: Received page change input '{action}' for active shop '{_activeShop.name}'".LogInfo();
+                    _activeShop.Ui.ChangePageInput(action);
+                }
             }
         }
 

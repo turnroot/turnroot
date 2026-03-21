@@ -53,9 +53,9 @@ namespace Turnroot.Gameplay.Brain
         private void InitializeLTMDependentData()
         {
             int tryLoadGold = GetGoldFromLTM();
-            if (tryLoadGold <= 0)
+            if (tryLoadGold == int.MinValue)
             {
-                PlayerGold = 0;
+                PlayerGold = GameplayGeneralSettings.Instance.StartingGold;
                 SaveGoldToLTM();
             }
             else
@@ -86,7 +86,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool CanAfford(int amount) => PlayerGold >= amount;
 
-        public OperationResult SpendGold(int amount)
+        public OperationResult SpendGold(int amount, bool shouldSave = true)
         {
             if (!CanAfford(amount))
             {
@@ -94,7 +94,10 @@ namespace Turnroot.Gameplay.Brain
             }
 
             PlayerGold -= amount;
-            SaveGoldToLTM();
+            if (shouldSave)
+            {
+                SaveGoldToLTM();
+            }
             return OperationResult.Successful();
         }
 
@@ -109,11 +112,17 @@ namespace Turnroot.Gameplay.Brain
             var recalled = _ltm.Recall(LtmKeys.StorehousePurchasingPower);
             if (recalled == null)
             {
-                return GameplayGeneralSettings.Instance.StartingGold;
+                // No value stored yet.
+                return int.MinValue;
             }
 
             var decoded = _brain.DecodeString(recalled);
-            return int.Parse(decoded);
+            if (!int.TryParse(decoded, out var parsedGold) || parsedGold < 0)
+            {
+                return int.MinValue;
+            }
+
+            return parsedGold;
         }
         #endregion
 
@@ -133,11 +142,11 @@ namespace Turnroot.Gameplay.Brain
         public void LoadStorehouse()
         {
             // Load gold amount
+            int tryLoadGold = GetGoldFromLTM();
             PlayerGold =
-                int.TryParse(_ltm.Recall(LtmKeys.StorehousePurchasingPower), out int recalledGold)
-                && recalledGold >= 0
-                    ? recalledGold
-                    : GameplayGeneralSettings.Instance.StartingGold;
+                tryLoadGold == int.MinValue
+                    ? GameplayGeneralSettings.Instance.StartingGold
+                    : tryLoadGold;
 
             // loop through all known materials and load their counts
             _materials.Clear();
@@ -243,7 +252,7 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
-        public void AddMaterials(ObjectItem material, int amount)
+        public void AddMaterials(ObjectItem material, int amount, bool shouldSave = true)
         {
             if (material == null || amount <= 0)
             {
@@ -257,7 +266,10 @@ namespace Turnroot.Gameplay.Brain
             }
 
             _materials[material] = currentCount + amount;
-            SaveCurrentStorehouse();
+            if (shouldSave)
+            {
+                SaveCurrentStorehouse();
+            }
             $"Added {amount}x {material.name} to storehouse.".LogInfo();
         }
 

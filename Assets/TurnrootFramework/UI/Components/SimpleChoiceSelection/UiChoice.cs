@@ -21,6 +21,9 @@ namespace Turnroot.UI
         public static InputAction NavigateRightAction => UIInputActionDefaults.NavigateRight;
         public static InputAction StartAction => UIInputActionDefaults.Start;
 
+        public static InputAction ScrollLeftAction => UIInputActionDefaults.ScrollLeft;
+        public static InputAction ScrollRightAction => UIInputActionDefaults.ScrollRight;
+
         public RectTransform ToScale => GetComponent<RectTransform>();
         public UIEffect Effect;
         public bool IsActive { get; private set; } = false;

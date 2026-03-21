@@ -1,4 +1,5 @@
 using TMPro;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Graphics2D
@@ -80,19 +81,20 @@ namespace Turnroot.Graphics2D
         {
             switch (action)
             {
-                case "NavigateUp":
+                case InputActionConstants.NavigateUp:
                     ProcessInput(Vector2.up);
                     break;
-                case "NavigateDown":
+                case InputActionConstants.NavigateDown:
                     ProcessInput(Vector2.down);
                     break;
-                case "NavigateLeft":
+                case InputActionConstants.NavigateLeft:
                     ProcessInput(Vector2.left);
                     break;
-                case "NavigateRight":
+                case InputActionConstants.NavigateRight:
                     ProcessInput(Vector2.right);
                     break;
-                case "Select":
+                case InputActionConstants.Submit:
+                case InputActionConstants.Select:
                     ProcessSelect();
                     break;
             }
