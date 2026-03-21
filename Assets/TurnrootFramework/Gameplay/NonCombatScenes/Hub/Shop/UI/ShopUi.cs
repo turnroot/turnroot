@@ -19,6 +19,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public ShopItemUiRefs[] ItemUiRefs;
 
         private System.Collections.Generic.List<UiChoice> itemChoices;
+        private System.Collections.Generic.List<int> itemChoiceToShopIndex;
 
         [Header("UI References")]
         public UIFade ShopUiFade;
@@ -94,6 +95,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
 
             itemChoices = new System.Collections.Generic.List<UiChoice>(stock.Length);
+            itemChoiceToShopIndex = new System.Collections.Generic.List<int>(stock.Length);
 
             for (var i = 0; i < stock.Length; i++)
             {
@@ -113,11 +115,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 if (item.UiRefs != null && item.UiRefs.ShopItemChoice != null)
                 {
                     itemChoices.Add(item.UiRefs.ShopItemChoice);
+                    itemChoiceToShopIndex.Add(i);
                     ConfigureItemUi(item, SelectionCountCache);
                 }
             }
             ShopData.ItemsStocked = stock;
-            totalPages = Mathf.CeilToInt((float)ShopData.ItemsStocked.Length / ItemsPerPage);
+            totalPages = Mathf.CeilToInt((float)itemChoices.Count / ItemsPerPage);
             CurrentPage = 0;
 
             InitializePageIndicators();

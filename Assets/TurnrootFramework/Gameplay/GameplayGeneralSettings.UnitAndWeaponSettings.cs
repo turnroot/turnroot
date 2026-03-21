@@ -41,6 +41,101 @@ namespace Turnroot.GameSettings
         [BoxGroup("Weapons"), InfoBox("Put all of the weapon types your game uses here")]
         public WeaponType[] WeaponTypes;
 
+        [
+            BoxGroup("Combat Mechanics"),
+            InfoBox("Weapon triangle relationship: Top > Left, Left > Right, Right > Top")
+        ]
+        public bool WeaponTriangleIsActive;
+
+        [
+            BoxGroup("Combat Mechanics"),
+            InfoBox("Weapon types that live in the Top triangle position")
+        ]
+        public WeaponType[] TopTriangleWeaponTypes;
+
+        [
+            BoxGroup("Combat Mechanics"),
+            InfoBox("Weapon types that live in the Left triangle position")
+        ]
+        public WeaponType[] LeftTriangleWeaponTypes;
+
+        [
+            BoxGroup("Combat Mechanics"),
+            InfoBox("Weapon types that live in the Right triangle position")
+        ]
+        public WeaponType[] RightTriangleWeaponTypes;
+
+        [BoxGroup("Combat Mechanics"), InfoBox("Weapon types that are not on the triangle")]
+        public WeaponType[] NotOnTriangleWeaponTypes;
+
+        public WeaponType GetWeaponTypeById(string id)
+        {
+            if (string.IsNullOrEmpty(id) || WeaponTypes == null)
+            {
+                return null;
+            }
+
+            foreach (var weapon in WeaponTypes)
+            {
+                if (
+                    weapon != null
+                    && string.Equals(weapon.Id, id, System.StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    return weapon;
+                }
+            }
+            return null;
+        }
+
+        public TrianglePositionEnum GetWeaponTrianglePosition(string weaponId)
+        {
+            var weapon = GetWeaponTypeById(weaponId);
+            if (weapon == null)
+            {
+                return TrianglePositionEnum.NotOnTriangle;
+            }
+
+            if (
+                TopTriangleWeaponTypes != null
+                && System.Array.Exists(TopTriangleWeaponTypes, w => w == weapon)
+            )
+            {
+                return TrianglePositionEnum.Top;
+            }
+
+            if (
+                LeftTriangleWeaponTypes != null
+                && System.Array.Exists(LeftTriangleWeaponTypes, w => w == weapon)
+            )
+            {
+                return TrianglePositionEnum.Left;
+            }
+
+            if (
+                RightTriangleWeaponTypes != null
+                && System.Array.Exists(RightTriangleWeaponTypes, w => w == weapon)
+            )
+            {
+                return TrianglePositionEnum.Right;
+            }
+
+            if (
+                NotOnTriangleWeaponTypes != null
+                && System.Array.Exists(NotOnTriangleWeaponTypes, w => w == weapon)
+            )
+            {
+                return TrianglePositionEnum.NotOnTriangle;
+            }
+
+            if (weapon.TrianglePosition != null)
+            {
+                return weapon.TrianglePosition.Position;
+            }
+
+            return TrianglePositionEnum.NotOnTriangle;
+        }
+
         [BoxGroup("Characters"), InfoBox("Put all of the species types your game uses here")]
         public SpeciesType[] SpeciesTypes;
 

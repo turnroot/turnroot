@@ -17,22 +17,26 @@ namespace Turnroot.GameSettings
         [BoxGroup("Combat Mechanics")]
         public int MaxEquippedSkills = 0;
 
-        [BoxGroup("Combat Mechanics")]
+        [
+            BoxGroup("Combat Mechanics"),
+            HideInInspector,
+            Tooltip("Deprecated: use WeaponTriangleIsActive from UnitAndWeaponSettings")
+        ]
         public bool WeaponTriangle;
 
-        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
-        public bool ExpandedWeaponTriangle;
+        public bool WeaponTriangleEnabled => WeaponTriangleIsActive || WeaponTriangle;
 
-        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangleIsActive")]
         public bool WeaponTriangleAffectsDamage = true;
 
-        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangleIsActive")]
         public bool WeaponTriangleAffectsHit = true;
 
-        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        [InfoBox("Percentage bonus/penalty (out of 100)")]
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangleIsActive")]
         public int WeaponTriangleAdvantage = 20;
 
-        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangle")]
+        [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangleIsActive")]
         public int WeaponTriangleDisadvantage = -20;
 
         [BoxGroup("Combat Mechanics")]

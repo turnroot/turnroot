@@ -266,7 +266,7 @@ namespace Turnroot.GameSettings
         // Helper method for ShowIf condition
         public bool ShowWeaponTriangleHitBonus()
         {
-            return (WeaponTriangle && WeaponTriangleAffectsHit)
+            return (WeaponTriangleEnabled && WeaponTriangleAffectsHit)
                 || (MagicTriangle && WeaponTriangleAffectsHit);
         }
 

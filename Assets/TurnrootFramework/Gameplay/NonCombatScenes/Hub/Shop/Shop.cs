@@ -327,15 +327,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             $"Shop '{name}': Total stock after refresh is {totalStock}.".LogInfo();
             if (totalStock == 0)
             {
-                var i = -1;
-                foreach (var dialogue in WelcomeDialogues)
+                if (SoldOutDialogueText != null)
                 {
-                    i++;
-                    var d = WelcomeDialogues[i];
-                    d.Dialogue = SoldOutDialogueText;
-                    WelcomeDialogues[i] = d;
+                    var i = -1;
+                    foreach (var dialogue in WelcomeDialogues)
+                    {
+                        i++;
+                        var d = WelcomeDialogues[i];
+                        d.Dialogue = SoldOutDialogueText;
+                        WelcomeDialogues[i] = d;
+                    }
+                    WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
                 }
-                WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
             }
             return "";
         }

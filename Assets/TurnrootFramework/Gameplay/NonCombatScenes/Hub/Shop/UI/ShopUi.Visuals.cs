@@ -89,7 +89,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
                 else
                 {
-                    item.UiRefs.ItemCategoryText.text = "???";
+                    item.UiRefs.ItemCategoryText.text = "Magic";
                     item.UiRefs.ItemIcon.sprite = null;
                 }
                 if (item.Item.MinWeaponTypeAptitude != null)
@@ -217,24 +217,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         private void UpdateVisiblePageItems()
         {
-            if (ShopData.ItemsStocked == null || itemChoices == null)
+            if (itemChoices == null)
             {
                 return;
             }
 
             var startIndex = CurrentPage * ItemsPerPage;
-            var endIndex = Mathf.Min(startIndex + ItemsPerPage, ShopData.ItemsStocked.Length);
+            var endIndex = Mathf.Min(startIndex + ItemsPerPage, itemChoices.Count);
 
-            for (var i = 0; i < ShopData.ItemsStocked.Length; i++)
+            for (var i = 0; i < itemChoices.Count; i++)
             {
-                var shopItem = ShopData.ItemsStocked[i];
-                if (shopItem.UiRefs?.gameObject == null)
+                var choice = itemChoices[i];
+                if (choice?.gameObject == null)
                 {
                     continue;
                 }
 
                 bool isVisible = i >= startIndex && i < endIndex;
-                shopItem.UiRefs.gameObject.SetActive(isVisible);
+                choice.gameObject.SetActive(isVisible);
             }
         }
 
@@ -281,12 +281,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     itemChoices[i].Select();
                     if (
                         ShopData?.ItemsStocked != null
-                        && i < ShopData.ItemsStocked.Length
-                        && ShopData.ItemsStocked[i].Item != null
-                        && ShopData.ItemsStocked[i].UiRefs != null
+                        && itemChoiceToShopIndex != null
+                        && i < itemChoiceToShopIndex.Count
                     )
                     {
-                        HandeSelectedItem(ShopData.ItemsStocked[i]);
+                        int shopIndex = itemChoiceToShopIndex[i];
+                        if (
+                            shopIndex >= 0
+                            && shopIndex < ShopData.ItemsStocked.Length
+                            && ShopData.ItemsStocked[shopIndex].Item != null
+                            && ShopData.ItemsStocked[shopIndex].UiRefs != null
+                        )
+                        {
+                            HandeSelectedItem(ShopData.ItemsStocked[shopIndex]);
+                        }
                     }
                 }
                 else

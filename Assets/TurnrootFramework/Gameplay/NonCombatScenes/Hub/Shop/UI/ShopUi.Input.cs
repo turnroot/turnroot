@@ -75,13 +75,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
         }
 
-        public void ChangePage(int page = 0)
+        public void ChangePage(int? page = null)
         {
             if (totalPages <= 1)
             {
                 return;
             }
-            if (page == 0)
+
+            if (page == null)
             {
                 page = CurrentPage;
             }
@@ -91,15 +92,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
             else
             {
-                page = Mathf.Clamp(page, 0, Mathf.Max(0, totalPages - 1));
+                page = Mathf.Clamp(page.Value, 0, Mathf.Max(0, totalPages - 1));
             }
 
-            if (page == CurrentPage)
+            if (page.Value == CurrentPage)
             {
                 return;
             }
 
-            CurrentPage = page;
+            CurrentPage = page.Value;
             CurrentSelectionIndex = CurrentPage * ItemsPerPage;
 
             PlayPageChangeSound();
@@ -129,11 +130,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void HandlePurchaseConfirmationInput()
         {
+            if (!CanBuy)
+            {
+                return;
+            }
+
+            int shopIndex = CurrentSelectionIndex;
             if (
-                !CanBuy
-                || CurrentSelectionIndex < 0
-                || CurrentSelectionIndex >= ShopData.ItemsStocked.Length
+                itemChoiceToShopIndex != null
+                && CurrentSelectionIndex >= 0
+                && CurrentSelectionIndex < itemChoiceToShopIndex.Count
             )
+            {
+                shopIndex = itemChoiceToShopIndex[CurrentSelectionIndex];
+            }
+
+            if (shopIndex < 0 || shopIndex >= ShopData.ItemsStocked.Length)
             {
                 return;
             }
@@ -145,26 +157,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             if (CanBuy)
             {
                 TotalGoldScroll.StartScroll();
-                ShopData.NotifyShopkeeperSells(ShopData.ItemsStocked[CurrentSelectionIndex]);
+                ShopData.NotifyShopkeeperSells(ShopData.ItemsStocked[shopIndex]);
                 if (brain?.storehouseBrain != null)
                 {
                     brain.storehouseBrain.SpendGold(CostCache, true);
                     brain.storehouseBrain.SaveGoldToLTM();
 
                     brain.storehouseBrain.AddMaterials(
-                        ShopData.ItemsStocked[CurrentSelectionIndex].Item,
+                        ShopData.ItemsStocked[shopIndex].Item,
                         SelectionCountCache,
                         true
                     );
 
-                    var item = ShopData.ItemsStocked[CurrentSelectionIndex];
+                    var item = ShopData.ItemsStocked[shopIndex];
                     item.CurrentStatus.AvailableQuantity -= SelectionCountCache;
                     if (item.CurrentStatus.AvailableQuantity < 0)
                     {
                         item.CurrentStatus.AvailableQuantity = 0;
                     }
 
-                    ShopData.ItemsStocked[CurrentSelectionIndex] = item;
+                    ShopData.ItemsStocked[shopIndex] = item;
 
                     var itemName = item.Item != null ? item.Item.name : string.Empty;
                     if (brain != null)
