@@ -67,8 +67,12 @@ namespace Turnroot.Gameplay.Objects
         ]
         public bool Repairable { get; private set; } = true;
 
-        [Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairable))]
-        private int _repairPricePerUse = 10;
+        [field:
+            Foldout("Repair"),
+            SerializeField,
+            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairable))
+        ]
+        public int RepairPricePerUse { get; set; } = 10;
 
         [field:
             Foldout("Repair"),
@@ -87,9 +91,20 @@ namespace Turnroot.Gameplay.Objects
         [field:
             Foldout("Repair"),
             SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems))
+            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems)),
+            HideIf(nameof(OneRepairItemCoversFullRepair))
         ]
         public int RepairItemAmountPerUse { get; set; } = 1;
+
+        [field:
+            Foldout("Repair"),
+            SerializeField,
+            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems)),
+            InfoBox(
+                "If true, one repair item fully repairs the object regardless of remaining durability. If false, the repair item is consumed per use as normal."
+            )
+        ]
+        public bool OneRepairItemCoversFullRepair = false;
 
         [field: Foldout("Repair"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         public bool Forgeable { get; set; } = false;
