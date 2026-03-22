@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 {
-    [System.Serializable]
+    [Serializable]
     public struct ShopDialogue
     {
         public string Dialogue;

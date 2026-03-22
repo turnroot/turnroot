@@ -88,7 +88,7 @@ namespace Turnroot.GameSettings
         // Runtime cache of created MenuEntry objects created from MenuPrefabs.
         // This allows the menu system to maintain runtime state (activeInstance, etc.)
         // without requiring a complex serialized hierarchy.
-        private readonly System.Collections.Generic.Dictionary<
+        private readonly Dictionary<
             MenuName,
             MenuEntry
         > _menuEntryCache = new();

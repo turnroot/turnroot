@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.PlayerSettings;
-using Turnroot.UI;
 using UnityEngine;
 
 namespace Turnroot.UI.Components.RadialMenu

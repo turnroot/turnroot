@@ -96,7 +96,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private const string dockShipStatusLtmKey = "Hub_DockedShipStatuses";
 
-        [System.Serializable]
+        [Serializable]
         private class DockShipStatusContainer
         {
             public DockShipStatus[] statuses;

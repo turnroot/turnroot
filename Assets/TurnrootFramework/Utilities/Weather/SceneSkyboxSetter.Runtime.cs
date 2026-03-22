@@ -9,12 +9,12 @@ namespace Turnroot.Utilities.Weather
     {
         // Runtime-instanced materials used for tinting so we don't modify shared assets.
         private readonly System.Collections.Generic.Dictionary<
-            UnityEngine.Renderer,
-            UnityEngine.Material[]
+            Renderer,
+            Material[]
         > _celRendererOriginalMaterials = new();
         private readonly System.Collections.Generic.Dictionary<
-            UnityEngine.Material,
-            UnityEngine.Material
+            Material,
+            Material
         > _celMaterialInstances = new();
 
         [Range(0, 1)]

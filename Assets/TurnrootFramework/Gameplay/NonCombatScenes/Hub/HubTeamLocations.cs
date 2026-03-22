@@ -10,7 +10,7 @@ using static Turnroot.Characters.Roster;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    [System.Serializable]
+    [Serializable]
     public struct AdditionalUnitInfo
     {
         public CharacterInstance character;
@@ -31,7 +31,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public AdditionalUnitInfo[] NonRosterUnitsInHub;
 
-        [System.Serializable]
+        [Serializable]
         public struct LocationLayout
         {
             public HubSublocationName location;
@@ -161,7 +161,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void AssignUnitToLocation(
             PlayerTeamRoster roster,
             int rosterIndex,
-            Turnroot.Characters.Roster.UnitPlacement unit,
+            UnitPlacement unit,
             HubSublocationName desiredLocation,
             HubSubLocation[] subLocations,
             int maxPerLocation
@@ -310,14 +310,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private string GetPlacementKey(string rosterId, GameDate date) =>
             $"{LtmKeyPrefix}{rosterId}_{date.year:0000}{date.month:00}{date.day:00}";
 
-        [System.Serializable]
+        [Serializable]
         private class PlacementEntry
         {
             public int Index;
             public HubSublocationName Location;
         }
 
-        [System.Serializable]
+        [Serializable]
         private class PlacementMap
         {
             public PlacementEntry[] Entries;

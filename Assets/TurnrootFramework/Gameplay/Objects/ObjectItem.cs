@@ -192,42 +192,42 @@ namespace Turnroot.Gameplay.Objects
         private ReplenishUseType _replenishUsesAfterBattleAmount = ReplenishUseType.None;
 
         // Public getters for effectiveness criteria
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public SpeciesType[] SpeciesEffectiveAgainst { get; set; } = new SpeciesType[0];
 
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public WeaponType[] WeaponTypesEffectiveAgainst { get; set; } = new WeaponType[0];
 
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public bool EffectiveAgainstFlying { get; set; } = false;
 
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public bool EffectiveAgainstArmored { get; set; } = false;
 
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public bool EffectiveAgainstRiding { get; set; } = false;
 
-        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         private Skill _weaponEffect;
 
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public SerializableDictionary<UnboundedStatType, float> StatBonuses { get; set; } = new();
 
         // Expose combat values for use by damage calculator
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public float Might { get; set; } = 0f;
 
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public float Hit { get; set; } = 0f;
 
-        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
+        [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public float Critical { get; set; } = 0f;
 
         [
             Foldout("Aptitude"),
             SerializeField,
             HorizontalLine(color: EColor.Violet),
-            ShowIf(nameof(IsWeaponOrMagicSubtype))
+            ShowIf(nameof(IsCombatSectionVisible))
         ]
         public Aptitude MinWeaponTypeAptitude = new(CommonAncestors.LeveledLetteredField.E);
 
@@ -276,7 +276,7 @@ namespace Turnroot.Gameplay.Objects
             Foldout("Combat"),
             SerializeField,
             HorizontalLine(color: EColor.Red),
-            ShowIf(nameof(IsWeaponOrMagicSubtype))
+            ShowIf(nameof(IsCombatSectionVisible))
         ]
         public float Weight { get; set; } = 1.0f;
 
@@ -286,8 +286,20 @@ namespace Turnroot.Gameplay.Objects
         [field: Foldout("Type"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         public WeaponType WeaponType { get; set; }
 
+        [field: Foldout("Type"), SerializeField, ShowIf(nameof(IsMagicSubtype))]
+        public bool TeamSupportMagic { get; set; } = false;
+
         [field: Foldout("Identity"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         public bool IsUnequippable { get; set; } = true;
+
+        [field: Foldout("Support"), SerializeField, ShowIf(nameof(IsTeamSupportMagic))]
+        public bool SupportHealing { get; set; } = false;
+
+        [field: Foldout("Support"), SerializeField, ShowIf(nameof(SupportHealing)), Range(0, 100)]
+        public int HealingAmountPercent { get; set; } = 50;
+
+        [field: Foldout("Support"), SerializeField, ShowIf(nameof(IsTeamSupportMagic))]
+        public Skill SupportSkill { get; set; }
 
         public bool IsEquippable =>
             (Subtype != null && Subtype.IsWeapon) || Subtype == ObjectSubtype.Equipable;
@@ -304,6 +316,10 @@ namespace Turnroot.Gameplay.Objects
         public bool IsWeaponSubtype() => Subtype != null && Subtype.IsWeapon;
 
         public bool IsMagicSubtype() => Subtype != null && Subtype.IsMagic;
+
+        public bool IsTeamSupportMagic() => IsMagicSubtype() && TeamSupportMagic;
+
+        public bool IsCombatSectionVisible() => IsWeaponOrMagicSubtype() && !TeamSupportMagic;
 
         private bool IsWeaponOrMagicOrStaffSubtype() =>
             IsWeaponOrMagicSubtype() || EquipableType == EquipableObjectType.Staff;
