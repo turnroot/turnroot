@@ -345,6 +345,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
 
             itemChoices = null;
+            itemChoiceToShopIndex = null;
         }
     }
 }

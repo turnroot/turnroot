@@ -19,5 +19,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public TextMeshProUGUI QuantityText;
         public Image ItemIcon; // don't disable this, set alpha to 0 so it doesn't mess up the hl
         public Image LetterIcon; // don't disable this, set alpha to 0 so it doesn't mess up the hl
+        public bool IsSmuggled;
+        public GameObject SmuggledBadge;
     }
 }

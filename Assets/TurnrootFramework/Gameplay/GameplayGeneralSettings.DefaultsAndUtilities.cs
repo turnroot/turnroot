@@ -260,7 +260,8 @@ namespace Turnroot.GameSettings
         public bool GetUseExperienceAptitudes() => UseExperienceAptitudes;
 
         // Helper method for ShowIf condition
-        public bool ShowWeaponTriangleHitBonus() => WeaponTriangleEnabled && WeaponTriangleAffectsHit;
+        public bool ShowWeaponTriangleHitBonus() =>
+            WeaponTriangleEnabled && WeaponTriangleAffectsHit;
 
         /// <summary>
         /// Returns all configured experience types (weapon types + extra types that are enabled)
