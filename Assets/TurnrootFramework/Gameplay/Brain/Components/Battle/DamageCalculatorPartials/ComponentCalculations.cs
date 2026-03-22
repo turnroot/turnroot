@@ -68,10 +68,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             bool isMagic = attackerWeapon.Template.WeaponType?.IsMagic == true;
 
             // Check if triangle is enabled
-            if (
-                (isMagic && !(settings?.MagicTriangle ?? false))
-                || (!isMagic && !(settings?.WeaponTriangleEnabled ?? false))
-            )
+            if (settings?.WeaponTriangleEnabled ?? false)
             {
                 return 1.0f;
             }
@@ -79,12 +76,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var attackerTriangle = attackerWeapon.Template.WeaponType.TrianglePosition;
             var targetTriangle = targetWeapon.Template.WeaponType.TrianglePosition;
 
-            int advantage = isMagic
-                ? settings.GetMagicTriangleAdvantage()
-                : settings.GetWeaponTriangleAdvantage();
-            int disadvantage = isMagic
-                ? settings.GetMagicTriangleDisadvantage()
-                : settings.GetWeaponTriangleDisadvantage();
+            int advantage = settings.GetWeaponTriangleAdvantage();
+            int disadvantage = settings.GetWeaponTriangleDisadvantage();
 
             if (attackerTriangle.WinsAgainst(targetTriangle))
             {
@@ -106,9 +99,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         )
         {
             bool isMagic = weaponItem.Template.WeaponType?.IsMagic == true;
-            bool triangleActive =
-                (isMagic && (settings?.MagicTriangle ?? false))
-                || (!isMagic && (settings?.WeaponTriangleEnabled ?? false));
+            bool triangleActive = settings?.WeaponTriangleEnabled ?? false;
             bool triangleAffectsHit = settings?.GetWeaponTriangleAffectsHit() ?? true;
 
             if (!triangleActive || !triangleAffectsHit)

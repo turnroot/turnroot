@@ -126,10 +126,6 @@ namespace Turnroot.GameSettings
 
         public int GetWeaponTriangleDisadvantage() => WeaponTriangleDisadvantage;
 
-        public int GetMagicTriangleAdvantage() => MagicTriangleAdvantage;
-
-        public int GetMagicTriangleDisadvantage() => MagicTriangleDisadvantage;
-
         public float GetTerrainBonusMultiplier() => TerrainBonusMultiplier;
 
         public int GetMaxEquippedSkills() => MaxEquippedSkills;
@@ -264,11 +260,7 @@ namespace Turnroot.GameSettings
         public bool GetUseExperienceAptitudes() => UseExperienceAptitudes;
 
         // Helper method for ShowIf condition
-        public bool ShowWeaponTriangleHitBonus()
-        {
-            return (WeaponTriangleEnabled && WeaponTriangleAffectsHit)
-                || (MagicTriangle && WeaponTriangleAffectsHit);
-        }
+        public bool ShowWeaponTriangleHitBonus() => WeaponTriangleEnabled && WeaponTriangleAffectsHit;
 
         /// <summary>
         /// Returns all configured experience types (weapon types + extra types that are enabled)
@@ -286,6 +278,20 @@ namespace Turnroot.GameSettings
                         wt => new ExperienceType
                         {
                             Name = wt.ToString(),
+                            Enabled = true,
+                            HasWeaponType = true,
+                        }
+                    )
+                );
+            }
+            if (MagicTypes != null)
+            {
+                list.AddRange(
+                    System.Array.ConvertAll(
+                        MagicTypes,
+                        mt => new ExperienceType
+                        {
+                            Name = mt.ToString(),
                             Enabled = true,
                             HasWeaponType = true,
                         }

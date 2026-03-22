@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Turnroot.Gameplay.Objects;
 using Turnroot.Gameplay.Objects.Components;
 using UnityEditor;
 using UnityEngine;
@@ -36,12 +37,27 @@ namespace Turnroot.Editor.PropertyDrawers
                 _cachedOptions = list.ToArray();
                 _optionsLoaded = true;
             }
-            WeaponType[] options = _cachedOptions;
+            var options = new List<WeaponType>(_cachedOptions);
+
+            // If this property is on an ObjectItem, filter by subtype.
+            // For Weapon subtype: non-magic only.
+            // For Magic subtype: magic-only.
+            if (property.serializedObject.targetObject is ObjectItem objectItem)
+            {
+                if (objectItem.IsWeaponSubtype())
+                {
+                    options.RemoveAll(w => w == null || w.IsMagic);
+                }
+                else if (objectItem.IsMagicSubtype())
+                {
+                    options.RemoveAll(w => w == null || !w.IsMagic);
+                }
+            }
 
             // Build display names
-            var names = new string[options.Length + 1];
+            var names = new string[options.Count + 1];
             names[0] = "<None>";
-            for (int i = 0; i < options.Length; i++)
+            for (int i = 0; i < options.Count; i++)
             {
                 string display = null;
                 var w = options[i];
@@ -72,7 +88,7 @@ namespace Turnroot.Editor.PropertyDrawers
             int currentIndex = 0;
             if (property.objectReferenceValue != null)
             {
-                for (int i = 0; i < options.Length; i++)
+                for (int i = 0; i < options.Count; i++)
                 {
                     if (options[i] == property.objectReferenceValue)
                     {

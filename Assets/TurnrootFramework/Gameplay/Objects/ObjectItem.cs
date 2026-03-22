@@ -283,14 +283,14 @@ namespace Turnroot.Gameplay.Objects
         [field: Foldout("Type"), SerializeField, HorizontalLine(color: EColor.Blue)]
         public ObjectSubtype Subtype { get; set; } = new(ObjectSubtype.Weapon);
 
-        [field: Foldout("Type"), SerializeField, ShowIf(nameof(IsWeaponSubtype))]
+        [field: Foldout("Type"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         public WeaponType WeaponType { get; set; }
 
         [field: Foldout("Identity"), SerializeField, ShowIf(nameof(IsWeaponOrMagicSubtype))]
         public bool IsUnequippable { get; set; } = true;
 
         public bool IsEquippable =>
-            Subtype == ObjectSubtype.Weapon || Subtype == ObjectSubtype.Equipable;
+            (Subtype != null && Subtype.IsWeapon) || Subtype == ObjectSubtype.Equipable;
 
         [field: Foldout("Type"), SerializeField, ShowIf(nameof(IsEquipableSubtype))]
         public EquipableObjectType EquipableType { get; set; }
@@ -298,11 +298,12 @@ namespace Turnroot.Gameplay.Objects
         /* --------------- Helper methods for NaughtyAttributes ShowIf -------------- */
         private bool IsEquipableSubtype() => Subtype == ObjectSubtype.Equipable;
 
-        private bool IsWeaponSubtype() => Subtype == ObjectSubtype.Weapon;
-
         public bool IsWeaponOrMagicSubtype() =>
-            Subtype == new ObjectSubtype(ObjectSubtype.Weapon)
-            || Subtype == new ObjectSubtype(ObjectSubtype.Magic);
+            Subtype != null && (Subtype.IsWeapon || Subtype.IsMagic);
+
+        public bool IsWeaponSubtype() => Subtype != null && Subtype.IsWeapon;
+
+        public bool IsMagicSubtype() => Subtype != null && Subtype.IsMagic;
 
         private bool IsWeaponOrMagicOrStaffSubtype() =>
             IsWeaponOrMagicSubtype() || EquipableType == EquipableObjectType.Staff;

@@ -111,9 +111,6 @@ namespace Turnroot.GameSettings
         [Tooltip("Assign icons by object subtype.")]
         public ItemTypeIcon[] ItemTypeIcons;
 
-        [Tooltip("Icon shown for magic weapon items")]
-        public Sprite MagicTypeIcon;
-
         [System.Serializable]
         public class LetterIconMapping
         {

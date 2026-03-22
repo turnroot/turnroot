@@ -89,11 +89,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
                 else
                 {
-                    item.UiRefs.ItemCategoryText.text = "Magic";
-                    item.UiRefs.ItemIcon.sprite =
-                        GamewideUiSettings.Instance?.MagicTypeIcon != null
-                            ? GamewideUiSettings.Instance.MagicTypeIcon
-                            : null;
+                    item.UiRefs.ItemCategoryText.text = "Unknown Type";
+                    item.UiRefs.ItemIcon.sprite = null;
                 }
                 if (item.Item.MinWeaponTypeAptitude != null)
                 {

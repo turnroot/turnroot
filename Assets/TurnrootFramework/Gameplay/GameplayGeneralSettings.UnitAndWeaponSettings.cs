@@ -41,6 +41,9 @@ namespace Turnroot.GameSettings
         [BoxGroup("Weapons"), InfoBox("Put all of the weapon types your game uses here")]
         public WeaponType[] WeaponTypes;
 
+        [BoxGroup("Magic"), InfoBox("Put all of the magic types your game uses here")]
+        public WeaponType[] MagicTypes;
+
         [
             BoxGroup("Combat Mechanics"),
             InfoBox("Weapon triangle relationship: Top > Left, Left > Right, Right > Top")
