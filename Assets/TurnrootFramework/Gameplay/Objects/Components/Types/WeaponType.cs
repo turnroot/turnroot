@@ -1,3 +1,4 @@
+using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Objects.Components
@@ -24,6 +25,7 @@ namespace Turnroot.Gameplay.Objects.Components
         [SerializeField]
         private bool _isMagic;
 
+        [HideInInspector]
         [SerializeField]
         private TrianglePosition _trianglePosition;
 
@@ -53,13 +55,19 @@ namespace Turnroot.Gameplay.Objects.Components
 
         public TrianglePosition TrianglePosition
         {
-            get => _trianglePosition;
+            get
+            {
+                var settings = GameplayGeneralSettings.Instance;
+                if (settings != null && !string.IsNullOrEmpty(Id))
+                {
+                    var pos = settings.GetWeaponTrianglePosition(Id);
+                    return new TrianglePosition(pos);
+                }
+                return new TrianglePosition(TrianglePositionEnum.NotOnTriangle);
+            }
             set => _trianglePosition = value;
         }
 
-        public override string ToString()
-        {
-            return Name;
-        }
+        public override string ToString() => Name;
     }
 }

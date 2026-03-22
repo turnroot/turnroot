@@ -1,8 +1,5 @@
-using TMPro;
 using Turnroot.GameSettings;
-using Turnroot.UI;
 using Turnroot.Utilities;
-using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -74,7 +71,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             if (WeaponDurabilityText != null)
             {
                 WeaponDurabilityText.text = item.Item.IsWeaponOrMagicSubtypeAndIsDurability()
-                    ? $"({item.Item.MaxUses})"
+                    ? $"{item.Item.MaxUses}"
                     : "--";
             }
 
@@ -89,7 +86,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
                 else
                 {
-                    item.UiRefs.ItemCategoryText.text = "Magic";
+                    item.UiRefs.ItemCategoryText.text = "Unknown Type";
                     item.UiRefs.ItemIcon.sprite = null;
                 }
                 if (item.Item.MinWeaponTypeAptitude != null)
@@ -348,6 +345,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
 
             itemChoices = null;
+            itemChoiceToShopIndex = null;
         }
     }
 }

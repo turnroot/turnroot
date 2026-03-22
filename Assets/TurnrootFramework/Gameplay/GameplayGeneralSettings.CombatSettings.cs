@@ -17,14 +17,7 @@ namespace Turnroot.GameSettings
         [BoxGroup("Combat Mechanics")]
         public int MaxEquippedSkills = 0;
 
-        [
-            BoxGroup("Combat Mechanics"),
-            HideInInspector,
-            Tooltip("Deprecated: use WeaponTriangleIsActive from UnitAndWeaponSettings")
-        ]
-        public bool WeaponTriangle;
-
-        public bool WeaponTriangleEnabled => WeaponTriangleIsActive || WeaponTriangle;
+        public bool WeaponTriangleEnabled => WeaponTriangleIsActive;
 
         [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangleIsActive")]
         public bool WeaponTriangleAffectsDamage = true;
@@ -38,15 +31,6 @@ namespace Turnroot.GameSettings
 
         [BoxGroup("Combat Mechanics"), ShowIf("WeaponTriangleIsActive")]
         public int WeaponTriangleDisadvantage = -20;
-
-        [BoxGroup("Combat Mechanics")]
-        public bool MagicTriangle;
-
-        [BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
-        public int MagicTriangleAdvantage = 20;
-
-        [BoxGroup("Combat Mechanics"), ShowIf("MagicTriangle")]
-        public int MagicTriangleDisadvantage = -20;
 
         [BoxGroup("Combat Formulas"), HorizontalLine(color: EColor.Red)]
         public HitFormulaType HitFormula = HitFormulaType.ModernBalanced;

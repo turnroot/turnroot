@@ -203,6 +203,10 @@ namespace Turnroot.Gameplay.Objects
 
             if (_template.RepairNeedsItems)
             {
+                if (_template.OneRepairItemCoversFullRepair)
+                {
+                    return StorehouseBrain?.HasMaterials(_template.RepairItem, 1) ?? false;
+                }
                 return StorehouseBrain?.HasMaterials(
                         _template.RepairItem,
                         _template.RepairItemAmountPerUse * repairUses
@@ -234,23 +238,34 @@ namespace Turnroot.Gameplay.Objects
                 return OperationResult.Successful();
             }
 
+            int repairItemCost;
+
             if (repairUses <= 0 || currentUses - repairUses < 0)
             {
                 return OperationResult.Failure("Invalid repair uses specified.");
             }
 
-            var repairCost = _template.RepairItemAmountPerUse * repairUses;
-            if (!(StorehouseBrain?.CanAfford(repairCost) ?? false))
+            if (!CanRepair(repairUses))
             {
-                return OperationResult.Failure("Insufficient gold to repair item.");
+                return OperationResult.Failure("Cannot afford repair.");
             }
-            if (!(StorehouseBrain?.HasMaterials(_template.RepairItem, repairCost) ?? false))
+            else
             {
-                return OperationResult.Failure("Insufficient materials to repair item.");
+                if (_template.OneRepairItemCoversFullRepair)
+                {
+                    repairItemCost = 1;
+                }
+                else
+                {
+                    repairItemCost = _template.RepairItemAmountPerUse * repairUses;
+                }
             }
             InventoryBrain?.RepairItem(this, repairUses);
-            StorehouseBrain?.SpendGold(repairCost);
-            StorehouseBrain?.ConsumeMaterials(_template.RepairItem, repairCost);
+            StorehouseBrain?.SpendGold(_template.RepairPricePerUse * repairUses);
+            if (_template.RepairNeedsItems)
+            {
+                StorehouseBrain?.ConsumeMaterials(_template.RepairItem, repairItemCost);
+            }
 
             currentUses -= repairUses;
             if (currentUses < 0)

@@ -74,6 +74,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
             var stock = ShopData.ItemsStocked;
 
+            // Reset selection state on full rebuild so stale quantity settings don't stick.
+            SelectionCountCache = 1;
+            CostCache = 0;
+
             ItemsPerPage = Mathf.Max(1, ItemsPerPage);
 
             if (stock == null || stock.Length == 0)
@@ -92,6 +96,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 TotalGoldText.text = "Gold: ???";
                 TotalGoldScroll.StartNumber =
                     brain.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
+            }
+
+            // Preserve currently selected shop item index alignment through refresh.
+            // This ensures page/selection logic remains consistent when an item is removed
+            // from visible stock due sale.
+            int previousSelectedShopIndex = -1;
+            if (
+                itemChoiceToShopIndex != null
+                && CurrentSelectionIndex >= 0
+                && CurrentSelectionIndex < itemChoiceToShopIndex.Count
+            )
+            {
+                previousSelectedShopIndex = itemChoiceToShopIndex[CurrentSelectionIndex];
             }
 
             itemChoices = new System.Collections.Generic.List<UiChoice>(stock.Length);
@@ -121,7 +138,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
             ShopData.ItemsStocked = stock;
             totalPages = Mathf.CeilToInt((float)itemChoices.Count / ItemsPerPage);
-            CurrentPage = 0;
+
+            if (itemChoices.Count == 0)
+            {
+                CurrentPage = 0;
+                CurrentSelectionIndex = 0;
+            }
+            else if (previousSelectedShopIndex >= 0)
+            {
+                int newSelectionIndex = itemChoiceToShopIndex.IndexOf(previousSelectedShopIndex);
+                if (newSelectionIndex >= 0)
+                {
+                    CurrentSelectionIndex = newSelectionIndex;
+                    CurrentPage = CurrentSelectionIndex / ItemsPerPage;
+                }
+                else
+                {
+                    CurrentSelectionIndex = Mathf.Clamp(
+                        CurrentSelectionIndex,
+                        0,
+                        itemChoices.Count - 1
+                    );
+                    CurrentPage = CurrentSelectionIndex / ItemsPerPage;
+                }
+            }
+            else
+            {
+                CurrentPage = 0;
+                CurrentSelectionIndex = 0;
+            }
 
             InitializePageIndicators();
             UpdateVisiblePageItems();

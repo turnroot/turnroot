@@ -1,10 +1,5 @@
-using TMPro;
-using Turnroot.GameSettings;
-using Turnroot.UI;
 using Turnroot.Utilities;
-using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 {
@@ -109,6 +104,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             RefreshSelection();
         }
 
+        public int GetSelectedShopIndex()
+        {
+            if (
+                itemChoiceToShopIndex != null
+                && CurrentSelectionIndex >= 0
+                && CurrentSelectionIndex < itemChoiceToShopIndex.Count
+            )
+            {
+                return itemChoiceToShopIndex[CurrentSelectionIndex];
+            }
+
+            return CurrentSelectionIndex;
+        }
+
         public void HandleQuantityChangeInput(string action)
         {
             if (action == InputActionConstants.NavigateRight)
@@ -124,7 +133,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 SelectionCountCache--;
             }
 
-            ConfigureItemUi(ShopData.ItemsStocked[CurrentSelectionIndex], SelectionCountCache);
+            int shopIndex = GetSelectedShopIndex();
+            if (shopIndex >= 0 && shopIndex < ShopData.ItemsStocked.Length)
+            {
+                ConfigureItemUi(ShopData.ItemsStocked[shopIndex], SelectionCountCache);
+            }
             AudioPlayer.PlayOneShot(NavigateAudioClip);
         }
 

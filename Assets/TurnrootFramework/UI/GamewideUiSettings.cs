@@ -88,7 +88,7 @@ namespace Turnroot.GameSettings
         // Runtime cache of created MenuEntry objects created from MenuPrefabs.
         // This allows the menu system to maintain runtime state (activeInstance, etc.)
         // without requiring a complex serialized hierarchy.
-        private readonly System.Collections.Generic.Dictionary<
+        private readonly Dictionary<
             MenuName,
             MenuEntry
         > _menuEntryCache = new();
@@ -107,7 +107,8 @@ namespace Turnroot.GameSettings
             public Sprite Icon;
         }
 
-        [Header("Shop Item Type Icons"), Tooltip("Assign icons by object subtype.")]
+        [Header("Shop Item Type Icons")]
+        [Tooltip("Assign icons by object subtype.")]
         public ItemTypeIcon[] ItemTypeIcons;
 
         [System.Serializable]
@@ -287,7 +288,7 @@ namespace Turnroot.GameSettings
         [Range(0.1f, 1f)]
         public float CameraPanSpeed = 0.6f;
 
-        [Range(.01f, .3f)]
+        [Range(0.01f, .3f)]
         public float CameraPanStopDistance = 0.01f;
 
         [
