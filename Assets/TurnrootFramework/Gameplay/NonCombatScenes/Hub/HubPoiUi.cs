@@ -2,6 +2,7 @@ using System.Collections;
 using NaughtyAttributes;
 using TMPro;
 using Turnroot.Characters;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -9,6 +10,17 @@ using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
+    public enum NonShopPoiType
+    { // The demo doesn't use all of these, but they are all implemented and usable if you want them
+        Blacksmith,
+        Healer,
+        Enchanter,
+        Maps,
+        Quests,
+        Library,
+        Recruitment,
+    }
+
     [RequireComponent(typeof(Collider))]
     public class HubPoiUi : MonoBehaviour
     {
@@ -16,7 +28,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [Tooltip("Which hub sublocation this POI represents (Market, Cafe, Docks, etc.).")]
         public HubSublocationName Type;
+
+        [ShowIf(nameof(Type), HubSublocationName.Market)]
+        public bool IsShop = false;
+
+        [HideIf(nameof(IsShop))]
+        public NonShopPoiType NonShopType;
         private Shop.Shop _shop;
+        private Blacksmith _blacksmith;
+        private Healer _healer;
+        private Enchanter _enchanter;
+        private Maps _maps;
+        private Quests _quests;
+        private Library _library;
+        private Recruitment _recruitment;
 
         [InfoBox(
             "The root GameObject that contains all visual elements for the POI (icon, badge, etc.)."
@@ -176,6 +201,34 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            if (!IsShop)
+            {
+                switch (NonShopType)
+                {
+                    case NonShopPoiType.Blacksmith:
+                        _ = TryGetComponent(out _blacksmith);
+                        break;
+                    case NonShopPoiType.Healer:
+                        _ = TryGetComponent(out _healer);
+                        break;
+                    case NonShopPoiType.Enchanter:
+                        _ = TryGetComponent(out _enchanter);
+                        break;
+                    case NonShopPoiType.Maps:
+                        _ = TryGetComponent(out _maps);
+                        break;
+                    case NonShopPoiType.Quests:
+                        _ = TryGetComponent(out _quests);
+                        break;
+                    case NonShopPoiType.Library:
+                        _ = TryGetComponent(out _library);
+                        break;
+                    case NonShopPoiType.Recruitment:
+                        _ = TryGetComponent(out _recruitment);
+                        break;
+                }
+            }
+
             InitializeVisualMaterials();
             SetupUiState();
             HandleSubLocationType();
@@ -229,23 +282,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             switch (Type)
             {
                 case HubSublocationName.Market:
-                    _shop = TryGetComponent<Shop.Shop>(out var shop) ? shop : null;
-                    if (
-                        _shop == null
-                        || (hubmanager != null && !_shop.ShopOpen(hubmanager.gameDate))
-                    )
+                    if (IsShop)
                     {
-                        LabelText = _shop == null ? "Unavailable" : "Not Open";
-                        CanSelect = false;
-                        SetBadgeTexture(ForbiddenBadgeTexture);
-                        SetLabel(LabelText);
-                    }
-                    else
-                    {
-                        CanSelect = true;
+                        _shop = TryGetComponent<Shop.Shop>(out var shop) ? shop : null;
+                        if (
+                            _shop == null
+                            || (hubmanager != null && !_shop.ShopOpen(hubmanager.gameDate))
+                        )
+                        {
+                            LabelText = _shop == null ? "Unavailable" : "Not Open";
+                            CanSelect = false;
+                            SetBadgeTexture(ForbiddenBadgeTexture);
+                            SetLabel(LabelText);
+                        }
+                        else
+                        {
+                            CanSelect = true;
+                        }
                     }
                     break;
-
                 default:
                     break;
             }
@@ -383,7 +438,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 $"HubPoiUi: Failed to find parent HubSubLocation for {name}".LogWarning();
             }
 
-            // Always log the selection, even if we don't immediately move the camera.
             hubmanager?.SpecificUiInputHandler?.SetCurrentSelection(subLocation, this);
 
             switch (Type)
@@ -414,7 +468,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         && GameplayPlayerSettings.Instance.AnimatedCameraMovement
                     )
                     {
-                        hubmanager._brain.cameraBrain.StartCameraTransition(
+                        _ = hubmanager._brain.cameraBrain.StartCameraTransition(
                             hubmanager.GeneralCamera,
                             CameraPoint,
                             fadeDuration
@@ -422,7 +476,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     }
                     else if (hubmanager._brain?.cameraBrain != null)
                     {
-                        hubmanager._brain.cameraBrain.MoveCameraInstant(
+                        _ = hubmanager._brain.cameraBrain.MoveCameraInstant(
                             hubmanager.GeneralCamera,
                             CameraPoint
                         );
