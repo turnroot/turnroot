@@ -161,31 +161,42 @@ namespace Turnroot.UI
 
         public void ChangePage(int? page = null)
         {
-            if (TotalPages <= 1)
+            if (itemChoices == null || itemChoices.Count == 0)
             {
+                CurrentPage = 0;
+                CurrentSelectionIndex = 0;
+                ClearPageIndicators();
                 return;
             }
 
+            var totalPages = TotalPages;
+            if (totalPages <= 0)
+            {
+                CurrentPage = 0;
+                CurrentSelectionIndex = 0;
+                return;
+            }
+
+            int targetPage;
             if (page == null)
             {
-                page = CurrentPage;
+                targetPage = CurrentPage;
             }
             else if (page == -1)
             {
-                page = Mathf.Max(0, TotalPages - 1);
+                targetPage = Mathf.Max(0, totalPages - 1);
             }
             else
             {
-                page = Mathf.Clamp(page.Value, 0, Mathf.Max(0, TotalPages - 1));
+                targetPage = Mathf.Clamp(page.Value, 0, Mathf.Max(0, totalPages - 1));
             }
 
-            if (page.Value == CurrentPage)
-            {
-                return;
-            }
-
-            CurrentPage = page.Value;
-            CurrentSelectionIndex = CurrentPage * ItemsPerPage;
+            CurrentPage = targetPage;
+            CurrentSelectionIndex = Mathf.Clamp(
+                CurrentPage * ItemsPerPage,
+                0,
+                itemChoices.Count - 1
+            );
 
             if (audioPlayer != null && pageChangeClip != null)
             {
@@ -204,33 +215,31 @@ namespace Turnroot.UI
                 return;
             }
 
+            int itemCount = itemChoices.Count;
             int candidateIndex = CurrentSelectionIndex + offset;
 
-            if (candidateIndex >= itemChoices.Count)
+            if (candidateIndex >= itemCount)
             {
                 candidateIndex = 0;
-                ChangePage(0);
             }
             else if (candidateIndex < 0)
             {
-                candidateIndex = itemChoices.Count - 1;
-                ChangePage(-1);
-            }
-            else if (candidateIndex >= (CurrentPage + 1) * ItemsPerPage)
-            {
-                ChangePage(CurrentPage + 1);
-            }
-            else if (candidateIndex < CurrentPage * ItemsPerPage)
-            {
-                ChangePage(CurrentPage - 1);
-            }
-            else
-            {
-                CurrentSelectionIndex = candidateIndex;
+                candidateIndex = itemCount - 1;
             }
 
+            int targetPage = candidateIndex / ItemsPerPage;
+            bool pageChanged = false;
+
+            if (targetPage != CurrentPage)
+            {
+                ChangePage(targetPage);
+                pageChanged = true;
+            }
+
+            CurrentSelectionIndex = candidateIndex;
             RefreshSelection();
-            if (audioPlayer != null && pageChangeClip != null)
+
+            if (!pageChanged && audioPlayer != null && pageChangeClip != null)
             {
                 audioPlayer.PlayOneShot(pageChangeClip);
             }

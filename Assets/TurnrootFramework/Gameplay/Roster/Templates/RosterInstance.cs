@@ -43,7 +43,9 @@ namespace Turnroot.Characters
             {
                 var src = roster.characters[i];
                 if (src == null)
+                {
                     continue;
+                }
 
                 _runtimePlacements[i] = new UnitPlacement
                 {
@@ -76,7 +78,9 @@ namespace Turnroot.Characters
                 {
                     var src = placements[i];
                     if (src == null)
+                    {
                         continue;
+                    }
 
                     _runtimePlacements[i] = new UnitPlacement
                     {

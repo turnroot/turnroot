@@ -133,5 +133,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 $"{name}: {onEmptyLogFormat}".LogInfo();
             }
         }
+
+        public OneShot GetRandomWelcomeOneShot()
+        {
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            audioBrain ??= brain?.audioBrain;
+            return audioBrain != null
+                ? audioBrain.GetRandomOneShot(WelcomeDialogueConversations)
+                : default;
+        }
+
+        public OneShot GetRandomFarewellOneShot()
+        {
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            audioBrain ??= brain?.audioBrain;
+            return audioBrain != null
+                ? audioBrain.GetRandomOneShot(FarewellDialogueConversations)
+                : default;
+        }
     }
 }

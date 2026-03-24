@@ -99,13 +99,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CurrentSubLocation = subLocation;
             CurrentPoi = poi;
 
-            // If the newly selected POI is a shop, mark it as active and play the welcome dialogue.
             var newShop = poi?.GetComponent<Shop.Shop>();
             if (newShop != null && newShop != _activeShop)
             {
                 _activeShop = newShop;
 
-                // If the shop is going to play welcome dialogue, block shop input until it's complete.
                 var welcomeOneShot = _activeShop.GetRandomWelcomeOneShot();
                 if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
                 {
@@ -113,13 +111,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     SubscribeToConversationFinished();
                 }
 
-                // NotifyShopVisited already plays the welcome dialogue internally.
                 _activeShop.NotifyShopVisited();
             }
             else if (newShop == null)
             {
-                // Clear active shop if we are selecting a non-shop POI.
                 _activeShop = null;
+                if (poi.TryGetComponent<Blacksmith.Blacksmith>(out var blacksmith))
+                {
+                    blacksmith.NotifyBlacksmithVisited();
+                }
             }
         }
 

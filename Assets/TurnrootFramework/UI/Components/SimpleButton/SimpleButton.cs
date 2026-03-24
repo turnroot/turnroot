@@ -48,7 +48,9 @@ namespace Turnroot.UI.Components.SimpleButton
         private InputAction GetEffectiveSelectAction()
         {
             if (SelectAction != null)
+            {
                 return SelectAction;
+            }
 
             return Role switch
             {

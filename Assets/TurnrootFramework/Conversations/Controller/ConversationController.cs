@@ -132,7 +132,10 @@ namespace Turnroot.Conversations
         private void SubscribeAdvanceInput()
         {
             if (_inputSubscribed)
+            {
                 return;
+            }
+
             var action = UIInputActionDefaults.Select;
             if (action != null)
             {
@@ -144,7 +147,10 @@ namespace Turnroot.Conversations
         private void UnsubscribeAdvanceInput()
         {
             if (!_inputSubscribed)
+            {
                 return;
+            }
+
             var action = UIInputActionDefaults.Select;
             if (action != null)
             {
@@ -175,7 +181,9 @@ namespace Turnroot.Conversations
         private void OnAdvanceInputPerformed(InputAction.CallbackContext context)
         {
             if (!gameObject.activeInHierarchy)
+            {
                 return;
+            }
 
             // Only advance when a conversation or one-shot is actually in progress.
             if (

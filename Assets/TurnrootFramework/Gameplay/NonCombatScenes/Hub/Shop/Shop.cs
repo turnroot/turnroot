@@ -133,7 +133,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public string RefreshShopForNewDay(GameDate currentDay)
         {
             if (ItemsStocked == null || ItemsStocked.Length == 0)
+            {
                 return "";
+            }
 
             var brainRef = brain ?? FindFirstObjectByType<Brain.Brain>();
             bool hasSavedShopStock = HubDayStateStore.HasShopStock(name);
@@ -214,7 +216,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     return $"A rare item is in stock at";
                 }
             }
-            $"Shop '{name}': Total stock after refresh is {totalStock}.".LogInfo();
+
             if (totalStock == 0)
             {
                 if (SoldOutDialogueText != null)

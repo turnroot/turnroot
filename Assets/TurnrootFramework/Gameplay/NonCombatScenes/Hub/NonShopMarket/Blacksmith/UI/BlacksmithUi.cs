@@ -94,7 +94,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
         public TextMeshProUGUI BlacksmithModeText;
         public BlacksmithMode CurrentMode { get; private set; } = BlacksmithMode.Repair;
 
+        [HideInInspector]
         public bool CanForge = true;
+
+        [HideInInspector]
         public bool CanRepair = true;
         public TextMeshProUGUI TotalGoldText;
         public ScrollDownNumber TotalGoldScroll;

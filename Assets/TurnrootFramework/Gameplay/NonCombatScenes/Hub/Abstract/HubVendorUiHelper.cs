@@ -15,9 +15,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
         )
         {
             if (totalGoldText == null)
+            {
                 return;
+            }
 
-            if (brain?.storehouseBrain != null)
+            if (brain.storehouseBrain != null)
             {
                 totalGoldText.text = $"Gold: {brain.storehouseBrain.PlayerGold}G";
                 if (totalGoldScroll != null)
@@ -31,7 +33,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 if (totalGoldScroll != null)
                 {
                     totalGoldScroll.StartNumber =
-                        brain?.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
+                        brain.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
                 }
             }
         }
