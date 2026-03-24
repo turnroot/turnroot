@@ -1,7 +1,6 @@
+using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.GameSettings;
-using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 {
@@ -195,23 +194,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         private void ClearInstantiatedItems()
         {
-            if (ItemsParentContainer != null)
-            {
-                for (int i = ItemsParentContainer.transform.childCount - 1; i >= 0; i--)
-                {
-                    Destroy(ItemsParentContainer.transform.GetChild(i).gameObject);
-                }
-            }
-
-            if (PageIndicatorContainer != null)
-            {
-                for (int i = PageIndicatorContainer.transform.childCount - 1; i >= 0; i--)
-                {
-                    Destroy(PageIndicatorContainer.transform.GetChild(i).gameObject);
-                }
-            }
-
-            pageIndicatorObjects.Clear();
+            HubVendorUiHelper.ClearInstantiatedItems(
+                ItemsParentContainer,
+                PageIndicatorContainer,
+                pageIndicatorObjects,
+                ref itemChoices,
+                ref itemChoiceToShopIndex
+            );
 
             var stock = ShopData.ItemsStocked;
             if (stock != null)
@@ -223,9 +212,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     stock[i] = item;
                 }
             }
-
-            itemChoices = null;
-            itemChoiceToShopIndex = null;
         }
     }
 }

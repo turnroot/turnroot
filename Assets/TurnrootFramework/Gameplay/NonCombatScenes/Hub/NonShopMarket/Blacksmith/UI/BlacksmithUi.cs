@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using Turnroot.Characters;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.UI;
@@ -126,28 +126,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 CanForge = settings.WeaponsCanBeForged;
                 CanRepair = settings.WeaponsCanBeRepaired;
             }
-
-            // Keep fallback defaults to true, but avoid constructor-time Resources.Load calls.
         }
 
         public void RefreshBlacksmithDisplay()
         {
-            // Sync gold display
-            if (TotalGoldText != null && brain?.storehouseBrain != null)
-            {
-                TotalGoldText.text = $"Gold: {brain.storehouseBrain.PlayerGold}G";
-            }
-            else if (TotalGoldText != null)
-            {
-                TotalGoldText.text = "Gold: ???";
-                TotalGoldScroll.StartNumber =
-                    brain?.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
-            }
+            HubVendorUiHelper.UpdateGoldDisplay(TotalGoldText, TotalGoldScroll, brain);
 
             SelectionCountCache = 1;
             CostCache = 0;
-
-            // Clearing is handled in BuildItemListForCurrentMode, to reuse across refresh cycles.
 
             if (CurrentMode == BlacksmithMode.Repair && CanRepair)
             {
@@ -166,20 +152,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
             BuildItemListForCurrentMode();
 
-            paginationHelper ??= new PaginationHelper(
+            int newPage;
+            int newSelectionIndex;
+
+            HubVendorUiHelper.EnsurePagination(
+                ref paginationHelper,
                 ItemsPerPage,
                 PageIndicatorContainer?.transform,
                 ActivePageIndicatorSprite,
                 InactivePageIndicatorSprite,
                 PageIndicatorSize,
                 AudioPlayer,
-                PageChangeAudioClip
+                PageChangeAudioClip,
+                itemChoices,
+                CurrentSelectionIndex,
+                out newPage,
+                out newSelectionIndex
             );
 
-            paginationHelper.ItemsPerPage = ItemsPerPage;
-            paginationHelper.SetItemChoices(itemChoices, CurrentSelectionIndex);
-            CurrentPage = paginationHelper.CurrentPage;
-            CurrentSelectionIndex = paginationHelper.CurrentSelectionIndex;
+            CurrentPage = newPage;
+            CurrentSelectionIndex = newSelectionIndex;
 
             BlacksmithUiFade.Show();
         }
@@ -270,25 +262,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
         private void ClearInstantiatedItems()
         {
-            if (ItemsParentContainer != null)
-            {
-                for (int i = ItemsParentContainer.transform.childCount - 1; i >= 0; i--)
-                {
-                    Destroy(ItemsParentContainer.transform.GetChild(i).gameObject);
-                }
-            }
-
-            if (PageIndicatorContainer != null)
-            {
-                for (int i = PageIndicatorContainer.transform.childCount - 1; i >= 0; i--)
-                {
-                    Destroy(PageIndicatorContainer.transform.GetChild(i).gameObject);
-                }
-            }
-
-            pageIndicatorObjects.Clear();
-            itemChoices = null;
-            itemChoiceToIndex = null;
+            HubVendorUiHelper.ClearInstantiatedItems(
+                ItemsParentContainer,
+                PageIndicatorContainer,
+                pageIndicatorObjects,
+                ref itemChoices,
+                ref itemChoiceToIndex
+            );
         }
     }
 }
