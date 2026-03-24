@@ -12,96 +12,46 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         {
             SelectionCountCache = 1;
             CostCache = 0;
-            if (itemChoices == null)
+
+            if (paginationHelper == null || itemChoices == null || itemChoices.Count == 0)
             {
                 $"ShopUi: No item choices available to change selection.".LogWarning();
                 return;
             }
 
-            int candidateIndex = CurrentSelectionIndex;
-
             if (action == InputActionConstants.NavigateDown)
             {
-                candidateIndex++;
+                paginationHelper.ChangeSelectionByOffset(1);
             }
             else if (action == InputActionConstants.NavigateUp)
             {
-                candidateIndex--;
+                paginationHelper.ChangeSelectionByOffset(-1);
             }
 
-            if (itemChoices.Count == 0)
-            {
-                return;
-            }
+            CurrentPage = paginationHelper.CurrentPage;
+            CurrentSelectionIndex = paginationHelper.CurrentSelectionIndex;
 
-            if (candidateIndex >= itemChoices.Count)
-            {
-                candidateIndex = 0;
-                ChangePage(0);
-            }
-            else if (candidateIndex < 0)
-            {
-                candidateIndex = itemChoices.Count - 1;
-                ChangePage(-1);
-            }
-            else if (candidateIndex >= (CurrentPage + 1) * ItemsPerPage)
-            {
-                ChangePage(CurrentPage + 1);
-            }
-            else if (candidateIndex < CurrentPage * ItemsPerPage)
-            {
-                ChangePage(CurrentPage - 1);
-            }
-
-            CurrentSelectionIndex = candidateIndex;
-            RefreshSelection();
-            AudioPlayer.PlayOneShot(NavigateAudioClip);
+            AudioPlayer?.PlayOneShot(NavigateAudioClip);
         }
 
         public void ChangePageInput(string action)
         {
-            if (action == InputActionConstants.ScrollLeft)
+            paginationHelper?.HandleScrollInput(action);
+            if (paginationHelper != null)
             {
-                ChangePage(CurrentPage - 1);
-            }
-            else if (action == InputActionConstants.ScrollRight)
-            {
-                ChangePage(CurrentPage + 1);
+                CurrentPage = paginationHelper.CurrentPage;
+                CurrentSelectionIndex = paginationHelper.CurrentSelectionIndex;
             }
         }
 
         public void ChangePage(int? page = null)
         {
-            if (totalPages <= 1)
+            paginationHelper?.ChangePage(page);
+            if (paginationHelper != null)
             {
-                return;
+                CurrentPage = paginationHelper.CurrentPage;
+                CurrentSelectionIndex = paginationHelper.CurrentSelectionIndex;
             }
-
-            if (page == null)
-            {
-                page = CurrentPage;
-            }
-            else if (page == -1)
-            {
-                page = Mathf.Max(0, totalPages - 1); // wrap around to last page
-            }
-            else
-            {
-                page = Mathf.Clamp(page.Value, 0, Mathf.Max(0, totalPages - 1));
-            }
-
-            if (page.Value == CurrentPage)
-            {
-                return;
-            }
-
-            CurrentPage = page.Value;
-            CurrentSelectionIndex = CurrentPage * ItemsPerPage;
-
-            PlayPageChangeSound();
-            UpdateVisiblePageItems();
-            UpdatePaginationIndicators();
-            RefreshSelection();
         }
 
         public int GetSelectedShopIndex()

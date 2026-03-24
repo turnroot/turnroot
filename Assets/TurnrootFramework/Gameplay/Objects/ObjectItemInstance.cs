@@ -298,5 +298,62 @@ namespace Turnroot.Gameplay.Objects
                 Slot = -1;
             }
         }
+
+        public bool IsRepairableWeaponAccessoryOrShield()
+        {
+            if (_template == null)
+            {
+                return false;
+            }
+
+            if (!_template.Durability || !_template.Repairable)
+            {
+                return false;
+            }
+
+            var subtype = _template.Subtype;
+            bool isWeapon = subtype?.IsWeapon == true;
+            bool isShield = subtype?.IsShield == true;
+            bool isAccessory = subtype?.IsAccessory == true;
+
+            if (!isWeapon && !isShield && !isAccessory)
+            {
+                return false;
+            }
+
+            int maxUses = _template.MaxUses;
+            if (maxUses <= 0)
+            {
+                return false;
+            }
+
+            return RemainingUses < maxUses;
+        }
+
+        public bool IsForgeableWeaponOrMagic()
+        {
+            if (_template == null)
+            {
+                return false;
+            }
+
+            if (!_template.Forgeable)
+            {
+                return false;
+            }
+
+            var subtype = _template.Subtype;
+            return subtype?.IsWeapon == true || subtype?.IsMagic == true;
+        }
+
+        public float GetDurabilityPercentage()
+        {
+            if (_template == null || !_template.Durability || _template.MaxUses <= 0)
+            {
+                return 1f;
+            }
+
+            return (float)RemainingUses / _template.MaxUses;
+        }
     }
 }

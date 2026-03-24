@@ -21,6 +21,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         private System.Collections.Generic.List<UiChoice> itemChoices;
         private System.Collections.Generic.List<int> itemChoiceToShopIndex;
 
+        private PaginationHelper paginationHelper;
+
         [Header("UI References")]
         public UIFade ShopUiFade;
         public GameObject ItemPrefab;
@@ -137,41 +139,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
             }
             ShopData.ItemsStocked = stock;
-            totalPages = Mathf.CeilToInt((float)itemChoices.Count / ItemsPerPage);
 
-            if (itemChoices.Count == 0)
-            {
-                CurrentPage = 0;
-                CurrentSelectionIndex = 0;
-            }
-            else if (previousSelectedShopIndex >= 0)
-            {
-                int newSelectionIndex = itemChoiceToShopIndex.IndexOf(previousSelectedShopIndex);
-                if (newSelectionIndex >= 0)
-                {
-                    CurrentSelectionIndex = newSelectionIndex;
-                    CurrentPage = CurrentSelectionIndex / ItemsPerPage;
-                }
-                else
-                {
-                    CurrentSelectionIndex = Mathf.Clamp(
-                        CurrentSelectionIndex,
-                        0,
-                        itemChoices.Count - 1
-                    );
-                    CurrentPage = CurrentSelectionIndex / ItemsPerPage;
-                }
-            }
-            else
-            {
-                CurrentPage = 0;
-                CurrentSelectionIndex = 0;
-            }
+            // Ensure pagination helper exists
+            paginationHelper ??= new PaginationHelper(
+                ItemsPerPage,
+                PageIndicatorContainer?.transform,
+                ActivePageIndicatorSprite,
+                InactivePageIndicatorSprite,
+                PageIndicatorSize,
+                AudioPlayer,
+                PageChangeAudioClip
+            );
 
-            InitializePageIndicators();
-            UpdateVisiblePageItems();
-            RefreshSelection();
-            UpdatePaginationIndicators();
+            paginationHelper.ItemsPerPage = ItemsPerPage;
+            paginationHelper.SetItemChoices(itemChoices, CurrentSelectionIndex);
+
+            CurrentPage = paginationHelper.CurrentPage;
+            CurrentSelectionIndex = paginationHelper.CurrentSelectionIndex;
 
             ShopUiFade.Show();
         }

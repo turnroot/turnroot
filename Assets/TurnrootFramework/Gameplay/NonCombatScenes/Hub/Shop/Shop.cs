@@ -2,19 +2,12 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 {
-    [Serializable]
-    public struct ShopDialogue
-    {
-        public string Dialogue;
-        public Sprite Portrait;
-        public AudioClip Audio;
-    }
-
     [RequireComponent(typeof(ShopUi))]
     public class Shop : MonoBehaviour
     {
@@ -26,12 +19,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public string ShopDescription;
         public CharacterData Shopkeeper;
 
-        public ShopDialogue[] WelcomeDialogues;
+        public OneShotDialogue[] WelcomeDialogues;
 
-        private ShopDialogue[] cachedWelcomeDialogues;
-        public ShopDialogue[] ShopKeeperSellsDialogues;
-        public ShopDialogue[] ShopKeeperBuysDialogues;
-        public ShopDialogue[] FarewellDialogues;
+        private OneShotDialogue[] cachedWelcomeDialogues;
+        public OneShotDialogue[] ShopKeeperSellsDialogues;
+        public OneShotDialogue[] ShopKeeperBuysDialogues;
+        public OneShotDialogue[] FarewellDialogues;
 
         public string SoldOutDialogueText;
 
@@ -43,58 +36,42 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         [HideInInspector]
         public Brain.Brain brain;
 
-        private Brain.Brain GetBrain()
-        {
-            if (brain == null)
-            {
-                brain = FindFirstObjectByType<Brain.Brain>();
-            }
-            return brain;
-        }
+        private AudioBrain audioBrain;
 
         public void Awake()
         {
             cachedWelcomeDialogues = WelcomeDialogues;
-            WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
-            SellDialogueConversations = ConvertToOneShots(ShopKeeperSellsDialogues);
-            BuyDialogueConversations = ConvertToOneShots(ShopKeeperBuysDialogues);
-            FarewellDialogueConversations = ConvertToOneShots(FarewellDialogues);
+
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            audioBrain = brain?.audioBrain;
+            var speakerName = Shopkeeper != null ? Shopkeeper.DisplayName : "???";
+
+            WelcomeDialogueConversations =
+                audioBrain?.ConvertToOneShots(WelcomeDialogues, speakerName)
+                ?? Array.Empty<OneShot>();
+            SellDialogueConversations =
+                audioBrain?.ConvertToOneShots(ShopKeeperSellsDialogues, speakerName)
+                ?? Array.Empty<OneShot>();
+            BuyDialogueConversations =
+                audioBrain?.ConvertToOneShots(ShopKeeperBuysDialogues, speakerName)
+                ?? Array.Empty<OneShot>();
+            FarewellDialogueConversations =
+                audioBrain?.ConvertToOneShots(FarewellDialogues, speakerName)
+                ?? Array.Empty<OneShot>();
         }
 
         public void OnDestroy() => WelcomeDialogues = cachedWelcomeDialogues;
 
-        private OneShot[] ConvertToOneShots(ShopDialogue[] dialogues)
-        {
-            if (dialogues == null)
-            {
-                return Array.Empty<OneShot>();
-            }
-
-            OneShot[] conversations = new OneShot[dialogues.Length];
-            for (int i = 0; i < dialogues.Length; i++)
-            {
-                conversations[i] = new OneShot
-                {
-                    Dialogue = dialogues[i].Dialogue,
-                    Portrait = dialogues[i].Portrait,
-                    Audio = dialogues[i].Audio,
-                    SpeakerName = Shopkeeper != null ? Shopkeeper.DisplayName : "???",
-                };
-            }
-            return conversations;
-        }
-
-        private void EnsureOneShotConversationsInitialized()
-        {
-            WelcomeDialogueConversations ??= ConvertToOneShots(WelcomeDialogues);
-            SellDialogueConversations ??= ConvertToOneShots(ShopKeeperSellsDialogues);
-            BuyDialogueConversations ??= ConvertToOneShots(ShopKeeperBuysDialogues);
-            FarewellDialogueConversations ??= ConvertToOneShots(FarewellDialogues);
-        }
+        private OneShot[] ConvertToOneShots(OneShotDialogue[] dialogues) =>
+            audioBrain?.ConvertToOneShots(
+                dialogues,
+                Shopkeeper != null ? Shopkeeper.DisplayName : "???"
+            ) ?? Array.Empty<OneShot>();
 
         public void NotifyShopVisited()
         {
-            GetBrain()?.PublishShopVisited(this);
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            brain?.PublishShopVisited(this);
 
             // Guard: nothing to sell or show if there are no items
             if (ItemsStocked == null || ItemsStocked.Length == 0)
@@ -105,7 +82,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
             // Ensure shop stock is refreshed from LongTermMemory on every visit,
             // even on the same calendar day.
-            var brain = GetBrain();
             if (brain?.ltm != null)
             {
                 var date = brain.ltm.GetGameDate();
@@ -140,7 +116,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopExited()
         {
-            GetBrain()?.PublishShopExited(this);
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            brain?.PublishShopExited(this);
 
             var farewellOneShot = GetRandomFarewellOneShot();
             var shopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
@@ -166,7 +143,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopkeeperBuys(ShopItem[] itemsBought)
         {
-            GetBrain()?.PublishShopkeeperBuys(this, itemsBought ?? Array.Empty<ShopItem>());
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            brain?.PublishShopkeeperBuys(this, itemsBought ?? Array.Empty<ShopItem>());
 
             var buyOneShot = GetRandomBuyOneShot();
             if (!string.IsNullOrWhiteSpace(buyOneShot.Dialogue))
@@ -181,7 +159,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopkeeperSells(ShopItem itemSold)
         {
-            GetBrain()?.PublishShopkeeperSells(this, itemSold);
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            brain?.PublishShopkeeperSells(this, itemSold);
 
             var sellOneShot = GetRandomSellOneShot();
             if (!string.IsNullOrWhiteSpace(sellOneShot.Dialogue))
@@ -194,38 +173,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
         }
 
-        public OneShot GetRandomWelcomeOneShot() => GetRandomOneShot(WelcomeDialogueConversations);
+        public OneShot GetRandomWelcomeOneShot() =>
+            audioBrain?.GetRandomWelcomeOneShot(WelcomeDialogueConversations) ?? default;
 
-        public OneShot GetRandomSellOneShot() => GetRandomOneShot(SellDialogueConversations);
+        public OneShot GetRandomSellOneShot() =>
+            audioBrain?.GetRandomOneShot(SellDialogueConversations) ?? default;
 
-        public OneShot GetRandomBuyOneShot() => GetRandomOneShot(BuyDialogueConversations);
+        public OneShot GetRandomBuyOneShot() =>
+            audioBrain?.GetRandomOneShot(BuyDialogueConversations) ?? default;
 
         public OneShot GetRandomFarewellOneShot() =>
-            GetRandomOneShot(FarewellDialogueConversations);
-
-        private OneShot GetRandomOneShot(OneShot[] candidates)
-        {
-            EnsureOneShotConversationsInitialized();
-            if (candidates == null || candidates.Length == 0)
-            {
-                return default;
-            }
-            return candidates[UnityEngine.Random.Range(0, candidates.Length)];
-        }
+            audioBrain?.GetRandomOneShot(FarewellDialogueConversations) ?? default;
 
         private OneShotPlayer GetOrCreateOneShotPlayer()
         {
-            if (!TryGetComponent<OneShotPlayer>(out var player))
-            {
-                player = gameObject.AddComponent<OneShotPlayer>();
-            }
-
-            if (TryGetComponent<AudioSource>(out var audioSource))
-            {
-                player.SetAudioSource(audioSource);
-            }
-
-            return player;
+            return brain?.audioBrain?.GetOrCreateOneShotPlayer();
         }
 
         [Tooltip(
@@ -250,12 +212,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             if (ItemsStocked == null || ItemsStocked.Length == 0)
                 return "";
 
-            var brain = GetBrain();
+            var brainRef = brain ?? FindFirstObjectByType<Brain.Brain>();
             bool hasSavedShopStock = HubDayStateStore.HasShopStock(name);
             bool isDailyUpdateAlreadyProcessed = HubDayStateStore.HasProcessedDailyUpdates;
 
             // If this shop has no existing persistent stock data, initialize normal items to max
-            if (!hasSavedShopStock && brain != null)
+            if (!hasSavedShopStock && brainRef != null)
             {
                 for (int i = 0; i < ItemsStocked.Length; i++)
                 {
@@ -270,10 +232,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     currentStock[item] = item.MaxQuantity;
 
                     string itemName = item.Item != null ? item.Item.name : string.Empty;
-                    HubDayStateStore.SetShopItemQuantity(brain, name, itemName, item.MaxQuantity);
+                    HubDayStateStore.SetShopItemQuantity(
+                        brainRef,
+                        name,
+                        itemName,
+                        item.MaxQuantity
+                    );
                 }
             }
-            else if (brain != null)
+            else if (brainRef != null)
             {
                 for (int i = 0; i < ItemsStocked.Length; i++)
                 {
@@ -307,11 +274,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 totalStock += status.AvailableQuantity;
 
                 // Persist the updated quantity into HubDayStateStore for this day.
-                if (brain != null)
+                if (brainRef != null)
                 {
                     string itemName = item.Item != null ? item.Item.name : string.Empty;
                     HubDayStateStore.SetShopItemQuantity(
-                        brain,
+                        brainRef,
                         name,
                         itemName,
                         status.AvailableQuantity

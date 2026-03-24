@@ -170,150 +170,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         private void InitializePageIndicators()
         {
-            if (PageIndicatorContainer == null)
-            {
-                return;
-            }
-
-            // Clear any existing indicators before rebuilding for new page count.
-            foreach (var indicator in pageIndicatorObjects)
-            {
-                if (indicator != null)
-                {
-                    Destroy(indicator);
-                }
-            }
-            pageIndicatorObjects.Clear();
-
-            for (var i = 0; i < totalPages; i++)
-            {
-                var pageIndicatorObj = new GameObject($"PageIndicator_{i}", typeof(Image));
-                pageIndicatorObj.transform.SetParent(PageIndicatorContainer.transform, false);
-                var image = pageIndicatorObj.GetComponent<Image>();
-                image.sprite =
-                    i == CurrentPage ? ActivePageIndicatorSprite : InactivePageIndicatorSprite;
-                var rectTransform = pageIndicatorObj.GetComponent<RectTransform>();
-                rectTransform.sizeDelta = new Vector2(PageIndicatorSize, PageIndicatorSize);
-                pageIndicatorObjects.Add(pageIndicatorObj);
-            }
+            paginationHelper?.InitializePageIndicators();
         }
 
         private void UpdatePaginationIndicators()
         {
-            for (var i = 0; i < pageIndicatorObjects.Count; i++)
-            {
-                var image = pageIndicatorObjects[i]?.GetComponent<Image>();
-                if (image == null)
-                {
-                    continue;
-                }
-                image.sprite =
-                    i == CurrentPage ? ActivePageIndicatorSprite : InactivePageIndicatorSprite;
-            }
+            paginationHelper?.UpdatePaginationIndicators();
         }
 
         private void UpdateVisiblePageItems()
         {
-            if (itemChoices == null)
-            {
-                return;
-            }
-
-            var startIndex = CurrentPage * ItemsPerPage;
-            var endIndex = Mathf.Min(startIndex + ItemsPerPage, itemChoices.Count);
-
-            for (var i = 0; i < itemChoices.Count; i++)
-            {
-                var choice = itemChoices[i];
-                if (choice?.gameObject == null)
-                {
-                    continue;
-                }
-
-                bool isVisible = i >= startIndex && i < endIndex;
-                choice.gameObject.SetActive(isVisible);
-            }
+            paginationHelper?.UpdateVisiblePageItems();
         }
 
         private void RefreshSelection()
         {
-            if (itemChoices == null || itemChoices.Count == 0)
+            paginationHelper?.RefreshSelection();
+            if (paginationHelper != null)
             {
-                $"ShopUi: No item choices available to refresh selection.".LogWarning();
-                return;
-            }
-
-            CurrentSelectionIndex = Mathf.Clamp(CurrentSelectionIndex, 0, itemChoices.Count - 1);
-
-            // Ensure a valid item is selected on the current page.
-            if (itemChoices[CurrentSelectionIndex] == null)
-            {
-                var start = CurrentPage * ItemsPerPage;
-                var end = Mathf.Min(start + ItemsPerPage, itemChoices.Count);
-                var found = -1;
-                for (var i = start; i < end; i++)
-                {
-                    if (itemChoices[i] != null)
-                    {
-                        found = i;
-                        break;
-                    }
-                }
-                if (found != -1)
-                {
-                    CurrentSelectionIndex = found;
-                }
-            }
-
-            for (var i = 0; i < itemChoices.Count; i++)
-            {
-                if (itemChoices[i] == null)
-                {
-                    $"ShopUi: Item choice at index {i} is null.".LogWarning();
-                    continue;
-                }
-
-                if (i == CurrentSelectionIndex)
-                {
-                    itemChoices[i].Select();
-                    if (
-                        ShopData?.ItemsStocked != null
-                        && itemChoiceToShopIndex != null
-                        && i < itemChoiceToShopIndex.Count
-                    )
-                    {
-                        int shopIndex = itemChoiceToShopIndex[i];
-                        if (
-                            shopIndex >= 0
-                            && shopIndex < ShopData.ItemsStocked.Length
-                            && ShopData.ItemsStocked[shopIndex].Item != null
-                            && ShopData.ItemsStocked[shopIndex].UiRefs != null
-                        )
-                        {
-                            HandeSelectedItem(ShopData.ItemsStocked[shopIndex]);
-                        }
-                    }
-                }
-                else
-                {
-                    itemChoices[i].Deselect();
-
-                    var uiRefs = itemChoices[i].GetComponent<ShopItemUiRefs>();
-                    if (uiRefs != null && uiRefs.QuantityText != null)
-                    {
-                        uiRefs.QuantityText.text = ""; // clear quantity text on deselect to avoid confusion about which item it applies to
-                    }
-                    else
-                    {
-                        $"ShopUi: Missing ShopItemUiRefs/QuantityText for deselected item at index {i}.".LogWarning();
-                    }
-                }
+                CurrentPage = paginationHelper.CurrentPage;
+                CurrentSelectionIndex = paginationHelper.CurrentSelectionIndex;
             }
         }
 
         private void ClearInstantiatedItems()
         {
-            // Destroy all child item objects from the items container.
             if (ItemsParentContainer != null)
             {
                 for (int i = ItemsParentContainer.transform.childCount - 1; i >= 0; i--)
@@ -322,7 +203,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
             }
 
-            // Destroy all child page indicator objects.
             if (PageIndicatorContainer != null)
             {
                 for (int i = PageIndicatorContainer.transform.childCount - 1; i >= 0; i--)
@@ -330,9 +210,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     Destroy(PageIndicatorContainer.transform.GetChild(i).gameObject);
                 }
             }
+
             pageIndicatorObjects.Clear();
 
-            // Clear the cached UiRefs on each stocked item so they'll be re-created.
             var stock = ShopData.ItemsStocked;
             if (stock != null)
             {

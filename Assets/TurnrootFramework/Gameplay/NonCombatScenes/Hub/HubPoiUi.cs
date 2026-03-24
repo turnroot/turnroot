@@ -35,7 +35,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [HideIf(nameof(IsShop))]
         public NonShopPoiType NonShopType;
         private Shop.Shop _shop;
-        private Blacksmith _blacksmith;
+        private Blacksmith.Blacksmith _blacksmith;
         private Healer _healer;
         private Enchanter _enchanter;
         private Maps _maps;
@@ -106,6 +106,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private HubManager hubmanager;
 
+        private bool ChildReferencesSet = false;
+
         #endregion
 
         #region Public API
@@ -169,7 +171,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (Particles != null)
             {
                 Particles.SetActive(true);
-                Particles.GetComponent<ParticleSystem>()?.Play();
+                if (Particles.TryGetComponent(out ParticleSystem ps))
+                {
+                    ps.Play();
+                }
             }
 
             StartFade(1f);
@@ -241,15 +246,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _camera = Camera.main;
             }
-
-            if (_camera == null || poiVisual == null)
-            {
-                return;
-            }
-
             poiVisual.transform.rotation = Quaternion.LookRotation(
                 poiVisual.transform.position - _camera.transform.position
             );
+            if (ChildReferencesSet)
+            {
+                return;
+            }
+            if (
+                NonShopType == NonShopPoiType.Blacksmith
+                && !IsShop
+                && _blacksmith != null
+                && hubmanager != null
+            )
+            {
+                _blacksmith._brain = hubmanager._brain;
+                _blacksmith._inventoryBrain = hubmanager._brain.inventoryBrain;
+                _blacksmith._storehouseBrain = hubmanager._brain.storehouseBrain;
+                _blacksmith._charactersBrain = hubmanager._brain.charactersBrain;
+            }
+
+            ChildReferencesSet = true;
+
+            if (_camera == null || poiVisual == null)
+            {
+                $"HubPoiUi on {gameObject.name} is missing a reference to the main camera or poiVisual, cannot orient towards camera.".LogWarning();
+                return;
+            }
         }
 
         #endregion
