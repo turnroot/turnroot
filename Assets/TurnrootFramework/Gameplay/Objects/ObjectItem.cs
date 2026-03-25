@@ -40,7 +40,10 @@ namespace Turnroot.Gameplay.Objects
         public string Name => _name;
 
         [Foldout("Identity")]
+        [SerializeField]
         private readonly string _id = System.Guid.NewGuid().ToString();
+
+        public string Id => _id;
 
         [TextArea, Foldout("Identity"), SerializeField]
         private string _flavorText = "A new item";

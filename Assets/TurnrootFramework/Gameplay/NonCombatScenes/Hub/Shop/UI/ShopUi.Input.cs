@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -10,98 +11,45 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void HandleItemChangeInput(string action)
         {
-            SelectionCountCache = 1;
-            CostCache = 0;
-            if (itemChoices == null)
+            if (
+                HubVendorUiHelper.HandleItemNavigationInput(
+                    action,
+                    ref paginationHelper,
+                    itemChoices,
+                    ref SelectionCountCache,
+                    ref CostCache,
+                    AudioPlayer,
+                    NavigateAudioClip,
+                    out int newPage,
+                    out int newSelection
+                )
+            )
             {
-                $"ShopUi: No item choices available to change selection.".LogWarning();
-                return;
+                CurrentPage = newPage;
+                CurrentSelectionIndex = newSelection;
             }
-
-            int candidateIndex = CurrentSelectionIndex;
-
-            if (action == InputActionConstants.NavigateDown)
-            {
-                candidateIndex++;
-            }
-            else if (action == InputActionConstants.NavigateUp)
-            {
-                candidateIndex--;
-            }
-
-            if (itemChoices.Count == 0)
-            {
-                return;
-            }
-
-            if (candidateIndex >= itemChoices.Count)
-            {
-                candidateIndex = 0;
-                ChangePage(0);
-            }
-            else if (candidateIndex < 0)
-            {
-                candidateIndex = itemChoices.Count - 1;
-                ChangePage(-1);
-            }
-            else if (candidateIndex >= (CurrentPage + 1) * ItemsPerPage)
-            {
-                ChangePage(CurrentPage + 1);
-            }
-            else if (candidateIndex < CurrentPage * ItemsPerPage)
-            {
-                ChangePage(CurrentPage - 1);
-            }
-
-            CurrentSelectionIndex = candidateIndex;
-            RefreshSelection();
-            AudioPlayer.PlayOneShot(NavigateAudioClip);
         }
 
         public void ChangePageInput(string action)
         {
-            if (action == InputActionConstants.ScrollLeft)
-            {
-                ChangePage(CurrentPage - 1);
-            }
-            else if (action == InputActionConstants.ScrollRight)
-            {
-                ChangePage(CurrentPage + 1);
-            }
+            HubVendorUiHelper.HandlePageInput(
+                action,
+                ref paginationHelper,
+                out int newPage,
+                out int newSelection
+            );
+            CurrentPage = newPage;
+            CurrentSelectionIndex = newSelection;
         }
 
         public void ChangePage(int? page = null)
         {
-            if (totalPages <= 1)
+            paginationHelper?.ChangePage(page);
+            if (paginationHelper != null)
             {
-                return;
+                CurrentPage = paginationHelper.CurrentPage;
+                CurrentSelectionIndex = paginationHelper.CurrentSelectionIndex;
             }
-
-            if (page == null)
-            {
-                page = CurrentPage;
-            }
-            else if (page == -1)
-            {
-                page = Mathf.Max(0, totalPages - 1); // wrap around to last page
-            }
-            else
-            {
-                page = Mathf.Clamp(page.Value, 0, Mathf.Max(0, totalPages - 1));
-            }
-
-            if (page.Value == CurrentPage)
-            {
-                return;
-            }
-
-            CurrentPage = page.Value;
-            CurrentSelectionIndex = CurrentPage * ItemsPerPage;
-
-            PlayPageChangeSound();
-            UpdateVisiblePageItems();
-            UpdatePaginationIndicators();
-            RefreshSelection();
         }
 
         public int GetSelectedShopIndex()
@@ -176,10 +124,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     brain.storehouseBrain.SpendGold(CostCache, true);
                     brain.storehouseBrain.SaveGoldToLTM();
 
-                    brain.storehouseBrain.AddMaterials(
-                        ShopData.ItemsStocked[shopIndex].Item,
-                        SelectionCountCache,
-                        true
+                    var purchasedItem = ShopData.ItemsStocked[shopIndex].Item;
+                    brain.storehouseBrain.AddMaterials(purchasedItem, SelectionCountCache, true);
+                    $"ShopUi.HandlePurchaseConfirmationInput: added {SelectionCountCache}x '{purchasedItem?.Name ?? "<null>"}' to storehouse".LogInfo(
+                        "ShopUi"
                     );
 
                     var item = ShopData.ItemsStocked[shopIndex];

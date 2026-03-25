@@ -35,6 +35,9 @@ namespace Turnroot.Characters.Components
 
         public List<ObjectItemInstance> InventoryItems => _inventoryItems;
         public int Capacity => _capacity;
+
+        [field: SerializeField]
+        public string OwnerCharacterId { get; set; }
         public int CurrentItemCount => _inventoryItems.Count;
         public bool IsFull => _inventoryItems.Count >= _capacity;
 

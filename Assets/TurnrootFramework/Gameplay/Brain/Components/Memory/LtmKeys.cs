@@ -1,3 +1,5 @@
+using Turnroot.Gameplay.Objects;
+
 namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
@@ -56,10 +58,18 @@ namespace Turnroot.Gameplay.Brain
         public const string StorehouseStoredItems = "Storehouse.StoredItems";
 
         public const string StorehouseMaterialPrefix = "Storehouse.Material_";
+        public const string StorehouseMaterialIdPrefix = "Storehouse.MaterialId_";
 
         /// <summary>Build a storehouse material key for a given material name.</summary>
         public static string StorehouseMaterialKey(string materialName) =>
             StorehouseMaterialPrefix + materialName;
+
+        /// <summary>Build a storehouse material key for a given object ID.</summary>
+        public static string StorehouseMaterialIdKey(string materialId) =>
+            StorehouseMaterialIdPrefix + materialId;
+
+        public static string StorehouseMaterialKey(ObjectItem item) =>
+            item == null ? null : StorehouseMaterialIdKey(item.Id);
 
         #endregion
 

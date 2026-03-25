@@ -1,4 +1,5 @@
 using Turnroot.Conversations;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -16,10 +17,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public HubSubLocation CurrentSubLocation { get; private set; }
         public HubPoiUi CurrentPoi { get; private set; }
 
-        // Track the active shop for notifying visited/exited events.
+        // Track the active shop or blacksmith for notifying visited/exited events.
         private Shop.Shop _activeShop;
+        private Blacksmith.Blacksmith _activeBlacksmith;
 
-        // Used to pause shop input while welcome/exit dialogue is running.
+        // Used to pause shop/blacksmith input while welcome/exit dialogue is running.
         private bool _waitingForShopEntryDialogue;
         private bool _waitingForShopExitDialogue;
 
@@ -99,13 +101,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CurrentSubLocation = subLocation;
             CurrentPoi = poi;
 
-            // If the newly selected POI is a shop, mark it as active and play the welcome dialogue.
             var newShop = poi?.GetComponent<Shop.Shop>();
             if (newShop != null && newShop != _activeShop)
             {
                 _activeShop = newShop;
+                _activeBlacksmith = null;
 
-                // If the shop is going to play welcome dialogue, block shop input until it's complete.
                 var welcomeOneShot = _activeShop.GetRandomWelcomeOneShot();
                 if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
                 {
@@ -113,13 +114,29 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     SubscribeToConversationFinished();
                 }
 
-                // NotifyShopVisited already plays the welcome dialogue internally.
                 _activeShop.NotifyShopVisited();
             }
             else if (newShop == null)
             {
-                // Clear active shop if we are selecting a non-shop POI.
                 _activeShop = null;
+
+                if (poi.TryGetComponent<Blacksmith.Blacksmith>(out var blacksmith))
+                {
+                    _activeBlacksmith = blacksmith;
+
+                    var welcomeOneShot = _activeBlacksmith.GetRandomWelcomeOneShot();
+                    if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
+                    {
+                        _waitingForShopEntryDialogue = true;
+                        SubscribeToConversationFinished();
+                    }
+
+                    blacksmith.NotifyBlacksmithVisited();
+                }
+                else
+                {
+                    _activeBlacksmith = null;
+                }
             }
         }
 
@@ -134,58 +151,56 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (action == "Back" || action == InputActionConstants.Cancel)
             {
-                // If we are currently inside a shop, play the exit dialogue first.
-                if (_activeShop != null)
+                var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
+                if (activeVendor != null)
                 {
-                    // Check whether the shop has a farewell dialogue.
-                    var exitOneShot = _activeShop.GetRandomFarewellOneShot();
-                    bool hasExitDialogue = !string.IsNullOrWhiteSpace(exitOneShot.Dialogue);
-
-                    // NotifyShopExited already plays the farewell dialogue internally.
-                    _activeShop.NotifyShopExited();
+                    bool hasExitDialogue = activeVendor.HasFarewellDialogue();
+                    activeVendor.HandleBackInput(action);
 
                     if (hasExitDialogue)
                     {
-                        // Subscribe now — guaranteed ConversationController.Instance exists
-                        // because NotifyShopExited just used it to play the dialogue.
                         _waitingForShopExitDialogue = true;
                         SubscribeToConversationFinished();
                         return;
                     }
-
-                    // If there's no exit dialogue, fall through and perform the normal exit behavior.
                 }
 
                 CompleteShopExit();
             }
             if (action is InputActionConstants.NavigateRight or InputActionConstants.NavigateLeft)
             {
-                // shop?
-                // increase or decrease the buying quantity of the selected item
-                // also increase the price text to match
-                // increase up to available quantity or decrease down to 0 or increase up to maximum buying power (whichever is smaller)
                 if (_activeShop != null)
                 {
                     _activeShop.Ui.HandleQuantityChangeInput(action);
                 }
+                else if (_activeBlacksmith != null)
+                {
+                    var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
+                    if (blacksmithUi != null)
+                    {
+                        blacksmithUi.HandleNavigateRightInput(action);
+                        blacksmithUi.HandleNavigateLeftInput(action);
+                    }
+                }
             }
             if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
             {
-                // shop?
-                // move up or down item list
                 if (_activeShop != null)
                 {
                     _activeShop.Ui.HandleItemChangeInput(action);
                 }
+                else if (_activeBlacksmith != null)
+                {
+                    var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
+                    blacksmithUi?.HandleItemChangeInput(action);
+                }
             }
             if (action == InputActionConstants.Submit || action == InputActionConstants.Select)
             {
-                // shop?
-                // confirm the purchase of the currently selected item and quantity
-                if (_activeShop != null)
+                var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
+                if (activeVendor != null)
                 {
-                    $"SpecificUiHandler: Received purchase confirmation input for active shop '{_activeShop.name}'".LogInfo();
-                    _activeShop.Ui.HandlePurchaseConfirmationInput();
+                    activeVendor.HandleConfirmInput(action);
                 }
             }
             if (action is InputActionConstants.ScrollLeft or InputActionConstants.ScrollRight)
@@ -202,10 +217,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void CompleteShopExit()
         {
-            // Hide the shop UI before clearing the shop reference.
+            // Hide the shop/blacksmith UI before clearing the vendor reference.
             if (_activeShop != null && _activeShop.TryGetComponent<Shop.ShopUi>(out var shopUi))
             {
                 shopUi.ShopUiFade.Hide();
+            }
+
+            if (
+                _activeBlacksmith != null
+                && _activeBlacksmith.TryGetComponent<Blacksmith.BlacksmithUi>(out var blacksmithUi)
+            )
+            {
+                blacksmithUi.BlacksmithUiFade.Hide();
             }
 
             // Restore the camera to the last user-controlled position/rotation (before selecting a POI)
@@ -224,6 +247,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _activeShop = null;
+            _activeBlacksmith = null;
             hubManager.RevertToPreviousInputMode();
         }
     }

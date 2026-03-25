@@ -1,6 +1,7 @@
 using Coffee.UIEffects;
 using NaughtyAttributes;
 using TMPro;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -67,15 +68,19 @@ namespace Turnroot.UI
             {
                 TextToChangeColor.color = TextHighlightColor;
             }
-            Effect.enabled = true;
+
+            if (Effect != null)
+            {
+                Effect.enabled = true;
+            }
+            else
+            {
+                "UiChoice.Select: Effect is null, skipping effect activation".LogWarning();
+            }
         }
 
         public void Deselect()
         {
-            if (!CanBeSelected)
-            {
-                return;
-            }
             IsActive = false;
             if (UseScale)
             {
@@ -85,7 +90,15 @@ namespace Turnroot.UI
             {
                 TextToChangeColor.color = originalTextColor;
             }
-            Effect.enabled = false;
+
+            if (Effect != null)
+            {
+                Effect.enabled = false;
+            }
+            else
+            {
+                "UiChoice.Deselect: Effect is null, skipping effect deactivation".LogWarning();
+            }
         }
     }
 }

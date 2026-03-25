@@ -1,22 +1,16 @@
 using System;
 using System.Collections.Generic;
-using Turnroot.Characters;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 {
-    [Serializable]
-    public struct ShopDialogue
-    {
-        public string Dialogue;
-        public Sprite Portrait;
-        public AudioClip Audio;
-    }
+    using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 
     [RequireComponent(typeof(ShopUi))]
-    public class Shop : MonoBehaviour
+    public class Shop : HubVendor
     {
         public ShopUi Ui => GetComponent<ShopUi>();
         public ShopItem[] ItemsStocked;
@@ -24,77 +18,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public string ShopName;
         public string ShopDescription;
-        public CharacterData Shopkeeper;
-
-        public ShopDialogue[] WelcomeDialogues;
-
-        private ShopDialogue[] cachedWelcomeDialogues;
-        public ShopDialogue[] ShopKeeperSellsDialogues;
-        public ShopDialogue[] ShopKeeperBuysDialogues;
-        public ShopDialogue[] FarewellDialogues;
 
         public string SoldOutDialogueText;
 
-        private OneShot[] WelcomeDialogueConversations;
+        public OneShotDialogue[] ShopKeeperSellsDialogues;
+        public OneShotDialogue[] ShopKeeperBuysDialogues;
+
         private OneShot[] SellDialogueConversations;
         private OneShot[] BuyDialogueConversations;
-        private OneShot[] FarewellDialogueConversations;
 
-        [HideInInspector]
-        public Brain.Brain brain;
-
-        private Brain.Brain GetBrain()
+        protected override void Awake()
         {
-            if (brain == null)
-            {
-                brain = FindFirstObjectByType<Brain.Brain>();
-            }
-            return brain;
-        }
+            base.Awake();
 
-        public void Awake()
-        {
-            cachedWelcomeDialogues = WelcomeDialogues;
-            WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
-            SellDialogueConversations = ConvertToOneShots(ShopKeeperSellsDialogues);
-            BuyDialogueConversations = ConvertToOneShots(ShopKeeperBuysDialogues);
-            FarewellDialogueConversations = ConvertToOneShots(FarewellDialogues);
-        }
-
-        public void OnDestroy() => WelcomeDialogues = cachedWelcomeDialogues;
-
-        private OneShot[] ConvertToOneShots(ShopDialogue[] dialogues)
-        {
-            if (dialogues == null)
-            {
-                return Array.Empty<OneShot>();
-            }
-
-            OneShot[] conversations = new OneShot[dialogues.Length];
-            for (int i = 0; i < dialogues.Length; i++)
-            {
-                conversations[i] = new OneShot
-                {
-                    Dialogue = dialogues[i].Dialogue,
-                    Portrait = dialogues[i].Portrait,
-                    Audio = dialogues[i].Audio,
-                    SpeakerName = Shopkeeper != null ? Shopkeeper.DisplayName : "???",
-                };
-            }
-            return conversations;
-        }
-
-        private void EnsureOneShotConversationsInitialized()
-        {
-            WelcomeDialogueConversations ??= ConvertToOneShots(WelcomeDialogues);
-            SellDialogueConversations ??= ConvertToOneShots(ShopKeeperSellsDialogues);
-            BuyDialogueConversations ??= ConvertToOneShots(ShopKeeperBuysDialogues);
-            FarewellDialogueConversations ??= ConvertToOneShots(FarewellDialogues);
+            var speakerName = Shopkeeper != null ? Shopkeeper.DisplayName : "???";
+            SellDialogueConversations =
+                audioBrain?.ConvertToOneShots(ShopKeeperSellsDialogues, speakerName)
+                ?? Array.Empty<OneShot>();
+            BuyDialogueConversations =
+                audioBrain?.ConvertToOneShots(ShopKeeperBuysDialogues, speakerName)
+                ?? Array.Empty<OneShot>();
         }
 
         public void NotifyShopVisited()
         {
-            GetBrain()?.PublishShopVisited(this);
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            audioBrain ??= brain?.audioBrain;
+            brain?.PublishShopVisited(this);
 
             // Guard: nothing to sell or show if there are no items
             if (ItemsStocked == null || ItemsStocked.Length == 0)
@@ -105,127 +55,83 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
             // Ensure shop stock is refreshed from LongTermMemory on every visit,
             // even on the same calendar day.
-            var brain = GetBrain();
             if (brain?.ltm != null)
             {
                 var date = brain.ltm.GetGameDate();
                 _ = RefreshShopForNewDay(date);
             }
 
-            var ShopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
-            if (ShopUi == null)
-            {
-                $"Shop '{name}': No ShopUi component found for dialogue playback.".LogWarning();
-            }
-            else
-            {
-                ShopUi.RefreshShopDisplay();
-            }
-
-            var welcomeOneShot = GetRandomWelcomeOneShot();
-            if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
-            {
-                var player = GetOrCreateOneShotPlayer();
-                if (player == null)
+            NotifyVisited(
+                () =>
                 {
-                    "Shop: Could not create OneShotPlayer for dialogue playback.".LogWarning();
-                }
-                player?.PlayOneShot(welcomeOneShot);
-            }
-            else
-            {
-                $"Shop '{name}': No welcome dialogue to play".LogInfo();
-            }
+                    var shopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
+                    if (shopUi == null)
+                    {
+                        $"Shop '{name}': No ShopUi component found for dialogue playback.".LogWarning();
+                    }
+                    else
+                    {
+                        shopUi.RefreshShopDisplay();
+                    }
+                },
+                "Shop"
+            );
         }
 
         public void NotifyShopExited()
         {
-            GetBrain()?.PublishShopExited(this);
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            brain?.PublishShopExited(this);
 
-            var farewellOneShot = GetRandomFarewellOneShot();
-            var shopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
-
-            if (!string.IsNullOrWhiteSpace(farewellOneShot.Dialogue))
-            {
-                var player = GetOrCreateOneShotPlayer();
-                if (player == null)
+            NotifyExited(
+                () =>
                 {
-                    $"Shop '{name}': player is null, hiding shop UI immediately.".LogWarning();
+                    var shopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
                     shopUi?.ShopUiFade.Hide();
-                    return;
-                }
+                },
+                "Shop"
+            );
+        }
 
-                player.PlayOneShot(farewellOneShot);
-            }
-            else
+        public override void HandleConfirmInput(string action)
+        {
+            Ui?.HandlePurchaseConfirmationInput();
+        }
+
+        public override void HandleBackInput(string action)
+        {
+            if (action != "Back" && action != InputActionConstants.Cancel)
             {
-                $"Shop '{name}': No farewell dialogue to play".LogInfo();
-                // No farewell dialogue — SpecificUiHandler.CompleteShopExit will hide the UI.
+                return;
             }
+
+            NotifyShopExited();
+        }
+
+        public override bool HasFarewellDialogue()
+        {
+            var farewell = GetRandomFarewellOneShot();
+            return !string.IsNullOrWhiteSpace(farewell.Dialogue);
         }
 
         public void NotifyShopkeeperBuys(ShopItem[] itemsBought)
         {
-            GetBrain()?.PublishShopkeeperBuys(this, itemsBought ?? Array.Empty<ShopItem>());
-
-            var buyOneShot = GetRandomBuyOneShot();
-            if (!string.IsNullOrWhiteSpace(buyOneShot.Dialogue))
-            {
-                GetOrCreateOneShotPlayer()?.PlayOneShot(buyOneShot);
-            }
-            else
-            {
-                $"Shop '{name}': No buy dialogue to play".LogInfo();
-            }
+            NotifyTransaction(
+                itemsBought ?? Array.Empty<ShopItem>(),
+                i => brain?.PublishShopkeeperBuys(this, i),
+                BuyDialogueConversations,
+                $"Shop '{name}': No buy dialogue to play"
+            );
         }
 
         public void NotifyShopkeeperSells(ShopItem itemSold)
         {
-            GetBrain()?.PublishShopkeeperSells(this, itemSold);
-
-            var sellOneShot = GetRandomSellOneShot();
-            if (!string.IsNullOrWhiteSpace(sellOneShot.Dialogue))
-            {
-                GetOrCreateOneShotPlayer()?.PlayOneShot(sellOneShot);
-            }
-            else
-            {
-                $"Shop '{name}': No sell dialogue to play".LogInfo();
-            }
-        }
-
-        public OneShot GetRandomWelcomeOneShot() => GetRandomOneShot(WelcomeDialogueConversations);
-
-        public OneShot GetRandomSellOneShot() => GetRandomOneShot(SellDialogueConversations);
-
-        public OneShot GetRandomBuyOneShot() => GetRandomOneShot(BuyDialogueConversations);
-
-        public OneShot GetRandomFarewellOneShot() =>
-            GetRandomOneShot(FarewellDialogueConversations);
-
-        private OneShot GetRandomOneShot(OneShot[] candidates)
-        {
-            EnsureOneShotConversationsInitialized();
-            if (candidates == null || candidates.Length == 0)
-            {
-                return default;
-            }
-            return candidates[UnityEngine.Random.Range(0, candidates.Length)];
-        }
-
-        private OneShotPlayer GetOrCreateOneShotPlayer()
-        {
-            if (!TryGetComponent<OneShotPlayer>(out var player))
-            {
-                player = gameObject.AddComponent<OneShotPlayer>();
-            }
-
-            if (TryGetComponent<AudioSource>(out var audioSource))
-            {
-                player.SetAudioSource(audioSource);
-            }
-
-            return player;
+            NotifyTransaction(
+                itemSold,
+                i => brain?.PublishShopkeeperSells(this, i),
+                SellDialogueConversations,
+                $"Shop '{name}': No sell dialogue to play"
+            );
         }
 
         [Tooltip(
@@ -248,14 +154,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         public string RefreshShopForNewDay(GameDate currentDay)
         {
             if (ItemsStocked == null || ItemsStocked.Length == 0)
+            {
                 return "";
+            }
 
-            var brain = GetBrain();
+            var brainRef = brain ?? FindFirstObjectByType<Brain.Brain>();
             bool hasSavedShopStock = HubDayStateStore.HasShopStock(name);
             bool isDailyUpdateAlreadyProcessed = HubDayStateStore.HasProcessedDailyUpdates;
 
             // If this shop has no existing persistent stock data, initialize normal items to max
-            if (!hasSavedShopStock && brain != null)
+            if (!hasSavedShopStock && brainRef != null)
             {
                 for (int i = 0; i < ItemsStocked.Length; i++)
                 {
@@ -270,10 +178,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     currentStock[item] = item.MaxQuantity;
 
                     string itemName = item.Item != null ? item.Item.name : string.Empty;
-                    HubDayStateStore.SetShopItemQuantity(brain, name, itemName, item.MaxQuantity);
+                    HubDayStateStore.SetShopItemQuantity(
+                        brainRef,
+                        name,
+                        itemName,
+                        item.MaxQuantity
+                    );
                 }
             }
-            else if (brain != null)
+            else if (brainRef != null)
             {
                 for (int i = 0; i < ItemsStocked.Length; i++)
                 {
@@ -307,11 +220,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 totalStock += status.AvailableQuantity;
 
                 // Persist the updated quantity into HubDayStateStore for this day.
-                if (brain != null)
+                if (brainRef != null)
                 {
                     string itemName = item.Item != null ? item.Item.name : string.Empty;
                     HubDayStateStore.SetShopItemQuantity(
-                        brain,
+                        brainRef,
                         name,
                         itemName,
                         status.AvailableQuantity
@@ -324,7 +237,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     return $"A rare item is in stock at";
                 }
             }
-            $"Shop '{name}': Total stock after refresh is {totalStock}.".LogInfo();
+
             if (totalStock == 0)
             {
                 if (SoldOutDialogueText != null)
@@ -337,7 +250,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                         d.Dialogue = SoldOutDialogueText;
                         WelcomeDialogues[i] = d;
                     }
-                    WelcomeDialogueConversations = ConvertToOneShots(WelcomeDialogues);
+                    WelcomeDialogueConversations =
+                        audioBrain.ConvertToOneShots(
+                            WelcomeDialogues,
+                            Shopkeeper != null ? Shopkeeper.DisplayName : "???"
+                        ) ?? Array.Empty<OneShot>();
                 }
             }
             return "";

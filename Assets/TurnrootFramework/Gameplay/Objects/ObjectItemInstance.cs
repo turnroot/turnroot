@@ -17,7 +17,11 @@ namespace Turnroot.Gameplay.Objects
         [SerializeField]
         private string _id;
 
-        public string InstanceID => _id;
+        public string InstanceID
+        {
+            get => _id;
+            internal set => _id = value;
+        }
 
         [SerializeField]
         private ObjectItem _template;
@@ -32,8 +36,10 @@ namespace Turnroot.Gameplay.Objects
 
         private int currentUses;
 
-        internal void SetOwnerInventory(CharacterInventoryInstance owner) =>
+        internal void SetOwnerInventory(CharacterInventoryInstance owner)
+        {
             _ownerInventory = owner;
+        }
 
         internal void ClearOwnerInventory()
         {
@@ -42,7 +48,11 @@ namespace Turnroot.Gameplay.Objects
             IsEquipped = false;
         }
 
-        public int CurrentUses => currentUses;
+        public int CurrentUses
+        {
+            get => currentUses;
+            internal set => currentUses = value;
+        }
         public int RemainingUses =>
             _template?.Durability == true ? _template.MaxUses - currentUses : -1;
 
@@ -51,8 +61,8 @@ namespace Turnroot.Gameplay.Objects
 
         public void SetBrain(Brain.Brain brain) => _brain = brain;
 
-        private StorehouseBrain StorehouseBrain => _brain.storehouseBrain;
-        private InventoryBrain InventoryBrain => _brain.inventoryBrain;
+        private StorehouseBrain StorehouseBrain => _brain?.storehouseBrain;
+        private InventoryBrain InventoryBrain => _brain?.inventoryBrain;
 
         private readonly ObjectForgerHelper ForgerHelper;
 
@@ -71,16 +81,25 @@ namespace Turnroot.Gameplay.Objects
 
         internal int Use()
         {
+            if (_template == null)
+            {
+                return -1;
+            }
+
             if (!_template.Durability)
             {
                 return -1;
             }
-            else
+
+            currentUses++;
+
+            int remaining = _template.MaxUses - currentUses;
+            if (remaining < 0)
             {
-                currentUses++;
-                InventoryBrain?.UseItem(this);
-                return _template.MaxUses - currentUses > 0 ? _template.MaxUses - currentUses : 0;
+                remaining = 0;
             }
+
+            return remaining;
         }
 
         /// <summary>
@@ -194,30 +213,96 @@ namespace Turnroot.Gameplay.Objects
             return OperationResult.Successful();
         }
 
-        public bool CanRepair(int repairUses)
+        public bool CanRepair(int repairUses, StorehouseBrain overrideStorehouseBrain = null)
         {
-            if (!_template.Repairable || !_template.Durability)
+            try
             {
-                return false;
-            }
-
-            if (_template.RepairNeedsItems)
-            {
-                if (_template.OneRepairItemCoversFullRepair)
+                if (_template == null)
                 {
-                    return StorehouseBrain?.HasMaterials(_template.RepairItem, 1) ?? false;
+                    "ObjectItemInstance.CanRepair: _template is null".LogWarning(
+                        "ObjectItemInstance"
+                    );
+                    return false;
                 }
-                return StorehouseBrain?.HasMaterials(
+
+                if (!_template.Repairable || !_template.Durability)
+                {
+                    return false;
+                }
+
+                if (repairUses <= 0 || currentUses - repairUses < 0)
+                {
+                    return false;
+                }
+
+                var repairStorehouseBrain = overrideStorehouseBrain ?? StorehouseBrain;
+                if (repairStorehouseBrain == null)
+                {
+                    "ObjectItemInstance.CanRepair: storehouse brain reference missing".LogWarning(
+                        "ObjectItemInstance"
+                    );
+                    return false;
+                }
+
+                int repairCost = _template.RepairPricePerUse * repairUses;
+                bool canAfford =
+                    _template.RepairPricePerUse <= 0 || repairStorehouseBrain.CanAfford(repairCost);
+
+                if (_template.RepairNeedsItems)
+                {
+                    if (_template.RepairItem == null)
+                    {
+                        "ObjectItemInstance.CanRepair: RepairNeedsItems true but RepairItem is null".LogWarning(
+                            "ObjectItemInstance"
+                        );
+                        return false;
+                    }
+
+                    int requiredItems;
+                    if (_template.OneRepairItemCoversFullRepair)
+                    {
+                        requiredItems = 1;
+                    }
+                    else if (_template.RepairItemAmountPerUse > 0)
+                    {
+                        requiredItems = _template.RepairItemAmountPerUse * repairUses;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    bool hasMaterials = repairStorehouseBrain.HasMaterials(
                         _template.RepairItem,
-                        _template.RepairItemAmountPerUse * repairUses
-                    ) ?? false;
+                        requiredItems
+                    );
+                    bool canRepair = hasMaterials && canAfford;
+
+                    if (!canRepair)
+                    {
+                        $"ObjectItemInstance.CanRepair: cannot repair '{_template.Name}', hasMaterials={hasMaterials}, canAfford={canAfford}, requiredItems={requiredItems}, repairCost={repairCost}, currentUses={currentUses}".LogInfo(
+                            "ObjectItemInstance"
+                        );
+                    }
+                    return canRepair;
+                }
+
+                if (!canAfford)
+                {
+                    $"ObjectItemInstance.CanRepair: cannot repair '{_template.Name}', insufficient gold (cost={repairCost}, currentGold={repairStorehouseBrain.PlayerGold})".LogInfo(
+                        "ObjectItemInstance"
+                    );
+                }
+
+                return canAfford;
             }
-            if (repairUses <= 0 || currentUses - repairUses < 0)
+            catch (System.Exception ex)
             {
+                $"ObjectItemInstance.CanRepair: crashed with exception: {ex}".LogWarning(
+                    "ObjectItemInstance"
+                );
                 return false;
             }
-            var repairCost = _template.RepairItemAmountPerUse * repairUses;
-            return StorehouseBrain?.CanAfford(repairCost) ?? false;
         }
 
         internal OperationResult Repair(int repairUses)
@@ -245,7 +330,7 @@ namespace Turnroot.Gameplay.Objects
                 return OperationResult.Failure("Invalid repair uses specified.");
             }
 
-            if (!CanRepair(repairUses))
+            if (!CanRepair(repairUses, StorehouseBrain))
             {
                 return OperationResult.Failure("Cannot afford repair.");
             }
@@ -297,6 +382,63 @@ namespace Turnroot.Gameplay.Objects
             {
                 Slot = -1;
             }
+        }
+
+        public bool IsRepairableWeaponAccessoryOrShield()
+        {
+            if (_template == null)
+            {
+                return false;
+            }
+
+            if (!_template.Durability || !_template.Repairable)
+            {
+                return false;
+            }
+
+            var subtype = _template.Subtype;
+            bool isWeapon = subtype?.IsWeapon == true;
+            bool isShield = subtype?.IsShield == true;
+            bool isAccessory = subtype?.IsAccessory == true;
+
+            if (!isWeapon && !isShield && !isAccessory)
+            {
+                return false;
+            }
+
+            int maxUses = _template.MaxUses;
+            if (maxUses <= 0)
+            {
+                return false;
+            }
+
+            return RemainingUses < maxUses;
+        }
+
+        public bool IsForgeableWeaponOrMagic()
+        {
+            if (_template == null)
+            {
+                return false;
+            }
+
+            if (!_template.Forgeable)
+            {
+                return false;
+            }
+
+            var subtype = _template.Subtype;
+            return subtype?.IsWeapon == true || subtype?.IsMagic == true;
+        }
+
+        public float GetDurabilityPercentage()
+        {
+            if (_template == null || !_template.Durability || _template.MaxUses <= 0)
+            {
+                return 1f;
+            }
+
+            return (float)RemainingUses / _template.MaxUses;
         }
     }
 }

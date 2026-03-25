@@ -1,10 +1,9 @@
 using TMPro;
-using Turnroot.GameSettings;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.UI;
 using Turnroot.Utilities.AbstractScripts;
 using Turnroot.Utilities.Ui;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 {
@@ -20,6 +19,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         private System.Collections.Generic.List<UiChoice> itemChoices;
         private System.Collections.Generic.List<int> itemChoiceToShopIndex;
+
+        private PaginationHelper paginationHelper;
 
         [Header("UI References")]
         public UIFade ShopUiFade;
@@ -60,7 +61,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         {
             // Destroy previously instantiated item UI objects so they don't accumulate
             // across visits to different shops
-            ClearInstantiatedItems();
+            HubVendorUiHelper.ClearInstantiatedItems(
+                ItemsParentContainer,
+                PageIndicatorContainer,
+                pageIndicatorObjects,
+                ref itemChoices,
+                ref itemChoiceToShopIndex
+            );
 
             if (ShopNameText != null)
             {
@@ -87,16 +94,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
 
             brain = ShopData.brain;
-            if (TotalGoldText != null && brain?.storehouseBrain != null)
-            {
-                TotalGoldText.text = $"Gold: {brain.storehouseBrain.PlayerGold}G";
-            }
-            else if (TotalGoldText != null)
-            {
-                TotalGoldText.text = "Gold: ???";
-                TotalGoldScroll.StartNumber =
-                    brain.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
-            }
+            HubVendorUiHelper.UpdateGoldDisplay(TotalGoldText, TotalGoldScroll, brain);
 
             // Preserve currently selected shop item index alignment through refresh.
             // This ensures page/selection logic remains consistent when an item is removed
@@ -137,41 +135,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
             }
             ShopData.ItemsStocked = stock;
-            totalPages = Mathf.CeilToInt((float)itemChoices.Count / ItemsPerPage);
 
-            if (itemChoices.Count == 0)
-            {
-                CurrentPage = 0;
-                CurrentSelectionIndex = 0;
-            }
-            else if (previousSelectedShopIndex >= 0)
-            {
-                int newSelectionIndex = itemChoiceToShopIndex.IndexOf(previousSelectedShopIndex);
-                if (newSelectionIndex >= 0)
-                {
-                    CurrentSelectionIndex = newSelectionIndex;
-                    CurrentPage = CurrentSelectionIndex / ItemsPerPage;
-                }
-                else
-                {
-                    CurrentSelectionIndex = Mathf.Clamp(
-                        CurrentSelectionIndex,
-                        0,
-                        itemChoices.Count - 1
-                    );
-                    CurrentPage = CurrentSelectionIndex / ItemsPerPage;
-                }
-            }
-            else
-            {
-                CurrentPage = 0;
-                CurrentSelectionIndex = 0;
-            }
+            // Ensure pagination helper exists
+            int newPage;
+            int newSelectionIndex;
 
-            InitializePageIndicators();
-            UpdateVisiblePageItems();
-            RefreshSelection();
-            UpdatePaginationIndicators();
+            HubVendorUiHelper.EnsurePagination(
+                ref paginationHelper,
+                ItemsPerPage,
+                PageIndicatorContainer?.transform,
+                ActivePageIndicatorSprite,
+                InactivePageIndicatorSprite,
+                PageIndicatorSize,
+                AudioPlayer,
+                PageChangeAudioClip,
+                itemChoices,
+                CurrentSelectionIndex,
+                out newPage,
+                out newSelectionIndex
+            );
+
+            CurrentPage = newPage;
+            CurrentSelectionIndex = newSelectionIndex;
 
             ShopUiFade.Show();
         }

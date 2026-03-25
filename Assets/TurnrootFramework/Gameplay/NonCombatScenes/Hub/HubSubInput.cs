@@ -55,7 +55,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void HandleSubLocationInput(string action)
         {
             if (hubManager == null)
+            {
                 hubManager = GetComponent<HubManager>();
+            }
 
             if (
                 action == InputActionConstants.Select

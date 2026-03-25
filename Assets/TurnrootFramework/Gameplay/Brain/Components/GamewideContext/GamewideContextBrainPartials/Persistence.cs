@@ -1,6 +1,7 @@
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Utilities;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -18,8 +19,10 @@ namespace Turnroot.Gameplay.Brain
 
                 if (GamewidePersistentPlayerRoster == null)
                 {
-                    "GamewideContextBrain: No GamewidePersistentPlayerRoster assigned".LogWarning();
-                    return null;
+                    // Fallback: create a runtime empty roster for non-battle contexts
+                    "GamewideContextBrain: PersistentPlayerRoster.asset not found; creating runtime fallback roster".LogWarning();
+                    GamewidePersistentPlayerRoster =
+                        ScriptableObject.CreateInstance<PlayerTeamRoster>();
                 }
             }
 
