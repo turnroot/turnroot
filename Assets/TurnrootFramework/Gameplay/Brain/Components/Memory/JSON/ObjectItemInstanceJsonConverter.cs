@@ -14,6 +14,8 @@ namespace Turnroot.Gameplay.Brain.Components
         private const string TemplateField = "_template";
         private const string SlotField = "Slot";
         private const string IsEquippedField = "IsEquipped";
+        private const string CurrentUsesField = "CurrentUses";
+        private const string InstanceIdField = "InstanceID";
 
         public override bool CanConvert(Type objectType) =>
             typeof(ObjectItemInstance).IsAssignableFrom(objectType);
@@ -45,6 +47,8 @@ namespace Turnroot.Gameplay.Brain.Components
 
             token[SlotField] = instance.Slot;
             token[IsEquippedField] = instance.IsEquipped;
+            token[CurrentUsesField] = instance.CurrentUses;
+            token[InstanceIdField] = instance.InstanceID;
 
             return token;
         }
@@ -70,6 +74,18 @@ namespace Turnroot.Gameplay.Brain.Components
             if (isEquippedToken != null)
             {
                 instance.IsEquipped = isEquippedToken.ToObject<bool>();
+            }
+
+            var currentUsesToken = token.SelectToken(CurrentUsesField);
+            if (currentUsesToken != null)
+            {
+                instance.CurrentUses = currentUsesToken.ToObject<int>();
+            }
+
+            var instanceIdToken = token.SelectToken(InstanceIdField);
+            if (instanceIdToken != null)
+            {
+                instance.InstanceID = instanceIdToken.ToObject<string>();
             }
 
             if (instance is Serialization.IPostDeserialize post)

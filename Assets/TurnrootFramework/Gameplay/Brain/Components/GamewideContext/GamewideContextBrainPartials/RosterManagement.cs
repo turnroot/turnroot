@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
@@ -84,11 +85,41 @@ namespace Turnroot.Gameplay.Brain
 
         public PlayerTeamRosterInstance GetPersistentPlayerTeamRosterInstance()
         {
-            var result = _rosterManager?.GetPersistentPlayerRosterInstance();
+            // Ensure persistent roster is loaded and available for Hub and other non-battle paths.
+            if (GamewidePersistentPlayerRoster == null)
+            {
+                CreateOrRecallGamewidePersistentPlayerRoster();
+            }
+
+            if (_rosterManager == null)
+            {
+                // In case this is called before Awake or when roster manager is not yet set.
+                _rosterPersistence ??= new RosterPersistence(GetComponent<LongTermMemory>());
+                _rosterManager = new RosterManager(
+                    _brain ?? GetComponent<Brain>(),
+                    _rosterPersistence
+                );
+            }
+
+            var result = _rosterManager.GetPersistentPlayerRosterInstance();
+            if (result == null && GamewidePersistentPlayerRoster != null)
+            {
+                var instantiateResult = _rosterManager.InstantiatePlayerTeamRoster(
+                    GamewidePersistentPlayerRoster
+                );
+                if (instantiateResult.Success && instantiateResult.Value != null)
+                {
+                    result = instantiateResult.Value;
+                    _activeRosterInstances[GamewidePersistentPlayerRoster.Id] = result;
+                }
+            }
+
             if (result == null)
             {
-                "GamewideContextBrain.GetPersistentPlayerTeamRosterInstance: _rosterManager returned null".LogWarning();
+                // No persistent roster yet; this is expected in some early Hub scenarios.
+                "GamewideContextBrain.GetPersistentPlayerTeamRosterInstance: no player roster available yet".LogInfo();
             }
+
             return result;
         }
 

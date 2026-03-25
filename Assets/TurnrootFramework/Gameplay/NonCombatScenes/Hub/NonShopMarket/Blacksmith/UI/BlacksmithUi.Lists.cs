@@ -3,6 +3,7 @@ using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
 using Turnroot.UI;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
@@ -61,8 +62,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
             var rosterInstance =
                 brain?.gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
-            if (rosterInstance != null)
+            if (rosterInstance == null)
             {
+                "BlacksmithUi.CollectBlacksmithCandidates: no player roster available, skipping character inventory".LogInfo(
+                    "BlacksmithUi"
+                );
+            }
+            else
+            {
+                "BlacksmithUi.CollectBlacksmithCandidates: roster available, scanning characters".LogInfo(
+                    "BlacksmithUi"
+                );
                 foreach (var character in rosterInstance.Instances ?? new List<CharacterInstance>())
                 {
                     if (character == null || character.InventoryInstance == null)
@@ -75,7 +85,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                             ?? new List<ObjectItemInstance>()
                     )
                     {
-                        if (!filter(itemInstance))
+                        if (itemInstance != null)
+                        {
+                            itemInstance.SetBrain(brain);
+                        }
+
+                        var pass = filter(itemInstance);
+
+                        if (!pass)
                         {
                             continue;
                         }
@@ -92,11 +109,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             }
 
             var storehouseItems = brain?.storehouseBrain?.GetStoredItems();
+            var storehouseCount = storehouseItems?.Count ?? 0;
+
             if (storehouseItems != null)
             {
                 foreach (var itemInstance in storehouseItems)
                 {
-                    if (!filter(itemInstance))
+                    if (itemInstance != null)
+                    {
+                        itemInstance.SetBrain(brain);
+                    }
+
+                    var templateName = itemInstance?.Template?.name ?? "<null>";
+                    var uses = itemInstance.Template.MaxUses - itemInstance.CurrentUses;
+                    var pass = filter(itemInstance);
+
+                    if (!pass)
                     {
                         continue;
                     }
@@ -141,10 +169,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             {
                 if (ItemPrefab == null || ItemsParentContainer == null)
                 {
+                    "BlacksmithUi.BuildItemListForCurrentMode: cannot instantiate item row because ItemPrefab or ItemsParentContainer is null".LogWarning(
+                        "BlacksmithUi"
+                    );
                     continue;
                 }
 
                 var itemUiObject = Instantiate(ItemPrefab, ItemsParentContainer.transform);
+                if (itemUiObject == null)
+                {
+                    $"BlacksmithUi.BuildItemListForCurrentMode: Instantiate returned null for index {i}".LogWarning(
+                        "BlacksmithUi"
+                    );
+                    continue;
+                }
+
                 var uiChoice = itemUiObject.GetComponent<UiChoice>();
                 if (uiChoice == null)
                 {
@@ -152,6 +191,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 }
 
                 var itemRefs = itemUiObject.GetComponent<BlacksmithItemRefs>();
+                if (itemRefs == null)
+                {
+                    $"BlacksmithUi.BuildItemListForCurrentMode: itemRefs is null for instantiated row index {i}".LogWarning(
+                        "BlacksmithUi"
+                    );
+                }
 
                 if (
                     CurrentMode == BlacksmithMode.Repair
@@ -160,6 +205,44 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 )
                 {
                     ConfigureRepairItemUi(repairableItems[i], itemRefs, SelectionCountCache);
+
+                    var repairTarget = repairableItems[i].ItemToRepair;
+                    var canRepair = false;
+                    if (repairTarget == null)
+                    {
+                        "BlacksmithUi.BuildItemListForCurrentMode: repairTarget is null".LogWarning(
+                            "BlacksmithUi"
+                        );
+                    }
+                    else if (repairTarget.Template == null)
+                    {
+                        "BlacksmithUi.BuildItemListForCurrentMode: repairTarget.Template is null".LogWarning(
+                            "BlacksmithUi"
+                        );
+                    }
+                    else
+                    {
+                        var repairItemName =
+                            repairTarget.Template?.RepairItem?.Name ?? "<no-repair-item>";
+                        var storedCount =
+                            brain?.storehouseBrain?.GetMaterialCount(
+                                repairTarget.Template?.RepairItem
+                            ) ?? 0;
+
+                        try
+                        {
+                            canRepair = repairTarget.CanRepair(1, brain?.storehouseBrain);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            $"BlacksmithUi.BuildItemListForCurrentMode: CanRepair threw on item '{repairTarget.Template?.name ?? "<null>"}' currentUses={repairTarget?.CurrentUses.ToString() ?? "<null>"}, ex={ex.GetType().Name}:{ex.Message}".LogWarning(
+                                "BlacksmithUi"
+                            );
+                            canRepair = false;
+                        }
+                    }
+
+                    uiChoice.CanBeSelected = canRepair;
                 }
                 else if (
                     CurrentMode == BlacksmithMode.Forge
@@ -168,6 +251,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 )
                 {
                     ConfigureForgeItemUi(forgeableItems[i], itemRefs, SelectionCountCache);
+                    uiChoice.CanBeSelected = true;
+                }
+
+                if (!uiChoice.CanBeSelected)
+                {
+                    if (itemRefs?.ItemNameText != null)
+                    {
+                        itemRefs.ItemNameText.color = Color.grey;
+                    }
                 }
 
                 itemChoices.Add(uiChoice);

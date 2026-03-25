@@ -106,10 +106,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
                 player.PlayOneShot(farewellOneShot);
             }
-            else
-            {
-                $"{componentName} '{name}': No farewell dialogue to play".LogInfo();
-            }
         }
 
         protected void NotifyTransaction<T>(
@@ -150,6 +146,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             return audioBrain != null
                 ? audioBrain.GetRandomOneShot(FarewellDialogueConversations)
                 : default;
+        }
+
+        public virtual bool HasFarewellDialogue()
+        {
+            var farewell = GetRandomFarewellOneShot();
+            return !string.IsNullOrWhiteSpace(farewell.Dialogue);
+        }
+
+        public virtual void HandleConfirmInput(string action)
+        {
+            // Implemented by concrete vendors (e.g., shop and blacksmith).
+        }
+
+        public virtual void HandleBackInput(string action)
+        {
+            // Implemented by concrete vendors with the appropriate NotifyXExited call.
         }
     }
 }

@@ -271,7 +271,11 @@ namespace Turnroot.Gameplay.Brain
         {
             if (_persistentPlayerRoster == null)
             {
-                "RosterManager: _persistentPlayerRoster is NULL".LogWarning("RosterManager");
+                // this can be expected when called before any roster creation/loading step
+                // in Hub-only contexts, do not treat as error.
+                "RosterManager: _persistentPlayerRoster is NULL (roster not yet initialized)".LogInfo(
+                    "RosterManager"
+                );
                 return null;
             }
 

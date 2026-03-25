@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using Turnroot.UI;
+using Turnroot.Utilities;
 using Turnroot.Utilities.Ui;
 using UnityEngine;
 
@@ -68,6 +69,67 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
             currentPage = paginationHelper.CurrentPage;
             resultingSelectionIndex = paginationHelper.CurrentSelectionIndex;
+        }
+
+        public static bool HandleItemNavigationInput(
+            string action,
+            ref PaginationHelper paginationHelper,
+            List<UiChoice> itemChoices,
+            ref int selectionCountCache,
+            ref int costCache,
+            AudioSource audioPlayer,
+            AudioClip navigateAudioClip,
+            out int currentPage,
+            out int currentSelectionIndex
+        )
+        {
+            selectionCountCache = 1;
+            costCache = 0;
+
+            currentPage = 0;
+            currentSelectionIndex = 0;
+
+            if (paginationHelper == null || itemChoices == null || itemChoices.Count == 0)
+            {
+                return false;
+            }
+
+            if (action == InputActionConstants.NavigateDown)
+            {
+                paginationHelper.ChangeSelectionByOffset(1);
+            }
+            else if (action == InputActionConstants.NavigateUp)
+            {
+                paginationHelper.ChangeSelectionByOffset(-1);
+            }
+            else
+            {
+                return false;
+            }
+
+            currentPage = paginationHelper.CurrentPage;
+            currentSelectionIndex = paginationHelper.CurrentSelectionIndex;
+
+            audioPlayer?.PlayOneShot(navigateAudioClip);
+            return true;
+        }
+
+        public static void HandlePageInput(
+            string action,
+            ref PaginationHelper paginationHelper,
+            out int currentPage,
+            out int currentSelectionIndex
+        )
+        {
+            currentPage = 0;
+            currentSelectionIndex = 0;
+
+            paginationHelper?.HandleScrollInput(action);
+            if (paginationHelper != null)
+            {
+                currentPage = paginationHelper.CurrentPage;
+                currentSelectionIndex = paginationHelper.CurrentSelectionIndex;
+            }
         }
 
         public static void ClearInstantiatedItems(

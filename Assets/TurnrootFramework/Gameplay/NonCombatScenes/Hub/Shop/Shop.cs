@@ -93,6 +93,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             );
         }
 
+        public override void HandleConfirmInput(string action)
+        {
+            Ui?.HandlePurchaseConfirmationInput();
+        }
+
+        public override void HandleBackInput(string action)
+        {
+            if (action != "Back" && action != InputActionConstants.Cancel)
+            {
+                return;
+            }
+
+            NotifyShopExited();
+        }
+
+        public override bool HasFarewellDialogue()
+        {
+            var farewell = GetRandomFarewellOneShot();
+            return !string.IsNullOrWhiteSpace(farewell.Dialogue);
+        }
+
         public void NotifyShopkeeperBuys(ShopItem[] itemsBought)
         {
             NotifyTransaction(

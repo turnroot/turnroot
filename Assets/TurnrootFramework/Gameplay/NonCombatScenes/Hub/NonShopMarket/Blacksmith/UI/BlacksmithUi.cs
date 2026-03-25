@@ -193,13 +193,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             var instance = itemData.ItemToRepair;
             var template = instance.Template;
 
+            if (itemData.BelongsToCharacter)
+            {
+                refs.OwnerPortraitParent.SetActive(true);
+                refs.OwnerPortrait.sprite = itemData
+                    .CharacterOwner
+                    .CharacterTemplate
+                    .DefaultPortrait
+                    ?.RuntimeSprite;
+            }
+            else
+            {
+                refs.OwnerPortraitParent.SetActive(false);
+            }
+
             refs.ItemNameText.text = template.Name;
             refs.UsesText.text =
                 template != null && template.Durability
-                    ? $"Uses: {instance.CurrentUses}/{template.MaxUses}"
+                    ? $"Uses: {template.MaxUses - instance.CurrentUses}/{template.MaxUses}"
                     : string.Empty;
             refs.RepairsText.text = $"Repair: +{selectionCount}";
-            refs.GoldCostText.text = $"{GetRepairCost(itemData) * selectionCount}G";
+
+            var repairPricePerUse = template?.RepairPricePerUse ?? 0;
+            if (repairPricePerUse <= 0)
+            {
+                repairPricePerUse = 0;
+            }
+            var repairGoldCost = Mathf.CeilToInt(repairPricePerUse * selectionCount);
+            refs.GoldCostText.text = $"{repairGoldCost}G";
+
             if (template.RepairItem != null)
             {
                 refs.RepairItemNameText.text = template.RepairItem.Name;
@@ -209,9 +231,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 }
                 else
                 {
+                    // Use the selected repair step count, not current damage, to compute required materials.
                     var RepairItemCount = Mathf.CeilToInt(
-                        (template.MaxUses - instance.CurrentUses)
-                            / (float)template.RepairItemAmountPerUse
+                        selectionCount / (float)template.RepairItemAmountPerUse
                     );
                     refs.RepairItemCostText.text = $"x{RepairItemCount}";
                 }
@@ -227,7 +249,78 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
         private int GetRepairCost(BlacksmithRepairItem itemData)
         {
-            return itemData.ItemToRepair?.Template?.RepairPricePerUse ?? 0;
+            if (itemData.ItemToRepair == null)
+            {
+                return 0;
+            }
+            return itemData.ItemToRepair.Template.RepairPricePerUse;
+        }
+
+        private int GetStorehouseRepairLimit(ObjectItemInstance item)
+        {
+            if (item == null || item.Template == null || brain?.storehouseBrain == null)
+            {
+                return 0;
+            }
+
+            var template = item.Template;
+            if (!template.Repairable || !template.Durability)
+            {
+                return 0;
+            }
+
+            int goldLimit;
+            if (template.RepairPricePerUse > 0)
+            {
+                goldLimit = brain.storehouseBrain.PlayerGold / template.RepairPricePerUse;
+            }
+            else
+            {
+                goldLimit = int.MaxValue;
+            }
+
+            int materialLimit = int.MaxValue;
+            if (template.RepairNeedsItems && template.RepairItem != null)
+            {
+                int materialCount = brain.storehouseBrain.GetMaterialCount(template.RepairItem);
+                if (template.OneRepairItemCoversFullRepair)
+                {
+                    materialLimit = materialCount > 0 ? 1 : 0;
+                }
+                else if (template.RepairItemAmountPerUse > 0)
+                {
+                    materialLimit = materialCount / template.RepairItemAmountPerUse;
+                }
+                else
+                {
+                    materialLimit = 0;
+                }
+            }
+
+            return Mathf.Max(0, Mathf.Min(goldLimit, materialLimit));
+        }
+
+        private int GetSelectedRepairMaxCount()
+        {
+            if (
+                CurrentMode != BlacksmithMode.Repair
+                || repairableItems == null
+                || CurrentSelectionIndex < 0
+                || CurrentSelectionIndex >= repairableItems.Length
+            )
+            {
+                return 0;
+            }
+
+            var itemToRepair = repairableItems[CurrentSelectionIndex].ItemToRepair;
+            if (itemToRepair == null || itemToRepair.Template == null)
+            {
+                return 0;
+            }
+
+            int durabilityLimit = itemToRepair.CurrentUses;
+            int storehouseLimit = GetStorehouseRepairLimit(itemToRepair);
+            return Mathf.Max(0, Mathf.Min(durabilityLimit, storehouseLimit));
         }
 
         private void ConfigureForgeItemUi(

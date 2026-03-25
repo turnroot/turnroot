@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 {
+    using NaughtyAttributes;
     using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
+    using Turnroot.Gameplay.Objects;
 
     public class Blacksmith : HubVendor
     {
@@ -13,6 +15,39 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
         public InventoryBrain _inventoryBrain { private get; set; }
         public StorehouseBrain _storehouseBrain { private get; set; }
         public CharactersBrain _charactersBrain { private get; set; }
+
+        public ObjectItem TestRepairItem;
+
+        [Button("Add Test Repair Item to Storehouse")]
+        public void AddTestRepairItemInstanceToStorehouse()
+        {
+            if (_storehouseBrain == null)
+            {
+                $"Blacksmith '{name}': Cannot add test repair item instance to storehouse because StorehouseBrain reference is null.".LogWarning();
+                return;
+            }
+
+            if (TestRepairItem == null)
+            {
+                $"Blacksmith '{name}': TestRepairItem is null, cannot add item.".LogWarning();
+                return;
+            }
+
+            var newItemInstance = new ObjectItemInstance(TestRepairItem);
+            _inventoryBrain.UseItem(newItemInstance);
+            _inventoryBrain.UseItem(newItemInstance);
+            _inventoryBrain.UseItem(newItemInstance);
+            _inventoryBrain.UseItem(newItemInstance);
+            _inventoryBrain.UseItem(newItemInstance);
+            _inventoryBrain.UseItem(newItemInstance);
+            _inventoryBrain.UseItem(newItemInstance);
+            var result = _storehouseBrain.DepositItem(newItemInstance);
+            if (!result.Success)
+            {
+                $"Blacksmith '{name}': Failed to deposit item instance: {result.ErrorMessage}".LogWarning();
+                return;
+            }
+        }
 
         public void NotifyBlacksmithVisited()
         {
@@ -43,6 +78,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 },
                 "Blacksmith"
             );
+        }
+
+        public override void HandleConfirmInput(string action)
+        {
+            var blacksmithUi = TryGetComponent<BlacksmithUi>(out var ui) ? ui : null;
+            blacksmithUi?.HandleSelectInput(action);
+        }
+
+        public override void HandleBackInput(string action)
+        {
+            if (action != "Back" && action != InputActionConstants.Cancel)
+            {
+                return;
+            }
+
+            NotifyBlacksmithExited();
+        }
+
+        public override bool HasFarewellDialogue()
+        {
+            var farewell = GetRandomFarewellOneShot();
+            return !string.IsNullOrWhiteSpace(farewell.Dialogue);
         }
     }
 }
