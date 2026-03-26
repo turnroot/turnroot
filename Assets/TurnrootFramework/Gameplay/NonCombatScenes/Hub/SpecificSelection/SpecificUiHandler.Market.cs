@@ -1,0 +1,86 @@
+using Turnroot.Conversations;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
+using Turnroot.Utilities;
+using UnityEngine;
+
+namespace Turnroot.Gameplay.NonCombatScenes.Hub
+{
+    [RequireComponent(typeof(HubManager))]
+    public partial class SpecificUiHandler : MonoBehaviour
+    {
+        public void HandleMarketSelection(string action)
+        {
+            var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
+            if (activeVendor != null)
+            {
+                activeVendor.HandleConfirmInput(action);
+            }
+        }
+
+        public void HandleMarketPageChange(string action)
+        {
+            var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
+            if (activeVendor != null)
+            {
+                if (_activeShop != null)
+                {
+                    _activeShop.Ui.HandleItemChangeInput(action);
+                }
+                else if (_activeBlacksmith != null)
+                {
+                    var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
+                    blacksmithUi?.HandleItemChangeInput(action);
+                }
+            }
+        }
+
+        public void HandleMarketUpDown(string action)
+        {
+            if (_activeShop != null)
+            {
+                _activeShop.Ui.HandleItemChangeInput(action);
+            }
+            else if (_activeBlacksmith != null)
+            {
+                var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
+                blacksmithUi?.HandleItemChangeInput(action);
+            }
+        }
+
+        public void HandleMarketLeftRight(string action)
+        {
+            if (_activeShop != null)
+            {
+                _activeShop.Ui.HandleQuantityChangeInput(action);
+            }
+            else if (_activeBlacksmith != null)
+            {
+                var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
+                if (blacksmithUi != null)
+                {
+                    blacksmithUi.HandleNavigateRightInput(action);
+                    blacksmithUi.HandleNavigateLeftInput(action);
+                }
+            }
+        }
+
+        public void HandleMarketExit(string action)
+        {
+            var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
+            if (activeVendor != null)
+            {
+                bool hasExitDialogue = activeVendor.HasFarewellDialogue();
+                activeVendor.HandleBackInput(action);
+
+                if (hasExitDialogue)
+                {
+                    _waitingForShopExitDialogue = true;
+                    SubscribeToConversationFinished();
+                    return;
+                }
+            }
+            CompleteExit();
+        }
+    }
+}

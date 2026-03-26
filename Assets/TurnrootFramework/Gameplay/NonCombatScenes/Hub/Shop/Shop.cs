@@ -61,19 +61,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 _ = RefreshShopForNewDay(date);
             }
 
-            NotifyVisited(
-                () =>
-                {
-                    var shopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
-                    if (shopUi == null)
-                    {
-                        $"Shop '{name}': No ShopUi component found for dialogue playback.".LogWarning();
-                    }
-                    else
-                    {
-                        shopUi.RefreshShopDisplay();
-                    }
-                },
+            NotifyVendorVisited(
+                () => TryGetComponent<ShopUi>(out var ui) ? ui : null,
+                shopUi => shopUi.RefreshShopDisplay(),
                 "Shop"
             );
         }
@@ -83,12 +73,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             brain ??= FindFirstObjectByType<Brain.Brain>();
             brain?.PublishShopExited(this);
 
-            NotifyExited(
-                () =>
-                {
-                    var shopUi = TryGetComponent<ShopUi>(out var ui) ? ui : null;
-                    shopUi?.ShopUiFade.Hide();
-                },
+            NotifyVendorExited(
+                () => TryGetComponent<ShopUi>(out var ui) ? ui : null,
+                shopUi => shopUi.ShopUiFade.Hide(),
                 "Shop"
             );
         }
@@ -100,18 +87,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public override void HandleBackInput(string action)
         {
-            if (action != "Back" && action != InputActionConstants.Cancel)
+            if (action is not "Back" and not InputActionConstants.Cancel)
             {
                 return;
             }
 
             NotifyShopExited();
-        }
-
-        public override bool HasFarewellDialogue()
-        {
-            var farewell = GetRandomFarewellOneShot();
-            return !string.IsNullOrWhiteSpace(farewell.Dialogue);
         }
 
         public void NotifyShopkeeperBuys(ShopItem[] itemsBought)

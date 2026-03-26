@@ -1,12 +1,13 @@
 using Turnroot.Conversations;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [RequireComponent(typeof(HubManager))]
-    public class SpecificUiHandler : MonoBehaviour
+    public partial class SpecificUiHandler : MonoBehaviour
     {
         private HubManager hubManager;
 
@@ -17,9 +18,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public HubSubLocation CurrentSubLocation { get; private set; }
         public HubPoiUi CurrentPoi { get; private set; }
 
-        // Track the active shop or blacksmith for notifying visited/exited events.
+        private HubSublocationName _currentType;
         private Shop.Shop _activeShop;
         private Blacksmith.Blacksmith _activeBlacksmith;
+        private DockShip _activeDockShip;
 
         // Used to pause shop/blacksmith input while welcome/exit dialogue is running.
         private bool _waitingForShopEntryDialogue;
@@ -28,69 +30,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         // Stored reference so unsubscribe always targets the same object we subscribed to.
         private ConversationController _subscribedController;
 
-        private void Awake()
-        {
-            hubManager = GetComponent<HubManager>();
-        }
-
-        private void OnDisable()
-        {
-            UnsubscribeFromConversationFinished();
-        }
-
-        private ConversationController FindConversationController()
-        {
-            return FindFirstObjectByType<ConversationController>();
-        }
-
-        private void SubscribeToConversationFinished()
-        {
-            var cc = FindConversationController();
-            if (cc != null)
-            {
-                _subscribedController = cc;
-                cc.OnAnyConversationFinished.AddListener(OnConversationFinished);
-            }
-            else
-            {
-                "SpecificUiHandler: No ConversationController found — exit dialogue completion will not be detected.".LogWarning();
-            }
-        }
-
-        private void UnsubscribeFromConversationFinished()
-        {
-            if (_subscribedController != null)
-            {
-                _subscribedController.OnAnyConversationFinished.RemoveListener(
-                    OnConversationFinished
-                );
-                _subscribedController = null;
-            }
-        }
-
-        private void OnConversationFinished()
-        {
-            if (_waitingForShopEntryDialogue)
-            {
-                _waitingForShopEntryDialogue = false;
-                UnsubscribeFromConversationFinished();
-                return;
-            }
-
-            if (!_waitingForShopExitDialogue)
-            {
-                return;
-            }
-
-            _waitingForShopExitDialogue = false;
-            UnsubscribeFromConversationFinished();
-            CompleteShopExit();
-        }
+        private void Awake() => hubManager = GetComponent<HubManager>();
 
         public void SetCurrentSelection(HubSubLocation subLocation, HubPoiUi poi)
         {
-            // Remember where the player was looking before we moved the camera to the POI
-            // This lets us restore the exact transform when they hit Back
+            var type = poi.Type;
+            _currentType = type;
+
             if (hubManager != null && hubManager.GeneralCamera != null)
             {
                 savedCameraPosition = hubManager.GeneralCamera.transform.position;
@@ -101,6 +47,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CurrentSubLocation = subLocation;
             CurrentPoi = poi;
 
+            if (type == HubSublocationName.Market)
+            {
+                HandleMarketSelection(poi);
+            }
+            else if (type == HubSublocationName.Docks)
+            {
+                HandleDockSelection(poi);
+            }
+        }
+
+        public void HandleMarketSelection(HubPoiUi poi)
+        {
             var newShop = poi?.GetComponent<Shop.Shop>();
             if (newShop != null && newShop != _activeShop)
             {
@@ -140,6 +98,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        public void HandleDockSelection(HubPoiUi poi)
+        {
+            var newDockShip = poi?.GetComponent<DockShip>();
+            if (newDockShip != null && newDockShip != _activeDockShip)
+            {
+                _activeDockShip = newDockShip;
+
+                var welcomeOneShot = _activeDockShip.GetRandomWelcomeOneShot();
+                if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
+                {
+                    _waitingForShopEntryDialogue = true;
+                    SubscribeToConversationFinished();
+                }
+
+                _activeDockShip.NotifyShipVisited();
+            }
+            else if (newDockShip == null)
+            {
+                _activeDockShip = null;
+            }
+        }
+
         public void HandleInput(string action)
         {
             if (_waitingForShopEntryDialogue || _waitingForShopExitDialogue)
@@ -149,75 +129,65 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (action == "Back" || action == InputActionConstants.Cancel)
+            if (action is "Back" or InputActionConstants.Cancel)
             {
-                var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
-                if (activeVendor != null)
+                if (_currentType == HubSublocationName.Market)
                 {
-                    bool hasExitDialogue = activeVendor.HasFarewellDialogue();
-                    activeVendor.HandleBackInput(action);
-
-                    if (hasExitDialogue)
-                    {
-                        _waitingForShopExitDialogue = true;
-                        SubscribeToConversationFinished();
-                        return;
-                    }
+                    HandleMarketExit(action);
                 }
-
-                CompleteShopExit();
+                else if (_currentType == HubSublocationName.Docks)
+                {
+                    HandleDockShopBack(action);
+                }
             }
             if (action is InputActionConstants.NavigateRight or InputActionConstants.NavigateLeft)
             {
-                if (_activeShop != null)
+                if (_currentType == HubSublocationName.Market)
                 {
-                    _activeShop.Ui.HandleQuantityChangeInput(action);
+                    HandleMarketLeftRight(action);
                 }
-                else if (_activeBlacksmith != null)
+                else if (_currentType == HubSublocationName.Docks)
                 {
-                    var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
-                    if (blacksmithUi != null)
-                    {
-                        blacksmithUi.HandleNavigateRightInput(action);
-                        blacksmithUi.HandleNavigateLeftInput(action);
-                    }
+                    HandleDockShopLeftRight(action);
                 }
             }
             if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
             {
-                if (_activeShop != null)
+                if (_currentType == HubSublocationName.Market)
                 {
-                    _activeShop.Ui.HandleItemChangeInput(action);
+                    HandleMarketUpDown(action);
                 }
-                else if (_activeBlacksmith != null)
+                else if (_currentType == HubSublocationName.Docks)
                 {
-                    var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
-                    blacksmithUi?.HandleItemChangeInput(action);
+                    HandleDockShopUpDown(action);
                 }
             }
-            if (action == InputActionConstants.Submit || action == InputActionConstants.Select)
+            if (action is InputActionConstants.Submit or InputActionConstants.Select)
             {
-                var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
-                if (activeVendor != null)
+                if (_currentType == HubSublocationName.Market)
                 {
-                    activeVendor.HandleConfirmInput(action);
+                    HandleMarketSelection(action);
+                }
+                else if (_currentType == HubSublocationName.Docks)
+                {
+                    HandleDockShopSelection(action);
                 }
             }
             if (action is InputActionConstants.ScrollLeft or InputActionConstants.ScrollRight)
             {
-                // shop?
-                // change the page
-                if (_activeShop != null)
+                if (_currentType == HubSublocationName.Market)
                 {
-                    $"SpecificUiHandler: Received page change input '{action}' for active shop '{_activeShop.name}'".LogInfo();
-                    _activeShop.Ui.ChangePageInput(action);
+                    HandleMarketPageChange(action);
+                }
+                else if (_currentType == HubSublocationName.Docks)
+                {
+                    HandleDockShopPageChange(action);
                 }
             }
         }
 
-        private void CompleteShopExit()
+        private void CompleteExit()
         {
-            // Hide the shop/blacksmith UI before clearing the vendor reference.
             if (_activeShop != null && _activeShop.TryGetComponent<Shop.ShopUi>(out var shopUi))
             {
                 shopUi.ShopUiFade.Hide();
@@ -225,10 +195,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (
                 _activeBlacksmith != null
-                && _activeBlacksmith.TryGetComponent<Blacksmith.BlacksmithUi>(out var blacksmithUi)
+                && _activeBlacksmith.TryGetComponent<BlacksmithUi>(out var blacksmithUi)
             )
             {
                 blacksmithUi.BlacksmithUiFade.Hide();
+            }
+
+            if (
+                _activeDockShip != null
+                && _activeDockShip.TryGetComponent<DockShipUi>(out var dockShipUi)
+            )
+            {
+                dockShipUi.DockShipUiFade.Hide();
             }
 
             // Restore the camera to the last user-controlled position/rotation (before selecting a POI)
@@ -248,6 +226,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _activeShop = null;
             _activeBlacksmith = null;
+            _activeDockShip = null;
             hubManager.RevertToPreviousInputMode();
         }
     }

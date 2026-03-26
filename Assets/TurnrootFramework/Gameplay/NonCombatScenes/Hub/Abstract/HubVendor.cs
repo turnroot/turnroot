@@ -108,6 +108,66 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             }
         }
 
+        protected void NotifyVendorVisited<TUi>(
+            Func<TUi> findUi,
+            Action<TUi> refreshUi,
+            string componentName
+        )
+            where TUi : class
+        {
+            NotifyVisited(
+                () =>
+                {
+                    var ui = findUi();
+                    if (ui == null)
+                    {
+                        $"{componentName} '{name}': No {typeof(TUi).Name} component found for dialogue playback.".LogWarning();
+                        return;
+                    }
+
+                    try
+                    {
+                        refreshUi(ui);
+                    }
+                    catch (Exception ex)
+                    {
+                        $"{componentName} '{name}': Refresh UI threw: {ex}".LogWarning();
+                    }
+                },
+                componentName
+            );
+        }
+
+        protected void NotifyVendorExited<TUi>(
+            Func<TUi> findUi,
+            Action<TUi> hideUi,
+            string componentName
+        )
+            where TUi : class
+        {
+            NotifyExited(
+                () =>
+                {
+                    var ui = findUi();
+                    if (ui == null)
+                    {
+                        $"{componentName} '{name}': No {typeof(TUi).Name} component found for exit playback.".LogWarning();
+                        return;
+                    }
+
+                    try
+                    {
+                        hideUi(ui);
+                    }
+                    catch (Exception ex)
+                    {
+                        $"{componentName} '{name}': Hide UI threw: {ex}".LogWarning();
+                    }
+                },
+                componentName
+            );
+        }
+
         protected void NotifyTransaction<T>(
             T itemOrItems,
             Action<T> publishAction,
