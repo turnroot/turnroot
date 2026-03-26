@@ -16,7 +16,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 case HubInputMode.MarketChoice:
                 case HubInputMode.CafeChoice:
                 case HubInputMode.Docks:
-                    SpecificUiInputHandler.HandleInput(action);
+                    SublocationInput.HandleSubLocationInput(action);
                     break;
                 case HubInputMode.Training:
                 case HubInputMode.Battlefields:

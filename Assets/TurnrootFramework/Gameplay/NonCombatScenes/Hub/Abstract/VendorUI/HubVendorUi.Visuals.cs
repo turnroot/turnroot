@@ -1,16 +1,14 @@
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 
-namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
+namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 {
-    [RequireComponent(typeof(Shop))]
-    public partial class ShopUi : MonoBehaviour
+    public partial class HubVendorUi
     {
-        private bool CanBuy = true;
-        private int CostCache;
-
-        private void ConfigureItemUi(ShopItem item, int SelectionCount)
+        protected void ConfigureItemUi(ShopItem item, int selectionCount)
         {
             CanBuy = true;
             if (item.Item == null || item.UiRefs == null)
@@ -26,26 +24,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 return;
             }
 
-            if (SelectionCount >= item.CurrentStatus.AvailableQuantity)
+            if (selectionCount >= item.CurrentStatus.AvailableQuantity)
             {
-                SelectionCount = item.CurrentStatus.AvailableQuantity;
-                SelectionCountCache = SelectionCount;
+                selectionCount = item.CurrentStatus.AvailableQuantity;
+                SelectionCountCache = selectionCount;
             }
 
-            if (SelectionCount <= 0)
+            if (selectionCount <= 0)
             {
-                SelectionCount = 1;
-                SelectionCountCache = SelectionCount;
+                selectionCount = 1;
+                SelectionCountCache = selectionCount;
             }
 
             ItemDescriptionText.text = item.Item.FlavorText;
 
             if (item.Item.IsWeaponOrMagicSubtype())
             {
-                if (WeaponExtraDetails != null)
-                {
-                    WeaponExtraDetails.SetActive(true);
-                }
+                WeaponExtraDetails?.SetActive(true);
                 if (WeaponMightText != null)
                 {
                     WeaponMightText.text = $"{item.Item.Might}";
@@ -61,10 +56,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
             else
             {
-                if (WeaponExtraDetails != null)
-                {
-                    WeaponExtraDetails.SetActive(false);
-                }
+                WeaponExtraDetails?.SetActive(false);
             }
 
             if (WeaponDurabilityText != null)
@@ -88,6 +80,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                     item.UiRefs.ItemCategoryText.text = "Unknown Type";
                     item.UiRefs.ItemIcon.sprite = null;
                 }
+
                 if (item.Item.MinWeaponTypeAptitude != null)
                 {
                     item.UiRefs.LetterIcon.sprite = item.Item.MinWeaponTypeAptitude.GetLetterIcon();
@@ -101,7 +94,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             else
             {
                 item.UiRefs.ItemCategoryText.gameObject.SetActive(false);
-                item.UiRefs.LetterIcon.color = new Color(1, 1, 1, 0); // hide letter icon for non-weapon items
+                item.UiRefs.LetterIcon.color = new Color(1, 1, 1, 0);
 
                 var itemTypeIcons = GamewideUiSettings.Instance.ItemTypeIcons;
                 if (itemTypeIcons != null && itemTypeIcons.Length > 0)
@@ -110,7 +103,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                         itemTypeIcons,
                         x => x.Subtype == item.Item.Subtype
                     );
-
                     if (iconIndex >= 0)
                     {
                         var iconEntry = itemTypeIcons[iconIndex];
@@ -124,18 +116,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 }
                 else
                 {
-                    item.UiRefs.ItemIcon.sprite = null; // no icon table provided
+                    item.UiRefs.ItemIcon.sprite = null;
                 }
             }
 
             item.UiRefs.PriceText.text = item.CurrentStatus.IsOnSale
-                ? $"{item.SalePrice * SelectionCount}G"
-                : $"{item.Item.BasePrice * SelectionCount}G";
+                ? $"{item.SalePrice * selectionCount}G"
+                : $"{item.Item.BasePrice * selectionCount}G";
 
             item.UiRefs.PriceText.color =
                 (
                     brain?.storehouseBrain != null
-                    && !brain.storehouseBrain.CanAfford(item.Item.BasePrice * SelectionCount)
+                    && !brain.storehouseBrain.CanAfford(item.Item.BasePrice * selectionCount)
                 )
                     ? item.UiRefs.TooExpensivePriceColor
                 : item.CurrentStatus.IsOnSale ? item.UiRefs.OnSalePriceColor
@@ -147,42 +139,41 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
 
             CostCache = item.CurrentStatus.IsOnSale
-                ? item.SalePrice * SelectionCount
-                : item.Item.BasePrice * SelectionCount;
+                ? item.SalePrice * selectionCount
+                : item.Item.BasePrice * selectionCount;
 
             item.UiRefs.SaleBadge.gameObject.SetActive(item.CurrentStatus.IsOnSale);
             item.UiRefs.QuantityText.text =
                 brain?.storehouseBrain != null
-                    ? $"Buy {SelectionCount} of {item.CurrentStatus.AvailableQuantity}\nOwn: {brain.storehouseBrain.GetItemCountInStorehouse(item.Item)}"
-                    : $"Buy {SelectionCount} of {item.CurrentStatus.AvailableQuantity}";
+                    ? $"Buy {selectionCount} of {item.CurrentStatus.AvailableQuantity}\nOwn: {brain.storehouseBrain.GetItemCountInStorehouse(item.Item)}"
+                    : $"Buy {selectionCount} of {item.CurrentStatus.AvailableQuantity}";
         }
 
-        private void PlayPageChangeSound()
+        protected void PlayPageChangeSound()
         {
             if (AudioPlayer == null || PageChangeAudioClip == null)
             {
                 return;
             }
-
             AudioPlayer.PlayOneShot(PageChangeAudioClip);
         }
 
-        private void InitializePageIndicators()
+        protected void InitializePageIndicators()
         {
             paginationHelper?.InitializePageIndicators();
         }
 
-        private void UpdatePaginationIndicators()
+        protected void UpdatePaginationIndicators()
         {
             paginationHelper?.UpdatePaginationIndicators();
         }
 
-        private void UpdateVisiblePageItems()
+        protected void UpdateVisiblePageItems()
         {
             paginationHelper?.UpdateVisiblePageItems();
         }
 
-        private void RefreshSelection()
+        protected void RefreshSelection()
         {
             paginationHelper?.RefreshSelection();
             if (paginationHelper != null)
@@ -192,17 +183,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
         }
 
-        private void ClearInstantiatedItems()
+        protected void ClearInstantiatedItems()
         {
             HubVendorUiHelper.ClearInstantiatedItems(
                 ItemsParentContainer,
                 PageIndicatorContainer,
                 pageIndicatorObjects,
                 ref itemChoices,
-                ref itemChoiceToShopIndex
+                ref itemChoiceToVendorIndex
             );
 
-            var stock = ShopData.ItemsStocked;
+            var stock = VendorItems;
             if (stock != null)
             {
                 for (int i = 0; i < stock.Length; i++)

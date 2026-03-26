@@ -1,14 +1,11 @@
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Utilities;
-using UnityEngine;
 
-namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
+namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 {
-    [RequireComponent(typeof(Shop))]
-    public partial class ShopUi : MonoBehaviour
+    public partial class HubVendorUi
     {
-        private int SelectionCountCache = 1;
-
         public void HandleItemChangeInput(string action)
         {
             if (
@@ -52,15 +49,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             }
         }
 
-        public int GetSelectedShopIndex()
+        public int GetSelectedVendorIndex()
         {
             if (
-                itemChoiceToShopIndex != null
+                itemChoiceToVendorIndex != null
                 && CurrentSelectionIndex >= 0
-                && CurrentSelectionIndex < itemChoiceToShopIndex.Count
+                && CurrentSelectionIndex < itemChoiceToVendorIndex.Count
             )
             {
-                return itemChoiceToShopIndex[CurrentSelectionIndex];
+                return itemChoiceToVendorIndex[CurrentSelectionIndex];
             }
 
             return CurrentSelectionIndex;
@@ -72,7 +69,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             {
                 if (!CanBuy)
                 {
-                    return; // already can't afford the selected quantity so couldn't go higher anyway
+                    return;
                 }
                 SelectionCountCache++;
             }
@@ -81,12 +78,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 SelectionCountCache--;
             }
 
-            int shopIndex = GetSelectedShopIndex();
-            if (shopIndex >= 0 && shopIndex < ShopData.ItemsStocked.Length)
+            int vendorIndex = GetSelectedVendorIndex();
+            var stock = VendorItems;
+            if (stock != null && vendorIndex >= 0 && vendorIndex < stock.Length)
             {
-                ConfigureItemUi(ShopData.ItemsStocked[shopIndex], SelectionCountCache);
+                ConfigureItemUi(stock[vendorIndex], SelectionCountCache);
             }
-            AudioPlayer.PlayOneShot(NavigateAudioClip);
+            AudioPlayer?.PlayOneShot(NavigateAudioClip);
         }
 
         public void HandlePurchaseConfirmationInput()
@@ -96,71 +94,60 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 return;
             }
 
-            int shopIndex = CurrentSelectionIndex;
-            if (
-                itemChoiceToShopIndex != null
-                && CurrentSelectionIndex >= 0
-                && CurrentSelectionIndex < itemChoiceToShopIndex.Count
-            )
-            {
-                shopIndex = itemChoiceToShopIndex[CurrentSelectionIndex];
-            }
+            int vendorIndex = GetSelectedVendorIndex();
+            var stock = VendorItems;
 
-            if (shopIndex < 0 || shopIndex >= ShopData.ItemsStocked.Length)
+            if (stock == null || vendorIndex < 0 || vendorIndex >= stock.Length)
             {
                 return;
             }
 
             int currentGold = brain?.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
-            TotalGoldScroll.StartNumber = currentGold;
-            TotalGoldScroll.EndNumber = currentGold - CostCache;
+            if (TotalGoldScroll != null)
+            {
+                TotalGoldScroll.StartNumber = currentGold;
+                TotalGoldScroll.EndNumber = currentGold - CostCache;
+            }
 
             if (CanBuy)
             {
-                TotalGoldScroll.StartScroll();
-                ShopData.NotifyShopkeeperSells(ShopData.ItemsStocked[shopIndex]);
+                TotalGoldScroll?.StartScroll();
+
+                NotifyVendorItemSold(stock[vendorIndex]);
+
                 if (brain?.storehouseBrain != null)
                 {
                     brain.storehouseBrain.SpendGold(CostCache, true);
                     brain.storehouseBrain.SaveGoldToLTM();
 
-                    var purchasedItem = ShopData.ItemsStocked[shopIndex].Item;
+                    var purchasedItem = stock[vendorIndex].Item;
                     brain.storehouseBrain.AddMaterials(purchasedItem, SelectionCountCache, true);
-                    $"ShopUi.HandlePurchaseConfirmationInput: added {SelectionCountCache}x '{purchasedItem?.Name ?? "<null>"}' to storehouse".LogInfo(
-                        "ShopUi"
+                    $"{GetType().Name}.HandlePurchaseConfirmationInput: added {SelectionCountCache}x '{purchasedItem?.Name ?? "<null>"}' to storehouse".LogInfo(
+                        GetType().Name
                     );
 
-                    var item = ShopData.ItemsStocked[shopIndex];
+                    var item = stock[vendorIndex];
                     item.CurrentStatus.AvailableQuantity -= SelectionCountCache;
                     if (item.CurrentStatus.AvailableQuantity < 0)
                     {
                         item.CurrentStatus.AvailableQuantity = 0;
                     }
 
-                    ShopData.ItemsStocked[shopIndex] = item;
+                    stock[vendorIndex] = item;
+                    VendorItems = stock;
 
-                    var itemName = item.Item != null ? item.Item.name : string.Empty;
-                    if (brain != null)
-                    {
-                        HubDayStateStore.SetShopItemQuantity(
-                            brain,
-                            ShopData.name,
-                            itemName,
-                            item.CurrentStatus.AvailableQuantity
-                        );
-                    }
+                    PersistItemQuantity(vendorIndex, item.CurrentStatus.AvailableQuantity);
 
-                    // Rebuild UI after quantity update (handles sold-out removal and updates reliably).
-                    RefreshShopDisplay();
+                    RefreshVendorDisplay();
                 }
             }
         }
 
-        public void HandeSelectedItem(ShopItem selectedItem)
+        public void HandleSelectedItem(ShopItem selectedItem)
         {
             if (selectedItem.Item == null || selectedItem.UiRefs == null)
             {
-                $"ShopUi: Selected item is null or missing UI references, cannot handle selection.".LogWarning();
+                $"{GetType().Name}: Selected item is null or missing UI references, cannot handle selection.".LogWarning();
                 return;
             }
 
