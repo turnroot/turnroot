@@ -2,14 +2,17 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-[InitializeOnLoad]
-public class DefaultPlayScene
+namespace Turnroot.Utilities
 {
-    static DefaultPlayScene()
+    [InitializeOnLoad]
+    public class DefaultPlayScene
     {
-        var pathOfFirstScene = EditorBuildSettings.scenes[0].path;
-        var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(pathOfFirstScene);
-        EditorSceneManager.playModeStartScene = sceneAsset;
-        Debug.Log(pathOfFirstScene + " was set as default play mode scene");
+        static DefaultPlayScene()
+        {
+            var pathOfFirstScene = EditorBuildSettings.scenes[0].path;
+            var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(pathOfFirstScene);
+            EditorSceneManager.playModeStartScene = sceneAsset;
+            Debug.Log(pathOfFirstScene + " was set as default play mode scene");
+        }
     }
 }

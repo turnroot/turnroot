@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +12,15 @@ namespace Turnroot.Utilities.AbstractScripts
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            if (
+                property?.serializedObject == null
+                || property.serializedObject.targetObject == null
+            )
+            {
+                EditorGUI.PropertyField(position, property, label, true);
+                return;
+            }
+
             EditorGUI.BeginProperty(position, label, property);
 
             // Draw the foldout
@@ -28,6 +38,13 @@ namespace Turnroot.Utilities.AbstractScripts
                 var stateIdProperty = property.FindPropertyRelative("stateId");
                 var onSegmentReachedProperty = property.FindPropertyRelative("onSegmentReached");
 
+                if (stateIdProperty == null || onSegmentReachedProperty == null)
+                {
+                    EditorGUI.PropertyField(position, property, label, true);
+                    EditorGUI.EndProperty();
+                    return;
+                }
+
                 // Draw stateId as a dropdown
                 Rect stateIdRect = new Rect(
                     position.x,
@@ -38,15 +55,38 @@ namespace Turnroot.Utilities.AbstractScripts
                     EditorGUIUtility.singleLineHeight
                 );
 
-                string[] allStateIds = BrainStateNames.GetAllStateIds();
-                int currentIndex = System.Array.IndexOf(allStateIds, stateIdProperty.stringValue);
-                if (currentIndex < 0)
+                string[] allStateIds =
+                    BrainStateNames.GetAllStateIds() ?? System.Array.Empty<string>();
+                if (allStateIds.Length == 0)
                 {
-                    currentIndex = 0;
+                    EditorGUI.PropertyField(
+                        stateIdRect,
+                        stateIdProperty,
+                        new GUIContent("State ID")
+                    );
                 }
+                else
+                {
+                    int currentIndex = System.Array.IndexOf(
+                        allStateIds,
+                        stateIdProperty.stringValue
+                    );
+                    if (currentIndex < 0)
+                    {
+                        currentIndex = 0;
+                    }
 
-                int newIndex = EditorGUI.Popup(stateIdRect, "State ID", currentIndex, allStateIds);
-                stateIdProperty.stringValue = allStateIds[newIndex];
+                    int newIndex = EditorGUI.Popup(
+                        stateIdRect,
+                        "State ID",
+                        currentIndex,
+                        allStateIds
+                    );
+                    if (newIndex >= 0 && newIndex < allStateIds.Length)
+                    {
+                        stateIdProperty.stringValue = allStateIds[newIndex];
+                    }
+                }
 
                 // Draw onSegmentReached
                 Rect eventRect = new Rect(

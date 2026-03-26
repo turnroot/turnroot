@@ -120,7 +120,7 @@ def find_problematic_cs_files(root_dir='.', min_lines=500, verbose=False):
 
 def main():
     ROOT_DIR = '.' 
-    MIN_LINES = 400
+    MIN_LINES = 499
     VERBOSE = True 
     
     print(f"Searching '{ROOT_DIR}' for large files (>= {MIN_LINES}) or missing namespaces...")

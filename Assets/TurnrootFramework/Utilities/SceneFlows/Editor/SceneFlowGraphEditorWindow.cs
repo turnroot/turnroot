@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Turnroot.Gameplay.Brain;
 using UnityEditor;
 using UnityEngine;
 
@@ -1208,7 +1209,9 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private static string[] GetSceneFlowConditionKeys()
         {
             var type = typeof(Turnroot.Utilities.SceneFlows.SceneFlowConditionKeys);
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            var fields = type.GetFields(
+                BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy
+            );
             var keys = fields
                 .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
                 .Select(f => (string)f.GetRawConstantValue())
@@ -1383,17 +1386,25 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                         int selectedIndex = 0;
                         if (!string.IsNullOrEmpty(condition.conditionKey))
                         {
-                            int found = System.Array.IndexOf(_conditionKeyOptions, condition.conditionKey);
+                            int found = System.Array.IndexOf(
+                                _conditionKeyOptions,
+                                condition.conditionKey
+                            );
                             if (found >= 0)
                             {
                                 selectedIndex = found;
                             }
                         }
 
-                        int newIndex = EditorGUILayout.Popup("Key", selectedIndex, _conditionKeyOptions);
+                        int newIndex = EditorGUILayout.Popup(
+                            "Key",
+                            selectedIndex,
+                            _conditionKeyOptions
+                        );
                         if (newIndex != selectedIndex)
                         {
-                            condition.conditionKey = newIndex == 0 ? string.Empty : _conditionKeyOptions[newIndex];
+                            condition.conditionKey =
+                                newIndex == 0 ? string.Empty : _conditionKeyOptions[newIndex];
                         }
 
                         if (string.IsNullOrEmpty(condition.conditionKey))
@@ -1481,7 +1492,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     var condition = _selectedTransition.reverseConditions[i];
 
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField($"Reverse Condition {i + 1}", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField(
+                        $"Reverse Condition {i + 1}",
+                        EditorStyles.boldLabel
+                    );
                     if (GUILayout.Button("Remove", GUILayout.Width(60)))
                     {
                         _selectedTransition.reverseConditions.RemoveAt(i);
@@ -1515,12 +1529,15 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                                 }
                             }
 
-                            int newIndex = EditorGUILayout.Popup("Key", selectedIndex, _conditionKeyOptions);
+                            int newIndex = EditorGUILayout.Popup(
+                                "Key",
+                                selectedIndex,
+                                _conditionKeyOptions
+                            );
                             if (newIndex != selectedIndex)
                             {
-                                condition.conditionKey = newIndex == 0
-                                    ? string.Empty
-                                    : _conditionKeyOptions[newIndex];
+                                condition.conditionKey =
+                                    newIndex == 0 ? string.Empty : _conditionKeyOptions[newIndex];
                             }
 
                             if (string.IsNullOrEmpty(condition.conditionKey))
@@ -1551,7 +1568,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
                             case SceneConditionType.BrainStateInt:
                                 condition.comparisonOperator = (ComparisonOperator)
-                                    EditorGUILayout.EnumPopup("Operator", condition.comparisonOperator);
+                                    EditorGUILayout.EnumPopup(
+                                        "Operator",
+                                        condition.comparisonOperator
+                                    );
                                 condition.expectedIntValue = EditorGUILayout.IntField(
                                     "Value",
                                     condition.expectedIntValue
