@@ -135,12 +135,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     HandleMarketExit(action);
                 }
+                else if (_currentType == HubSublocationName.Docks)
+                {
+                    HandleDockShopBack(action);
+                }
             }
             if (action is InputActionConstants.NavigateRight or InputActionConstants.NavigateLeft)
             {
                 if (_currentType == HubSublocationName.Market)
                 {
                     HandleMarketLeftRight(action);
+                }
+                else if (_currentType == HubSublocationName.Docks)
+                {
+                    HandleDockShopLeftRight(action);
                 }
             }
             if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
@@ -149,12 +157,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     HandleMarketUpDown(action);
                 }
+                else if (_currentType == HubSublocationName.Docks)
+                {
+                    HandleDockShopUpDown(action);
+                }
             }
             if (action is InputActionConstants.Submit or InputActionConstants.Select)
             {
                 if (_currentType == HubSublocationName.Market)
                 {
                     HandleMarketSelection(action);
+                }
+                else if (_currentType == HubSublocationName.Docks)
+                {
+                    HandleDockShopSelection(action);
                 }
             }
             if (action is InputActionConstants.ScrollLeft or InputActionConstants.ScrollRight)
@@ -163,7 +179,55 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     HandleMarketPageChange(action);
                 }
+                else if (_currentType == HubSublocationName.Docks)
+                {
+                    HandleDockShopPageChange(action);
+                }
             }
+        }
+
+        private void CompleteExit()
+        {
+            if (_activeShop != null && _activeShop.TryGetComponent<Shop.ShopUi>(out var shopUi))
+            {
+                shopUi.ShopUiFade.Hide();
+            }
+
+            if (
+                _activeBlacksmith != null
+                && _activeBlacksmith.TryGetComponent<BlacksmithUi>(out var blacksmithUi)
+            )
+            {
+                blacksmithUi.BlacksmithUiFade.Hide();
+            }
+
+            if (
+                _activeDockShip != null
+                && _activeDockShip.TryGetComponent<DockShipUi>(out var dockShipUi)
+            )
+            {
+                dockShipUi.DockShipUiFade.Hide();
+            }
+
+            // Restore the camera to the last user-controlled position/rotation (before selecting a POI)
+            if (hasSavedCameraTransform && hubManager?.GeneralCamera != null)
+            {
+                hubManager.GeneralCamera.transform.SetPositionAndRotation(
+                    savedCameraPosition,
+                    savedCameraRotation
+                );
+                hasSavedCameraTransform = false;
+            }
+            else
+            {
+                // Fallback to default behavior if we don't have a saved transform
+                hubManager.CurrentSubLocation?.ResetCameraToCameraPoint();
+            }
+
+            _activeShop = null;
+            _activeBlacksmith = null;
+            _activeDockShip = null;
+            hubManager.RevertToPreviousInputMode();
         }
     }
 }

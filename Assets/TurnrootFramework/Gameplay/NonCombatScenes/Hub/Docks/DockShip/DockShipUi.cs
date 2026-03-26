@@ -35,5 +35,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 return;
             }
         }
+
+        public void HandleItemChangeInput(string action) { }
+
+        public void HandleQuantityChangeInput(string action) { }
+
+        public void HandleBackInput(string action) { }
+
+        public void HandleConfirmInput(string action) { }
     }
 }

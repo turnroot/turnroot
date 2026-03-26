@@ -80,44 +80,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     return;
                 }
             }
-
-            CompleteShopExit();
-        }
-
-        private void CompleteShopExit()
-        {
-            // Hide the shop/blacksmith UI before clearing the vendor reference.
-            if (_activeShop != null && _activeShop.TryGetComponent<Shop.ShopUi>(out var shopUi))
-            {
-                shopUi.ShopUiFade.Hide();
-            }
-
-            if (
-                _activeBlacksmith != null
-                && _activeBlacksmith.TryGetComponent<BlacksmithUi>(out var blacksmithUi)
-            )
-            {
-                blacksmithUi.BlacksmithUiFade.Hide();
-            }
-
-            // Restore the camera to the last user-controlled position/rotation (before selecting a POI)
-            if (hasSavedCameraTransform && hubManager?.GeneralCamera != null)
-            {
-                hubManager.GeneralCamera.transform.SetPositionAndRotation(
-                    savedCameraPosition,
-                    savedCameraRotation
-                );
-                hasSavedCameraTransform = false;
-            }
-            else
-            {
-                // Fallback to default behavior if we don't have a saved transform
-                hubManager.CurrentSubLocation?.ResetCameraToCameraPoint();
-            }
-
-            _activeShop = null;
-            _activeBlacksmith = null;
-            hubManager.RevertToPreviousInputMode();
+            CompleteExit();
         }
     }
 }

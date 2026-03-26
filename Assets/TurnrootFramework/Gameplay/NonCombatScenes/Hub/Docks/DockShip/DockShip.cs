@@ -11,6 +11,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
     public partial class DockShip : HubVendor
     {
         #region Constants & Types
+        public DockShipShopType CurrentDockShipShopType = DockShipShopType.Normal;
 
         private const string LtmKeyPrefix = "DockShipState_";
 

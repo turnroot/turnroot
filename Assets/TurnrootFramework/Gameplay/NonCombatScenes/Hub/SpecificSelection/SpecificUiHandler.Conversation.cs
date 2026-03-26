@@ -55,7 +55,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _waitingForShopExitDialogue = false;
             UnsubscribeFromConversationFinished();
-            CompleteShopExit();
+            CompleteExit();
         }
     }
 }

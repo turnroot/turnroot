@@ -8,4 +8,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         public string ShipName;
         public bool IsDocked;
     }
+
+    public enum DockShipShopType
+    {
+        Normal,
+        Smuggled,
+    }
 }
