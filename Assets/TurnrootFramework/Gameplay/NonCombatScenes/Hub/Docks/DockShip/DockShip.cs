@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 {
-    public class DockShip : MonoBehaviour
+    public partial class DockShip : HubVendor
     {
         #region Constants & Types
 
@@ -127,7 +128,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _daysToStayAtSea = 0;
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             // During application shutdown, other systems may already be destroyed.
             // Avoid noisy failure logs when brain/LTM is unavailable in late teardown.

@@ -198,6 +198,10 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameflow\\",
             "color": "foldercustomization.AnsiColor50"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\NonCombatScenes\\Hub\\",
+            "color": "foldercustomization.AnsiColor44"
         }
     ],
     "omnisharp.excludePaths": [

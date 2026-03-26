@@ -296,7 +296,7 @@ namespace Turnroot.Gameplay.Objects
 
                 return canAfford;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 $"ObjectItemInstance.CanRepair: crashed with exception: {ex}".LogWarning(
                     "ObjectItemInstance"
