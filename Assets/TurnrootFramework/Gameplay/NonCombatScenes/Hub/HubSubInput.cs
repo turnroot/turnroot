@@ -16,9 +16,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float MaxTiltUp;
         public float MaxTiltDown;
 
-        private Vector3 _defaultRotation;
-        private bool _hasDefaultRotation;
-
         [Tooltip("Time it takes to reach the target rotation (seconds)")]
         public float lookSmoothTime = 0.15f;
         private Coroutine _lookCoroutine;
@@ -50,15 +47,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float zoomCastRadius = 0.25f;
         private bool _isPoiActive;
 
-        // Cached per-session values — recomputed in SetLookEnabled and when default rotation is first set
+        // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
         private float _cachedLeftLimit;
         private float _cachedRightLimit;
         private float _cachedUpLimit;
         private float _cachedDownLimit;
-        private float _cachedMinWorldYaw;
-        private float _cachedMaxWorldYaw;
-        private float _cachedMinWorldPitch;
-        private float _cachedMaxWorldPitch;
 
         public void HandleSubLocationInput(string action)
         {
@@ -142,22 +135,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _baseRotation = hubCamera.transform.localEulerAngles;
                 _baseRotation.x = baseCam.NormalizeAngle(_baseRotation.x);
                 _baseRotation.y = baseCam.NormalizeAngle(_baseRotation.y);
-
-                if (!_hasDefaultRotation)
-                {
-                    _defaultRotation = _baseRotation;
-                    _hasDefaultRotation = true;
-
-                    // Cache world-space angle bounds — only depend on default rotation and tilt limits,
-                    // both of which are fixed for the lifetime of this look session.
-                    float defaultYaw = baseCam.NormalizeAngle(_defaultRotation.y);
-                    float defaultPitch = baseCam.NormalizeAngle(_defaultRotation.x);
-                    _cachedMinWorldYaw = baseCam.NormalizeAngle(defaultYaw - _cachedLeftLimit);
-                    _cachedMaxWorldYaw = baseCam.NormalizeAngle(defaultYaw + _cachedRightLimit);
-                    _cachedMinWorldPitch = baseCam.NormalizeAngle(defaultPitch - _cachedUpLimit);
-                    _cachedMaxWorldPitch = baseCam.NormalizeAngle(defaultPitch + _cachedDownLimit);
-                }
-
                 _hasBaseRotation = true;
             }
 
@@ -174,30 +151,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _yawOffset += h * lookStep * Time.deltaTime;
             _pitchOffset -= v * lookStep * Time.deltaTime;
 
-            if (_hasDefaultRotation)
-            {
-                float desiredWorldYaw = cam.NormalizeAngle(_baseRotation.y + _yawOffset);
-                float desiredWorldPitch = cam.NormalizeAngle(_baseRotation.x + _pitchOffset);
-
-                float clampedWorldYaw = ClampAngleToRange(
-                    desiredWorldYaw,
-                    _cachedMinWorldYaw,
-                    _cachedMaxWorldYaw
-                );
-                float clampedWorldPitch = ClampAngleToRange(
-                    desiredWorldPitch,
-                    _cachedMinWorldPitch,
-                    _cachedMaxWorldPitch
-                );
-
-                _yawOffset = cam.NormalizeAngle(clampedWorldYaw - _baseRotation.y);
-                _pitchOffset = cam.NormalizeAngle(clampedWorldPitch - _baseRotation.x);
-            }
-            else
-            {
-                _yawOffset = Mathf.Clamp(_yawOffset, -_cachedLeftLimit, _cachedRightLimit);
-                _pitchOffset = Mathf.Clamp(_pitchOffset, -_cachedUpLimit, _cachedDownLimit);
-            }
+            // Clamp the scalar offsets directly. This is always correct: _yawOffset and
+            // _pitchOffset are degree-of-deviation scalars (never exceeding ±180), so
+            // Mathf.Clamp with scalar limits needs no wrapping logic. The previous world-space
+            // approach (ClampAngleToRange) introduced a wrapped-interval bug: going to max-left
+            // then max-right caused the wrapped "angle >= min || angle <= max" check to pass for
+            // all angles near the ±180 boundary, disabling clamping for the rest of the session.
+            _yawOffset = Mathf.Clamp(_yawOffset, -_cachedLeftLimit, _cachedRightLimit);
+            _pitchOffset = Mathf.Clamp(_pitchOffset, -_cachedUpLimit, _cachedDownLimit);
 
             Vector3 targetRotation = new Vector3(
                 cam.NormalizeAngle(_baseRotation.x + _pitchOffset),
@@ -302,33 +263,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _isPoiActive = false;
                 FocusOverlayFade?.Hide();
             }
-        }
-
-        private float ClampAngleToRange(float angle, float min, float max)
-        {
-            angle = hubManager._brain.cameraBrain.NormalizeAngle(angle);
-            min = hubManager._brain.cameraBrain.NormalizeAngle(min);
-            max = hubManager._brain.cameraBrain.NormalizeAngle(max);
-
-            bool isInRange;
-            if (min <= max)
-            {
-                isInRange = angle >= min && angle <= max;
-            }
-            else
-            {
-                // wrapped interval across -180/180 boundary
-                isInRange = angle >= min || angle <= max;
-            }
-
-            if (isInRange)
-            {
-                return angle;
-            }
-
-            float deltaToMin = Mathf.Abs(Mathf.DeltaAngle(angle, min));
-            float deltaToMax = Mathf.Abs(Mathf.DeltaAngle(angle, max));
-            return deltaToMin < deltaToMax ? min : max;
         }
 
         private Vector2 GetLookInput()

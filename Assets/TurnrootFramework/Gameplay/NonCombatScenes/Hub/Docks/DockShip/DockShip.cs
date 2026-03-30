@@ -63,6 +63,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         [InfoBox("If true, this ship will always be docked and never go to sea")]
         public bool AlwaysDocked = false;
+
+        [HideInInspector]
         public bool IsDocked = true;
 
         [InfoBox(

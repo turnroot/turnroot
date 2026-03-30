@@ -65,8 +65,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             for (int i = 0; i < AllShips.Length; i++)
             {
                 var ship = AllShips[i];
-                if (ship == null || !ship.IsDocked)
+                if (ship == null)
                 {
+                    $"  [i={i}]: null entry in AllShips — skipping.".LogInfo();
+                    continue;
+                }
+
+                if (!ship.IsDocked)
+                {
+                    $"  '{ship.ShipName}': IsDocked=false — skipping (at sea or state not yet loaded).".LogInfo();
                     continue;
                 }
 
