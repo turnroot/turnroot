@@ -16,7 +16,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         {
             NotifyVendorVisited(
                 () => TryGetComponent<DockShipUi>(out var ui) ? ui : null,
-                dockShipUi => dockShipUi.RefreshDockShipDisplay(),
+                dockShipUi =>
+                {
+                    dockShipUi.MainOverlayUiFade?.Hide();
+                    dockShipUi.RefreshDockShipDisplay();
+                },
                 "DockShip"
             );
         }
@@ -25,7 +29,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         {
             NotifyVendorExited(
                 () => TryGetComponent<DockShipUi>(out var ui) ? ui : null,
-                dockShipUi => dockShipUi.DockShipUiFade.Hide(),
+                dockShipUi =>
+                {
+                    dockShipUi.MainOverlayUiFade?.Show();
+                    dockShipUi.DockShipUiFade.Hide();
+                },
                 "DockShip"
             );
         }

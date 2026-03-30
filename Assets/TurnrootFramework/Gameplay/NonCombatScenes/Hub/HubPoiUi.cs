@@ -18,6 +18,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         Quests,
         Library,
         Recruitment,
+        DanceHall,
     }
 
     [RequireComponent(typeof(Collider))]
@@ -41,7 +42,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Quests _quests;
         private Library _library;
         private Recruitment _recruitment;
-
+        private DanceHall _dancehall;
         [InfoBox(
             "The root GameObject that contains all visual elements for the POI (icon, badge, etc.)."
         )]

@@ -135,6 +135,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         {
             foreach (var ship in AllShips)
             {
+                if (ship == null)
+                {
+                    $"Warning: Null ship reference in dock when refreshing for new day. Skipping.".LogWarning();
+                    continue;
+                }
                 if (ship.IsDocked)
                 {
                     ship.RefreshShipForNewDay(currentDay);

@@ -1,6 +1,7 @@
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
@@ -34,6 +35,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         protected override bool ShouldRenderVendor =>
             DockShipData != null && DockShipData.CurrentDockShipShopType == DockShipShopType.Normal;
+
+        [Tooltip(
+            "The overlay UI to hide when this ship's shop is open (e.g. the main dock HUD) and restore when it closes."
+        )]
+        public UIFade MainOverlayUiFade;
 
         protected override void Awake()
         {
