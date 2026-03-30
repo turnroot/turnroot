@@ -386,6 +386,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 CheckRareItems();
             }
+            else
+            {
+                // Daily updates already processed for today; rebuild dock runtime lists and
+                // re-enforce capacity so MaxDockedShipsPerSide is respected on hub re-entry.
+                dock?.EnforceCapacityOnLoad();
+            }
 
             UpdateChapterNumberAndNameText(
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,

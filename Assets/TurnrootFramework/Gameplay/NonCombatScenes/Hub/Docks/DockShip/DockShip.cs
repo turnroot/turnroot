@@ -92,10 +92,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         public ShopItem[] NormalGoodsForSale;
 
-        private Dictionary<ShopItem, int> currentStock = new();
-
-        private Dictionary<SmuggledItem, int> currentSmuggledStock = new();
-
         private Brain.Brain _brain;
 
         #endregion
@@ -251,6 +247,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             if (docked)
             {
                 _currentDockedTime = 0;
+                _currentAtSeaTime = 0;
             }
 
             if (Ship != null)
@@ -268,10 +265,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 return;
             }
 
+            if (AlwaysDocked)
+            {
+                $"Dock: Tried to send '{ShipName}' to sea but it is marked AlwaysDocked. Skipping.".LogWarning();
+                return;
+            }
+
             _isAtSea = true;
             IsDocked = false;
             _currentAtSeaTime = 0;
             _daysToStayAtSea = HubDayRandom.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
+
+            $"Dock: '{ShipName}' sent to sea (at sea for {_daysToStayAtSea} days).".LogInfo();
 
             if (Ship != null)
             {
@@ -323,6 +328,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                     _isAtSea = true;
                     IsDocked = false;
                     _currentDockedTime = 0;
+                    _currentAtSeaTime = 0;
                     _daysToStayAtSea = HubDayRandom.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
                     stateChanged = true;
                 }
@@ -340,21 +346,101 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         public void RefreshShipForNewDay(GameDate currentDay)
         {
+            InitializeStockIfNeeded(currentDay);
+
+            bool isDailyUpdateAlreadyProcessed = HubDayStateStore.HasProcessedDailyUpdates;
+
             if (NormalGoodsForSale != null)
             {
-                foreach (ShopItem item in NormalGoodsForSale)
+                for (int i = 0; i < NormalGoodsForSale.Length; i++)
                 {
-                    var status = item.Refresh(currentDay);
-                    currentStock[item] = status.AvailableQuantity;
+                    var item = NormalGoodsForSale[i];
+                    if (!isDailyUpdateAlreadyProcessed)
+                    {
+                        item.Refresh(currentDay);
+                    }
+
+                    if (_brain != null && item.Item != null)
+                    {
+                        HubDayStateStore.SetShopItemQuantity(
+                            _brain,
+                            ShipName,
+                            item.Item.name,
+                            item.CurrentStatus.AvailableQuantity
+                        );
+                    }
+
+                    NormalGoodsForSale[i] = item;
                 }
             }
+
             if (SmuggledGoodsForSale != null)
             {
-                foreach (SmuggledItem item in SmuggledGoodsForSale)
+                for (int i = 0; i < SmuggledGoodsForSale.Length; i++)
                 {
-                    var status = item.Refresh(currentDay, Trust);
-                    currentSmuggledStock[item] = status.AvailableQuantity;
+                    // Refresh via index so struct mutations write back to the array.
+                    // Item.Refresh mutates Item.CurrentStatus on the struct copy;
+                    // assigning back ensures the stored value stays up to date.
+                    var smuggled = SmuggledGoodsForSale[i];
+                    smuggled.Item.Refresh(currentDay);
+                    SmuggledGoodsForSale[i] = smuggled;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Initializes <see cref="NormalGoodsForSale"/> quantities for the first time this ship
+        /// is encountered (no persisted stock), or restores them from <see cref="HubDayStateStore"/>
+        /// on subsequent visits. Mirrors the pattern used in <see cref="Shop.RefreshShopForNewDay"/>.
+        /// </summary>
+        private void InitializeStockIfNeeded(GameDate currentDay)
+        {
+            if (NormalGoodsForSale == null || NormalGoodsForSale.Length == 0)
+            {
+                return;
+            }
+
+            bool hasPersistedStock = HubDayStateStore.HasShopStock(ShipName);
+
+            for (int i = 0; i < NormalGoodsForSale.Length; i++)
+            {
+                var item = NormalGoodsForSale[i];
+                if (item.Item == null)
+                {
+                    continue;
+                }
+
+                if (!hasPersistedStock)
+                {
+                    // First time: start at max quantity (skip rare items — they start at 0).
+                    if (!item.RareItem)
+                    {
+                        item.CurrentStatus.AvailableQuantity = item.MaxQuantity;
+                        item.Initialize(currentDay);
+
+                        if (_brain != null)
+                        {
+                            HubDayStateStore.SetShopItemQuantity(
+                                _brain,
+                                ShipName,
+                                item.Item.name,
+                                item.MaxQuantity
+                            );
+                        }
+                    }
+                }
+                else
+                {
+                    // Restore persisted quantity so purchases survive cross-session.
+                    int persisted = HubDayStateStore.GetShopItemQuantity(
+                        ShipName,
+                        item.Item.name,
+                        item.MaxQuantity
+                    );
+                    item.CurrentStatus.AvailableQuantity = persisted;
+                }
+
+                NormalGoodsForSale[i] = item;
             }
         }
 

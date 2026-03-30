@@ -43,6 +43,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Library _library;
         private Recruitment _recruitment;
         private DanceHall _dancehall;
+
         [InfoBox(
             "The root GameObject that contains all visual elements for the POI (icon, badge, etc.)."
         )]
