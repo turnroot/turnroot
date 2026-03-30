@@ -39,11 +39,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         public DockSide Side = DockSide.Left;
 
-        [InfoBox(
-            "If a ship has multiple crew members, you'll talk to a random one each time you visit"
-        )]
-        public CharacterData[] Crew;
-
         [Header("Smuggling")]
         [InfoBox(
             "Smugglers use the trust system and will gamble for items. If you're not using smugglers, you can ignore this"

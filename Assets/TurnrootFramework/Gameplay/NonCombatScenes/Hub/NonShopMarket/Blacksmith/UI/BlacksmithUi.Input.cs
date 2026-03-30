@@ -209,7 +209,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
             var chosen = itemChoices[CurrentSelectionIndex];
             if (chosen == null)
+            {
                 return;
+            }
 
             var refs = chosen.gameObject.GetComponent<BlacksmithItemRefs>();
             if (refs == null)

@@ -23,7 +23,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             if (brain.storehouseBrain != null)
             {
                 totalGoldText.text = $"Gold: {brain.storehouseBrain.PlayerGold}G";
-                if (totalGoldScroll != null)
+                if (totalGoldScroll != null && !totalGoldScroll.IsScrolling)
                 {
                     totalGoldScroll.StartNumber = brain.storehouseBrain.PlayerGold;
                 }
@@ -83,8 +83,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             out int currentSelectionIndex
         )
         {
+            // Reset selection count when moving to another item, but keep costCache until the selected item is reconfigured.
             selectionCountCache = 1;
-            costCache = 0;
 
             currentPage = 0;
             currentSelectionIndex = 0;

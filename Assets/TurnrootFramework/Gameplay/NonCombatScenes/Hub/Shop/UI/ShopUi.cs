@@ -26,27 +26,5 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         {
             ShopData.NotifyShopkeeperSells(itemSold);
         }
-
-        protected override void PersistItemQuantity(int vendorIndex, int quantity)
-        {
-            if (brain == null || ShopData == null || VendorItems == null)
-            {
-                return;
-            }
-
-            if (vendorIndex >= 0 && vendorIndex < VendorItems.Length)
-            {
-                var item = VendorItems[vendorIndex];
-                if (item.Item != null)
-                {
-                    HubDayStateStore.SetShopItemQuantity(
-                        brain,
-                        ShopData.name,
-                        item.Item.name,
-                        quantity
-                    );
-                }
-            }
-        }
     }
 }

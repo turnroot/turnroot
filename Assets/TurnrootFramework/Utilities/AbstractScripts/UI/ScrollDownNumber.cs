@@ -9,10 +9,26 @@ namespace Turnroot.Utilities.Ui
         public int StartNumber = 0;
         public int EndNumber = 100;
 
-        public string Suffix = "";
-        public string Prefix = "";
+        [SerializeField]
+        private string prefix = "";
+
+        public virtual string Prefix
+        {
+            get => prefix;
+            protected set => prefix = value;
+        }
+
+        [SerializeField]
+        private string suffix = "";
+
+        public virtual string Suffix
+        {
+            get => suffix;
+            protected set => suffix = value;
+        }
 
         public int CurrentNumber { get; private set; }
+        public bool IsScrolling { get; private set; }
         public float ScrollDuration = 1f;
         public AnimationCurve EaseOutCurve = new(
             new Keyframe(0f, 0f, 0f, 0f),
@@ -33,10 +49,12 @@ namespace Turnroot.Utilities.Ui
             StopAllCoroutines();
             CurrentNumber = StartNumber;
             currentTime = 0f;
+            IsScrolling = false;
         }
 
         public void StartScroll()
         {
+            IsScrolling = true;
             if (Audio != null && ScrollSound != null)
             {
                 Audio.clip = ScrollSound;
@@ -63,6 +81,7 @@ namespace Turnroot.Utilities.Ui
 
             CurrentNumber = EndNumber;
             NumberText.text = Prefix + CurrentNumber.ToString() + Suffix;
+            IsScrolling = false;
         }
     }
 }

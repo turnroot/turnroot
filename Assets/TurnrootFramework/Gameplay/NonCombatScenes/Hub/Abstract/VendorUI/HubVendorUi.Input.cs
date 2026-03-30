@@ -1,6 +1,7 @@
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Utilities;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 {
@@ -24,6 +25,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             {
                 CurrentPage = newPage;
                 CurrentSelectionIndex = newSelection;
+
+                int vendorIndex = GetSelectedVendorIndex();
+                var stock = VendorItems;
+                if (stock != null && vendorIndex >= 0 && vendorIndex < stock.Length)
+                {
+                    ConfigureItemUi(stock[vendorIndex], SelectionCountCache);
+                }
             }
         }
 
@@ -82,18 +90,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             var stock = VendorItems;
             if (stock != null && vendorIndex >= 0 && vendorIndex < stock.Length)
             {
-                ConfigureItemUi(stock[vendorIndex], SelectionCountCache);
+                ConfigureItemUi(stock[vendorIndex], SelectionCountCache, true);
             }
             AudioPlayer?.PlayOneShot(NavigateAudioClip);
         }
 
         public void HandlePurchaseConfirmationInput()
         {
-            if (!CanBuy)
-            {
-                return;
-            }
-
             int vendorIndex = GetSelectedVendorIndex();
             var stock = VendorItems;
 
@@ -102,45 +105,59 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 return;
             }
 
-            int currentGold = brain?.storehouseBrain != null ? brain.storehouseBrain.PlayerGold : 0;
+            var selectedItem = stock[vendorIndex];
+            if (selectedItem.Item == null || selectedItem.CurrentStatus.AvailableQuantity <= 0)
+            {
+                return;
+            }
+
+            SelectionCountCache = Mathf.Clamp(
+                SelectionCountCache,
+                1,
+                selectedItem.CurrentStatus.AvailableQuantity
+            );
+
+            CostCache = selectedItem.CurrentStatus.IsOnSale
+                ? selectedItem.SalePrice * SelectionCountCache
+                : selectedItem.Item.BasePrice * SelectionCountCache;
+
+            if (brain?.storehouseBrain == null || !brain.storehouseBrain.CanAfford(CostCache))
+            {
+                "HubVendorUi.HandlePurchaseConfirmationInput: cannot afford selected item".LogWarning();
+                return;
+            }
+
+            int currentGold = brain.storehouseBrain.PlayerGold;
             if (TotalGoldScroll != null)
             {
                 TotalGoldScroll.StartNumber = currentGold;
                 TotalGoldScroll.EndNumber = currentGold - CostCache;
             }
 
-            if (CanBuy)
+            TotalGoldScroll?.StartScroll();
+            NotifyVendorItemSold(selectedItem);
+
+            brain.storehouseBrain.SpendGold(CostCache, true);
+            brain.storehouseBrain.SaveGoldToLTM();
+
+            var purchasedItem = selectedItem.Item;
+            brain.storehouseBrain.AddMaterials(purchasedItem, SelectionCountCache, true);
+            $"{GetType().Name}.HandlePurchaseConfirmationInput: added {SelectionCountCache}x '{purchasedItem?.Name ?? "<null>"}' to storehouse".LogInfo(
+                GetType().Name
+            );
+
+            selectedItem.CurrentStatus.AvailableQuantity -= SelectionCountCache;
+            if (selectedItem.CurrentStatus.AvailableQuantity < 0)
             {
-                TotalGoldScroll?.StartScroll();
-
-                NotifyVendorItemSold(stock[vendorIndex]);
-
-                if (brain?.storehouseBrain != null)
-                {
-                    brain.storehouseBrain.SpendGold(CostCache, true);
-                    brain.storehouseBrain.SaveGoldToLTM();
-
-                    var purchasedItem = stock[vendorIndex].Item;
-                    brain.storehouseBrain.AddMaterials(purchasedItem, SelectionCountCache, true);
-                    $"{GetType().Name}.HandlePurchaseConfirmationInput: added {SelectionCountCache}x '{purchasedItem?.Name ?? "<null>"}' to storehouse".LogInfo(
-                        GetType().Name
-                    );
-
-                    var item = stock[vendorIndex];
-                    item.CurrentStatus.AvailableQuantity -= SelectionCountCache;
-                    if (item.CurrentStatus.AvailableQuantity < 0)
-                    {
-                        item.CurrentStatus.AvailableQuantity = 0;
-                    }
-
-                    stock[vendorIndex] = item;
-                    VendorItems = stock;
-
-                    PersistItemQuantity(vendorIndex, item.CurrentStatus.AvailableQuantity);
-
-                    RefreshVendorDisplay();
-                }
+                selectedItem.CurrentStatus.AvailableQuantity = 0;
             }
+
+            stock[vendorIndex] = selectedItem;
+            VendorItems = stock;
+
+            PersistItemQuantity(vendorIndex, selectedItem.CurrentStatus.AvailableQuantity);
+
+            RefreshVendorDisplay();
         }
 
         public void HandleSelectedItem(ShopItem selectedItem)

@@ -83,7 +83,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
         public Blacksmith BlacksmithData => GetComponent<Blacksmith>();
 
-        private Brain.Brain brain => BlacksmithData._brain;
+        private Brain.Brain brain => BlacksmithData.brain;
 
         [HideInInspector]
         public BlacksmithItemRefs[] ItemUiRefs;
@@ -100,7 +100,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
         [HideInInspector]
         public bool CanRepair = true;
         public TextMeshProUGUI TotalGoldText;
-        public ScrollDownNumber TotalGoldScroll;
+        public ScrollDownGold TotalGoldScroll;
         public GameObject ItemsParentContainer;
 
         private int SelectionCountCache = 1;

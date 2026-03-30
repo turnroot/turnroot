@@ -259,19 +259,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 && hubmanager != null
             )
             {
-                _blacksmith._brain = hubmanager._brain;
                 _blacksmith._inventoryBrain = hubmanager._brain.inventoryBrain;
                 _blacksmith._storehouseBrain = hubmanager._brain.storehouseBrain;
                 _blacksmith._charactersBrain = hubmanager._brain.charactersBrain;
             }
 
             ChildReferencesSet = true;
-
-            if (_camera == null || poiVisual == null)
-            {
-                $"HubPoiUi on {gameObject.name} is missing a reference to the main camera or poiVisual, cannot orient towards camera.".LogWarning();
-                return;
-            }
         }
 
         #endregion

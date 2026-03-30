@@ -9,8 +9,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 {
     public class Blacksmith : HubVendor
     {
-        [HideInInspector]
-        public Brain.Brain _brain;
         public InventoryBrain _inventoryBrain { private get; set; }
         public StorehouseBrain _storehouseBrain { private get; set; }
         public CharactersBrain _charactersBrain { private get; set; }

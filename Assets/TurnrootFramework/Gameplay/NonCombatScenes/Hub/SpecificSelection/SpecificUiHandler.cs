@@ -124,8 +124,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (_waitingForShopEntryDialogue || _waitingForShopExitDialogue)
             {
-                $"SpecificUiHandler: Ignoring input '{action}' while waiting for shop dialogue to finish.".LogInfo();
-                // Ignore input while waiting for the shop welcome or exit dialogue to finish.
+                if (
+                    action
+                    is InputActionConstants.Cancel
+                        or "Back"
+                        or InputActionConstants.Submit
+                        or InputActionConstants.Select
+                )
+                {
+                    _subscribedController?.Advance();
+                }
                 return;
             }
 
@@ -188,6 +196,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void CompleteExit()
         {
+            // Re-activate the POI icon before re-enabling look input so UpdateFov never
+            // calls Hide() on an inactive game object and the player can re-select it.
+            CurrentPoi?.Show();
+
             if (_activeShop != null && _activeShop.TryGetComponent<Shop.ShopUi>(out var shopUi))
             {
                 shopUi.ShopUiFade.Hide();

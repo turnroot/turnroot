@@ -43,7 +43,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
         public TextMeshProUGUI ShopDescriptionText;
         public TextMeshProUGUI ItemDescriptionText;
         public TextMeshProUGUI TotalGoldText;
-        public ScrollDownNumber TotalGoldScroll;
+        public ScrollDownGold TotalGoldScroll;
         public GameObject ItemsParentContainer;
 
         [Header("Weapon Details UI")]
@@ -132,6 +132,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             SelectionCountCache = 1;
             CostCache = 0;
 
+            // Object.Destroy is deferred to end-of-frame, so Unity's == null check returns false
+            // for pending-destroy components. Null the UiRefs on every item now so the rebuild
+            // loop below always creates fresh prefabs rather than reusing about-to-be-destroyed refs.
+            if (stock != null)
+            {
+                for (int i = 0; i < stock.Length; i++)
+                {
+                    var item = stock[i];
+                    item.UiRefs = null;
+                    stock[i] = item;
+                }
+            }
+
             ItemsPerPage = Mathf.Max(1, ItemsPerPage);
 
             if (stock == null || stock.Length == 0)
@@ -141,16 +154,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             }
 
             HubVendorUiHelper.UpdateGoldDisplay(TotalGoldText, TotalGoldScroll, brain);
-
-            int previousSelectedVendorIndex = -1;
-            if (
-                itemChoiceToVendorIndex != null
-                && CurrentSelectionIndex >= 0
-                && CurrentSelectionIndex < itemChoiceToVendorIndex.Count
-            )
-            {
-                previousSelectedVendorIndex = itemChoiceToVendorIndex[CurrentSelectionIndex];
-            }
 
             itemChoices = new List<UiChoice>(stock.Length);
             itemChoiceToVendorIndex = new List<int>(stock.Length);
@@ -174,7 +177,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 {
                     itemChoices.Add(item.UiRefs.ShopItemChoice);
                     itemChoiceToVendorIndex.Add(i);
-                    ConfigureItemUi(item, SelectionCountCache);
+                    ConfigureItemUi(item, SelectionCountCache, false);
                 }
             }
 
@@ -200,7 +203,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
             CurrentPage = newPage;
             CurrentSelectionIndex = newSelectionIndex;
-
+            int selectedVendorIndex = GetSelectedVendorIndex();
+            if (stock != null && selectedVendorIndex >= 0 && selectedVendorIndex < stock.Length)
+            {
+                ConfigureItemUi(stock[selectedVendorIndex], SelectionCountCache, true);
+            }
             VendorUiFade?.Show();
         }
 

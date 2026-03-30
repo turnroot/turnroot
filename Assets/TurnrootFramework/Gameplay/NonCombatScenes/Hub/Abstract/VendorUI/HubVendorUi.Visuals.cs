@@ -8,62 +8,79 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 {
     public partial class HubVendorUi
     {
-        protected void ConfigureItemUi(ShopItem item, int selectionCount)
+        protected void ConfigureItemUi(ShopItem item, int selectionCount, bool updateGlobal = true)
         {
-            CanBuy = true;
             if (item.Item == null || item.UiRefs == null)
             {
                 return;
             }
 
+            if (updateGlobal)
+            {
+                CanBuy = true;
+            }
+
             if (item.CurrentStatus.AvailableQuantity <= 0)
             {
-                CanBuy = false;
+                if (updateGlobal)
+                {
+                    CanBuy = false;
+                }
                 item.UiRefs.QuantityText.text = "Sold Out";
                 item.UiRefs.PriceText.color = item.UiRefs.TooExpensivePriceColor;
+                item.UiRefs.SaleBadge.gameObject.SetActive(false);
                 return;
             }
 
             if (selectionCount >= item.CurrentStatus.AvailableQuantity)
             {
                 selectionCount = item.CurrentStatus.AvailableQuantity;
-                SelectionCountCache = selectionCount;
+                if (updateGlobal)
+                {
+                    SelectionCountCache = selectionCount;
+                }
             }
 
             if (selectionCount <= 0)
             {
                 selectionCount = 1;
-                SelectionCountCache = selectionCount;
-            }
-
-            ItemDescriptionText.text = item.Item.FlavorText;
-
-            if (item.Item.IsWeaponOrMagicSubtype())
-            {
-                WeaponExtraDetails?.SetActive(true);
-                if (WeaponMightText != null)
+                if (updateGlobal)
                 {
-                    WeaponMightText.text = $"{item.Item.Might}";
-                }
-                if (WeaponHitText != null)
-                {
-                    WeaponHitText.text = $"{item.Item.Hit}";
-                }
-                if (WeaponCritText != null)
-                {
-                    WeaponCritText.text = $"{item.Item.Critical}";
+                    SelectionCountCache = selectionCount;
                 }
             }
-            else
-            {
-                WeaponExtraDetails?.SetActive(false);
-            }
 
-            if (WeaponDurabilityText != null)
+            if (updateGlobal)
             {
-                WeaponDurabilityText.text = item.Item.IsWeaponOrMagicSubtypeAndIsDurability()
-                    ? $"{item.Item.MaxUses}"
-                    : "--";
+                ItemDescriptionText.text = item.Item.FlavorText;
+
+                if (item.Item.IsWeaponOrMagicSubtype())
+                {
+                    WeaponExtraDetails?.SetActive(true);
+                    if (WeaponMightText != null)
+                    {
+                        WeaponMightText.text = $"{item.Item.Might}";
+                    }
+                    if (WeaponHitText != null)
+                    {
+                        WeaponHitText.text = $"{item.Item.Hit}";
+                    }
+                    if (WeaponCritText != null)
+                    {
+                        WeaponCritText.text = $"{item.Item.Critical}";
+                    }
+                }
+                else
+                {
+                    WeaponExtraDetails?.SetActive(false);
+                }
+
+                if (WeaponDurabilityText != null)
+                {
+                    WeaponDurabilityText.text = item.Item.IsWeaponOrMagicSubtypeAndIsDurability()
+                        ? $"{item.Item.MaxUses}"
+                        : "--";
+                }
             }
 
             item.UiRefs.ItemNameText.text = item.Item.Name;
@@ -124,23 +141,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 ? $"{item.SalePrice * selectionCount}G"
                 : $"{item.Item.BasePrice * selectionCount}G";
 
+            var isTooExpensive =
+                brain?.storehouseBrain != null
+                && !brain.storehouseBrain.CanAfford(item.Item.BasePrice * selectionCount);
+
             item.UiRefs.PriceText.color =
-                (
-                    brain?.storehouseBrain != null
-                    && !brain.storehouseBrain.CanAfford(item.Item.BasePrice * selectionCount)
-                )
-                    ? item.UiRefs.TooExpensivePriceColor
+                isTooExpensive ? item.UiRefs.TooExpensivePriceColor
                 : item.CurrentStatus.IsOnSale ? item.UiRefs.OnSalePriceColor
                 : item.UiRefs.DefaultPriceColor;
 
-            if (item.UiRefs.TooExpensivePriceColor == item.UiRefs.PriceText.color)
+            if (isTooExpensive && updateGlobal)
             {
                 CanBuy = false;
             }
 
-            CostCache = item.CurrentStatus.IsOnSale
-                ? item.SalePrice * selectionCount
-                : item.Item.BasePrice * selectionCount;
+            if (updateGlobal)
+            {
+                CostCache = item.CurrentStatus.IsOnSale
+                    ? item.SalePrice * selectionCount
+                    : item.Item.BasePrice * selectionCount;
+            }
 
             item.UiRefs.SaleBadge.gameObject.SetActive(item.CurrentStatus.IsOnSale);
             item.UiRefs.QuantityText.text =

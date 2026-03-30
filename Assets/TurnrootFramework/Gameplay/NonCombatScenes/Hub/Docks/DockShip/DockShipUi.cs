@@ -35,31 +35,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         protected override bool ShouldRenderVendor =>
             DockShipData != null && DockShipData.CurrentDockShipShopType == DockShipShopType.Normal;
 
-        protected override void NotifyVendorItemSold(ShopItem itemSold)
-        {
-            // DockShip currently does not have a specific shopkeeper sells notification path.
-            // If required, add it to DockShip and call it here.
-        }
-
-        protected override void PersistItemQuantity(int vendorIndex, int quantity)
-        {
-            if (brain == null || DockShipData == null || VendorItems == null)
-                return;
-            if (vendorIndex < 0 || vendorIndex >= VendorItems.Length)
-                return;
-
-            var item = VendorItems[vendorIndex];
-            if (item.Item != null)
-            {
-                HubDayStateStore.SetShopItemQuantity(
-                    brain,
-                    DockShipData.name,
-                    item.Item.name,
-                    quantity
-                );
-            }
-        }
-
         protected override void Awake()
         {
             dockShip = GetComponent<DockShip>();
