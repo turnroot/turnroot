@@ -47,6 +47,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CurrentSubLocation = subLocation;
             CurrentPoi = poi;
 
+            hubManager?.MainOverlayUiFade?.Hide();
+            hubManager?.SublocationInput?.FocusOverlayFade?.Hide();
+
             if (type == HubSublocationName.Market)
             {
                 HandleMarketSelection(poi);
@@ -100,8 +103,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleDockSelection(HubPoiUi poi)
         {
-            var newDockShip = poi?.GetComponent<DockShip>();
-            if (newDockShip != null && newDockShip != _activeDockShip)
+            var newDockShip =
+                poi?.GetComponentInChildren<DockShip>() ?? poi?.GetComponentInParent<DockShip>();
+            if (newDockShip == null)
+            {
+                $"SpecificUiHandler: POI '{poi?.name}' has Type=Docks but no DockShip component found on itself, its children, or its parents. Ensure DockShip is in the same hierarchy as the POI.".LogWarning();
+                _activeDockShip = null;
+                return;
+            }
+
+            if (newDockShip != _activeDockShip)
             {
                 _activeDockShip = newDockShip;
 
@@ -114,18 +125,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 _activeDockShip.NotifyShipVisited();
             }
-            else if (newDockShip == null)
-            {
-                _activeDockShip = null;
-            }
         }
 
         public void HandleInput(string action)
         {
             if (_waitingForShopEntryDialogue || _waitingForShopExitDialogue)
             {
-                $"SpecificUiHandler: Ignoring input '{action}' while waiting for shop dialogue to finish.".LogInfo();
-                // Ignore input while waiting for the shop welcome or exit dialogue to finish.
+                if (
+                    action
+                    is InputActionConstants.Cancel
+                        or "Back"
+                        or InputActionConstants.Submit
+                        or InputActionConstants.Select
+                )
+                {
+                    _subscribedController?.Advance();
+                }
                 return;
             }
 
@@ -188,6 +203,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void CompleteExit()
         {
+            // Re-activate the POI icon before re-enabling look input so UpdateFov never
+            // calls Hide() on an inactive game object and the player can re-select it.
+            CurrentPoi?.Show();
+
             if (_activeShop != null && _activeShop.TryGetComponent<Shop.ShopUi>(out var shopUi))
             {
                 shopUi.ShopUiFade.Hide();
@@ -227,6 +246,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _activeShop = null;
             _activeBlacksmith = null;
             _activeDockShip = null;
+            hubManager?.MainOverlayUiFade?.Show();
             hubManager.RevertToPreviousInputMode();
         }
     }

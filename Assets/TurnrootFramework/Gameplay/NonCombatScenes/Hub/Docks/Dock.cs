@@ -37,6 +37,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             }
 
             RefreshDockLists();
+            LogDockState("After daily voyage update");
+            EnforceDockCapacity();
+        }
+
+        /// <summary>
+        /// Call on hub load (even when daily updates were already processed) to restore
+        /// runtime dock lists from each ship's persisted IsDocked state and re-enforce capacity.
+        /// </summary>
+        public void EnforceCapacityOnLoad()
+        {
+            RefreshDockLists();
+            LogDockState("On load");
             EnforceDockCapacity();
         }
 
@@ -71,11 +83,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         private void EnforceDockCapacity()
         {
-            EnforceSideCapacity(_leftDockedShips, MaxDockedShipsPerSide);
-            EnforceSideCapacity(_rightDockedShips, MaxDockedShipsPerSide);
+            EnforceSideCapacity(_leftDockedShips, MaxDockedShipsPerSide, "Left");
+            // Refresh lists so the total check below sees the up-to-date state after
+            // per-side evictions — otherwise stale counts trigger a redundant second pass.
+            RefreshDockLists();
+
+            EnforceSideCapacity(_rightDockedShips, MaxDockedShipsPerSide, "Right");
+            RefreshDockLists();
 
             int totalCapacity = MaxDockedShipsPerSide * 2;
             int totalDocked = _leftDockedShips.Count + _rightDockedShips.Count;
+            $"Dock: capacity check — {totalDocked} docked, max {totalCapacity} total.".LogInfo();
             if (totalDocked <= totalCapacity)
             {
                 return;
@@ -83,28 +101,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
             var allDocked = new List<DockShip>(_leftDockedShips);
             allDocked.AddRange(_rightDockedShips);
-            allDocked.Sort((a, b) => b.CurrentDockedTime.CompareTo(a.CurrentDockedTime));
+            // Sort ascending: lowest CurrentDockedTime (newest arrivals) first — keep those,
+            // evict ships that have been docked the longest.
+            allDocked.Sort((a, b) => a.CurrentDockedTime.CompareTo(b.CurrentDockedTime));
 
             for (int i = totalCapacity; i < allDocked.Count; i++)
             {
+                $"Dock: total capacity exceeded — sending '{allDocked[i].ShipName}' to sea.".LogInfo();
                 allDocked[i].ForceSendToSea();
             }
 
-            // Rebuild lists after forcing excess ships to sea
             RefreshDockLists();
         }
 
-        private void EnforceSideCapacity(List<DockShip> ships, int capacity)
+        private void EnforceSideCapacity(List<DockShip> ships, int capacity, string side)
         {
+            $"Dock: {side} side has {ships.Count} docked (max {capacity}).".LogInfo();
             if (capacity <= 0 || ships.Count <= capacity)
             {
                 return;
             }
 
-            // Keep newest-docked ships, send the oldest ones out
-            ships.Sort((a, b) => b.CurrentDockedTime.CompareTo(a.CurrentDockedTime));
+            // Sort ascending by CurrentDockedTime: newest arrivals (lowest time) first.
+            // Keep the first 'capacity' ships; evict those that have been docked the longest.
+            ships.Sort((a, b) => a.CurrentDockedTime.CompareTo(b.CurrentDockedTime));
             for (int i = capacity; i < ships.Count; i++)
             {
+                $"Dock: {side} side over capacity — sending '{ships[i].ShipName}' (dockedTime={ships[i].CurrentDockedTime}) to sea.".LogInfo();
                 ships[i].ForceSendToSea();
             }
         }
@@ -121,6 +144,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             DockShipStatus[] dockedStatuses = new DockShipStatus[AllShips.Length];
             for (int i = 0; i < AllShips.Length; i++)
             {
+                if (AllShips[i] == null)
+                {
+                    continue;
+                }
+
                 dockedStatuses[i] = new DockShipStatus
                 {
                     ShipName = AllShips[i].ShipName,
@@ -135,10 +163,30 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         {
             foreach (var ship in AllShips)
             {
+                if (ship == null)
+                {
+                    $"Warning: Null ship reference in dock when refreshing for new day. Skipping.".LogWarning();
+                    continue;
+                }
                 if (ship.IsDocked)
                 {
                     ship.RefreshShipForNewDay(currentDay);
                 }
+            }
+        }
+
+        private void LogDockState(string context)
+        {
+            int left = _leftDockedShips.Count;
+            int right = _rightDockedShips.Count;
+            $"Dock [{context}]: Left={left}/{MaxDockedShipsPerSide}, Right={right}/{MaxDockedShipsPerSide}.".LogInfo();
+            foreach (var ship in _leftDockedShips)
+            {
+                $"  Left: '{ship.ShipName}' dockedTime={ship.CurrentDockedTime} alwaysDocked={ship.AlwaysDocked}.".LogInfo();
+            }
+            foreach (var ship in _rightDockedShips)
+            {
+                $"  Right: '{ship.ShipName}' dockedTime={ship.CurrentDockedTime} alwaysDocked={ship.AlwaysDocked}.".LogInfo();
             }
         }
     }

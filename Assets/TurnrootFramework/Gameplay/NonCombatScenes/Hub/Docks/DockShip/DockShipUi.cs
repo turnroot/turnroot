@@ -1,47 +1,55 @@
-using System.Collections.Generic;
-using TMPro;
-using Turnroot.Characters;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
-using Turnroot.Gameplay.Objects;
-using Turnroot.GameSettings;
-using Turnroot.UI;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
-using Turnroot.Utilities.Ui;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 {
     [RequireComponent(typeof(DockShip))]
-    public class DockShipUi : MonoBehaviour
+    public partial class DockShipUi : HubVendorUi
     {
         private DockShip dockShip;
 
-        public UIFade DockShipUiFade;
+        public DockShip DockShipData => dockShip ??= GetComponent<DockShip>();
 
-        private void Awake()
+        protected override HubVendor Vendor => DockShipData;
+
+        protected override ShopItem[] VendorItems
+        {
+            get => DockShipData?.NormalGoodsForSale;
+            set
+            {
+                if (DockShipData != null)
+                {
+                    DockShipData.NormalGoodsForSale = value;
+                }
+            }
+        }
+
+        protected override string VendorDisplayName => DockShipData?.ShipName ?? string.Empty;
+
+        protected override string VendorDescription => string.Empty;
+
+        protected override Brain.Brain BrainReference => DockShipData?.brain;
+
+        protected override bool ShouldRenderVendor =>
+            DockShipData != null && DockShipData.CurrentDockShipShopType == DockShipShopType.Normal;
+
+        [Tooltip(
+            "The overlay UI to hide when this ship's shop is open (e.g. the main dock HUD) and restore when it closes."
+        )]
+        public UIFade MainOverlayUiFade;
+
+        protected override void Awake()
         {
             dockShip = GetComponent<DockShip>();
             if (dockShip == null)
             {
                 $"DockShipUi on '{name}' could not find DockShip component.".LogError();
             }
+
+            base.Awake();
         }
-
-        public void RefreshDockShipDisplay()
-        {
-            if (dockShip == null)
-            {
-                return;
-            }
-        }
-
-        public void HandleItemChangeInput(string action) { }
-
-        public void HandleQuantityChangeInput(string action) { }
-
-        public void HandleBackInput(string action) { }
-
-        public void HandleConfirmInput(string action) { }
     }
 }

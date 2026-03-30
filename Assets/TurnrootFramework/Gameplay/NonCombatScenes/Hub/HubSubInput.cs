@@ -1,4 +1,5 @@
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
@@ -14,9 +15,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float MaxTiltRight;
         public float MaxTiltUp;
         public float MaxTiltDown;
-
-        private Vector3 _defaultRotation;
-        private bool _hasDefaultRotation;
 
         [Tooltip("Time it takes to reach the target rotation (seconds)")]
         public float lookSmoothTime = 0.15f;
@@ -40,17 +38,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public LayerMask zoomLayerMask;
         public float normalFov = 60f;
-        public float zoomedFov = 52f;
-        public float fovSmoothTime = 0.2f;
+
+        public UIFade FocusOverlayFade;
 
         [Tooltip(
-            "Radius used when casting out of the camera.  A larger value gives you a bigger "
-                + "forgiveness window around the centre of the view."
+            "Radius used when casting out of the camera. A larger value gives you a bigger forgiveness window around the centre of the view."
         )]
         public float zoomCastRadius = 0.25f;
+        private bool _isPoiActive;
 
-        private float _fovVelocity;
-        private bool _isZoomed;
+        // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
+        private float _cachedLeftLimit;
+        private float _cachedRightLimit;
+        private float _cachedUpLimit;
+        private float _cachedDownLimit;
 
         public void HandleSubLocationInput(string action)
         {
@@ -60,10 +61,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             if (
-                action == InputActionConstants.Select
-                || action == InputActionConstants.Start
-                || action == InputActionConstants.Submit
-                || action == InputActionConstants.Confirm
+                action
+                is InputActionConstants.Select
+                    or InputActionConstants.Start
+                    or InputActionConstants.Submit
+                    or InputActionConstants.Confirm
             )
             {
                 // check if there is a highlighted POI and can be selected
@@ -77,7 +79,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
-            if (action == "Back" || action == InputActionConstants.Cancel)
+            if (action is "Back" or InputActionConstants.Cancel)
             {
                 hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
             }
@@ -102,6 +104,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _hasBaseRotation = false;
                 _pitchOffset = _yawOffset = 0f;
+                _cachedLeftLimit = Mathf.Abs(MaxTiltLeft);
+                _cachedRightLimit = Mathf.Abs(MaxTiltRight);
+                _cachedUpLimit = Mathf.Abs(MaxTiltUp);
+                _cachedDownLimit = Mathf.Abs(MaxTiltDown);
             }
         }
 
@@ -125,16 +131,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!_hasBaseRotation)
             {
+                var baseCam = hubManager._brain.cameraBrain;
                 _baseRotation = hubCamera.transform.localEulerAngles;
-                _baseRotation.x = hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.x);
-                _baseRotation.y = hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.y);
-
-                if (!_hasDefaultRotation)
-                {
-                    _defaultRotation = _baseRotation;
-                    _hasDefaultRotation = true;
-                }
-
+                _baseRotation.x = baseCam.NormalizeAngle(_baseRotation.x);
+                _baseRotation.y = baseCam.NormalizeAngle(_baseRotation.y);
                 _hasBaseRotation = true;
             }
 
@@ -146,68 +146,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            float leftLimit = Mathf.Abs(MaxTiltLeft);
-            float rightLimit = Mathf.Abs(MaxTiltRight);
-            float upLimit = Mathf.Abs(MaxTiltUp);
-            float downLimit = Mathf.Abs(MaxTiltDown);
+            var cam = hubManager._brain.cameraBrain;
 
             _yawOffset += h * lookStep * Time.deltaTime;
             _pitchOffset -= v * lookStep * Time.deltaTime;
 
-            if (_hasDefaultRotation)
-            {
-                float desiredWorldYaw = hubManager._brain.cameraBrain.NormalizeAngle(
-                    _baseRotation.y + _yawOffset
-                );
-                float desiredWorldPitch = hubManager._brain.cameraBrain.NormalizeAngle(
-                    _baseRotation.x + _pitchOffset
-                );
-
-                float defaultYaw = hubManager._brain.cameraBrain.NormalizeAngle(_defaultRotation.y);
-                float defaultPitch = hubManager._brain.cameraBrain.NormalizeAngle(
-                    _defaultRotation.x
-                );
-
-                float minWorldYaw = hubManager._brain.cameraBrain.NormalizeAngle(
-                    defaultYaw - leftLimit
-                );
-                float maxWorldYaw = hubManager._brain.cameraBrain.NormalizeAngle(
-                    defaultYaw + rightLimit
-                );
-                float minWorldPitch = hubManager._brain.cameraBrain.NormalizeAngle(
-                    defaultPitch - upLimit
-                );
-                float maxWorldPitch = hubManager._brain.cameraBrain.NormalizeAngle(
-                    defaultPitch + downLimit
-                );
-
-                float clampedWorldYaw = ClampAngleToRange(
-                    desiredWorldYaw,
-                    minWorldYaw,
-                    maxWorldYaw
-                );
-                float clampedWorldPitch = ClampAngleToRange(
-                    desiredWorldPitch,
-                    minWorldPitch,
-                    maxWorldPitch
-                );
-
-                _yawOffset = hubManager._brain.cameraBrain.NormalizeAngle(
-                    clampedWorldYaw - _baseRotation.y
-                );
-                _pitchOffset = hubManager._brain.cameraBrain.NormalizeAngle(
-                    clampedWorldPitch - _baseRotation.x
-                );
-            }
-            else
-            {
-                _yawOffset = Mathf.Clamp(_yawOffset, -leftLimit, rightLimit);
-                _pitchOffset = Mathf.Clamp(_pitchOffset, -upLimit, downLimit);
-            }
+            // Clamp the scalar offsets directly. This is always correct: _yawOffset and
+            // _pitchOffset are degree-of-deviation scalars (never exceeding ±180), so
+            // Mathf.Clamp with scalar limits needs no wrapping logic. The previous world-space
+            // approach (ClampAngleToRange) introduced a wrapped-interval bug: going to max-left
+            // then max-right caused the wrapped "angle >= min || angle <= max" check to pass for
+            // all angles near the ±180 boundary, disabling clamping for the rest of the session.
+            _yawOffset = Mathf.Clamp(_yawOffset, -_cachedLeftLimit, _cachedRightLimit);
+            _pitchOffset = Mathf.Clamp(_pitchOffset, -_cachedUpLimit, _cachedDownLimit);
 
             Vector3 targetRotation = new Vector3(
-                hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.x + _pitchOffset),
-                hubManager._brain.cameraBrain.NormalizeAngle(_baseRotation.y + _yawOffset),
+                cam.NormalizeAngle(_baseRotation.x + _pitchOffset),
+                cam.NormalizeAngle(_baseRotation.y + _yawOffset),
                 0f
             );
 
@@ -219,10 +174,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _lookCoroutine = StartCoroutine(
                 hubManager._brain.cameraBrain.SmoothLook(hubCamera, targetRotation, lookSmoothTime)
             );
-            UpdateFov();
+            UpdatePoiDetection();
         }
 
-        private void UpdateFov()
+        private void UpdatePoiDetection()
         {
             if (hubCamera == null)
             {
@@ -232,10 +187,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // skip raycast if Location or Chosen
             if (hubManager != null)
             {
-                if (
-                    hubManager.CurrentInputMode == HubInputMode.Location
-                    || hubManager.CurrentInputMode == HubInputMode.Chosen
-                )
+                if (hubManager.CurrentInputMode is HubInputMode.Location or HubInputMode.Chosen)
                 {
                     return;
                 }
@@ -273,7 +225,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (newTarget != null)
             {
-                if (!_isZoomed || newTarget != targetCollider)
+                if (!_isPoiActive || newTarget != targetCollider)
                 {
                     // hide previous POI UI if present
                     if (targetCollider != null)
@@ -286,16 +238,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     }
 
                     targetCollider = newTarget;
-                    _isZoomed = true;
+                    _isPoiActive = true;
 
                     var poi = newTarget.GetComponent<HubPoiUi>();
                     if (poi != null)
                     {
                         poi.Show();
+                        FocusOverlayFade?.Show();
                     }
                 }
             }
-            else if (_isZoomed)
+            else if (_isPoiActive)
             {
                 if (targetCollider != null)
                 {
@@ -307,43 +260,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
 
                 targetCollider = null;
-                _isZoomed = false;
+                _isPoiActive = false;
+                FocusOverlayFade?.Hide();
             }
-
-            float desired = _isZoomed ? zoomedFov : normalFov;
-            hubCamera.fieldOfView = Mathf.SmoothDamp(
-                hubCamera.fieldOfView,
-                desired,
-                ref _fovVelocity,
-                fovSmoothTime
-            );
-        }
-
-        private float ClampAngleToRange(float angle, float min, float max)
-        {
-            angle = hubManager._brain.cameraBrain.NormalizeAngle(angle);
-            min = hubManager._brain.cameraBrain.NormalizeAngle(min);
-            max = hubManager._brain.cameraBrain.NormalizeAngle(max);
-
-            bool isInRange;
-            if (min <= max)
-            {
-                isInRange = angle >= min && angle <= max;
-            }
-            else
-            {
-                // wrapped interval across -180/180 boundary
-                isInRange = angle >= min || angle <= max;
-            }
-
-            if (isInRange)
-            {
-                return angle;
-            }
-
-            float deltaToMin = Mathf.Abs(Mathf.DeltaAngle(angle, min));
-            float deltaToMax = Mathf.Abs(Mathf.DeltaAngle(angle, max));
-            return deltaToMin < deltaToMax ? min : max;
         }
 
         private Vector2 GetLookInput()

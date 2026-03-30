@@ -106,6 +106,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
                 player.PlayOneShot(farewellOneShot);
             }
+            else
+            {
+                hideUi?.Invoke();
+            }
         }
 
         protected void NotifyVendorVisited<TUi>(

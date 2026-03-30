@@ -223,16 +223,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             {
                 if (SoldOutDialogueText != null)
                 {
-                    var i = -1;
-                    foreach (var dialogue in WelcomeDialogues)
+                    for (int i = 0; i < WelcomeDialogues.Length; i++)
                     {
-                        i++;
                         var d = WelcomeDialogues[i];
                         d.Dialogue = SoldOutDialogueText;
                         WelcomeDialogues[i] = d;
                     }
                     WelcomeDialogueConversations =
-                        audioBrain.ConvertToOneShots(
+                        audioBrain?.ConvertToOneShots(
                             WelcomeDialogues,
                             Shopkeeper != null ? Shopkeeper.DisplayName : "???"
                         ) ?? Array.Empty<OneShot>();

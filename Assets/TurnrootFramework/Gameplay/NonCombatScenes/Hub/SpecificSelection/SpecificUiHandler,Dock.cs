@@ -24,6 +24,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleDockShopSelection(string action)
         {
+            if (_activeDockShip == null)
+                return;
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 RetrieveDockShipUi()?.HandleConfirmInput(action);
@@ -32,6 +34,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleDockShopPageChange(string action)
         {
+            if (_activeDockShip == null)
+                return;
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 RetrieveDockShipUi()?.HandleItemChangeInput(action);
@@ -40,6 +44,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleDockShopUpDown(string action)
         {
+            if (_activeDockShip == null)
+                return;
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 RetrieveDockShipUi()?.HandleItemChangeInput(action);
@@ -48,6 +54,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleDockShopLeftRight(string action)
         {
+            if (_activeDockShip == null)
+                return;
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 RetrieveDockShipUi()?.HandleQuantityChangeInput(action);
@@ -56,6 +64,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleDockShopBack(string action)
         {
+            if (_activeDockShip == null)
+            {
+                CompleteExit();
+                return;
+            }
+
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 var activeVendor = _activeDockShip as Abstract.HubVendor;

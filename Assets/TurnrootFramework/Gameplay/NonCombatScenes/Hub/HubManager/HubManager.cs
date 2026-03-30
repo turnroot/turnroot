@@ -67,6 +67,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UIFade HubFadeToBlack;
 
         [BoxGroup("Camera & Fade")]
+        [Tooltip(
+            "The main overlay/HUD to hide when opening any vendor UI and restore when closing it."
+        )]
+        public UIFade MainOverlayUiFade;
+
+        [BoxGroup("Camera & Fade")]
         [Tooltip("Fade used to show/hide the hub action UI.")]
         public UIFade HubActionsFade;
 
@@ -379,6 +385,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 CheckShipsDocked();
 
                 CheckRareItems();
+            }
+            else
+            {
+                // Daily updates already processed for today; rebuild dock runtime lists and
+                // re-enforce capacity so MaxDockedShipsPerSide is respected on hub re-entry.
+                dock?.EnforceCapacityOnLoad();
             }
 
             UpdateChapterNumberAndNameText(
