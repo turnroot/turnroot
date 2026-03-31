@@ -37,7 +37,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             }
 
             RefreshDockLists();
-            LogDockState("After daily voyage update");
             EnforceDockCapacity();
         }
 
@@ -48,7 +47,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         public void EnforceCapacityOnLoad()
         {
             RefreshDockLists();
-            LogDockState("On load");
             EnforceDockCapacity();
         }
 
@@ -116,7 +114,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         private void EnforceSideCapacity(List<DockShip> ships, int capacity, string side)
         {
-            $"Dock: {side} side has {ships.Count} docked (max {capacity}).".LogInfo();
             if (capacity <= 0 || ships.Count <= capacity)
             {
                 return;
@@ -172,21 +169,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 {
                     ship.RefreshShipForNewDay(currentDay);
                 }
-            }
-        }
-
-        private void LogDockState(string context)
-        {
-            int left = _leftDockedShips.Count;
-            int right = _rightDockedShips.Count;
-            $"Dock [{context}]: Left={left}/{MaxDockedShipsPerSide}, Right={right}/{MaxDockedShipsPerSide}.".LogInfo();
-            foreach (var ship in _leftDockedShips)
-            {
-                $"  Left: '{ship.ShipName}' dockedTime={ship.CurrentDockedTime} alwaysDocked={ship.AlwaysDocked}.".LogInfo();
-            }
-            foreach (var ship in _rightDockedShips)
-            {
-                $"  Right: '{ship.ShipName}' dockedTime={ship.CurrentDockedTime} alwaysDocked={ship.AlwaysDocked}.".LogInfo();
             }
         }
     }

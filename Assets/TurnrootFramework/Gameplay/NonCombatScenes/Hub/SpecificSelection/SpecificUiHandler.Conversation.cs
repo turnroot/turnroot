@@ -1,6 +1,4 @@
 using Turnroot.Conversations;
-using Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith;
-using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -45,6 +43,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _waitingForShopEntryDialogue = false;
                 UnsubscribeFromConversationFinished();
+
+                // For character interactions, show the actions menu after the welcome dialogue.
+                if (_activeHubCharacter != null)
+                {
+                    ShowCharacterInteractions();
+                }
+
                 return;
             }
 

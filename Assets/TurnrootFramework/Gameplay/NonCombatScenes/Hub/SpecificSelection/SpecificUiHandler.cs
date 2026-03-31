@@ -1,5 +1,6 @@
 using Turnroot.Conversations;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Character;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -22,6 +23,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Shop.Shop _activeShop;
         private Blacksmith.Blacksmith _activeBlacksmith;
         private DockShip _activeDockShip;
+        private HubCharacterManager _activeHubCharacter;
 
         // Used to pause shop/blacksmith input while welcome/exit dialogue is running.
         private bool _waitingForShopEntryDialogue;
@@ -57,6 +59,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             else if (type == HubSublocationName.Docks)
             {
                 HandleDockSelection(poi);
+            }
+            else if (type == HubSublocationName.Unit)
+            {
+                HandleCharacterPoiSelection(poi);
             }
         }
 
@@ -105,6 +111,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             var newDockShip =
                 poi?.GetComponentInChildren<DockShip>() ?? poi?.GetComponentInParent<DockShip>();
+
             if (newDockShip == null)
             {
                 $"SpecificUiHandler: POI '{poi?.name}' has Type=Docks but no DockShip component found on itself, its children, or its parents. Ensure DockShip is in the same hierarchy as the POI.".LogWarning();
@@ -112,19 +119,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (newDockShip != _activeDockShip)
+            $"SpecificUiHandler: HandleDockSelection for '{poi?.name}', found DockShip '{newDockShip.name}' (active previously '{_activeDockShip?.name ?? "<none>"}').".LogInfo();
+
+            if (newDockShip == _activeDockShip)
             {
-                _activeDockShip = newDockShip;
-
-                var welcomeOneShot = _activeDockShip.GetRandomWelcomeOneShot();
-                if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
-                {
-                    _waitingForShopEntryDialogue = true;
-                    SubscribeToConversationFinished();
-                }
-
-                _activeDockShip.NotifyShipVisited();
+                $"SpecificUiHandler: DockShip already active, re-notifying visited to refresh UI.".LogInfo();
             }
+
+            _activeDockShip = newDockShip;
+
+            var welcomeOneShot = _activeDockShip.GetRandomWelcomeOneShot();
+            if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
+            {
+                _waitingForShopEntryDialogue = true;
+                SubscribeToConversationFinished();
+            }
+
+            _activeDockShip.NotifyShipVisited();
         }
 
         public void HandleInput(string action)
@@ -154,6 +165,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     HandleDockShopBack(action);
                 }
+                else if (_currentType == HubSublocationName.Unit)
+                {
+                    HandleCharacterBack(action);
+                }
             }
             if (action is InputActionConstants.NavigateRight or InputActionConstants.NavigateLeft)
             {
@@ -164,6 +179,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 else if (_currentType == HubSublocationName.Docks)
                 {
                     HandleDockShopLeftRight(action);
+                }
+                else if (_currentType == HubSublocationName.Unit)
+                {
+                    HandleCharacterLeftRight(action);
                 }
             }
             if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
@@ -176,6 +195,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     HandleDockShopUpDown(action);
                 }
+                else if (_currentType == HubSublocationName.Unit)
+                {
+                    HandleCharacterUpDown(action);
+                }
             }
             if (action is InputActionConstants.Submit or InputActionConstants.Select)
             {
@@ -187,6 +210,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     HandleDockShopSelection(action);
                 }
+                else if (_currentType == HubSublocationName.Unit)
+                {
+                    HandleCharacterSelection(action);
+                }
             }
             if (action is InputActionConstants.ScrollLeft or InputActionConstants.ScrollRight)
             {
@@ -197,6 +224,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 else if (_currentType == HubSublocationName.Docks)
                 {
                     HandleDockShopPageChange(action);
+                }
+                else if (_currentType == HubSublocationName.Unit)
+                {
+                    HandleCharacterPageChange(action);
                 }
             }
         }
@@ -228,6 +259,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 dockShipUi.DockShipUiFade.Hide();
             }
 
+            if (_activeHubCharacter != null)
+            {
+                _activeHubCharacter.NotifyCharacterExited();
+            }
+
             // Restore the camera to the last user-controlled position/rotation (before selecting a POI)
             if (hasSavedCameraTransform && hubManager?.GeneralCamera != null)
             {
@@ -246,6 +282,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _activeShop = null;
             _activeBlacksmith = null;
             _activeDockShip = null;
+            _activeHubCharacter = null;
             hubManager?.MainOverlayUiFade?.Show();
             hubManager.RevertToPreviousInputMode();
         }

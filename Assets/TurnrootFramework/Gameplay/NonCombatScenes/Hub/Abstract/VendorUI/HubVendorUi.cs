@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using TMPro;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.UI;
-using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using Turnroot.Utilities.Ui;
 using UnityEngine;
@@ -73,6 +72,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
         }
 
         protected virtual void NotifyVendorItemSold(ShopItem itemSold) { }
+
+        protected virtual void NotifyVendorItemSold(ShopItem itemSold, int quantity)
+        {
+            NotifyVendorItemSold(itemSold);
+        }
 
         protected virtual void PersistItemQuantity(int vendorIndex, int quantity)
         {

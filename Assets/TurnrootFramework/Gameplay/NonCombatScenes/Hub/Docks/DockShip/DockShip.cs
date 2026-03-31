@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using NaughtyAttributes;
-using Turnroot.Characters;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Utilities;
@@ -22,6 +20,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             public int CurrentAtSeaTime;
             public int CurrentDockedTime;
             public int DaysToStayAtSea;
+            public float Trust;
+            public GameDate LastVisitedDate;
         }
 
         #endregion
@@ -46,11 +46,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         public bool IsSmuggler;
 
         [
-            Range(0, 100),
+            Range(0f, 100f),
             InfoBox("The higher trust is, the better goods will be available on a smuggler ship")
         ]
         [ShowIf("IsSmuggler")]
-        public int Trust;
+        public float Trust;
 
         [InfoBox("Smuggled goods are rare, expensive, and can be gambled for")]
         [ShowIf("IsSmuggler")]
@@ -88,6 +88,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
         private int _currentDockedTime = 0;
         private int _daysToStayAtSea = 0;
         private bool _isAtSea = false;
+        private GameDate _lastVisitedDate = GameDate.Default;
 
         public int CurrentDockedTime => _currentDockedTime;
         public int CurrentAtSeaTime => _currentAtSeaTime;
@@ -176,6 +177,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _currentAtSeaTime = state.CurrentAtSeaTime;
             _currentDockedTime = state.CurrentDockedTime;
             _daysToStayAtSea = state.DaysToStayAtSea;
+            Trust = state.Trust;
+            _lastVisitedDate = state.LastVisitedDate;
             IsDocked = !_isAtSea;
 
             if (AlwaysDocked)
@@ -225,6 +228,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 CurrentAtSeaTime = _currentAtSeaTime,
                 CurrentDockedTime = _currentDockedTime,
                 DaysToStayAtSea = _daysToStayAtSea,
+                Trust = Trust,
+                LastVisitedDate = _lastVisitedDate,
             };
 
             string key = LtmKeyPrefix + ShipName;
@@ -236,9 +241,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         #region Public API
 
-        public void IncreaseTrust(int amount) => Trust = Mathf.Clamp(Trust + amount, 0, 100);
+        public void IncreaseTrust(float amount)
+        {
+            Trust = Mathf.Clamp(Trust + amount, 0f, 100f);
+            SaveState();
+        }
 
-        public void DecreaseTrust(int amount) => Trust = Mathf.Clamp(Trust - amount, 0, 100);
+        public void DecreaseTrust(float amount)
+        {
+            Trust = Mathf.Clamp(Trust - amount, 0f, 100f);
+            SaveState();
+        }
 
         public void SetDockedState(bool docked)
         {

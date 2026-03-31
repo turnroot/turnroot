@@ -1,7 +1,4 @@
-using Turnroot.Conversations;
-using Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
@@ -25,7 +22,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void HandleDockShopSelection(string action)
         {
             if (_activeDockShip == null)
+            {
                 return;
+            }
+
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 RetrieveDockShipUi()?.HandleConfirmInput(action);
@@ -35,7 +35,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void HandleDockShopPageChange(string action)
         {
             if (_activeDockShip == null)
+            {
                 return;
+            }
+
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 RetrieveDockShipUi()?.HandleItemChangeInput(action);
@@ -45,7 +48,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void HandleDockShopUpDown(string action)
         {
             if (_activeDockShip == null)
+            {
                 return;
+            }
+
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 RetrieveDockShipUi()?.HandleItemChangeInput(action);
@@ -55,7 +61,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void HandleDockShopLeftRight(string action)
         {
             if (_activeDockShip == null)
+            {
                 return;
+            }
+
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
                 RetrieveDockShipUi()?.HandleQuantityChangeInput(action);

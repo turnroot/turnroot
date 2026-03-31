@@ -1,6 +1,4 @@
-using TMPro;
 using Turnroot.GameSettings;
-using UnityEngine;
 
 namespace Turnroot.Utilities.Ui
 {

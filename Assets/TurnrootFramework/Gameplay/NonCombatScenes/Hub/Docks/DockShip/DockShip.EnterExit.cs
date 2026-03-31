@@ -1,10 +1,5 @@
-using System.Collections.Generic;
-using NaughtyAttributes;
-using Turnroot.Characters;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
-using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Utilities;
-using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 {
@@ -14,18 +9,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         public void NotifyShipVisited()
         {
+            var currentDate = _brain?.ltm?.GetGameDate() ?? default;
+            $"DockShip '{name}': NotifyShipVisited called for {currentDate.year}/{currentDate.month}/{currentDate.day}, last visited {_lastVisitedDate.year}/{_lastVisitedDate.month}/{_lastVisitedDate.day}, trust {Trust}".LogInfo();
+
+            if (currentDate != _lastVisitedDate)
+            {
+                _lastVisitedDate = currentDate;
+                IncreaseTrust(1.1f);
+            }
+
             NotifyVendorVisited(
                 () => TryGetComponent<DockShipUi>(out var ui) ? ui : null,
                 dockShipUi =>
                 {
-                    // Ensure stock quantities are initialized before rendering the vendor UI.
-                    // RefreshShipForNewDay is only called on date-change; on same-day re-entry
-                    // the quantities are still uninitialized unless we do this here.
-                    GameDate currentDate = _brain?.ltm?.GetGameDate() ?? default;
                     InitializeStockIfNeeded(currentDate);
 
                     dockShipUi.MainOverlayUiFade?.Hide();
                     dockShipUi.RefreshDockShipDisplay();
+                    $"DockShip '{name}': DockShipUi refreshed, NormalGoodsForSale count={(dockShipUi?.DockShipData?.NormalGoodsForSale?.Length ?? 0)}".LogInfo();
                 },
                 "DockShip"
             );

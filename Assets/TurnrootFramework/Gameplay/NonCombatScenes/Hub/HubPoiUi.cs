@@ -80,6 +80,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip("If this POI represents a unit, the associated character instance.")]
         public CharacterInstance UnitCharacter;
 
+        [Tooltip(
+            "The point where the avatar model spawns and toward which the unit turns (set at runtime for Unit POIs)."
+        )]
+        public Transform AvatarPoint;
+
         [Tooltip("Optional badge object used to display an icon or status on the POI.")]
         public GameObject Badge;
 
@@ -460,15 +465,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             switch (Type)
             {
                 case HubSublocationName.Market:
-                    hubmanager.SetInputMode(HubInputMode.Chosen);
-                    break;
                 case HubSublocationName.Docks:
-                    hubmanager.SetInputMode(HubInputMode.Chosen);
-                    break;
                 case HubSublocationName.Cafe:
-                    hubmanager.SetInputMode(HubInputMode.Chosen);
-                    break;
                 case HubSublocationName.Training:
+                case HubSublocationName.Unit:
                     hubmanager.SetInputMode(HubInputMode.Chosen);
                     break;
                 // battlefields don't have pois

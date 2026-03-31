@@ -1,3 +1,4 @@
+using System;
 using Turnroot.Characters;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
@@ -6,6 +7,18 @@ using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
+    [Serializable]
+    public struct UnitSpawnEntry
+    {
+        [Tooltip("Transform where the unit model is placed in the hub.")]
+        public Transform UnitSpawnPoint;
+
+        [Tooltip(
+            "Transform used for the avatar model spawn and as the point the unit looks toward."
+        )]
+        public Transform AvatarPoint;
+    }
+
     public class HubSubLocation : MonoBehaviour
     {
         public HubSublocationName LocationName;
@@ -21,7 +34,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [HideInInspector]
         public CharacterInstance[] CharactersPresent;
 
-        public Transform[] UnitSpawnPoints;
+        public UnitSpawnEntry[] UnitSpawnPoints;
 
         public Camera GeneralCamera;
 
@@ -96,9 +109,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 foreach (var spawnPoint in UnitSpawnPoints)
                 {
-                    if (spawnPoint != null)
+                    if (spawnPoint.UnitSpawnPoint != null)
                     {
-                        spawnPoint.gameObject.SetActive(true);
+                        spawnPoint.UnitSpawnPoint.gameObject.SetActive(true);
                     }
                 }
             }

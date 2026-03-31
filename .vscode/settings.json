@@ -202,6 +202,22 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\NonCombatScenes\\Hub\\",
             "color": "foldercustomization.AnsiColor44"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\NonCombatScenes\\Hub\\Abstract\\VendorUI\\",
+            "color": "foldercustomization.AnsiColor132"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\NonCombatScenes\\Hub\\Docks\\",
+            "color": "foldercustomization.AnsiColor33"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\NonCombatScenes\\Hub\\NonShopMarket\\",
+            "color": "foldercustomization.AnsiColor97"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Graphics3D\\",
+            "color": "foldercustomization.AnsiColor112"
         }
     ],
     "omnisharp.excludePaths": [

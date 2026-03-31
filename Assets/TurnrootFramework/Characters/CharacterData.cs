@@ -330,6 +330,24 @@ namespace Turnroot.Characters
         public AnimationClip[] DefaultIdleAnimations { get; private set; }
 
         [field:
+            Foldout("Animations"),
+            SerializeField,
+            InfoBox(
+                "Idle animations used in the hub (non-battle). If multiple are assigned, one will be chosen at random and they will blend into each other. Falls back to DefaultIdleAnimations if empty."
+            )
+        ]
+        public AnimationClip[] IdleNonBattleAnimations { get; private set; }
+
+        [field:
+            Foldout("Animations"),
+            SerializeField,
+            InfoBox(
+                "Optional animation played when the character turns to face the avatar point in the hub. If not assigned, rotation is lerped."
+            )
+        ]
+        public AnimationClip HubTurnAnimation { get; private set; }
+
+        [field:
             Foldout("Rigging"),
             SerializeField,
             Tooltip("Enable if this character has an additional bone layer (+X)"),
@@ -495,7 +513,7 @@ namespace Turnroot.Characters
             "Experience/aptitude ranks for weapon types and other trainable skills (e.g., Riding, Flying)"
         )]
         [field: HideInInspector]
-        public List<ExperienceRank> ExperienceRanks { get; private set; } = new();
+        public List<ExperienceRank> ExperienceRanks { get; private set; } = new(); // TODO: Only showing one magic type
 
         // NOTE: properties are declared inline with field-targeted attributes.
 #if TURNROOT_BLOODLINES_MODULE

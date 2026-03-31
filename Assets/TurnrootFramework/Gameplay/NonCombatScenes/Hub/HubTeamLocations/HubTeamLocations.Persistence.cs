@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain;
-using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
