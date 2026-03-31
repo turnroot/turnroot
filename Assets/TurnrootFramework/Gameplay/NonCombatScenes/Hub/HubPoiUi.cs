@@ -80,6 +80,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip("If this POI represents a unit, the associated character instance.")]
         public CharacterInstance UnitCharacter;
 
+        [Tooltip(
+            "The point where the avatar model spawns and toward which the unit turns (set at runtime for Unit POIs)."
+        )]
+        public Transform AvatarPoint;
+
         [Tooltip("Optional badge object used to display an icon or status on the POI.")]
         public GameObject Badge;
 

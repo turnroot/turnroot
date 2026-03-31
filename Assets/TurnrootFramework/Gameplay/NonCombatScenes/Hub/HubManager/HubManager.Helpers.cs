@@ -27,8 +27,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                foreach (var spawnPoint in sub.UnitSpawnPoints)
+                foreach (var entry in sub.UnitSpawnPoints)
                 {
+                    var spawnPoint = entry.UnitSpawnPoint;
                     if (spawnPoint == null)
                     {
                         continue;

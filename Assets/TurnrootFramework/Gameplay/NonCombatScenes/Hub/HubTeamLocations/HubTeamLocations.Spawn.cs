@@ -25,9 +25,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     foreach (var p in location.UnitSpawnPoints)
                     {
-                        if (p != null)
+                        if (p.UnitSpawnPoint != null)
                         {
-                            p.gameObject.SetActive(false);
+                            p.UnitSpawnPoint.gameObject.SetActive(false);
                         }
                     }
                 }
@@ -43,9 +43,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             foreach (var p in location.UnitSpawnPoints)
             {
-                if (p != null)
+                if (p.UnitSpawnPoint != null)
                 {
-                    p.gameObject.SetActive(true);
+                    p.UnitSpawnPoint.gameObject.SetActive(true);
                 }
             }
 
@@ -82,9 +82,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                var spawnPoint = location.UnitSpawnPoints[
+                var entry = location.UnitSpawnPoints[
                     spawnPointIndices[i % spawnPointIndices.Length]
                 ];
+                var spawnPoint = entry.UnitSpawnPoint;
                 if (spawnPoint == null)
                 {
                     $"HubSubLocation {location.LocationName}: UnitSpawnPoints contains a null entry".LogWarning();
@@ -122,6 +123,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     );
                     existingModel.transform.SetParent(location.transform, worldPositionStays: true);
                     _spawnedCharacterIds.Add(character.Id);
+                    brain.unitAppearanceBrain.SetupHubIdleAnimation(existingModel, character);
                     continue;
                 }
 
@@ -135,9 +137,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 model.transform.SetPositionAndRotation(spawnPosition, spawnPoint.rotation);
                 model.transform.SetParent(location.transform, worldPositionStays: true);
                 _spawnedCharacterIds.Add(character.Id);
+                brain.unitAppearanceBrain.SetupHubIdleAnimation(model, character);
                 if (poiUi != null)
                 {
                     poiUi.SetUnitCharacter(character);
+                    poiUi.AvatarPoint = entry.AvatarPoint;
                 }
             }
 
@@ -145,18 +149,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 foreach (var p in location.UnitSpawnPoints)
                 {
-                    if (p != null)
+                    if (p.UnitSpawnPoint != null)
                     {
-                        p.gameObject.SetActive(false);
+                        p.UnitSpawnPoint.gameObject.SetActive(false);
                     }
                 }
             }
 
-            foreach (var spawnPoint in location.UnitSpawnPoints)
+            foreach (var entry in location.UnitSpawnPoints)
             {
-                if (spawnPoint != null && !usedSpawnPoints.Contains(spawnPoint))
+                if (entry.UnitSpawnPoint != null && !usedSpawnPoints.Contains(entry.UnitSpawnPoint))
                 {
-                    spawnPoint.gameObject.SetActive(false);
+                    entry.UnitSpawnPoint.gameObject.SetActive(false);
                 }
             }
         }

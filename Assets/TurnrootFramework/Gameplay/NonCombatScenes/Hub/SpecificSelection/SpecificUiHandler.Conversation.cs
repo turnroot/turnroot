@@ -43,6 +43,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _waitingForShopEntryDialogue = false;
                 UnsubscribeFromConversationFinished();
+
+                // For character interactions, show the actions menu after the welcome dialogue.
+                if (_activeHubCharacter != null)
+                {
+                    ShowCharacterInteractions();
+                }
+
                 return;
             }
 

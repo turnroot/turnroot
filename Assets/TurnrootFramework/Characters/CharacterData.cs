@@ -330,6 +330,24 @@ namespace Turnroot.Characters
         public AnimationClip[] DefaultIdleAnimations { get; private set; }
 
         [field:
+            Foldout("Animations"),
+            SerializeField,
+            InfoBox(
+                "Idle animations used in the hub (non-battle). If multiple are assigned, one will be chosen at random and they will blend into each other. Falls back to DefaultIdleAnimations if empty."
+            )
+        ]
+        public AnimationClip[] IdleNonBattleAnimations { get; private set; }
+
+        [field:
+            Foldout("Animations"),
+            SerializeField,
+            InfoBox(
+                "Optional animation played when the character turns to face the avatar point in the hub. If not assigned, rotation is lerped."
+            )
+        ]
+        public AnimationClip HubTurnAnimation { get; private set; }
+
+        [field:
             Foldout("Rigging"),
             SerializeField,
             Tooltip("Enable if this character has an additional bone layer (+X)"),
