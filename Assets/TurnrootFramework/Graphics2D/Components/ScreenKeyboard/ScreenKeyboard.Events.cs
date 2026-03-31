@@ -9,10 +9,6 @@ namespace Turnroot.Graphics2D
             ProcessKey(key);
         }
 
-        private void OnButtonHovered(KeyboardButton button)
-        {
-            // Optional: Could update current selection when hovering
-            // For now, we'll keep keyboard navigation separate from mouse hover
-        }
+        private void OnButtonHovered(KeyboardButton button) { }
     }
 }

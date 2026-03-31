@@ -22,6 +22,8 @@ namespace Turnroot.Graphics2D
         private Color normalColor;
         private Color highlightColor;
         private Color pressedColor;
+
+        private Color invalidColor = new(1f, 0.5f, 0.5f);
         private bool isHighlighted = false;
         private bool isMouseHover = false;
 
@@ -100,6 +102,15 @@ namespace Turnroot.Graphics2D
             if (background != null)
             {
                 background.color = isHighlighted ? highlightColor : normalColor;
+            }
+        }
+
+        public void FlashInvalid()
+        {
+            if (background != null)
+            {
+                background.color = invalidColor;
+                Invoke(nameof(ResetColor), 0.25f);
             }
         }
 

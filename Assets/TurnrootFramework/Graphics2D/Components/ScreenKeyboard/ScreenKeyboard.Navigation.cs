@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Turnroot.Graphics2D
@@ -106,6 +108,8 @@ namespace Turnroot.Graphics2D
                             if (proposedNumber > maximumNumber)
                             {
                                 // Reject this input - would exceed maximum
+                                // add feedback
+                                StartCoroutine(FlashInvalidInput());
                                 return;
                             }
                         }
@@ -123,6 +127,19 @@ namespace Turnroot.Graphics2D
             }
 
             UpdateDisplay();
+        }
+
+        private IEnumerator FlashInvalidInput()
+        {
+            foreach (var button in buttons)
+            {
+                if (button != null && button.GetKeyValue() == "BACK")
+                {
+                    button.FlashInvalid();
+                }
+            }
+
+            yield return null;
         }
 
         private void UpdateKeyboardCase()
