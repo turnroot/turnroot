@@ -52,8 +52,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             hubManager?.MainOverlayUiFade?.Hide();
             hubManager?.SublocationInput?.FocusOverlayFade?.Hide();
 
-            $"SpecificUiHandler: SetCurrentSelection called with POI '{poi?.name}' of type '{type}'.".LogInfo();
-
             if (type == HubSublocationName.Market)
             {
                 HandleMarketSelection(poi);
@@ -113,6 +111,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             var newDockShip =
                 poi?.GetComponentInChildren<DockShip>() ?? poi?.GetComponentInParent<DockShip>();
+
             if (newDockShip == null)
             {
                 $"SpecificUiHandler: POI '{poi?.name}' has Type=Docks but no DockShip component found on itself, its children, or its parents. Ensure DockShip is in the same hierarchy as the POI.".LogWarning();
@@ -120,19 +119,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (newDockShip != _activeDockShip)
+            $"SpecificUiHandler: HandleDockSelection for '{poi?.name}', found DockShip '{newDockShip.name}' (active previously '{_activeDockShip?.name ?? "<none>"}').".LogInfo();
+
+            if (newDockShip == _activeDockShip)
             {
-                _activeDockShip = newDockShip;
-
-                var welcomeOneShot = _activeDockShip.GetRandomWelcomeOneShot();
-                if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
-                {
-                    _waitingForShopEntryDialogue = true;
-                    SubscribeToConversationFinished();
-                }
-
-                _activeDockShip.NotifyShipVisited();
+                $"SpecificUiHandler: DockShip already active, re-notifying visited to refresh UI.".LogInfo();
             }
+
+            _activeDockShip = newDockShip;
+
+            var welcomeOneShot = _activeDockShip.GetRandomWelcomeOneShot();
+            if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
+            {
+                _waitingForShopEntryDialogue = true;
+                SubscribeToConversationFinished();
+            }
+
+            _activeDockShip.NotifyShipVisited();
         }
 
         public void HandleInput(string action)
