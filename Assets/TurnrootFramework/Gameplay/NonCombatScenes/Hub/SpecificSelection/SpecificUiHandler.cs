@@ -52,6 +52,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             hubManager?.MainOverlayUiFade?.Hide();
             hubManager?.SublocationInput?.FocusOverlayFade?.Hide();
 
+            $"SpecificUiHandler: SetCurrentSelection called with POI '{poi?.name}' of type '{type}'.".LogInfo();
+
             if (type == HubSublocationName.Market)
             {
                 HandleMarketSelection(poi);

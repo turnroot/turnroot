@@ -465,15 +465,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             switch (Type)
             {
                 case HubSublocationName.Market:
-                    hubmanager.SetInputMode(HubInputMode.Chosen);
-                    break;
                 case HubSublocationName.Docks:
-                    hubmanager.SetInputMode(HubInputMode.Chosen);
-                    break;
                 case HubSublocationName.Cafe:
-                    hubmanager.SetInputMode(HubInputMode.Chosen);
-                    break;
                 case HubSublocationName.Training:
+                case HubSublocationName.Unit:
                     hubmanager.SetInputMode(HubInputMode.Chosen);
                     break;
                 // battlefields don't have pois

@@ -27,6 +27,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             }
         }
 
+        protected override void NotifyVendorItemSold(ShopItem itemSold, int quantity)
+        {
+            base.NotifyVendorItemSold(itemSold, quantity);
+
+            if (DockShipData == null)
+            {
+                return;
+            }
+
+            float trustGain = Mathf.Min(3f, 0.5f * quantity);
+            DockShipData.IncreaseTrust(trustGain);
+        }
+
         protected override string VendorDisplayName => DockShipData?.ShipName ?? string.Empty;
 
         protected override string VendorDescription => string.Empty;

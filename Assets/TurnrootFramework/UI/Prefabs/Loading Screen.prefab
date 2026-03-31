@@ -379,12 +379,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HintText
   HintIndex: 0
   FadeTime: 0.2
-  VisibleTime: 2.5
+  VisibleTime: 3
   Hints:
   - Use the tactical lens to get a glimpse into an enemy's behavior
   - Units generally fight better close to friends
   - If an enemy is avoiding combat, they may have a strategic goal you can't see.
     Beware traps
+  - Giving gifts can help you build support and recruit new allies
+  - Ships sell rare or exotic goods you won't find elsewhere
+  - Different ships from various places will dock at different times. You never know
+    what you'll find at the docks
+  - As you visit and buy from ships, the crew will come to trust you- and may even
+    sell you secret smuggled goods
+  - The blacksmith can repair damaged weapons
+  - Riding units cover great distances but are hindered by sand and forest
+  - Flying units are vulnerable to archers
+  - Many truncheons are effective against armor or riders, they may be more useful
+    than they seem
+  - There are four types of magic, each with various strengths
+  - Transcendent magic does little damage but has powerful effects on living beings
+    that can change the tide of battle
+  - Cosmic magic is expensive and fragile, but can devastate enemies
   _textComponent: {fileID: 2047517348927099354}
 --- !u!1 &4176993823431525330
 GameObject:

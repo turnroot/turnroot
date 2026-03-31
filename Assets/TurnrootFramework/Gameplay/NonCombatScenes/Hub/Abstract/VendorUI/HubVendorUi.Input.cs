@@ -156,6 +156,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
             PersistItemQuantity(vendorIndex, selectedItem.CurrentStatus.AvailableQuantity);
 
+            NotifyVendorItemSold(selectedItem, SelectionCountCache);
             RefreshVendorDisplay();
         }
 

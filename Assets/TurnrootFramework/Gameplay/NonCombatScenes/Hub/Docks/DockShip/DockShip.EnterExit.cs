@@ -9,21 +9,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         public void NotifyShipVisited()
         {
-            NotifyVendorVisited(
-                () => TryGetComponent<DockShipUi>(out var ui) ? ui : null,
-                dockShipUi =>
-                {
-                    // Ensure stock quantities are initialized before rendering the vendor UI.
-                    // RefreshShipForNewDay is only called on date-change; on same-day re-entry
-                    // the quantities are still uninitialized unless we do this here.
-                    GameDate currentDate = _brain?.ltm?.GetGameDate() ?? default;
-                    InitializeStockIfNeeded(currentDate);
+            var currentDate = _brain?.ltm?.GetGameDate() ?? default;
+            if (currentDate != _lastVisitedDate)
+            {
+                _lastVisitedDate = currentDate;
+                IncreaseTrust(1.1f);
+                NotifyVendorVisited(
+                    () => TryGetComponent<DockShipUi>(out var ui) ? ui : null,
+                    dockShipUi =>
+                    {
+                        InitializeStockIfNeeded(currentDate);
 
-                    dockShipUi.MainOverlayUiFade?.Hide();
-                    dockShipUi.RefreshDockShipDisplay();
-                },
-                "DockShip"
-            );
+                        dockShipUi.MainOverlayUiFade?.Hide();
+                        dockShipUi.RefreshDockShipDisplay();
+                    },
+                    "DockShip"
+                );
+            }
         }
 
         public void NotifyShipExited()

@@ -56,10 +56,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         // ── Public API ───────────────────────────────────────────────────────
 
         /// <summary>
-        /// Returns the random welcome one-shot for <paramref name="character"/> in the given chapter.
-        /// Returns <c>default</c> if no dialogue is configured.
+        /// Returns a random one-shot of <paramref name="type"/> for <paramref name="character"/> in the given chapter.
+        /// Returns <c>default</c> if no matching dialogue is configured.
         /// </summary>
-        public OneShot GetRandomWelcomeOneShot(CharacterInstance character, int chapterNumber)
+        public OneShot GetRandomOneShotForType(
+            CharacterInstance character,
+            int chapterNumber,
+            HubCharacterOneShotType type
+        )
         {
             if (character == null || _audioBrain == null)
             {
@@ -79,7 +83,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 {
                     if (chapter.ChapterNumber == chapterNumber)
                     {
-                        dialogues = chapter.GetOneShotsForCharacter(characterData);
+                        dialogues = chapter.GetOneShotsForCharacter(characterData, type);
                         break;
                     }
                 }
@@ -92,6 +96,46 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
             var oneShots = _audioBrain.ConvertToOneShots(dialogues, characterData.DisplayName);
             return _audioBrain.GetRandomOneShot(oneShots);
+        }
+
+        /// <summary>Returns a random <see cref="HubCharacterOneShotType.StartInteraction"/> one-shot.</summary>
+        public OneShot GetRandomWelcomeOneShot(CharacterInstance character, int chapterNumber) =>
+            GetRandomOneShotForType(
+                character,
+                chapterNumber,
+                HubCharacterOneShotType.StartInteraction
+            );
+
+        /// <summary>Returns a random <see cref="HubCharacterOneShotType.EndInteraction"/> one-shot.</summary>
+        public OneShot GetRandomFarewellOneShot(CharacterInstance character, int chapterNumber) =>
+            GetRandomOneShotForType(
+                character,
+                chapterNumber,
+                HubCharacterOneShotType.EndInteraction
+            );
+
+        /// <summary>
+        /// Plays the farewell one-shot for the currently active character.
+        /// Returns <c>true</c> if a dialogue was found and played; the caller should wait for the
+        /// conversation to finish before calling <c>NotifyCharacterExited</c>.
+        /// </summary>
+        public bool TriggerFarewellOneShot(int chapterNumber)
+        {
+            var oneShot = GetRandomFarewellOneShot(_activeCharacter, chapterNumber);
+            if (string.IsNullOrWhiteSpace(oneShot.Dialogue))
+            {
+                return false;
+            }
+
+            var player = _audioBrain?.GetOrCreateOneShotPlayer();
+            if (player == null)
+            {
+                $"HubCharacterManager '{name}': Could not obtain OneShotPlayer for farewell dialogue.".LogWarning();
+                return false;
+            }
+
+            player.PlayOneShot(oneShot);
+            return true;
         }
 
         /// <summary>

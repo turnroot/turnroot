@@ -25,6 +25,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         /// </summary>
         public void HandleCharacterPoiSelection(HubPoiUi poi)
         {
+            $"SpecificUiHandler: Handling character POI selection for '{poi?.name}'.".LogInfo();
             var manager = GetHubCharacterManager();
             if (manager == null)
             {
@@ -53,6 +54,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 chapterNumber = hubManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
             }
 
+            $"SpecificUiHandler: Triggering welcome one-shot for character '{character.CharacterTemplate.DisplayName}' at chapter {chapterNumber}.".LogInfo();
+
             // Check welcome dialogue before triggering visited so we can set the wait flag first.
             var welcomeOneShot = manager.GetRandomWelcomeOneShot(character, chapterNumber);
             if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
@@ -73,10 +76,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void ShowCharacterInteractions()
         {
             _activeHubCharacter?.CharacterInteraction?.ShowActionsMenu();
+            hubManager?.BackButtonFade?.Show();
         }
 
         public void HandleCharacterBack(string action)
         {
+            if (_activeHubCharacter != null)
+            {
+                var chapterNumber = 0;
+                if (hubManager?._brain?.saveFileBrain != null)
+                {
+                    chapterNumber = hubManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
+                }
+
+                if (_activeHubCharacter.TriggerFarewellOneShot(chapterNumber))
+                {
+                    _waitingForShopExitDialogue = true;
+                    SubscribeToConversationFinished();
+                    return;
+                }
+            }
+
             CompleteExit();
         }
 

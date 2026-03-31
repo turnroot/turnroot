@@ -22,8 +22,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         protected override Brain.Brain BrainReference => ShopData.brain;
 
-        protected override void NotifyVendorItemSold(ShopItem itemSold)
+        protected override void NotifyVendorItemSold(ShopItem itemSold, int quantity)
         {
+            base.NotifyVendorItemSold(itemSold, quantity);
             ShopData.NotifyShopkeeperSells(itemSold);
         }
     }

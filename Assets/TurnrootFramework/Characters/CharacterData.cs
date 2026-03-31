@@ -513,7 +513,7 @@ namespace Turnroot.Characters
             "Experience/aptitude ranks for weapon types and other trainable skills (e.g., Riding, Flying)"
         )]
         [field: HideInInspector]
-        public List<ExperienceRank> ExperienceRanks { get; private set; } = new();
+        public List<ExperienceRank> ExperienceRanks { get; private set; } = new(); // TODO: Only showing one magic type
 
         // NOTE: properties are declared inline with field-targeted attributes.
 #if TURNROOT_BLOODLINES_MODULE
