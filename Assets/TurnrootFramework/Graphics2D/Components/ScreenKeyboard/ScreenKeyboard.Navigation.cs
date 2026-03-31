@@ -89,6 +89,34 @@ namespace Turnroot.Graphics2D
                     return; // Don't reset shift here
 
                 case "SUBMIT":
+                    if (numbersOnly && maximumNumber > 0)
+                    {
+                        if (int.TryParse(currentText, out int proposedNumber))
+                        {
+                            if (proposedNumber > maximumNumber)
+                            {
+                                // Reject this input - would exceed maximum
+                                // add feedback
+                                StartCoroutine(
+                                    FlashInvalidInput("Number must be <" + maximumNumber)
+                                );
+                                return;
+                            }
+                        }
+                    }
+
+                    if (currentText.Length == 0)
+                    {
+                        StartCoroutine(FlashInvalidInput());
+                        return;
+                    }
+
+                    if (currentText.Length >= 100)
+                    {
+                        StartCoroutine(FlashInvalidInput("Too long"));
+                        return;
+                    }
+
                     OnSubmit?.Invoke(currentText);
                     return;
 
@@ -129,17 +157,22 @@ namespace Turnroot.Graphics2D
             UpdateDisplay();
         }
 
-        private IEnumerator FlashInvalidInput()
+        private IEnumerator FlashInvalidInput(string msg = null)
         {
             foreach (var button in buttons)
             {
                 if (button != null && button.GetKeyValue() == "BACK")
                 {
-                    button.FlashInvalid();
+                    button.FlashInvalid(msg, this);
                 }
             }
 
             yield return null;
+        }
+
+        public void ResetDisplayText()
+        {
+            UpdateDisplay();
         }
 
         private void UpdateKeyboardCase()

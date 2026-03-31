@@ -10,7 +10,7 @@ namespace Turnroot.Graphics2D
 
         [Header("References")]
         [SerializeField]
-        private TextMeshProUGUI displayText;
+        public TextMeshProUGUI displayText;
 
         [SerializeField]
         private Transform keyboardContainer;

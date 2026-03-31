@@ -105,12 +105,17 @@ namespace Turnroot.Graphics2D
             }
         }
 
-        public void FlashInvalid()
+        public void FlashInvalid(string msg = null, ScreenKeyboard keyboard = null)
         {
+            if (keyboard != null)
+            {
+                keyboard.displayText.text = msg ?? "Invalid Input!";
+            }
             if (background != null)
             {
                 background.color = invalidColor;
                 Invoke(nameof(ResetColor), 0.25f);
+                keyboard?.Invoke(nameof(UpdateDisplay), 0.4f);
             }
         }
 
