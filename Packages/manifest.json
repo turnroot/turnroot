@@ -3,6 +3,7 @@
     "com.coffee.ui-effect": "https://github.com/mob-sakai/UIEffect.git?path=Packages/src",
     "com.dbrizov.naughtyattributes": "https://github.com/dbrizov/NaughtyAttributes.git#upm",
     "com.github.siccity.xnode": "https://github.com/siccity/xNode.git",
+    "com.needle.compilation-visualizer": "1.8.9",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.cinemachine": "3.1.5",
     "com.unity.formats.fbx": "5.1.5",
@@ -59,7 +60,8 @@
         "com.cysharp.unitask",
         "com.ges.tinyutilities",
         "com.siccity.xnode",
-        "com.wooshii.hierarchydecorator"
+        "com.wooshii.hierarchydecorator",
+        "com.needle.compilation-visualizer"
       ]
     }
   ]

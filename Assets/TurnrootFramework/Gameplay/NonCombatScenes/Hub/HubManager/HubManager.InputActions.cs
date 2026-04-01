@@ -176,7 +176,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void EndSettingsMenu()
+        private void EndSettingsMenu() // TODO: Back only works after a submenu, first back is ignored
         {
             if (!_settingsMenuOpen)
             {

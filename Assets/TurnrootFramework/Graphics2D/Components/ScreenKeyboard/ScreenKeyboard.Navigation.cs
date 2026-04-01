@@ -103,11 +103,16 @@ namespace Turnroot.Graphics2D
                                 return;
                             }
                         }
+                        else
+                        {
+                            StartCoroutine(FlashInvalidInput("Invalid number"));
+                            return;
+                        }
                     }
 
                     if (currentText.Length == 0)
                     {
-                        StartCoroutine(FlashInvalidInput());
+                        StartCoroutine(FlashInvalidInput("Cannot be empty"));
                         return;
                     }
 
@@ -137,7 +142,7 @@ namespace Turnroot.Graphics2D
                             {
                                 // Reject this input - would exceed maximum
                                 // add feedback
-                                StartCoroutine(FlashInvalidInput());
+                                StartCoroutine(FlashInvalidInput("Too large"));
                                 return;
                             }
                         }
@@ -161,7 +166,7 @@ namespace Turnroot.Graphics2D
         {
             foreach (var button in buttons)
             {
-                if (button != null && button.GetKeyValue() == "BACK")
+                if (button != null)
                 {
                     button.FlashInvalid(msg, this);
                 }
