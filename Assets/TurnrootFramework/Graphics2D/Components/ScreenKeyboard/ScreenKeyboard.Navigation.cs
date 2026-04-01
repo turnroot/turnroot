@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Turnroot.Graphics2D
@@ -87,6 +89,39 @@ namespace Turnroot.Graphics2D
                     return; // Don't reset shift here
 
                 case "SUBMIT":
+                    if (numbersOnly && maximumNumber > 0)
+                    {
+                        if (int.TryParse(currentText, out int proposedNumber))
+                        {
+                            if (proposedNumber > maximumNumber)
+                            {
+                                // Reject this input - would exceed maximum
+                                // add feedback
+                                StartCoroutine(
+                                    FlashInvalidInput("Number must be <" + maximumNumber)
+                                );
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            StartCoroutine(FlashInvalidInput("Invalid number"));
+                            return;
+                        }
+                    }
+
+                    if (currentText.Length == 0)
+                    {
+                        StartCoroutine(FlashInvalidInput("Cannot be empty"));
+                        return;
+                    }
+
+                    if (currentText.Length >= 100)
+                    {
+                        StartCoroutine(FlashInvalidInput("Too long"));
+                        return;
+                    }
+
                     OnSubmit?.Invoke(currentText);
                     return;
 
@@ -106,6 +141,8 @@ namespace Turnroot.Graphics2D
                             if (proposedNumber > maximumNumber)
                             {
                                 // Reject this input - would exceed maximum
+                                // add feedback
+                                StartCoroutine(FlashInvalidInput("Too large"));
                                 return;
                             }
                         }
@@ -122,6 +159,24 @@ namespace Turnroot.Graphics2D
                     break;
             }
 
+            UpdateDisplay();
+        }
+
+        private IEnumerator FlashInvalidInput(string msg = null)
+        {
+            foreach (var button in buttons)
+            {
+                if (button != null)
+                {
+                    button.FlashInvalid(msg, this);
+                }
+            }
+
+            yield return null;
+        }
+
+        public void ResetDisplayText()
+        {
             UpdateDisplay();
         }
 

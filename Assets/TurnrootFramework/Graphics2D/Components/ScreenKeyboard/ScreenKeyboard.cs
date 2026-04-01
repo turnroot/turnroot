@@ -10,7 +10,7 @@ namespace Turnroot.Graphics2D
 
         [Header("References")]
         [SerializeField]
-        private TextMeshProUGUI displayText;
+        public TextMeshProUGUI displayText;
 
         [SerializeField]
         private Transform keyboardContainer;
@@ -46,8 +46,6 @@ namespace Turnroot.Graphics2D
 
         [SerializeField]
         private Color pressedColor = new(0.3f, 0.5f, 0.9f);
-
-        // Keyboard layout (QWERTY style, similar to Switch)
         private static readonly string[][] keyboardLayout = new string[][]
         {
             new string[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
@@ -57,8 +55,6 @@ namespace Turnroot.Graphics2D
             new string[] { "SHIFT", "SPACE", "BACK" },
             new string[] { "SUBMIT" },
         };
-
-        // Number pad layout (numbers only mode) - 3x4 grid
         private static readonly string[][] numberPadLayout = new string[][]
         {
             new string[] { "1", "2", "3" },

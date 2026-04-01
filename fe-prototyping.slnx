@@ -24,6 +24,7 @@
   <Project Path="Unity.Postprocessing.Editor.csproj" />
   <Project Path="Unity.Splines.Editor.csproj" />
   <Project Path="Unity.PerformanceTesting.csproj" />
+  <Project Path="Needle.CompilationVisualizer.csproj" />
   <Project Path="XNodeEditor.csproj" />
   <Project Path="Unity.Burst.Editor.csproj" />
   <Project Path="Coffee.UIEffect.Editor.csproj" />
