@@ -68,6 +68,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (_context?.Brain != null)
             {
                 _context.Brain.OnUnitTurnEnded += HandleUnitTurnEnded;
+                _context.Brain.OnLastAttackerSet += HandleLastAttackerSet;
             }
         }
 
@@ -76,6 +77,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (_context?.Brain != null)
             {
                 _context.Brain.OnUnitTurnEnded -= HandleUnitTurnEnded;
+                _context.Brain.OnLastAttackerSet -= HandleLastAttackerSet;
             }
         }
 
@@ -91,6 +93,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 AllyDiedLastTurn = false;
                 LastAttackerThisTurn = null;
             }
+        }
+
+        private void HandleLastAttackerSet(CharacterInstance target, CharacterInstance attacker)
+        {
+            if (target == null || target != _context?.Unit?.UnitInstance)
+            {
+                return;
+            }
+
+            WasDamagedThisTurn = true;
+            LastAttackerThisTurn = attacker;
         }
 
         public OperationResult InitializeAIControlledUnit(CharacterInstance unitInstance)

@@ -363,6 +363,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            if (!gameObject.activeInHierarchy)
+            {
+                SetAlpha(target);
+                if (Mathf.Approximately(target, 0f) && poiVisual != null)
+                {
+                    poiVisual.SetActive(false);
+                }
+                return;
+            }
+
             float start = GetAlpha(_materialInstances[0]);
             _fadeCoroutine = StartCoroutine(FadeRoutine(start, target));
         }

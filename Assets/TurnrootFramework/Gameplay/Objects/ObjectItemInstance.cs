@@ -102,6 +102,17 @@ namespace Turnroot.Gameplay.Objects
             return remaining;
         }
 
+        /// <summary>Restores up to <paramref name="amount"/> uses on this item (clamped so uses never go below 0).</summary>
+        public void ReplenishUses(int amount)
+        {
+            if (_template == null || !_template.Durability || amount <= 0)
+            {
+                return;
+            }
+
+            currentUses = Mathf.Max(0, currentUses - amount);
+        }
+
         /// <summary>
         /// Validates whether this item can be transferred to a target inventory.
         /// Use for UI binding (e.g., enabling/disabling transfer buttons).

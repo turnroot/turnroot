@@ -3,8 +3,10 @@ using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
@@ -27,6 +29,7 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnItemBought += HandleItemBoughtEvent;
             Brain.OnItemSold += HandleItemSoldEvent;
             Brain.OnItemDiscarded += HandleItemDiscardedEvent;
+            Brain.OnBattleCompleted += HandleBattleCompleted;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -37,6 +40,66 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnItemBought -= HandleItemBoughtEvent;
             Brain.OnItemSold -= HandleItemSoldEvent;
             Brain.OnItemDiscarded -= HandleItemDiscardedEvent;
+            Brain.OnBattleCompleted -= HandleBattleCompleted;
+        }
+
+        private void HandleBattleCompleted(BattleExitType exitType)
+        {
+            if (exitType == BattleExitType.Defeat)
+            {
+                return;
+            }
+            var allUnits = Brain?.gamewideContextBrain?.GetAllActiveInstances();
+            if (allUnits == null)
+            {
+                return;
+            }
+
+            foreach (var character in allUnits)
+            {
+                var items = character?.InventoryInstance?.InventoryItems;
+                if (items == null)
+                {
+                    continue;
+                }
+
+                foreach (var item in items)
+                {
+                    if (item?.Template == null || !item.Template.ReplenishUsesAfterBattle)
+                    {
+                        continue;
+                    }
+
+                    int amount = GetReplenishAmount(item);
+                    if (amount > 0)
+                    {
+                        item.ReplenishUses(amount);
+                    }
+                }
+            }
+        }
+
+        private static int GetReplenishAmount(ObjectItemInstance item)
+        {
+            int maxUses = item.Template.MaxUses;
+            return item.Template.ReplenishUsesAfterBattleAmount switch
+            {
+                ReplenishUseType.Quarter => UnityEngine.Mathf.FloorToInt(maxUses * 0.25f),
+                ReplenishUseType.Third => UnityEngine.Mathf.FloorToInt(maxUses * 0.333f),
+                ReplenishUseType.Half => UnityEngine.Mathf.FloorToInt(maxUses * 0.5f),
+                ReplenishUseType.Full => maxUses,
+                ReplenishUseType.One => 1,
+                ReplenishUseType.Two => 2,
+                ReplenishUseType.Three => 3,
+                ReplenishUseType.Four => 4,
+                ReplenishUseType.Five => 5,
+                ReplenishUseType.Six => 6,
+                ReplenishUseType.Seven => 7,
+                ReplenishUseType.Eight => 8,
+                ReplenishUseType.Nine => 9,
+                ReplenishUseType.Ten => 10,
+                _ => 0,
+            };
         }
 
         private void HandleItemEquippedEvent(

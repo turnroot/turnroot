@@ -32,9 +32,6 @@ namespace Turnroot.Graphics2D
         private int maximumNumber = 0;
 
         [SerializeField]
-        private float buttonSpacing = 10f;
-
-        [SerializeField]
         private Vector2 buttonSize = new(80f, 80f);
 
         [Header("Visual Settings")]
