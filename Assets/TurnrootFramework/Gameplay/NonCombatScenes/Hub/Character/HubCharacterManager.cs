@@ -301,6 +301,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 anim.Play(Animator.StringToHash(TurnState), 0, 0f);
 
                 yield return new WaitForSeconds(turnClip.length);
+
+                // Restore idle animation after the turn clip finishes.
+                _brain?.unitAppearanceBrain?.SetupHubIdleAnimation(unitModel, character);
             }
             else
             {

@@ -80,13 +80,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         {
             SetUpActionsMenuChoices();
             ActionsMenuFade.Show();
-            InputProvider.OnInput += HandleInput;
         }
 
         public void HideActionsMenu()
         {
             ActionsMenuFade.Hide();
-            InputProvider.OnInput -= HandleInput;
         }
 
         public void SetUpActionsMenuChoices()
@@ -112,7 +110,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                         CharacterInteractionOptionType.Spa => CanGoToSpa,
                         CharacterInteractionOptionType.Dance => CanGoToDance,
                         CharacterInteractionOptionType.Gift => CanGiveGift(),
-                        CharacterInteractionOptionType.LostItem => CanTryLostItem,
+                        CharacterInteractionOptionType.LostItem => CanTryLostItem(),
                         CharacterInteractionOptionType.Support => CanSupport,
                         CharacterInteractionOptionType.Recruit => CanTryRecruit(),
                         _ => false,
@@ -164,7 +162,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         public bool CanGoToMeal;
         public bool CanGoToSpa;
         public bool CanGoToDance;
-        public bool CanTryLostItem;
+
+        public bool CanTryLostItem()
+        {
+            var storehouseBrain = CharacterManager._brain.storehouseBrain;
+            var items = storehouseBrain.GetStoredItems();
+            return items.Any(i =>
+                i?.Template != null && i.Template.Subtype == ObjectSubtype.LostItem
+            );
+        }
 
         public bool CanChat()
         {
