@@ -29,6 +29,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool _waitingForShopEntryDialogue;
         private bool _waitingForShopExitDialogue;
 
+        /// <summary>
+        /// Set by HubSublocationTutorialHandler when a first-visit tutorial is active.
+        /// Input is forwarded exclusively to the tutorial until it clears this reference.
+        /// </summary>
+        public HubSublocationTutorialHandler ActiveTutorialHandler { get; set; }
+
         // Stored reference so unsubscribe always targets the same object we subscribed to.
         private ConversationController _subscribedController;
 
@@ -140,6 +146,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleInput(string action)
         {
+            if (ActiveTutorialHandler != null)
+            {
+                ActiveTutorialHandler.HandleInput(action);
+                return;
+            }
+
             if (_waitingForShopEntryDialogue || _waitingForShopExitDialogue)
             {
                 if (

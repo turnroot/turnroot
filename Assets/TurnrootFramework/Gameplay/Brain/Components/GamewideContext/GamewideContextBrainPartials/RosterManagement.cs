@@ -154,6 +154,33 @@ namespace Turnroot.Gameplay.Brain
         }
         #endregion
 
+        /// <summary>
+        /// Returns the <see cref="CharacterInstance"/> whose <c>CharacterTemplate.Which</c> is
+        /// <see cref="Characters.Components.CharacterWhich.AVATAR"/> from the persistent player
+        /// roster, creating/recalling the roster if it is not yet loaded.
+        /// Returns <c>null</c> and logs a warning when no avatar entry is found.
+        /// </summary>
+        public CharacterInstance GetOrCreateAvatarInstance()
+        {
+            var rosterInstance = GetPersistentPlayerTeamRosterInstance();
+            if (rosterInstance == null)
+            {
+                "GamewideContextBrain.GetOrCreateAvatarInstance: no persistent player roster available.".LogWarning();
+                return null;
+            }
+
+            var avatar = rosterInstance.Instances.FirstOrDefault(i =>
+                i?.CharacterTemplate != null && !i.CharacterTemplate.IsNotAvatar
+            );
+
+            if (avatar == null)
+            {
+                "GamewideContextBrain.GetOrCreateAvatarInstance: no Avatar character found in persistent player roster.".LogWarning();
+            }
+
+            return avatar;
+        }
+
         #region Character Management API
         public CharacterInstance FindInstanceByTemplate(CharacterData template) =>
             _rosterManager.FindInstanceByTemplate(template);

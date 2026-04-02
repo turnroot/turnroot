@@ -195,10 +195,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 _avatarModel = null;
             }
 
-            var model = _brain.unitAppearanceBrain?.CreateModelForUnit(character);
+            var avatarInstance = _brain.gamewideContextBrain?.GetOrCreateAvatarInstance();
+            if (avatarInstance == null)
+            {
+                $"HubCharacterManager '{name}': Could not find Avatar character instance in persistent roster.".LogWarning();
+                return;
+            }
+
+            var model = _brain.unitAppearanceBrain?.CreateModelForUnit(avatarInstance);
             if (model == null)
             {
-                $"HubCharacterManager '{name}': Failed to create avatar model for {character.CharacterTemplate?.DisplayName}.".LogWarning();
+                $"HubCharacterManager '{name}': Failed to create avatar model for {avatarInstance.CharacterTemplate?.DisplayName}.".LogWarning();
                 return;
             }
 
@@ -208,7 +215,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             );
             model.transform.SetParent(_activeAvatarPoint, worldPositionStays: true);
 
-            _brain.unitAppearanceBrain.SetupHubIdleAnimation(model, character);
+            _brain.unitAppearanceBrain.SetupHubIdleAnimation(model, avatarInstance);
             _avatarModel = model;
         }
 
