@@ -14,6 +14,7 @@ using Turnroot.GameSettings;
 using Turnroot.Skills;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Turnroot.Characters
 {
@@ -110,8 +111,10 @@ namespace Turnroot.Characters
         ]
         public float RecruitmentChanceIncreasePerConversation { get; private set; } = 15f;
 
-        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowUnique))]
-        public bool IsUnique { get; private set; } = false;
+        [SerializeField, Foldout("Character Flags"), ShowIf(nameof(CanShowUnique))]
+        [FormerlySerializedAs("<IsUnique>k__BackingField")]
+        private bool _isUnique = false;
+        public bool IsUnique => Which == CharacterWhich.AVATAR || _isUnique;
 
         [field: Foldout("Class and Skills"), HorizontalLine(color: EColor.Yellow), SerializeField]
         public CharacterClassData StartingClass { get; private set; }
