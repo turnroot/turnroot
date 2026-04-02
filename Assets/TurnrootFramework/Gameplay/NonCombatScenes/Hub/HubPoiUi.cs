@@ -19,6 +19,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         Library,
         Recruitment,
         DanceHall,
+        Spa,
     }
 
     [RequireComponent(typeof(Collider))]
@@ -43,6 +44,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Library _library;
         private Recruitment _recruitment;
         private DanceHall _dancehall;
+
+        private Spa _spa;
 
         [InfoBox(
             "The root GameObject that contains all visual elements for the POI (icon, badge, etc.)."
@@ -360,6 +363,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_materialInstances == null || _materialInstances.Length == 0)
             {
+                return;
+            }
+
+            if (!gameObject.activeInHierarchy)
+            {
+                SetAlpha(target);
+                if (Mathf.Approximately(target, 0f) && poiVisual != null)
+                {
+                    poiVisual.SetActive(false);
+                }
                 return;
             }
 

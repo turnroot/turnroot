@@ -8,6 +8,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleInput(string action)
         {
+            if (SpecificUiInputHandler.ActiveTutorialHandler != null)
+            {
+                SpecificUiInputHandler.HandleInput(action);
+                return;
+            }
+
             switch (CurrentInputMode)
             {
                 case HubInputMode.Location:

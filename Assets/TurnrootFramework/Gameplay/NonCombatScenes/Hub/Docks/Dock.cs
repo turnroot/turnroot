@@ -91,7 +91,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
             int totalCapacity = MaxDockedShipsPerSide * 2;
             int totalDocked = _leftDockedShips.Count + _rightDockedShips.Count;
-            $"Dock: capacity check — {totalDocked} docked, max {totalCapacity} total.".LogInfo();
             if (totalDocked <= totalCapacity)
             {
                 return;

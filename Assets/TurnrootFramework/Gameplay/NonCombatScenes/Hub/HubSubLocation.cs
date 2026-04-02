@@ -29,6 +29,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public GameObject tutorialPrefab;
 
         private bool acceptingInput = false;
+        private bool _tutorialActive = false;
         public Transform cameraPoint;
 
         [HideInInspector]
@@ -64,7 +65,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (tutorialPrefab != null)
                 {
                     Instantiate(tutorialPrefab);
+                    tutorialPrefab.SetActive(true);
                     acceptingInput = false;
+                    _tutorialActive = true;
                 }
                 else
                 {
@@ -87,8 +90,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleOnHubSublocationTutorialCompleted()
         {
+            if (!_tutorialActive)
+            {
+                return;
+            }
+
+            _tutorialActive = false;
             acceptingInput = true;
-            HasBeenVisitedEver = true;
         }
 
         public void Initialize(Brain.Brain brain)
@@ -165,7 +173,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void OnFadeHidden()
         {
             FadeToBlack.OnHidden.RemoveListener(OnFadeHidden);
-            acceptingInput = true;
+            if (!_tutorialActive)
+            {
+                acceptingInput = true;
+            }
         }
 
         private HubInputMode GetSublocationChoiceMode()

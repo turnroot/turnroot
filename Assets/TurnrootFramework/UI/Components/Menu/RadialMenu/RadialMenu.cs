@@ -106,7 +106,7 @@ namespace Turnroot.UI.Components.RadialMenu
                 showFadeTime = 0.75f;
                 joystickDeadzone = 0.3f;
                 navigationInitialDelay = 0.4f;
-                navigationRepeatDelay = 0.08f;
+                navigationRepeatDelay = inputRepeatDelay;
                 menuRadiusPixels = 800f;
             }
 

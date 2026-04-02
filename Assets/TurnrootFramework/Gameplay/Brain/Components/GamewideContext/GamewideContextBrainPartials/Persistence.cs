@@ -38,6 +38,24 @@ namespace Turnroot.Gameplay.Brain
                     _activeRosterInstances[cacheKey] = instance;
                 }
             }
+            else
+            {
+                // No saved data yet — create a fresh runtime instance so systems like SpawnAvatarModel
+                // can find the player roster without triggering a misleading "roster is NULL" log.
+                var freshResult = _rosterManager?.InstantiatePlayerTeamRoster(
+                    GamewidePersistentPlayerRoster
+                );
+                if (
+                    freshResult.HasValue
+                    && freshResult.Value.Success
+                    && freshResult.Value.Value != null
+                )
+                {
+                    _activeRosterInstances[GamewidePersistentPlayerRoster.Id] = freshResult
+                        .Value
+                        .Value;
+                }
+            }
 
             return GamewidePersistentPlayerRoster;
         }

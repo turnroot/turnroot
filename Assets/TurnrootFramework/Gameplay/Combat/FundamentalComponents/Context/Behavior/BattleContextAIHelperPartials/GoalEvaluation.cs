@@ -104,6 +104,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 );
             }
 
+            // Retaliation drive: brash or bloodthirsty units become more aggressive toward their attacker
+            if (LastAttackerThisTurn != null && (BrashWary <= 0.4f || BloodthirstGreed <= 0.4f))
+            {
+                modifiedBehavior.BloodthirstGreed = Mathf.Max(0f, BloodthirstGreed - 0.25f);
+                PublishUnitEmotion(CharacterInstance.BattleEmotion.Enraged);
+            }
+
             // If a brash unit got a kill last turn, they become more bloodthirsty and slightly more careless
             if (_context.Unit.UnitInstance.LastTurnKilledEnemy && BrashWary >= 0.5f)
             {

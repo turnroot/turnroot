@@ -85,6 +85,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
+                // don't ever spawn avatar
+                if (unit.CharacterData != null && !unit.CharacterData.IsNotAvatar)
+                {
+                    continue;
+                }
+
                 if (!placementMap.TryGetValue(i, out var desiredLocation))
                 {
                     desiredLocation = PickRandomValidLocation(subLocations, maxPerLocation);

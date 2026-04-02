@@ -110,8 +110,6 @@ namespace Turnroot.Utilities.Weather
             }
         }
 
-        private float _lastNightTintLogTime = -Mathf.Infinity;
-
         private float _targetNightFactor = -1f;
         private float _appliedNightFactor = -1f;
         private float _nightTintLerpStartTime = -Mathf.Infinity;
@@ -318,7 +316,9 @@ namespace Turnroot.Utilities.Weather
             if (!wrapsMidnight)
             {
                 // Straight interval: night is between start and end
-                return timeOfDay < start || timeOfDay > end ? 0f : Mathf.InverseLerp(start, end, timeOfDay);
+                return timeOfDay < start || timeOfDay > end
+                    ? 0f
+                    : Mathf.InverseLerp(start, end, timeOfDay);
             }
 
             // Wraps past midnight: use two segments (start..24 and 0..end)
@@ -350,8 +350,12 @@ namespace Turnroot.Utilities.Weather
             float tSunrise = 0f;
             bool overcast = CurrentWeatherType != WeatherType.Sunny;
 
-            // Update night tint based on time of day
-            UpdateNightTint(tNight);
+            // Update night tint based on time of day — only when the factor changes meaningfully.
+            if (Mathf.Abs(tNight - _lastNightFactor) >= 0.01f)
+            {
+                UpdateNightTint(tNight);
+                _lastNightFactor = tNight;
+            }
             ApplyNightTintLerp();
 
             Color nightShallow = WaterShallowMidnight;

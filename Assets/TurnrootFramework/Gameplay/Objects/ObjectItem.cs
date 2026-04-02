@@ -194,6 +194,9 @@ namespace Turnroot.Gameplay.Objects
         ]
         private ReplenishUseType _replenishUsesAfterBattleAmount = ReplenishUseType.None;
 
+        public bool ReplenishUsesAfterBattle => _replenishUsesAfterBattle;
+        public ReplenishUseType ReplenishUsesAfterBattleAmount => _replenishUsesAfterBattleAmount;
+
         // Public getters for effectiveness criteria
         [field: Foldout("Combat"), SerializeField, ShowIf(nameof(IsCombatSectionVisible))]
         public SpeciesType[] SpeciesEffectiveAgainst { get; set; } = new SpeciesType[0];

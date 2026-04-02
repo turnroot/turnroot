@@ -40,7 +40,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            // Avoid re-activating the same character if already open.
+            // Avoid re-activating the same character if already open
             if (manager.ActiveCharacter == character)
             {
                 return;
@@ -56,7 +56,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             $"SpecificUiHandler: Triggering welcome one-shot for character '{character.CharacterTemplate.DisplayName}' at chapter {chapterNumber}.".LogInfo();
 
-            // Check welcome dialogue before triggering visited so we can set the wait flag first.
+            // Check welcome dialogue before triggering visited so we can set the wait flag first
             var welcomeOneShot = manager.GetRandomWelcomeOneShot(character, chapterNumber);
             if (!string.IsNullOrWhiteSpace(welcomeOneShot.Dialogue))
             {
@@ -72,7 +72,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        /// <summary>Show the actions menu via the active HubCharacterManager's interaction component.</summary>
         public void ShowCharacterInteractions()
         {
             _activeHubCharacter?.CharacterInteraction?.ShowActionsMenu();
@@ -102,22 +101,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleCharacterSelection(string action)
         {
-            // Forward to HubCharacterInteraction when implemented.
+            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
         }
 
         public void HandleCharacterUpDown(string action)
         {
-            // Forward to HubCharacterInteraction when implemented.
+            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
         }
 
         public void HandleCharacterLeftRight(string action)
         {
-            // Forward to HubCharacterInteraction when implemented.
-        }
-
-        public void HandleCharacterPageChange(string action)
-        {
-            // Forward to HubCharacterInteraction when implemented.
+            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
         }
     }
 }

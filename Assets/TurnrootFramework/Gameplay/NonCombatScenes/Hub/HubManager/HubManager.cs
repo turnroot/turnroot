@@ -184,6 +184,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             void DoReturnToHub()
             {
+                // Hide  POIs
+                if (CurrentSubLocation != null)
+                {
+                    foreach (var poi in CurrentSubLocation.GetComponentsInChildren<HubPoiUi>())
+                    {
+                        poi.Hide();
+                    }
+                }
+
                 SetInputMode(HubInputMode.Location);
                 UpdateChoiceSelection();
                 UpdateDateText();

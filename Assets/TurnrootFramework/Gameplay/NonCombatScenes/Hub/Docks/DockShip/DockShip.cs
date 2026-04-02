@@ -291,8 +291,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _currentAtSeaTime = 0;
             _daysToStayAtSea = HubDayRandom.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
 
-            $"Dock: '{ShipName}' sent to sea (at sea for {_daysToStayAtSea} days).".LogInfo();
-
             if (Ship != null)
             {
                 Ship.SetActive(false);
@@ -325,7 +323,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
                 if (_currentAtSeaTime >= _daysToStayAtSea)
                 {
-                    int days = _daysToStayAtSea;
                     _isAtSea = false;
                     IsDocked = true;
                     _currentAtSeaTime = 0;

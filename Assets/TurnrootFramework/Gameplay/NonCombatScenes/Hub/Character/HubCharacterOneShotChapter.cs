@@ -1,5 +1,4 @@
 using System;
-using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using UnityEngine;
@@ -16,6 +15,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         GetLostItemNotMine,
         RecruitFail,
         RecruitSucceed,
+        ChitChat,
     }
 
     /// <summary>
