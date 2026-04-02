@@ -530,7 +530,9 @@ namespace Turnroot.Characters
         private bool CanShowSSupportAvatar() => Which != CharacterWhich.AVATAR;
 
         private bool CanShowRecruitable() =>
-            Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
+            Which == CharacterWhich.ENEMY
+            || Which == CharacterWhich.NPC
+            || Which == CharacterWhich.ALLY;
 
         private bool CanShowUnique() => Which != CharacterWhich.AVATAR;
 
@@ -543,7 +545,7 @@ namespace Turnroot.Characters
         // then later made unique)
         private bool ShowClassProgressionFields() => UseClassProgressionLadder && !IsUnique;
 
-        private bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
+        public bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
 
         private bool IsRecruitableRequiresMinSupportLevel() =>
             IsRecruitable && RequiresMinSupportLevel;

@@ -237,10 +237,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     HandleDockShopPageChange(action);
                 }
-                else if (_currentType == HubSublocationName.Unit)
-                {
-                    HandleCharacterPageChange(action);
-                }
             }
         }
 

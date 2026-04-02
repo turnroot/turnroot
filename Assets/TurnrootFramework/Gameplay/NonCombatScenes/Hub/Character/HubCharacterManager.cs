@@ -34,7 +34,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private GameObject _avatarModel;
         private Transform _activeAvatarPoint;
 
-        private Brain.Brain _brain;
+        [HideInInspector]
+        public Brain.Brain _brain;
         private AudioBrain _audioBrain;
 
         private Coroutine _turnCoroutine;
