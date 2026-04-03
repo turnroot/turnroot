@@ -13,9 +13,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         {
             SetUpActionsMenuChoices();
             ActionsMenuFade.Show();
+            BackButtonFade?.Show();
         }
 
-        public void HideActionsMenu() => ActionsMenuFade.Hide();
+        public void HideActionsMenu()
+        {
+            ActionsMenuFade.Hide();
+            BackButtonFade?.Hide();
+        }
 
         public void SetUpActionsMenuChoices()
         {
