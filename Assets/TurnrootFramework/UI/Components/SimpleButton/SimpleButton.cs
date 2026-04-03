@@ -194,15 +194,9 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private void Awake() => _uiSettings = GamewideUiSettings.Instance;
 
-        private void OnEnable()
-        {
-            SubscribeToSelectAction();
-        }
+        private void OnEnable() => SubscribeToSelectAction();
 
-        private void OnDisable()
-        {
-            UnsubscribeFromSelectAction();
-        }
+        private void OnDisable() => UnsubscribeFromSelectAction();
 
         private void OnSelectActionPerformed(InputAction.CallbackContext context)
         {

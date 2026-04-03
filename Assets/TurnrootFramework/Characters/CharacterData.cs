@@ -5,7 +5,6 @@ using NaughtyAttributes;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Behavior;
-using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.CommonAncestors;
@@ -211,10 +210,7 @@ namespace Turnroot.Characters
                 && _portraitLookupCache.TryGetValue(key, out portrait);
         }
 
-        public Portrait GetPortrait(string key)
-        {
-            return TryGetPortrait(key, out var p) ? p : null;
-        }
+        public Portrait GetPortrait(string key) => TryGetPortrait(key, out var p) ? p : null;
 
         public string[] GetPortraitKeys() =>
             Portraits?.Select(p => p.Key).Where(k => !string.IsNullOrEmpty(k)).ToArray()

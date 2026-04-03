@@ -71,6 +71,8 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnItemEquipped += HandleItemEquipped;
             _brain.OnItemUnequipped += HandleItemUnequipped;
             _brain.OnStateChanged += HandleStateChanged;
+            _brain.OnHubCharacterInteracted += HandleHubCharacterInteracted;
+            _brain.OnHubCharacterTalked += HandleHubCharacterTalked;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -86,6 +88,8 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnItemEquipped -= HandleItemEquipped;
             _brain.OnItemUnequipped -= HandleItemUnequipped;
             _brain.OnStateChanged -= HandleStateChanged;
+            _brain.OnHubCharacterInteracted -= HandleHubCharacterInteracted;
+            _brain.OnHubCharacterTalked -= HandleHubCharacterTalked;
         }
         #endregion
 

@@ -36,10 +36,7 @@ namespace Turnroot.Gameplay.Objects
 
         private int currentUses;
 
-        internal void SetOwnerInventory(CharacterInventoryInstance owner)
-        {
-            _ownerInventory = owner;
-        }
+        internal void SetOwnerInventory(CharacterInventoryInstance owner) => _ownerInventory = owner;
 
         internal void ClearOwnerInventory()
         {

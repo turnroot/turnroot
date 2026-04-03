@@ -146,10 +146,7 @@ namespace Turnroot.Utilities
             }
         }
 
-        private void OnCameraTransformChanged(Transform cam)
-        {
-            UpdatePosition();
-        }
+        private void OnCameraTransformChanged(Transform cam) => UpdatePosition();
 
         private void UpdatePosition()
         {

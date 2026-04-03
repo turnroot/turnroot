@@ -6,10 +6,7 @@ namespace Turnroot.Utilities.Weather
     {
         #region Audio
 
-        private AudioClip PickRandomClip(AudioClip[] clips)
-        {
-            return clips == null || clips.Length == 0 ? null : clips[Random.Range(0, clips.Length)];
-        }
+        private AudioClip PickRandomClip(AudioClip[] clips) => clips == null || clips.Length == 0 ? null : clips[Random.Range(0, clips.Length)];
 
         private void UpdateAmbientAudio()
         {

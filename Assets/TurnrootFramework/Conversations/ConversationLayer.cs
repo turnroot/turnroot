@@ -149,10 +149,7 @@ namespace Turnroot.Conversations
         /// <summary>
         /// Overrides the cached portrait sprite used for the primary speaker (used in one-shot playback).
         /// </summary>
-        public void SetPrimaryPortraitSprite(Sprite sprite)
-        {
-            _primary.CachedSprite = sprite;
-        }
+        public void SetPrimaryPortraitSprite(Sprite sprite) => _primary.CachedSprite = sprite;
 
         public string SecondarySpeakerDisplayName
         {
@@ -218,10 +215,7 @@ namespace Turnroot.Conversations
             }
         }
 
-        private Portrait GetPortrait(CharacterData speaker, string portraitKey)
-        {
-            return speaker != null && portraitKey != null ? speaker.GetPortrait(portraitKey) : null;
-        }
+        private Portrait GetPortrait(CharacterData speaker, string portraitKey) => speaker != null && portraitKey != null ? speaker.GetPortrait(portraitKey) : null;
 
         // Active speaker helpers
         public ActiveSpeakerType ActiveSpeaker

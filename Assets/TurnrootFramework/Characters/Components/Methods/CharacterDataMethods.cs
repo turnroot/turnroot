@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
-using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.GameSettings;

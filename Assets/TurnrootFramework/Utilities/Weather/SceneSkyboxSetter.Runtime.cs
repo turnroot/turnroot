@@ -91,10 +91,7 @@ namespace Turnroot.Utilities.Weather
             return new Vector3(xRot, yRot, DirectionalLightRotation.z);
         }
 
-        public void SetSkybox(WeatherType weatherType)
-        {
-            SetSkybox(weatherType, null);
-        }
+        public void SetSkybox(WeatherType weatherType) => SetSkybox(weatherType, null);
 
         public void SetSkybox(WeatherType weatherType, int? forcedIndex)
         {

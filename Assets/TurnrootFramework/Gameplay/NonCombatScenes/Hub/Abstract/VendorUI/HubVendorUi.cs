@@ -66,17 +66,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
         protected List<UiChoice> itemChoices;
         protected List<int> itemChoiceToVendorIndex;
 
-        protected virtual void Awake()
-        {
-            brain = BrainReference ?? Vendor?.brain ?? FindFirstObjectByType<Brain.Brain>();
-        }
+        protected virtual void Awake() => brain = BrainReference ?? Vendor?.brain ?? FindFirstObjectByType<Brain.Brain>();
 
         protected virtual void NotifyVendorItemSold(ShopItem itemSold) { }
 
-        protected virtual void NotifyVendorItemSold(ShopItem itemSold, int quantity)
-        {
-            NotifyVendorItemSold(itemSold);
-        }
+        protected virtual void NotifyVendorItemSold(ShopItem itemSold, int quantity) => NotifyVendorItemSold(itemSold);
 
         protected virtual void PersistItemQuantity(int vendorIndex, int quantity)
         {

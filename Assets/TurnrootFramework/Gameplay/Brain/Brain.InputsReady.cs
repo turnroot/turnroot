@@ -12,9 +12,6 @@ namespace Turnroot.Gameplay.Brain
         /// <summary>
         /// Notify listeners that input actions are ready.
         /// </summary>
-        public void NotifyInputsReady()
-        {
-            OnInputsReady?.Invoke();
-        }
+        public void NotifyInputsReady() => OnInputsReady?.Invoke();
     }
 }

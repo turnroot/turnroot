@@ -1,4 +1,5 @@
 using System;
+using Turnroot.Characters;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
 
 namespace Turnroot.Gameplay.Brain
@@ -26,6 +27,16 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public event Action<HubManager.HubInputMode> OnHubSublocationInputModeChange;
 
+        /// <summary>
+        /// Fired when the avatar begins interacting with a hub character (on visit, before welcome dialogue).
+        /// </summary>
+        public event Action<CharacterInstance> OnHubCharacterInteracted;
+
+        /// <summary>
+        /// Fired when the avatar completes a ChitChat talk interaction with a hub character.
+        /// </summary>
+        public event Action<CharacterInstance> OnHubCharacterTalked;
+
         public void PublishHubSublocationVisited(HubSublocationName name) =>
             OnHubSublocationVisited?.Invoke(name);
 
@@ -34,5 +45,11 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishHubSublocationInputModeChange(HubManager.HubInputMode mode) =>
             OnHubSublocationInputModeChange?.Invoke(mode);
+
+        public void PublishHubCharacterInteracted(CharacterInstance character) =>
+            OnHubCharacterInteracted?.Invoke(character);
+
+        public void PublishHubCharacterTalked(CharacterInstance character) =>
+            OnHubCharacterTalked?.Invoke(character);
     }
 }

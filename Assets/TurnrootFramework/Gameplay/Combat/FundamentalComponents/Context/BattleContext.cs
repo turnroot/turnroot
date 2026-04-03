@@ -30,10 +30,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         public BattleContextAIHelper AIHelper { get; private set; }
         public UI.Components.BattleOverlayManager OverlayManager { get; private set; }
 
-        private void OnDestroy()
-        {
-            AIHelper?.Cleanup();
-        }
+        private void OnDestroy() => AIHelper?.Cleanup();
 
         /// <summary>
         /// Initialize the BattleContext with required dependencies. Throws if brain is null.

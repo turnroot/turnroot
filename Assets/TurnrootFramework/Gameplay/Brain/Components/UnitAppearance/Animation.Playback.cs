@@ -9,7 +9,7 @@ namespace Turnroot.Gameplay.Brain
     {
         private IEnumerator IdleVariationRoutine(Animator animator, AnimationClip[] idleClips)
         {
-            if (idleClips == null || idleClips.Length <= 1)
+            if (idleClips == null || idleClips.Length == 0)
             {
                 yield break;
             }
@@ -24,37 +24,46 @@ namespace Turnroot.Gameplay.Brain
                 float waitTime = Mathf.Max(0f, clipLength - (ANIMATION_BLEND_DURATION * 2f));
                 yield return new WaitForSeconds(waitTime);
 
-                // choose a different clip (allow repeats if random picks same)
-                int nextIndex = Random.Range(0, idleClips.Length);
+                if (animator == null || !animator.gameObject.activeInHierarchy)
+                {
+                    yield break;
+                }
+
+                // With a single clip, re-use it to keep looping; otherwise pick randomly.
+                int nextIndex = idleClips.Length > 1 ? Random.Range(0, idleClips.Length) : 0;
                 AnimationClip nextClip = idleClips[nextIndex];
-                if (nextClip == null || nextClip == currentClip)
+                if (nextClip == null)
                 {
                     continue;
                 }
 
-                float normalizedTime = 0f;
-                if (animator != null && animator.gameObject.activeInHierarchy)
+                var state = animator.GetCurrentAnimatorStateInfo(0);
+                float normalizedTime = state.normalizedTime % 1f;
+
+                if (nextClip != currentClip)
                 {
-                    var state = animator.GetCurrentAnimatorStateInfo(0);
-                    normalizedTime = state.normalizedTime % 1f;
+                    yield return BlendClips(
+                        animator,
+                        currentClip,
+                        nextClip,
+                        ANIMATION_BLEND_DURATION,
+                        normalizedTime
+                    );
+
+                    if (animator.runtimeAnimatorController is AnimatorOverrideController oc)
+                    {
+                        oc[IdleState] = nextClip;
+                    }
+                    animator.Play(IdleHash, 0, normalizedTime);
+
+                    currentIndex = nextIndex;
+                    currentClip = nextClip;
                 }
-
-                yield return BlendClips(
-                    animator,
-                    currentClip,
-                    nextClip,
-                    ANIMATION_BLEND_DURATION,
-                    normalizedTime
-                );
-
-                if (animator.runtimeAnimatorController is AnimatorOverrideController oc)
+                else
                 {
-                    oc[IdleState] = nextClip;
+                    // Same clip (or only one available): replay from the start to keep it looping.
+                    animator.Play(IdleHash, 0, 0f);
                 }
-                animator.Play(IdleHash, 0, normalizedTime);
-
-                currentIndex = nextIndex;
-                currentClip = nextClip;
             }
         }
 

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Subclasses;
-using Turnroot.CommonAncestors;
-using Turnroot.GameSettings;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 

@@ -174,10 +174,7 @@ namespace Turnroot.Graphics2D
             yield return null;
         }
 
-        public void ResetDisplayText()
-        {
-            UpdateDisplay();
-        }
+        public void ResetDisplayText() => UpdateDisplay();
 
         private void UpdateKeyboardCase()
         {

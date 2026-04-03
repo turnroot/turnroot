@@ -60,10 +60,7 @@ namespace Turnroot.Gameplay.Brain
         /// Returns the currently stored game date.  Falls back to the starting date
         /// from settings if memory isn't ready or no date is stored yet.
         /// </summary>
-        public GameDate GetCurrentGameDate()
-        {
-            return _ltm != null && _ltm.Initialized ? _ltm.GetGameDate() : GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
-        }
+        public GameDate GetCurrentGameDate() => _ltm != null && _ltm.Initialized ? _ltm.GetGameDate() : GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
 
         #endregion
 

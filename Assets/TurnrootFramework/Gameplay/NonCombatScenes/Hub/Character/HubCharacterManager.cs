@@ -156,6 +156,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             SpawnAvatarModel(character);
             BeginUnitTurn(character);
             PlayWelcomeOneShot(character, chapterNumber);
+            _brain?.PublishHubCharacterInteracted(character);
         }
 
         /// <summary>
@@ -323,7 +324,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 }
             }
 
-            unitModel.transform.rotation = targetRotation;
+            // Enforce Y-axis-only rotation — no X or Z tilt.
+            unitModel.transform.rotation = Quaternion.Euler(0f, targetRotation.eulerAngles.y, 0f);
             _turnCoroutine = null;
         }
     }
