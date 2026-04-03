@@ -239,6 +239,12 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
+            json = Brain.DecodeString(json);
+            if (string.IsNullOrEmpty(json))
+            {
+                return false;
+            }
+
             var dto = JsonUtility.FromJson<StatDto>(json);
             if (dto == null)
             {
@@ -304,7 +310,7 @@ namespace Turnroot.Gameplay.Brain
             };
             _ltm.Remember(
                 $"DefaultStat/Template/{templateFullName}/Bounded/{type}",
-                JsonUtility.ToJson(dto)
+                Brain.EncodeString(JsonUtility.ToJson(dto))
             );
         }
 

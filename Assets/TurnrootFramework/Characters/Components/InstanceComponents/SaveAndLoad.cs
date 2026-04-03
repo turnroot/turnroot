@@ -79,7 +79,14 @@ namespace Turnroot.Characters
 
                 if (string.IsNullOrEmpty(json))
                 {
-                    HandleNoExistingEntry(ltm, key, runtimeDto);
+                    HandleNoExistingEntry(ltm, key, runtimeDto, brain);
+                    return;
+                }
+
+                json = brain.DecodeString(json);
+                if (string.IsNullOrEmpty(json))
+                {
+                    HandleNoExistingEntry(ltm, key, runtimeDto, brain);
                     return;
                 }
 
@@ -87,14 +94,14 @@ namespace Turnroot.Characters
                 if (existingDto == null)
                 {
                     // Nothing valid in LTM; initialize from runtime
-                    ltm.Remember(key, JsonUtility.ToJson(runtimeDto));
+                    ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(runtimeDto)));
                     existingDto = runtimeDto;
                 }
 
                 var mergedDto = MergeWithRequiredStats(existingDto, runtimeDto, out var changed);
                 if (changed)
                 {
-                    ltm.Remember(key, JsonUtility.ToJson(mergedDto));
+                    ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(mergedDto)));
                 }
 
                 EnsureRuntimeContains(mergedDto);
@@ -159,12 +166,13 @@ namespace Turnroot.Characters
         private void HandleNoExistingEntry(
             LongTermMemory ltm,
             string key,
-            CharacterInstanceStatsDto runtimeDto
+            CharacterInstanceStatsDto runtimeDto,
+            Brain brain
         )
         {
             if (_characterTemplate?.IsUnique == true)
             {
-                var toSave = JsonUtility.ToJson(runtimeDto);
+                var toSave = brain.EncodeString(JsonUtility.ToJson(runtimeDto));
                 ltm.Remember(key, toSave);
                 return;
             }

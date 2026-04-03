@@ -12,7 +12,15 @@ namespace Turnroot.Gameplay.Brain
 {
     /// <summary>
     /// Manages shared storage (convoy/storehouse) for items and materials.
-    /// Handles item deposits, withdrawals, and material management for repairs/forging.
+    ///
+    /// Two parallel collections track different item kinds:
+    /// - <see cref="_materials"/>: stackable/generic quantities, keyed by <see cref="ObjectItem"/> template.
+    ///   Written by <see cref="AddMaterials"/> (vendor purchases, crafting drops, etc.).
+    ///   Used for quantity checks like repair costs and gift availability.
+    /// - <see cref="_storedItems"/>: unique <see cref="ObjectItemInstance"/> objects with individual
+    ///   state (durability, InstanceID, owner). Written by <see cref="DepositItem"/> when a character
+    ///   stows a specific owned item so it can be withdrawn and assigned later intact.
+    ///   Also writes a corresponding count into <see cref="_materials"/> so both collections stay in sync.
     /// </summary>
     [RequireComponent(typeof(Brain))]
     [RequireComponent(typeof(LongTermMemory))]
@@ -69,7 +77,12 @@ namespace Turnroot.Gameplay.Brain
 
         private LongTermMemory _ltm;
 
+        // Stackable/generic item counts keyed by template. Covers all items added via AddMaterials
+        // (shop purchases, quest rewards, etc.) and is kept in sync when items are deposited/withdrawn.
         private Dictionary<ObjectItem, int> _materials = new();
+
+        // Unique item instances with per-item state (durability, InstanceID). Only populated via
+        // DepositItem — use GetStoredItems() when you need to withdraw or inspect a specific instance.
         private List<ObjectItemInstance> _storedItems = new();
 
         [HideInInspector]

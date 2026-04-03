@@ -1,5 +1,6 @@
 using System.Linq;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.NonCombatScenes.Hub;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -122,6 +123,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         public bool CanChat()
         {
+            if (
+                ActiveCharacter?.CharacterTemplate != null
+                && HubDayStateStore.HasChitChatHappenedToday(
+                    ActiveCharacter.CharacterTemplate.FullName
+                )
+            )
+            {
+                return false;
+            }
+
             var oneShots = CharacterManager.ChapterOneshots;
             var currentChapter = CharacterManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
             var chapterOneShots = oneShots.FirstOrDefault(c => c.ChapterNumber == currentChapter);
@@ -139,8 +150,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         public bool CanGiveGift()
         {
             var storehouseBrain = CharacterManager._brain.storehouseBrain;
-            var items = storehouseBrain.GetStoredItems();
-            return items.Any(i => i?.Template != null && i.Template.Subtype == ObjectSubtype.Gift);
+            var materials = storehouseBrain.GetAllMaterials();
+            return materials.Any(kvp =>
+                kvp.Key != null && kvp.Key.Subtype == ObjectSubtype.Gift && kvp.Value > 0
+            );
         }
 
         public bool CanTryRecruit()
@@ -201,7 +214,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                         .saveFileBrain
                         .ActiveSaveFile
                         .ChapterNumber;
-                    var oneShot = CharacterManager.GetRandomOneShotForType(
+                    var oneShot = CharacterManager.GetDailyOneShotForType(
                         ActiveCharacter,
                         currentChapter,
                         HubCharacterOneShotType.ChitChat
@@ -250,8 +263,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 _subscribedController = null;
             }
 
+            if (ActiveCharacter?.CharacterTemplate != null)
+            {
+                HubDayStateStore.MarkChitChatHappenedToday(
+                    CharacterManager._brain,
+                    ActiveCharacter.CharacterTemplate.FullName
+                );
+            }
+
             CharacterManager._brain?.PublishHubCharacterTalked(ActiveCharacter);
             InputProvider.OnInput += HandleInput;
+            // Refresh the menu so Talk is hidden for the rest of this hub day.
+            SetUpActionsMenuChoices();
         }
 
         private void OnDisable()
