@@ -6,9 +6,9 @@ namespace Turnroot.Gameplay.Brain
     public partial class UnitAppearanceBrain
     {
         /// <summary>
-        /// Configures a hub unit model to play <see cref="Turnroot.Characters.CharacterData.IdleNonBattleAnimations"/>
+        /// Configures a hub unit model to play <see cref="CharacterData.IdleNonBattleAnimations"/>
         /// on loop, blending randomly through them.  Falls back to the character's normal idle clips
-        /// (honouring <see cref="Turnroot.Characters.CharacterData.UseDefaultAnimationsAlways"/>) when
+        /// (honouring <see cref="CharacterData.UseDefaultAnimationsAlways"/>) when
         /// no hub-specific clips are assigned.
         ///
         /// Call this after <see cref="CreateModelForUnit"/> both when HubTeamLocations spawns hub

@@ -51,8 +51,7 @@ namespace Turnroot.Gameplay.Brain
             var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.name}";
             _ltm.RememberBool(key, true);
 
-            $"ConversationalBrain: Marked conversation '{conversation.name}' as completed."
-        .LogInfo();
+            $"ConversationalBrain: Marked conversation '{conversation.name}' as completed.".LogInfo();
         }
 
         public bool HasCompletedConversation(Conversation conversation)
@@ -120,8 +119,7 @@ namespace Turnroot.Gameplay.Brain
 
             _ltm.RememberBool(key, true);
 
-            $"ConversationalBrain: Support conversation {name1}/{name2} rank {supportLevel} completed."
-        .LogInfo();
+            $"ConversationalBrain: Support conversation {name1}/{name2} rank {supportLevel} completed.".LogInfo();
         }
 
         public bool HasCompletedSupportConversation(
@@ -206,6 +204,19 @@ namespace Turnroot.Gameplay.Brain
             Brain.PublishSupportPointsChanged(relationship);
         }
 
+        public void NotifySupportLevelIncreased(
+            CharacterInstance source,
+            SupportRelationshipInstance relationship
+        )
+        {
+            if (source == null || relationship == null)
+            {
+                return;
+            }
+
+            Brain.PublishSupportLevelIncreased(source, relationship);
+        }
+
         public void NotifySupportConversationAvailable(SupportRelationshipInstance relationship)
         {
             if (relationship == null)
@@ -231,5 +242,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-
-

@@ -13,6 +13,7 @@ namespace Turnroot.Gameplay.Brain
             SupportRelationshipInstance
         > OnSupportRelationshipAdded;
         public event Action<CharacterInstance, CharacterData> OnSupportRelationshipRemoved;
+        public event Action<CharacterInstance, SupportRelationshipInstance> OnSupportLevelIncreased;
 
         public void PublishSupportRelationshipAdded(
             CharacterInstance source,
@@ -23,6 +24,11 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance source,
             CharacterData target
         ) => OnSupportRelationshipRemoved.Invoke(source, target);
+
+        public void PublishSupportLevelIncreased(
+            CharacterInstance source,
+            SupportRelationshipInstance relationship
+        ) => OnSupportLevelIncreased?.Invoke(source, relationship);
 
         #endregion
     }

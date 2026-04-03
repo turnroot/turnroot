@@ -24,7 +24,10 @@ namespace Turnroot.Characters.Components.Support
         private int _supportSpeed = 1;
 
         [SerializeField]
-        private int _supportPoints = 0;
+        private float _supportGainMultiplier = 1f;
+
+        [SerializeField]
+        private float _supportPoints = 0f;
 
         public SupportRelationshipInstance()
         {
@@ -33,22 +36,25 @@ namespace Turnroot.Characters.Components.Support
             _supportSpeed = 1;
         }
 
-        [SerializeField]
-        private GameplayGeneralSettings.SupportBonus _supportBonusOverride;
-
-        [SerializeField]
-        private bool _hasSupportBonusOverride;
-
         public SupportRelationshipInstance(SupportRelationship template)
         {
             _character = template.Character;
             _supportLevels = new SupportLevels { Value = template.SupportLevel.Value };
             _maxLevel = template.MaxLevel;
             _supportSpeed = template.SupportSpeed;
+        }
 
-            // copy override values from template when present
-            _hasSupportBonusOverride = template.HasSupportBonusOverride;
-            _supportBonusOverride = template.GetSupportBonusOverride();
+        public SupportRelationshipInstance(
+            SupportRelationshipTable.SupportPairing pairing,
+            CharacterData partner
+        )
+        {
+            _character = partner;
+            _supportLevels = new SupportLevels { Value = "E" };
+            _maxLevel = pairing.MaxSupportLevel?.Value ?? "A";
+            _supportSpeed = 1;
+            _supportGainMultiplier =
+                pairing.SupportGainMultiplier > 0f ? pairing.SupportGainMultiplier : 1f;
         }
 
         public CharacterData Character
@@ -66,7 +72,7 @@ namespace Turnroot.Characters.Components.Support
             get => _supportSpeed;
             set => _supportSpeed = value;
         }
-        public int SupportPoints
+        public float SupportPoints
         {
             get => _supportPoints;
             set => _supportPoints = value;
@@ -74,36 +80,45 @@ namespace Turnroot.Characters.Components.Support
 
         public string CurrentLevel => _supportLevels.Value;
 
-        public void Increase(int points)
+        public void Increase(float points)
         {
-            _supportPoints += points * _supportSpeed;
-            while (_supportPoints >= 100)
+            _supportPoints += points * _supportSpeed * _supportGainMultiplier;
+            while (_supportPoints >= 100f)
             {
                 _supportLevels.Increase();
-                _supportPoints -= 100;
+                _supportPoints -= 100f;
             }
         }
 
-        public void Decrease(int points)
+        public void Decrease(float points)
         {
             _supportPoints -= points;
 
-            if (_supportPoints < 0)
+            if (_supportPoints < 0f)
             {
-                _supportPoints = 0;
+                _supportPoints = 0f;
             }
         }
 
         /// <summary>
-        /// Whether this instance includes a support-bonus override.
+        /// Subtracts 100 points and advances the support level by one rank.
+        /// Call only when <see cref="SupportPoints"/> >= 100.
+        /// Fires <see cref="Brain.PublishSupportLevelIncreased"/> via the conversational brain.
         /// </summary>
-        public bool HasSupportBonusOverride() => _hasSupportBonusOverride;
+        public void IncreaseSupportLevel(
+            CharacterInstance owner,
+            Gameplay.Brain.ConversationalBrain conversationalBrain
+        )
+        {
+            _supportPoints -= 100f;
+            if (_supportPoints < 0f)
+            {
+                _supportPoints = 0f;
+            }
 
-        /// <summary>
-        /// Returns the override support bonus for this relationship instance.
-        /// </summary>
-        public GameplayGeneralSettings.SupportBonus GetSupportBonusOverride() =>
-            _supportBonusOverride;
+            _supportLevels.Increase();
+            conversationalBrain?.NotifySupportLevelIncreased(owner, this);
+        }
 
         /* ------------------------ Recruitment Overrides ------------------------ */
         [SerializeField]

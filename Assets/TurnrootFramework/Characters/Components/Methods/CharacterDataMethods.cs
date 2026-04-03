@@ -182,16 +182,6 @@ namespace Turnroot.Characters
                 FullName = DisplayName;
             }
 
-            // Validate support relationships - remove any that reference this character
-            if (SupportRelationships != null)
-            {
-                var removed = SupportRelationship.SanitizeForCharacter(this, SupportRelationships);
-                foreach (var r in removed)
-                {
-                    $"Removed invalid support relationship: {name} cannot have a support relationship with themselves ({r.Character?.name})".LogWarning();
-                }
-            }
-
             // guarantee that growth rates list contains HP entry and remove movement entries
             if (PersonalGrowthRates != null)
             {

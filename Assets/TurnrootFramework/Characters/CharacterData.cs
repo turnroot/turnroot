@@ -67,11 +67,6 @@ namespace Turnroot.Characters
         public string Notes { get; private set; } =
             "Take private notes (only in the editor) about this unit";
 
-        [field: Foldout("Character Flags"), SerializeField, HorizontalLine(color: EColor.Red)]
-        public bool CanSSupport { get; private set; } = true;
-
-        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowSSupportAvatar))]
-        public bool CanSSupportAvatar { get; private set; } = false;
 #if TURNROOT_BLOODLINES_MODULE
 
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsAllyOrRecruitable))]
@@ -408,9 +403,6 @@ namespace Turnroot.Characters
         [field: SerializeField]
         public List<InventorySlot> StartingInventory { get; private set; } = new();
 
-        [field: SerializeField, ShowIf(nameof(CanShowSupportRelationships))]
-        public List<SupportRelationship> SupportRelationships { get; private set; } = new();
-
         // ---------------------------------------------------------------------
         // Class progression ladder (per-character, generic units only)
         // ---------------------------------------------------------------------
@@ -527,8 +519,6 @@ namespace Turnroot.Characters
         public bool IsEnemyOrNPC => Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
 
         // NaughtyAttributes ShowIf helper methods
-        private bool CanShowSSupportAvatar() => Which != CharacterWhich.AVATAR;
-
         private bool CanShowRecruitable() =>
             Which == CharacterWhich.ENEMY
             || Which == CharacterWhich.NPC
@@ -551,9 +541,6 @@ namespace Turnroot.Characters
             IsRecruitable && RequiresMinSupportLevel;
 
         private bool IsRecruitableUseRecruitmentChance() => IsRecruitable && UseRecruitmentChance;
-
-        // support relationships are irrelevant for enemy/NPC characters
-        private bool CanShowSupportRelationships() => !IsEnemyOrNPC;
 
         public Portrait[] PortraitArray
         {

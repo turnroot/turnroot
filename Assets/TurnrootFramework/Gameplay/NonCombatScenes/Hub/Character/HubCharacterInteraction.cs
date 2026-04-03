@@ -111,7 +111,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                         CharacterInteractionOptionType.Dance => CanGoToDance,
                         CharacterInteractionOptionType.Gift => CanGiveGift(),
                         CharacterInteractionOptionType.LostItem => CanTryLostItem(),
-                        CharacterInteractionOptionType.Support => CanSupport,
+                        CharacterInteractionOptionType.Support => CanSupport(),
                         CharacterInteractionOptionType.Recruit => CanTryRecruit(),
                         _ => false,
                     }
@@ -158,7 +158,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         #region Availability Checks
 
         public bool CanTrain;
-        public bool CanSupport;
+
+        public bool CanSupport()
+        {
+            if (ActiveCharacter == null)
+            {
+                return false;
+            }
+
+            var avatar = CharacterManager._brain?.gamewideContextBrain?.GetOrCreateAvatarInstance();
+            if (avatar == null)
+            {
+                return false;
+            }
+
+            var rel = avatar.GetSupportRelationship(ActiveCharacter.CharacterTemplate);
+            return rel != null && rel.SupportPoints >= 100;
+        }
+
         public bool CanGoToMeal;
         public bool CanGoToSpa;
         public bool CanGoToDance;

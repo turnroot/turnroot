@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
+using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
@@ -230,10 +231,11 @@ namespace Turnroot.Characters
 
         private void InitializeSupportRelationships()
         {
-            _supportRelationships = CharacterHelpers.CloneSupportRelationships(
-                _characterTemplate.SupportRelationships,
-                _characterTemplate
-            );
+            var table = SupportRelationshipTable.Instance;
+            _supportRelationships =
+                table != null
+                    ? table.GetInstancesFor(_characterTemplate)
+                    : new List<SupportRelationshipInstance>();
         }
 
         private void InitializeSkills()

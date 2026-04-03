@@ -670,41 +670,44 @@ namespace Turnroot.EditorTools
             );
 
             // Support relationships
-            // - Unique characters: recommended to have support relationships (0 -> orange)
-            // - Generic (non-unique) characters: must NOT have support relationships (0 -> green, any -> red)
+            // - Unique characters: recommended to have pairings in the table (0 -> orange)
+            // - Generic (non-unique) characters: must NOT have pairings in the table (0 -> green, any -> red)
             _checks.Add(
                 new CharacterCheckDefinition(
                     "Support Relationships",
                     data =>
                     {
                         var r = new CharacterCheckResult();
+                        var table = SupportRelationshipTable.Instance;
+                        int pairingCount = 0;
+                        if (table?.Pairings != null)
+                        {
+                            foreach (var p in table.Pairings)
+                            {
+                                if (p.CharacterA == data || p.CharacterB == data)
+                                    pairingCount++;
+                            }
+                        }
 
                         if (!data.IsUnique)
                         {
-                            // Generic characters should have *no* support relationships
-                            if (
-                                data.SupportRelationships == null
-                                || data.SupportRelationships.Count == 0
-                            )
+                            if (pairingCount == 0)
                             {
                                 r.Color = green;
                             }
                             else
                             {
                                 r.Color = red;
-                                r.Note = "Generic characters must not define support relationships";
+                                r.Note =
+                                    "Generic characters must not have support pairings in the table";
                             }
                         }
                         else
                         {
-                            // Unique characters: warn if zero
-                            if (
-                                data.SupportRelationships == null
-                                || data.SupportRelationships.Count == 0
-                            )
+                            if (pairingCount == 0)
                             {
                                 r.Color = orange;
-                                r.Note = "No support relationships";
+                                r.Note = "No support relationships in SupportRelationshipTable";
                             }
                             else
                             {
@@ -1126,20 +1129,31 @@ namespace Turnroot.EditorTools
             }
 
             // Support relationships
-            if (!data.IsUnique)
             {
-                // Generic characters must NOT have support relationships
-                if (data.SupportRelationships != null && data.SupportRelationships.Count > 0)
+                var table = SupportRelationshipTable.Instance;
+                int pairingCount = 0;
+                if (table?.Pairings != null)
                 {
-                    criticalNotes.Add("Generic characters must not have support relationships");
+                    foreach (var p in table.Pairings)
+                    {
+                        if (p.CharacterA == data || p.CharacterB == data)
+                            pairingCount++;
+                    }
                 }
-            }
-            else
-            {
-                // Unique characters: warn if zero
-                if (data.SupportRelationships == null || data.SupportRelationships.Count == 0)
+
+                if (!data.IsUnique)
                 {
-                    warnNotes.Add("No support relationships (recommended)");
+                    if (pairingCount > 0)
+                        criticalNotes.Add(
+                            "Generic characters must not have support pairings in the table"
+                        );
+                }
+                else
+                {
+                    if (pairingCount == 0)
+                        warnNotes.Add(
+                            "No support relationships in SupportRelationshipTable (recommended)"
+                        );
                 }
             }
 

@@ -71,7 +71,7 @@ namespace Turnroot.Gameplay.Brain
         > OnCharacterClassMasteryTargetUnlocked;
 
         public event Action<CharacterInstance, string, int> OnExperienceGained;
-        public event Action<CharacterInstance, CharacterData, int> OnSupportIncreased;
+        public event Action<CharacterInstance, CharacterData, float> OnSupportIncreased;
 
         public void PublishCharacterLevelUp(CharacterInstance character) =>
             OnCharacterLevelUp?.Invoke(character);
@@ -147,7 +147,7 @@ namespace Turnroot.Gameplay.Brain
         public void PublishSupportIncreased(
             CharacterInstance character,
             CharacterData targetCharacter,
-            int amount
+            float amount
         ) => OnSupportIncreased?.Invoke(character, targetCharacter, amount);
 
         #endregion

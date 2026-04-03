@@ -41,8 +41,6 @@ namespace Turnroot.Conversations
                 _audioSource.PlayOneShot(oneShot.Audio);
             }
 
-            // Use Unity-aware bool check (!_controller) instead of == null
-            // to detect destroyed-but-not-GC'd objects across scene transitions.
             if (!_controller)
             {
                 _controller = FindFirstObjectByType<ConversationController>();
@@ -54,8 +52,6 @@ namespace Turnroot.Conversations
 
                 return;
             }
-
-            $"OneShotPlayer: calling PlayOneShot (dialogue='{oneShot.Dialogue}', speaker='{oneShot.SpeakerName}').".LogInfo();
 
             _controller.PlayOneShot(oneShot);
         }

@@ -143,6 +143,7 @@ namespace Turnroot.EditorTools
             CheckGamePackageSettings();
             CheckCharacterPrototypeSettings();
             CheckPersistentPlayerRoster();
+            CheckSupportRelationshipTable();
 
             int critical = 0,
                 warn = 0,
@@ -425,6 +426,34 @@ namespace Turnroot.EditorTools
                     }
                 );
             }
+        }
+
+        private void CheckSupportRelationshipTable()
+        {
+            var asset = FindSingleton<SupportRelationshipTable>("SupportRelationshipTable");
+            if (asset == null)
+            {
+                _results.Add(
+                    new CheckResult
+                    {
+                        Label = "SupportRelationshipTable",
+                        Note =
+                            "Asset not found in Resources. Required to define valid support pairings and maximum support ranks.",
+                        Color = Color.red,
+                    }
+                );
+                return;
+            }
+
+            _results.Add(
+                new CheckResult
+                {
+                    Label = "SupportRelationshipTable",
+                    Note = $"Found: {AssetDatabase.GetAssetPath(asset)}",
+                    Color = Color.green,
+                    Asset = asset,
+                }
+            );
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
