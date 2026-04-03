@@ -156,7 +156,6 @@ namespace Turnroot.Utilities.Weather
                 _instantiatedSkyboxMaterial = Instantiate(selectedSkyboxes[chosenIndex]);
                 currentSkybox = _instantiatedSkyboxMaterial;
                 RenderSettings.skybox = currentSkybox;
-                $"Set skybox to {RenderSettings.skybox.name} (index {chosenIndex}) for weather {weatherType}".LogInfo();
             }
             else
             {
@@ -425,13 +424,11 @@ namespace Turnroot.Utilities.Weather
                 if (brain != null && HubDayStateStore.HasWeather)
                 {
                     CurrentWeatherType = HubDayStateStore.Weather;
-                    $"Selected Weather (persisted): {CurrentWeatherType}".LogInfo();
                 }
                 else if (PossibleWeatherTypes.Length > 0)
                 {
                     int index = HubDayRandom.Range(0, PossibleWeatherTypes.Length);
                     CurrentWeatherType = PossibleWeatherTypes[index];
-                    $"Selected Weather: {CurrentWeatherType}".LogInfo();
 
                     if (brain != null)
                     {
@@ -449,14 +446,12 @@ namespace Turnroot.Utilities.Weather
             }
 
             SetSkybox(CurrentWeatherType);
-            $"Set up scene for weather {CurrentWeatherType}".LogInfo();
 
             // always refresh particles after scene change
             var ltm2 = FindFirstObjectByType<LongTermMemory>();
             if (ltm2 != null)
             {
                 var gd2 = ltm2.GetGameDate();
-                $"Game date is {gd2.year}/{gd2.month}/{gd2.day}".LogInfo();
                 SetActiveParticles(gd2.month);
             }
 

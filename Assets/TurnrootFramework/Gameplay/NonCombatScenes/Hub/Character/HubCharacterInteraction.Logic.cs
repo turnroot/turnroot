@@ -1,6 +1,4 @@
 using System.Linq;
-using Turnroot.Conversations;
-using Turnroot.Gameplay.NonCombatScenes.Hub;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -201,43 +199,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             {
                 _navigableChoices[_currentChoiceIndex]
                     ?.BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver);
-                if (
-                    AllPossibleChoices[_currentChoiceIndex].OptionType
-                    == CharacterInteractionOptionType.Talk
-                )
+                switch (AllPossibleChoices[_currentChoiceIndex].OptionType)
                 {
-                    // Don't allow other inputs until dialogue is done
-                    InputProvider.OnInput -= HandleInput;
-
-                    var currentChapter = CharacterManager
-                        ._brain
-                        .saveFileBrain
-                        .ActiveSaveFile
-                        .ChapterNumber;
-                    var oneShot = CharacterManager.GetDailyOneShotForType(
-                        ActiveCharacter,
-                        currentChapter,
-                        HubCharacterOneShotType.ChitChat
-                    );
-
-                    if (!string.IsNullOrWhiteSpace(oneShot.Dialogue))
-                    {
-                        var cc = FindFirstObjectByType<ConversationController>();
-                        if (cc != null)
-                        {
-                            _subscribedController = cc;
-                            cc.OnAnyConversationFinished.AddListener(OnChitChatFinished);
-                        }
-
-                        CharacterManager
-                            ._brain?.audioBrain?.GetOrCreateOneShotPlayer()
-                            ?.PlayOneShot(oneShot);
-                    }
-                    else
-                    {
-                        // No dialogue configured — re-enable input immediately.
-                        InputProvider.OnInput += HandleInput;
-                    }
+                    case CharacterInteractionOptionType.Talk:
+                        HandleTalk();
+                        break;
+                    case CharacterInteractionOptionType.Meal:
+                        HandleMeal();
+                        break;
+                    case CharacterInteractionOptionType.Spa:
+                        HandleSpa();
+                        break;
+                    case CharacterInteractionOptionType.Dance:
+                        HandleDance();
+                        break;
+                    case CharacterInteractionOptionType.Gift:
+                        HandleGift();
+                        break;
+                    case CharacterInteractionOptionType.LostItem:
+                        HandleLostItem();
+                        break;
+                    case CharacterInteractionOptionType.Support:
+                        HandleSupport();
+                        break;
+                    case CharacterInteractionOptionType.Recruit:
+                        HandleRecruit();
+                        break;
+                    case CharacterInteractionOptionType.Train:
+                        HandleTrain();
+                        break;
                 }
                 return;
             }
@@ -253,28 +243,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             );
 
             UpdateChoiceSelection();
-        }
-
-        private void OnChitChatFinished()
-        {
-            if (_subscribedController != null)
-            {
-                _subscribedController.OnAnyConversationFinished.RemoveListener(OnChitChatFinished);
-                _subscribedController = null;
-            }
-
-            if (ActiveCharacter?.CharacterTemplate != null)
-            {
-                HubDayStateStore.MarkChitChatHappenedToday(
-                    CharacterManager._brain,
-                    ActiveCharacter.CharacterTemplate.FullName
-                );
-            }
-
-            CharacterManager._brain?.PublishHubCharacterTalked(ActiveCharacter);
-            InputProvider.OnInput += HandleInput;
-            // Refresh the menu so Talk is hidden for the rest of this hub day.
-            SetUpActionsMenuChoices();
         }
 
         private void OnDisable()

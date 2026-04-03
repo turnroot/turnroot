@@ -17,18 +17,6 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(Brain))]
     public partial class GamewideContextBrain : BrainComponent
     {
-        #region Configuration
-        public enum TamperPolicy
-        {
-            NotifyOnly,
-            Reject,
-            Replace,
-        }
-
-        [field: SerializeField]
-        public TamperPolicy Policy { get; } = TamperPolicy.Replace;
-        #endregion
-
         #region Dependencies
         public Brain CentralBrain => _brain;
 
@@ -60,7 +48,10 @@ namespace Turnroot.Gameplay.Brain
         /// Returns the currently stored game date.  Falls back to the starting date
         /// from settings if memory isn't ready or no date is stored yet.
         /// </summary>
-        public GameDate GetCurrentGameDate() => _ltm != null && _ltm.Initialized ? _ltm.GetGameDate() : GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
+        public GameDate GetCurrentGameDate() =>
+            _ltm != null && _ltm.Initialized
+                ? _ltm.GetGameDate()
+                : GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
 
         #endregion
 

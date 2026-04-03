@@ -153,7 +153,7 @@ namespace Turnroot.Utilities.SceneFlows
             _currentScene = scene;
 
             // update stored game date based on scene metadata
-            if (_ltm != null)
+            if (_ltm != null && _ltm.Initialized)
             {
                 var oldDate = _ltm.GetGameDate();
                 int newYear = oldDate.year;

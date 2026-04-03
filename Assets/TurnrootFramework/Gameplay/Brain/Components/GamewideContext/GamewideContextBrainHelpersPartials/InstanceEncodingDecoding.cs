@@ -78,22 +78,12 @@ namespace Turnroot.Gameplay.Brain
 
                 if (!VerifyPayloadHash(wrapper))
                 {
-                    var tampered = TamperHandler.HandlePayloadMismatch(brain, instance, wrapper);
-                    return OperationResult<T>.SuccessResult(tampered);
+                    return OperationResult<T>.SuccessResult(instance);
                 }
 
                 if (!VerifyLedgerHash(brain, instance, wrapper))
                 {
-                    var ltm = brain.GetComponent<LongTermMemory>();
-                    var key = BuildHashLedgerKey(instance, wrapper);
-                    var stored = ltm?.Recall(key);
-                    var tampered = TamperHandler.HandleLedgerMismatch(
-                        brain,
-                        instance,
-                        wrapper,
-                        stored
-                    );
-                    return OperationResult<T>.SuccessResult(tampered);
+                    return OperationResult<T>.SuccessResult(instance);
                 }
 
                 if (instance is IPostDeserialize post)
