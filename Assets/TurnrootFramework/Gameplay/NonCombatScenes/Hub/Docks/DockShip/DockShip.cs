@@ -166,7 +166,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 return OperationResult.Successful();
             }
 
-            var state = JsonUtility.FromJson<DockShipState>(json);
+            string decoded = _brain.DecodeString(json);
+            if (string.IsNullOrEmpty(decoded))
+            {
+                $"{ShipName}: Failed to decode saved state. Using default state.".LogWarning();
+                return OperationResult.Successful();
+            }
+
+            var state = JsonUtility.FromJson<DockShipState>(decoded);
             if (state == null)
             {
                 $"{ShipName} has an invalid saved state in LTM with key {key}. Using default state.".LogWarning();
@@ -233,7 +240,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             };
 
             string key = LtmKeyPrefix + ShipName;
-            _brain.ltm.Remember(key, JsonUtility.ToJson(state));
+            _brain.ltm.Remember(key, _brain.EncodeString(JsonUtility.ToJson(state)));
             return OperationResult.Successful();
         }
 

@@ -46,7 +46,7 @@ namespace Turnroot.Characters
             return OperationResult.Successful();
         }
 
-        internal OperationResult IncreaseSupport(CharacterData character, int amount)
+        internal OperationResult IncreaseSupport(CharacterData character, float amount)
         {
             bool ok = ValidationHelper.ValidateNotNull(
                 "CharacterInstance.IncreaseSupport",

@@ -208,15 +208,9 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Notes about when/why this transition should be used.")]
         public string notes;
 
-        public bool AreConditionsMet(SceneFlowConditionEvaluator evaluator)
-        {
-            return AreConditionsMet(evaluator, conditions);
-        }
+        public bool AreConditionsMet(SceneFlowConditionEvaluator evaluator) => AreConditionsMet(evaluator, conditions);
 
-        public bool AreReverseConditionsMet(SceneFlowConditionEvaluator evaluator)
-        {
-            return AreConditionsMet(evaluator, reverseConditions);
-        }
+        public bool AreReverseConditionsMet(SceneFlowConditionEvaluator evaluator) => AreConditionsMet(evaluator, reverseConditions);
 
         private bool AreConditionsMet(
             SceneFlowConditionEvaluator evaluator,

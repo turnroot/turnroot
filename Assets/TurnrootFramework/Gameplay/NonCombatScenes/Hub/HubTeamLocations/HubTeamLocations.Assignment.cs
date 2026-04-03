@@ -51,7 +51,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void AssignUnitToLocation(
             PlayerTeamRoster roster,
             int rosterIndex,
-            Turnroot.Characters.Roster.UnitPlacement unit,
+            Characters.Roster.UnitPlacement unit,
             HubSublocationName desiredLocation,
             HubSubLocation[] subLocations,
             int maxPerLocation

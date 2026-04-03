@@ -22,10 +22,7 @@ namespace Turnroot.UI.Components.GridMenu
             OnNavigate += HandleNavigateTo;
         }
 
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-        }
+        protected override void OnEnable() => base.OnEnable();
 
         protected override void OnDisable()
         {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Turnroot.Characters;
 using UnityEngine;
 
@@ -5,10 +6,12 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class UnitAppearanceBrain
     {
+        private readonly Dictionary<int, Coroutine> _hubIdleCoroutines = new();
+
         /// <summary>
-        /// Configures a hub unit model to play <see cref="Turnroot.Characters.CharacterData.IdleNonBattleAnimations"/>
+        /// Configures a hub unit model to play <see cref="CharacterData.IdleNonBattleAnimations"/>
         /// on loop, blending randomly through them.  Falls back to the character's normal idle clips
-        /// (honouring <see cref="Turnroot.Characters.CharacterData.UseDefaultAnimationsAlways"/>) when
+        /// (honouring <see cref="CharacterData.UseDefaultAnimationsAlways"/>) when
         /// no hub-specific clips are assigned.
         ///
         /// Call this after <see cref="CreateModelForUnit"/> both when HubTeamLocations spawns hub
@@ -50,11 +53,21 @@ namespace Turnroot.Gameplay.Brain
                 overrideController[IdleState] = firstClip;
             }
 
+            // Stop any existing idle loop for this model before starting a new one.
+            int modelId = model.GetInstanceID();
+            if (
+                _hubIdleCoroutines.TryGetValue(modelId, out var existingRoutine)
+                && existingRoutine != null
+            )
+            {
+                StopCoroutine(existingRoutine);
+            }
+
             animator.runtimeAnimatorController = overrideController;
             animator.enabled = true;
 
             StartCoroutine(PlayIdleAnimationNextFrame(animator));
-            StartCoroutine(IdleVariationRoutine(animator, idleClips));
+            _hubIdleCoroutines[modelId] = StartCoroutine(IdleVariationRoutine(animator, idleClips));
         }
 
         private AnimationClip[] ResolveHubIdleClips(CharacterInstance unit)

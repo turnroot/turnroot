@@ -264,10 +264,7 @@ namespace Turnroot.Conversations
             }
         }
 
-        private void OnDestroy()
-        {
-            CleanupTweens();
-        }
+        private void OnDestroy() => CleanupTweens();
 
         private void CleanupTweens() => CancelActiveTweens();
     }

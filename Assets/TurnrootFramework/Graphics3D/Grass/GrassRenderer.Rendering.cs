@@ -13,10 +13,7 @@ namespace Turnroot.Graphics3D
             _args[4] = 0;
         }
 
-        private void SetInstanceCount(uint count)
-        {
-            _args[1] = count;
-        }
+        private void SetInstanceCount(uint count) => _args[1] = count;
 
         // ── Init ──────────────────────────────────────────────────────────────────
         private void Init()

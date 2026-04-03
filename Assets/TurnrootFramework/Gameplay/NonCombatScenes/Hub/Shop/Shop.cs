@@ -80,10 +80,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             );
         }
 
-        public override void HandleConfirmInput(string action)
-        {
-            Ui?.HandlePurchaseConfirmationInput();
-        }
+        public override void HandleConfirmInput(string action) => Ui?.HandlePurchaseConfirmationInput();
 
         public override void HandleBackInput(string action)
         {

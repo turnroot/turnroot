@@ -138,15 +138,9 @@ namespace Turnroot.Utilities
             Show();
         }
 
-        private void HandleSceneLoadProgress(float progress)
-        {
-            SetProgress(progress);
-        }
+        private void HandleSceneLoadProgress(float progress) => SetProgress(progress);
 
-        private void HandleLoadingControllerProgress(float progress)
-        {
-            SetProgress(progress);
-        }
+        private void HandleLoadingControllerProgress(float progress) => SetProgress(progress);
 
         private void HandleSceneReadyToDisplay(string sceneName, string displayName)
         {
@@ -177,10 +171,7 @@ namespace Turnroot.Utilities
             Fade?.Show();
         }
 
-        public void Hide()
-        {
-            Fade?.Hide();
-        }
+        public void Hide() => Fade?.Hide();
 
         public void SetProgress(float progress)
         {

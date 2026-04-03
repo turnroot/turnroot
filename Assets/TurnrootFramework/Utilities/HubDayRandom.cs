@@ -44,10 +44,7 @@ namespace Turnroot.Utilities
         /// <summary>
         /// Initialize the deterministic RNG for the current hub day.
         /// </summary>
-        public static void Initialize(int seed)
-        {
-            _rng = new System.Random(seed);
-        }
+        public static void Initialize(int seed) => _rng = new System.Random(seed);
 
         /// <summary>
         /// Clears the current deterministic RNG.

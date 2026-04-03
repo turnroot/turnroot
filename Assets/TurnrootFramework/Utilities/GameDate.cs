@@ -41,20 +41,12 @@ namespace Turnroot.Utilities
         }
 
         // Equality members for comparing dates and using in collections.
-        public bool Equals(GameDate other)
-        {
-            return year == other.year && month == other.month && day == other.day;
-        }
+        public bool Equals(GameDate other) =>
+            year == other.year && month == other.month && day == other.day;
 
-        public override bool Equals(object obj)
-        {
-            return obj is GameDate other && Equals(other);
-        }
+        public override bool Equals(object obj) => obj is GameDate other && Equals(other);
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(year, month, day);
-        }
+        public override int GetHashCode() => HashCode.Combine(year, month, day);
 
         public static bool operator ==(GameDate left, GameDate right) => left.Equals(right);
 

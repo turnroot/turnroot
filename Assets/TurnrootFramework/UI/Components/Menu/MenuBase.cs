@@ -44,21 +44,16 @@ namespace Turnroot.UI.Components.Menu
             EnableMenuInputActions();
         }
 
-        protected virtual void OnEnable()
-        {
+        protected virtual void OnEnable() =>
             // Use shared UI input actions from UIInputActionDefaults.
             EnableMenuInputActions();
-        }
 
         protected virtual void OnDisable()
         {
             // Do not disable shared input actions; they are always available.
         }
 
-        private void OnDestroy()
-        {
-            UIInputActionDefaults.RemoveInitializedHandler(EnableMenuInputActions);
-        }
+        private void OnDestroy() => UIInputActionDefaults.RemoveInitializedHandler(EnableMenuInputActions);
 
         private void EnableMenuInputActions()
         {

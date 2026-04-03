@@ -45,20 +45,14 @@ namespace Turnroot.UI.Components.Menu.Submenu
             UpdateRowFocus();
         }
 
-        private void OnEnable()
-        {
-            EnableInputActions();
-        }
+        private void OnEnable() => EnableInputActions();
 
         private void OnDisable()
         {
             // Shared UI actions remain enabled globally; do not disable them here.
         }
 
-        private void OnDestroy()
-        {
-            UIInputActionDefaults.RemoveInitializedHandler(EnableInputActions);
-        }
+        private void OnDestroy() => UIInputActionDefaults.RemoveInitializedHandler(EnableInputActions);
 
         private void EnableInputActions()
         {

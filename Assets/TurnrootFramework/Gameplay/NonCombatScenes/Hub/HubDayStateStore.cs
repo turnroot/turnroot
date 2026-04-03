@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 using Turnroot.Utilities.Weather;
@@ -131,6 +132,81 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SaveState(brain);
         }
 
+        /// <summary>
+        /// Returns true if the avatar has already had a ChitChat conversation with the given character today.
+        /// </summary>
+        public static bool HasChitChatHappenedToday(string characterFullName) =>
+            _currentState?.ChitChatDoneIds != null
+            && _currentState.ChitChatDoneIds.Contains(characterFullName);
+
+        /// <summary>
+        /// Records that a ChitChat conversation happened with the specified character today and persists it.
+        /// </summary>
+        public static void MarkChitChatHappenedToday(Brain.Brain brain, string characterFullName)
+        {
+            if (
+                brain?.ltm == null
+                || _currentState == null
+                || string.IsNullOrEmpty(characterFullName)
+            )
+            {
+                return;
+            }
+
+            _currentState.ChitChatDoneIds ??= new System.Collections.Generic.List<string>();
+            if (!_currentState.ChitChatDoneIds.Contains(characterFullName))
+            {
+                _currentState.ChitChatDoneIds.Add(characterFullName);
+                SaveState(brain);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if team placement has already been generated and saved for today.
+        /// </summary>
+        public static bool HasTeamPlacements() =>
+            _currentState?.TeamPlacements != null && _currentState.TeamPlacements.Count > 0;
+
+        /// <summary>
+        /// Returns the saved team placement as a roster-index → location map, or null if none saved.
+        /// </summary>
+        public static System.Collections.Generic.Dictionary<
+            int,
+            HubSublocationName
+        > GetTeamPlacements()
+        {
+            if (!HasTeamPlacements())
+            {
+                return null;
+            }
+
+            return _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
+        }
+
+        /// <summary>
+        /// Saves the team placement for today. Subsequent sessions that day will load this map
+        /// instead of re-picking via RNG.
+        /// </summary>
+        public static void SaveTeamPlacements(
+            Brain.Brain brain,
+            System.Collections.Generic.Dictionary<int, HubSublocationName> map
+        )
+        {
+            if (brain?.ltm == null || _currentState == null || map == null)
+            {
+                return;
+            }
+
+            _currentState.TeamPlacements = map.Select(kv => new TeamPlacementEntry
+                {
+                    RosterIndex = kv.Key,
+                    Location = kv.Value,
+                })
+                .ToList();
+
+            SaveState(brain);
+        }
+
         public static void SetWeather(Brain.Brain brain, WeatherType weather)
         {
             if (brain?.ltm == null || _currentState == null)
@@ -158,7 +234,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     day = _currentState.Day,
                 }
             );
-            brain.ltm.Remember(key, JsonUtility.ToJson(_currentState));
+            brain.ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(_currentState)));
         }
 
         public static void Initialize(Brain.Brain brain, GameDate date)
@@ -170,6 +246,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             string key = GetKey(date);
             string json = brain.ltm.Recall(key);
+
+            if (!string.IsNullOrEmpty(json))
+            {
+                json = brain.DecodeString(json);
+            }
 
             if (!string.IsNullOrEmpty(json))
             {
@@ -199,7 +280,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     Seed = seed,
                 };
 
-                string outJson = JsonUtility.ToJson(_currentState);
+                string outJson = brain.EncodeString(JsonUtility.ToJson(_currentState));
                 brain.ltm.Remember(key, outJson);
             }
         }
@@ -235,6 +316,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public bool HasWeather;
             public int SkyboxIndex = -1;
             public System.Collections.Generic.List<ShopStockEntry> ShopStock;
+
+            // Characters the avatar has had a ChitChat conversation with today.
+            public System.Collections.Generic.List<string> ChitChatDoneIds;
+
+            // Team character locations for this day. Populated on first hub load for the day
+            // and kept fixed so locations are stable across session restarts.
+            public System.Collections.Generic.List<TeamPlacementEntry> TeamPlacements;
         }
 
         [Serializable]
@@ -243,6 +331,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public string ShopKey;
             public string ItemKey;
             public int Quantity;
+        }
+
+        [Serializable]
+        public class TeamPlacementEntry
+        {
+            public int RosterIndex;
+            public HubSublocationName Location;
         }
     }
 }

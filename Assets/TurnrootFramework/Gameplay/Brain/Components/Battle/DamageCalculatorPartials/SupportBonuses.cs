@@ -102,9 +102,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             SupportRelationshipInstance chosenRel = (rel1 != null && val1 >= val2) ? rel1 : rel2;
 
-            return chosenRel?.HasSupportBonusOverride() == true
-                ? chosenRel.GetSupportBonusOverride()
-                : settings.GetSupportBonusForRank(rankLetter);
+            return settings.GetSupportBonusForRank(rankLetter);
         }
 
         private static int RankValue(string rankLetter) =>

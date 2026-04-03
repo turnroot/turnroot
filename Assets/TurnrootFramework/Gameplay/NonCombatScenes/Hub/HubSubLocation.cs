@@ -47,10 +47,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UIFade NotificationFade;
         private string LtmKey => "HubSubLocation_Visited_" + LocationName.ToString();
 
-        public bool CanBeVisitedToday()
-        {
-            return true;
-        }
+        public bool CanBeVisitedToday() => true;
 
         public bool AcceptingInput => acceptingInput;
 

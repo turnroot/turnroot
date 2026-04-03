@@ -41,10 +41,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 ?? Array.Empty<OneShot>();
         }
 
-        protected virtual void OnDestroy()
-        {
-            WelcomeDialogues = cachedWelcomeDialogues;
-        }
+        protected virtual void OnDestroy() => WelcomeDialogues = cachedWelcomeDialogues;
 
         protected void NotifyVisited(Action refreshUi, string componentName)
         {

@@ -137,6 +137,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return new DockShipStatus[0];
             }
 
+            json = _brain.DecodeString(json);
+            if (string.IsNullOrEmpty(json))
+            {
+                return new DockShipStatus[0];
+            }
+
             var container = JsonUtility.FromJson<DockShipStatusContainer>(json);
             return container?.statuses ?? new DockShipStatus[0];
         }
@@ -149,7 +155,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             var container = new DockShipStatusContainer { statuses = statuses };
-            _brain.ltm.Remember(dockShipStatusLtmKey, JsonUtility.ToJson(container));
+            _brain.ltm.Remember(
+                dockShipStatusLtmKey,
+                _brain.EncodeString(JsonUtility.ToJson(container))
+            );
         }
 
         private void SendShipNotification(string shipName, bool isDocked)

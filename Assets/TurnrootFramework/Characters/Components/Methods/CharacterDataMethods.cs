@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
-using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.GameSettings;
@@ -180,16 +179,6 @@ namespace Turnroot.Characters
             if (string.IsNullOrWhiteSpace(FullName))
             {
                 FullName = DisplayName;
-            }
-
-            // Validate support relationships - remove any that reference this character
-            if (SupportRelationships != null)
-            {
-                var removed = SupportRelationship.SanitizeForCharacter(this, SupportRelationships);
-                foreach (var r in removed)
-                {
-                    $"Removed invalid support relationship: {name} cannot have a support relationship with themselves ({r.Character?.name})".LogWarning();
-                }
             }
 
             // guarantee that growth rates list contains HP entry and remove movement entries

@@ -29,10 +29,7 @@ namespace Turnroot.UI
             }
         }
 
-        public static void RemoveInitializedHandler(Action callback)
-        {
-            OnInitialized -= callback;
-        }
+        public static void RemoveInitializedHandler(Action callback) => OnInitialized -= callback;
 
         public static InputAction Select;
         public static InputAction Back;

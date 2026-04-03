@@ -99,6 +99,54 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             return _audioBrain.GetRandomOneShot(oneShots);
         }
 
+        /// <summary>
+        /// Like <see cref="GetRandomOneShotForType"/> but uses <see cref="HubDayRandom"/> so the
+        /// choice is deterministic for a given hub day.
+        /// </summary>
+        public OneShot GetDailyOneShotForType(
+            CharacterInstance character,
+            int chapterNumber,
+            HubCharacterOneShotType type
+        )
+        {
+            if (character == null || _audioBrain == null)
+            {
+                return default;
+            }
+
+            var characterData = character.CharacterTemplate;
+            if (characterData == null)
+            {
+                return default;
+            }
+
+            OneShotDialogue[] dialogues = null;
+            if (ChapterOneshots != null)
+            {
+                foreach (var chapter in ChapterOneshots)
+                {
+                    if (chapter.ChapterNumber == chapterNumber)
+                    {
+                        dialogues = chapter.GetOneShotsForCharacter(characterData, type);
+                        break;
+                    }
+                }
+            }
+
+            if (dialogues == null || dialogues.Length == 0)
+            {
+                return default;
+            }
+
+            var oneShots = _audioBrain.ConvertToOneShots(dialogues, characterData.DisplayName);
+            if (oneShots == null || oneShots.Length == 0)
+            {
+                return default;
+            }
+
+            return oneShots[HubDayRandom.Range(0, oneShots.Length)];
+        }
+
         /// <summary>Returns a random <see cref="HubCharacterOneShotType.StartInteraction"/> one-shot.</summary>
         public OneShot GetRandomWelcomeOneShot(CharacterInstance character, int chapterNumber) =>
             GetRandomOneShotForType(
@@ -156,6 +204,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             SpawnAvatarModel(character);
             BeginUnitTurn(character);
             PlayWelcomeOneShot(character, chapterNumber);
+            _brain?.PublishHubCharacterInteracted(character);
         }
 
         /// <summary>
@@ -323,7 +372,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 }
             }
 
-            unitModel.transform.rotation = targetRotation;
+            // Enforce Y-axis-only rotation — no X or Z tilt.
+            unitModel.transform.rotation = Quaternion.Euler(0f, targetRotation.eulerAngles.y, 0f);
             _turnCoroutine = null;
         }
     }

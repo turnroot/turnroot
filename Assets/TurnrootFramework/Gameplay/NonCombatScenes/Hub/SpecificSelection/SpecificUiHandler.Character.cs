@@ -99,19 +99,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CompleteExit();
         }
 
-        public void HandleCharacterSelection(string action)
-        {
-            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
-        }
+        public void HandleCharacterSelection(string action) => _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
 
-        public void HandleCharacterUpDown(string action)
-        {
-            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
-        }
+        public void HandleCharacterUpDown(string action) => _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
 
-        public void HandleCharacterLeftRight(string action)
-        {
-            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
-        }
+        public void HandleCharacterLeftRight(string action) => _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
     }
 }

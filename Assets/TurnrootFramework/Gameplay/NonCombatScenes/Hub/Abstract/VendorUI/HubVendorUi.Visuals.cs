@@ -176,20 +176,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             AudioPlayer.PlayOneShot(PageChangeAudioClip);
         }
 
-        protected void InitializePageIndicators()
-        {
-            paginationHelper?.InitializePageIndicators();
-        }
+        protected void InitializePageIndicators() => paginationHelper?.InitializePageIndicators();
 
-        protected void UpdatePaginationIndicators()
-        {
-            paginationHelper?.UpdatePaginationIndicators();
-        }
+        protected void UpdatePaginationIndicators() => paginationHelper?.UpdatePaginationIndicators();
 
-        protected void UpdateVisiblePageItems()
-        {
-            paginationHelper?.UpdateVisiblePageItems();
-        }
+        protected void UpdateVisiblePageItems() => paginationHelper?.UpdateVisiblePageItems();
 
         protected void RefreshSelection()
         {
