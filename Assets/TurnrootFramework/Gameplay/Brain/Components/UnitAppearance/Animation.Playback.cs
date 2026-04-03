@@ -21,7 +21,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 float clipLength =
                     (currentClip != null && currentClip.length > 0f) ? currentClip.length : 1f;
-                float waitTime = Mathf.Max(0f, clipLength - (ANIMATION_BLEND_DURATION * 2f));
+                float waitTime = Mathf.Max(0f, clipLength - (ANIMATION_BLEND_DURATION * 4f));
                 yield return new WaitForSeconds(waitTime);
 
                 if (animator == null || !animator.gameObject.activeInHierarchy)
@@ -46,7 +46,7 @@ namespace Turnroot.Gameplay.Brain
                         animator,
                         currentClip,
                         nextClip,
-                        ANIMATION_BLEND_DURATION,
+                        ANIMATION_BLEND_DURATION * 4f,
                         normalizedTime
                     );
 
