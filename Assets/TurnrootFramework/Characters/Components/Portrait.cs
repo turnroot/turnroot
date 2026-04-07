@@ -12,6 +12,42 @@ namespace Turnroot.Characters.Subclasses
     [Serializable]
     public class Portrait : StackedImage<CharacterData>
     {
+        [SerializeField]
+        private bool _spriteOverride;
+
+        [SerializeField]
+        private Sprite _overrideRuntimeSprite;
+
+        [SerializeField]
+        private Sprite _overrideSavedSprite;
+
+        public bool SpriteOverride => _spriteOverride;
+        public Sprite OverrideRuntimeSprite => _overrideRuntimeSprite;
+        public Sprite OverrideSavedSprite => _overrideSavedSprite;
+
+        public void SetOverrideSprites(
+            bool enabled,
+            Sprite runtimeSprite = null,
+            Sprite savedSprite = null
+        )
+        {
+            _spriteOverride = enabled;
+            _overrideRuntimeSprite = runtimeSprite;
+            _overrideSavedSprite = savedSprite;
+        }
+
+        public override void Render()
+        {
+            if (_spriteOverride)
+            {
+                SetRuntimeSprite(_overrideRuntimeSprite);
+                SetSavedSprite(_overrideSavedSprite);
+                return;
+            }
+
+            base.Render();
+        }
+
         protected override string GetSaveSubdirectory() => "Portraits";
 
         // Ensure portrait-specific mandatory tags are applied at the object level
