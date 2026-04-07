@@ -122,19 +122,14 @@ namespace Turnroot.Gameplay.Objects
         ]
         public ForgeOption[] ForgeOptions { get; set; }
 
-        [
-            SerializeField,
-            Foldout("Gift"),
-            ShowIf(nameof(IsGiftSubtype)),
-            HorizontalLine(color: EColor.Indigo)
-        ]
-        private int _giftRank = 1;
+        [Foldout("Gift"), ShowIf(nameof(IsGiftSubtype)), HorizontalLine(color: EColor.Indigo)]
+        public int GiftRank = 1;
 
-        [Foldout("Gift"), SerializeField, ShowIf(nameof(IsGiftSubtype))]
-        private CharacterData[] _unitsLove;
+        [Foldout("Gift"), ShowIf(nameof(IsGiftSubtype))]
+        public CharacterData[] UnitsLove;
 
-        [Foldout("Gift"), SerializeField, ShowIf(nameof(IsGiftSubtype))]
-        private CharacterData[] _unitsHate;
+        [Foldout("Gift"), ShowIf(nameof(IsGiftSubtype))]
+        public CharacterData[] UnitsHate;
 
         [field:
             Foldout("Range"),
