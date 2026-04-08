@@ -130,6 +130,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 ActiveCharacter,
                 basePoints
             );
+            if (reaction == positive)
+            {
+                SupportUpTimeline.Play();
+            }
         }
 
         private void HandleLostItem() { }

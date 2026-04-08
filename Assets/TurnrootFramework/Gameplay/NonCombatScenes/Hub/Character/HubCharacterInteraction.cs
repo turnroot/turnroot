@@ -4,6 +4,7 @@ using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 {
@@ -26,6 +27,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         public GameObject GiftItemRowPrefab;
         public UIFade GiftChoiceMenuFade;
         public int MaxVisibleGiftChoices = 8;
+
+        public PlayableDirector SupportUpTimeline;
+        public PlayableDirector SupportDownTimeline;
 
         #endregion
 
