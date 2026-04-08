@@ -121,11 +121,16 @@ namespace Turnroot.Gameplay.Brain
                     pairing.Value.SupportGainMultiplier > 0f
                         ? pairing.Value.SupportGainMultiplier
                         : 1f;
+                var finalPoints = basePoints * charmMultiplier * speed;
+                $"Support gain multiplier from pairing: {pairing.Value.SupportGainMultiplier}".LogInfo();
+                $"Final support points awarded: {finalPoints}".LogInfo();
+                IncreaseSupport(avatar, visitedCharacter.CharacterTemplate, finalPoints);
             }
             else
             {
                 $"Warning: No support pairing found between {avatar.CharacterTemplate.DisplayName} and {visitedCharacter.CharacterTemplate.DisplayName}. Using default support gain multiplier.".LogWarning();
                 var finalPoints = basePoints * charmMultiplier * speed;
+                $"Final support points awarded: {finalPoints}".LogInfo();
 
                 IncreaseSupport(avatar, visitedCharacter.CharacterTemplate, finalPoints);
             }

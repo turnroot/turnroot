@@ -404,6 +404,10 @@ namespace Turnroot.Gameplay.Brain
 
             if (_materials[material] <= 0)
             {
+                // Explicitly zero out LTM keys before removing so SaveCurrentStorehouse
+                // doesn't leave a stale non-zero count behind.
+                _ = _ltm.RememberInt(LtmKeys.StorehouseMaterialIdKey(material.Id), 0);
+                _ = _ltm.RememberInt(LtmKeys.StorehouseMaterialKey(material.name), 0);
                 _ = _materials.Remove(material);
             }
             SaveCurrentStorehouse();

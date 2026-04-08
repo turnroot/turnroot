@@ -56,10 +56,7 @@ namespace Turnroot.UI
                 manager.SendMessage("Deselect", SendMessageOptions.DontRequireReceiver);
             }
 
-            if (
-                action == InputActionConstants.NavigateUp
-                || action == InputActionConstants.NavigateLeft
-            )
+            if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateLeft)
             {
                 if (
                     navigationSound != null
@@ -72,8 +69,7 @@ namespace Turnroot.UI
                 currentIndex = (currentIndex - 1 + maxCount) % maxCount;
             }
             else if (
-                action == InputActionConstants.NavigateDown
-                || action == InputActionConstants.NavigateRight
+                action is InputActionConstants.NavigateDown or InputActionConstants.NavigateRight
             )
             {
                 if (
@@ -87,10 +83,11 @@ namespace Turnroot.UI
                 currentIndex = (currentIndex + 1) % maxCount;
             }
             else if (
-                action == InputActionConstants.Submit
-                || action == InputActionConstants.Select
-                || action == InputActionConstants.Start
-                || action == InputActionConstants.Confirm
+                action
+                is InputActionConstants.Submit
+                    or InputActionConstants.Select
+                    or InputActionConstants.Start
+                    or InputActionConstants.Confirm
             )
             {
                 try

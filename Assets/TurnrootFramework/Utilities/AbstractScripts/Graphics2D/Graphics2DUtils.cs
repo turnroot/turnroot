@@ -63,7 +63,7 @@ namespace Turnroot.AbstractScripts.Graphics2D
             img.color = c;
         }
 
-        // Reset an image's color and alpha to default (white, fully opaque)
+        // Reset an image to a blank state: clear the sprite, disable the component, and restore default color.
         public static void ResetImage(Image img)
         {
             if (img == null)
@@ -71,10 +71,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
                 return;
             }
 
+            img.sprite = null;
+            img.enabled = false;
             img.color = Color.white;
-            var c = img.color;
-            c.a = 1f;
-            img.color = c;
         }
 
         // Crossfade swap using overlays. Underlying sprites are swapped immediately,

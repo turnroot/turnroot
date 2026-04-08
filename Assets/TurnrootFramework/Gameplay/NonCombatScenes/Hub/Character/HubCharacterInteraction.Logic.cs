@@ -204,7 +204,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             {
                 _navigableChoices[_currentChoiceIndex]
                     ?.BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver);
-                switch (AllPossibleChoices[_currentChoiceIndex].OptionType)
+                var selectedOption = AllPossibleChoices.First(c =>
+                    c.Choice == _navigableChoices[_currentChoiceIndex]
+                );
+
+                switch (selectedOption.OptionType)
                 {
                     case CharacterInteractionOptionType.Talk:
                         HandleTalk();

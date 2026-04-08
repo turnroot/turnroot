@@ -36,7 +36,7 @@ namespace Turnroot.Gameplay.Brain.Components
             public const string RuntimeUnboundedStats = "_runtimeUnboundedStats";
             public const string InventoryInstance = "_inventoryInstance";
             public const string SkillInstances = "_skill_instances";
-            public const string SupportRelationships = "_support_relationships";
+            public const string SupportRelationships = "_supportRelationships";
 
             // Additional persistent fields
             public const string ExperienceRanks = "_experienceRanks";
