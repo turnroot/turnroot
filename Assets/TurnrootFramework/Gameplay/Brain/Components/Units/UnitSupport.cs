@@ -71,7 +71,7 @@ namespace Turnroot.Gameplay.Brain
 
         internal void HandleHubCharacterInteracted(CharacterInstance visitedCharacter)
         {
-            AwardHubSupportPoints(
+            AwardHubSupportPointsAvatarPairing(
                 visitedCharacter,
                 GameplayGeneralSettings.Instance?.HubInteractionSupportPoints ?? 0f
             );
@@ -79,13 +79,16 @@ namespace Turnroot.Gameplay.Brain
 
         internal void HandleHubCharacterTalked(CharacterInstance visitedCharacter)
         {
-            AwardHubSupportPoints(
+            AwardHubSupportPointsAvatarPairing(
                 visitedCharacter,
                 GameplayGeneralSettings.Instance?.HubInteractionTalkSupportPoints ?? 0f
             );
         }
 
-        private void AwardHubSupportPoints(CharacterInstance visitedCharacter, float basePoints)
+        public void AwardHubSupportPointsAvatarPairing(
+            CharacterInstance visitedCharacter,
+            float basePoints
+        )
         {
             if (visitedCharacter?.CharacterTemplate == null || basePoints == 0f)
             {
@@ -101,7 +104,7 @@ namespace Turnroot.Gameplay.Brain
             var settings = GameplayGeneralSettings.Instance;
             var charmA = avatar.GetUnboundedStat(UnboundedStatType.Charm)?.Get() ?? 0f;
             var charmB = visitedCharacter.GetUnboundedStat(UnboundedStatType.Charm)?.Get() ?? 0f;
-            var charmMultiplier = 1f + (charmA + charmB) / 25f;
+            var charmMultiplier = 1f + ((charmA + charmB) / 25f);
 
             var speed = settings.SupportGrowthSpeed;
             SupportRelationshipTable.SupportPairing? pairing =
@@ -118,11 +121,16 @@ namespace Turnroot.Gameplay.Brain
                     pairing.Value.SupportGainMultiplier > 0f
                         ? pairing.Value.SupportGainMultiplier
                         : 1f;
+                var finalPoints = basePoints * charmMultiplier * speed;
+                $"Support gain multiplier from pairing: {pairing.Value.SupportGainMultiplier}".LogInfo();
+                $"Final support points awarded: {finalPoints}".LogInfo();
+                IncreaseSupport(avatar, visitedCharacter.CharacterTemplate, finalPoints);
             }
             else
             {
                 $"Warning: No support pairing found between {avatar.CharacterTemplate.DisplayName} and {visitedCharacter.CharacterTemplate.DisplayName}. Using default support gain multiplier.".LogWarning();
                 var finalPoints = basePoints * charmMultiplier * speed;
+                $"Final support points awarded: {finalPoints}".LogInfo();
 
                 IncreaseSupport(avatar, visitedCharacter.CharacterTemplate, finalPoints);
             }

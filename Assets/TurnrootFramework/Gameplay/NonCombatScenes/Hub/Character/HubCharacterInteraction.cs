@@ -22,6 +22,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         public UiInputProvider InputProvider;
         public UIFade BackButtonFade;
+        public GameObject GiftChoiceParentContainer;
+        public GameObject GiftItemRowPrefab;
+        public UIFade GiftChoiceMenuFade;
+        public int MaxVisibleGiftChoices = 8;
 
         #endregion
 

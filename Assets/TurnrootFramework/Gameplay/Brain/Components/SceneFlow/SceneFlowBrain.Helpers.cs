@@ -161,7 +161,6 @@ namespace Turnroot.Utilities.SceneFlows
                     if (eventSystem != null && eventSystem.enabled)
                     {
                         eventSystem.enabled = false;
-                        $"SceneFlowBrain: Disabled EventSystem in scene '{scene.name}'".LogInfo();
                     }
                 }
 
@@ -174,7 +173,6 @@ namespace Turnroot.Utilities.SceneFlows
                     if (audioListener != null && audioListener.enabled)
                     {
                         audioListener.enabled = false;
-                        $"SceneFlowBrain: Disabled AudioListener in scene '{scene.name}'".LogInfo();
                     }
                 }
             }

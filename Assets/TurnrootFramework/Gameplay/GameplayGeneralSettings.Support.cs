@@ -40,7 +40,7 @@ namespace Turnroot.GameSettings
         public float GiftSupportPointsUnitLikes = 1f;
 
         [BoxGroup("Support Settings")]
-        public float GiftSupportPointsUnitDislikes = 0.1f;
+        public float GiftSupportPointsUnitDislikes = 0.25f;
 
         [
             BoxGroup("Support Settings"),

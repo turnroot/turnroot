@@ -71,6 +71,11 @@ namespace Turnroot.Graphics2D
 
         public Sprite RuntimeSprite => _runtimeSprite;
         public Sprite SavedSprite => _savedSprite;
+
+        protected void SetRuntimeSprite(Sprite sprite) => _runtimeSprite = sprite;
+
+        protected void SetSavedSprite(Sprite sprite) => _savedSprite = sprite;
+
         public Guid Id => _id;
         public Color[] TintColors => _tintColors;
 
@@ -219,7 +224,7 @@ namespace Turnroot.Graphics2D
             return $"StackedImage(ID: {_id}, Owner: {ownerName}, Key: {_key})";
         }
 
-        public void Render()
+        public virtual void Render()
         {
             // Validate that we have layers to render
             if (Layers == null || Layers.Count == 0)

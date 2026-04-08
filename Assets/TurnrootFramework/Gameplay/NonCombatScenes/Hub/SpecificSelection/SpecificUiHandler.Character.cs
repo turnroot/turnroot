@@ -25,7 +25,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         /// </summary>
         public void HandleCharacterPoiSelection(HubPoiUi poi)
         {
-            $"SpecificUiHandler: Handling character POI selection for '{poi?.name}'.".LogInfo();
             var manager = GetHubCharacterManager();
             if (manager == null)
             {
@@ -53,8 +52,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 chapterNumber = hubManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
             }
-
-            $"SpecificUiHandler: Triggering welcome one-shot for character '{character.CharacterTemplate.DisplayName}' at chapter {chapterNumber}.".LogInfo();
 
             // Check welcome dialogue before triggering visited so we can set the wait flag first
             var welcomeOneShot = manager.GetRandomWelcomeOneShot(character, chapterNumber);
@@ -99,10 +96,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CompleteExit();
         }
 
-        public void HandleCharacterSelection(string action) => _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
+        public void HandleCharacterSelection(string action) =>
+            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
 
-        public void HandleCharacterUpDown(string action) => _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
+        public void HandleCharacterUpDown(string action) =>
+            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
 
-        public void HandleCharacterLeftRight(string action) => _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
+        public void HandleCharacterLeftRight(string action) =>
+            _activeHubCharacter?.CharacterInteraction?.HandleInput(action);
     }
 }
