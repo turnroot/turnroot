@@ -41,6 +41,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private int _currentChoiceIndex;
         private ConversationController _subscribedController;
 
+        /// <summary>True while a mid-interaction one-shot (e.g. chitchat, gift reaction) is playing.</summary>
+        public bool IsOneShotPlaying => _subscribedController != null;
+
         #endregion
 
         #region Properties

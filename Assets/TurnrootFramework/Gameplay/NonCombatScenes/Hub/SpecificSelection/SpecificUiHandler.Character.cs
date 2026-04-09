@@ -77,6 +77,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleCharacterBack(string action)
         {
+            if (_activeHubCharacter?.CharacterInteraction?.IsOneShotPlaying == true)
+            {
+                FindConversationController()?.Advance();
+                return;
+            }
+
             if (_activeHubCharacter != null)
             {
                 var chapterNumber = 0;

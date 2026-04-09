@@ -133,6 +133,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
 
         /// <summary>
+        /// Returns true if the avatar has already received interaction support points for the given character today.
+        /// </summary>
+        public static bool HasInteractionHappenedToday(string characterFullName) =>
+            _currentState?.InteractionDoneIds != null
+            && _currentState.InteractionDoneIds.Contains(characterFullName);
+
+        /// <summary>
+        /// Records that interaction support points were awarded for the specified character today and persists it.
+        /// </summary>
+        public static void MarkInteractionHappenedToday(Brain.Brain brain, string characterFullName)
+        {
+            if (
+                brain?.ltm == null
+                || _currentState == null
+                || string.IsNullOrEmpty(characterFullName)
+            )
+            {
+                return;
+            }
+
+            _currentState.InteractionDoneIds ??= new System.Collections.Generic.List<string>();
+            if (!_currentState.InteractionDoneIds.Contains(characterFullName))
+            {
+                _currentState.InteractionDoneIds.Add(characterFullName);
+                SaveState(brain);
+            }
+        }
+
+        /// <summary>
         /// Returns true if the avatar has already had a ChitChat conversation with the given character today.
         /// </summary>
         public static bool HasChitChatHappenedToday(string characterFullName) =>
@@ -319,6 +348,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             // Characters the avatar has had a ChitChat conversation with today.
             public System.Collections.Generic.List<string> ChitChatDoneIds;
+
+            // Characters the avatar has visited (for the once-per-day interaction support points).
+            public System.Collections.Generic.List<string> InteractionDoneIds;
 
             // Team character locations for this day. Populated on first hub load for the day
             // and kept fixed so locations are stable across session restarts.
