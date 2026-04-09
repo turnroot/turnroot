@@ -11,7 +11,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     [Serializable]
     public struct AdditionalUnitInfo
     {
-        public CharacterInstance character;
+        public CharacterData character;
         public HubSublocationName location;
     }
 
@@ -129,11 +129,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         continue;
                     }
 
+                    var instance = _charFactory.CreateOrRecall(info.character);
+                    if (instance == null)
+                    {
+                        continue;
+                    }
+
                     var list = new System.Collections.Generic.List<CharacterInstance>(
                         location.CharactersPresent
                     )
                     {
-                        info.character,
+                        instance,
                     };
                     location.CharactersPresent = list.ToArray();
                 }

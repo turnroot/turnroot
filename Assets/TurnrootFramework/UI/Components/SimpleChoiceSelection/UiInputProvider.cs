@@ -16,9 +16,6 @@ namespace Turnroot.UI
         /// <summary>Fired whenever one of the common UI actions is performed.</summary>
         public event Action<string> OnInput;
 
-        [Header("Debug")]
-        public bool LogInputActions = true;
-
         [Header("Audio")]
         public AudioSource UiFx;
         public AudioClip NavigateClip;
@@ -57,11 +54,6 @@ namespace Turnroot.UI
 
         private void Subscribe()
         {
-            if (LogInputActions)
-            {
-                $"UiInputProvider.Subscribe called (initialized={UIInputActionDefaults.Initialized}, enabled={isActiveAndEnabled}, subscribed={_subscribed})".LogInfo();
-            }
-
             if (_subscribed)
             {
                 // If the shared actions were re-created (new instances), re-subscribe.

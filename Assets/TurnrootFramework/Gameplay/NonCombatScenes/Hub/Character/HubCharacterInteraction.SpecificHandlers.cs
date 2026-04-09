@@ -144,7 +144,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void HandleSupport() { }
 
-        private void HandleRecruit() { }
+        private void HandleRecruit()
+        {
+            //
+        }
 
         private void HandleTrain() { }
 
