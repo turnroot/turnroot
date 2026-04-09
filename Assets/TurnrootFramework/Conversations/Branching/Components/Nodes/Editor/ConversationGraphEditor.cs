@@ -167,9 +167,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                                     // ensure the graph's `nodes` list is serialized correctly.
                                     try
                                     {
-                                        var graphPath = AssetDatabase.GetAssetPath(
-                                            graph
-                                        );
+                                        var graphPath = AssetDatabase.GetAssetPath(graph);
                                         var createdPath = AssetDatabase.GetAssetPath(created);
                                         if (!string.IsNullOrEmpty(graphPath))
                                         {
@@ -181,9 +179,7 @@ namespace Turnroot.Conversations.Branching.Nodes
                                                 AssetDatabase.AddObjectToAsset(created, graphPath);
                                             }
 
-                                            EditorUtility.SetDirty(
-                                                graph
-                                            );
+                                            EditorUtility.SetDirty(graph);
                                             AssetDatabase.SaveAssets();
                                         }
                                     }

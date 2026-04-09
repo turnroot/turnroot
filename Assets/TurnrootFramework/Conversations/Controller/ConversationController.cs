@@ -4,6 +4,7 @@ using NaughtyAttributes;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.UI;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.Events;
@@ -366,15 +367,9 @@ namespace Turnroot.Conversations
         {
             if (string.IsNullOrWhiteSpace(oneShot.Dialogue))
             {
-                UnityEngine.Debug.Log(
-                    "ConversationController: PlayOneShot called with empty dialogue"
-                );
+                "PlayOneShot called with empty dialogue".LogInfo();
                 return;
             }
-
-            UnityEngine.Debug.Log(
-                $"ConversationController: PlayOneShot called (dialogue='{oneShot.Dialogue}', speaker='{oneShot.SpeakerName ?? "(none)"}')."
-            );
 
             ShowConversationUI();
 
@@ -383,9 +378,7 @@ namespace Turnroot.Conversations
                 EnsureAudioSource();
                 if (_audioSource == null)
                 {
-                    UnityEngine.Debug.LogWarning(
-                        "ConversationController: audio clip provided but AudioSource could not be created."
-                    );
+                    "Audio clip provided but AudioSource could not be created.".LogWarning();
                 }
                 else
                 {
@@ -398,9 +391,7 @@ namespace Turnroot.Conversations
 
             if (_dialogueText == null || _speakerNameText == null)
             {
-                UnityEngine.Debug.LogWarning(
-                    "ConversationController: UI references are not assigned (dialogue or speaker name is missing). Please assign _dialogueText and _speakerNameText."
-                );
+                "UI references are not assigned (dialogue or speaker name is missing). Please assign _dialogueText and _speakerNameText.".LogWarning();
             }
 
             if (_oneShotRoutine != null)
@@ -417,16 +408,12 @@ namespace Turnroot.Conversations
         {
             if (_uiFade != null)
             {
-                UnityEngine.Debug.Log("ConversationController: Showing UI via UIFade");
                 _uiFade.Show();
             }
             else
             {
                 if (!gameObject.activeInHierarchy)
                 {
-                    UnityEngine.Debug.Log(
-                        "ConversationController: Activating controller GameObject"
-                    );
                     gameObject.SetActive(true);
                 }
             }
@@ -456,11 +443,9 @@ namespace Turnroot.Conversations
             }
 
             _activeOneShotLayer.StartLayer();
-            UnityEngine.Debug.Log("ConversationController: Updating UI for one-shot layer");
             UpdateUIForLayer(_activeOneShotLayer);
 
-            var sceneFlow =
-                UnityEngine.Object.FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+            var sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
             sceneFlow?.ResetInterruptActivityTimer();
             if (sceneFlow != null)
             {
@@ -479,9 +464,7 @@ namespace Turnroot.Conversations
             }
             else
             {
-                UnityEngine.Debug.LogWarning(
-                    "ConversationController: One-shot layer does not have a completion event; concluding immediately."
-                );
+                "One-shot layer does not have a completion event; concluding immediately.".LogWarning();
             }
 
             if (sceneFlow != null)

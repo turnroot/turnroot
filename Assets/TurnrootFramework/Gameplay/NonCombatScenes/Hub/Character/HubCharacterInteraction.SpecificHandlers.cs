@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Turnroot.Characters.Stats;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
@@ -38,10 +37,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         {
             // 1. pull up gift choice ui (shopui-ish, probably just a VL with instances of ItemRowPrefab)
             var container = GiftChoiceParentContainer;
+            // Clear any leftover rows from a previous visit.
+            foreach (Transform child in container.transform)
+            {
+                Destroy(child.gameObject);
+            }
             var storehouse = CharacterManager._brain.storehouseBrain;
             var materials = storehouse.GetAllMaterials();
             var gifts = materials
-                .Where(m => m.Key.IsGiftSubtype())
+                .Where(m => m.Key.IsGiftSubtype() && m.Value > 0)
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
             // 1a. populate list from storehouse
             var rows = new List<GiftItemRowUiRefs>();
@@ -155,6 +159,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 );
             }
             CharacterManager._brain.PublishHubCharacterTalked(ActiveCharacter);
+            InputProvider.OnInput -= HandleInput;
             InputProvider.OnInput += HandleInput;
             SetUpActionsMenuChoices();
         }
@@ -165,6 +170,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             // 6a. support points ui
             // 7. return back to action choice menu
             ShowActionsMenu();
+            InputProvider.OnInput -= HandleInput;
             InputProvider.OnInput += HandleInput;
             // 8. save storehouse and support points to LTM
             CharacterManager._brain.storehouseBrain.SaveCurrentStorehouse();
