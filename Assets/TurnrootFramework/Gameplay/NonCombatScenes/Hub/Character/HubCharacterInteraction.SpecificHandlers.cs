@@ -15,13 +15,37 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private ObjectItem[] _giftItems;
         private int _giftChoiceIndex;
 
+        private int CurrentChapter =>
+            CharacterManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
+
+        private void ResubscribeInput()
+        {
+            InputProvider.OnInput -= HandleInput;
+            InputProvider.OnInput += HandleInput;
+        }
+
+        private void ReturnToActionsMenu()
+        {
+            ShowActionsMenu();
+            ResubscribeInput();
+        }
+
+        private void PersistAvatarSupportPoints()
+        {
+            var avatar = CharacterManager._brain.gamewideContextBrain.GetOrCreateAvatarInstance();
+            if (avatar != null)
+            {
+                CharacterManager._brain.gamewideContextBrain.PersistCharacter(avatar);
+                $"Persisted avatar with updated support points: {avatar.CharacterTemplate.FullName}, {ActiveCharacter.CharacterTemplate.DisplayName}, SupportPoints: {avatar.GetSupportRelationship(ActiveCharacter.CharacterTemplate)?.SupportPoints}".LogInfo();
+            }
+        }
+
         private void HandleTalk()
         {
             InputProvider.OnInput -= HandleInput;
-            var currentChapter = CharacterManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
             var oneShot = CharacterManager.GetDailyOneShotForType(
                 ActiveCharacter,
-                currentChapter,
+                CurrentChapter,
                 HubCharacterOneShotType.ChitChat
             );
             PlayOneShotThen(oneShot, OnChitChatFinished);
@@ -108,10 +132,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             // 4. adjust support points
             AdjustSupportPointsBasedOnGift(chosenGift);
             // 5. play reaction one shot
-            var currentChapter = CharacterManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
             var oneShot = CharacterManager.GetDailyOneShotForType(
                 ActiveCharacter,
-                currentChapter,
+                CurrentChapter,
                 chosenGift.UnitsLove.Contains(ActiveCharacter.CharacterTemplate)
                     ? HubCharacterOneShotType.GetGiftLove
                     : HubCharacterOneShotType.GetGiftDislike
@@ -146,7 +169,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void HandleRecruit()
         {
-            //
+            var canRecruit = CharacterManager._brain.charactersBrain.CanRecruit(ActiveCharacter);
+            if (canRecruit == false)
+            {
+                var oneShot = CharacterManager.GetDailyOneShotForType(
+                    ActiveCharacter,
+                    CurrentChapter,
+                    HubCharacterOneShotType.RecruitFail
+                );
+                var basePoints = GameplayGeneralSettings.Instance.RecruitFailureSupportPoints;
+                CharacterManager._brain.charactersBrain.AwardHubSupportPointsAvatarPairing(
+                    ActiveCharacter,
+                    basePoints
+                );
+                PlayOneShotThen(oneShot, OnRecruitFailedOneShotFinished);
+                return;
+            }
         }
 
         private void HandleTrain() { }
@@ -154,7 +192,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private void OnChitChatFinished()
         {
             UnsubscribeOneShotFinished(OnChitChatFinished);
-            if (ActiveCharacter?.CharacterTemplate != null)
+            if (ActiveCharacter.CharacterTemplate != null)
             {
                 HubDayStateStore.MarkChitChatHappenedToday(
                     CharacterManager._brain,
@@ -162,9 +200,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 );
             }
             CharacterManager._brain.PublishHubCharacterTalked(ActiveCharacter);
-            InputProvider.OnInput -= HandleInput;
-            InputProvider.OnInput += HandleInput;
+            ResubscribeInput();
             SetUpActionsMenuChoices();
+        }
+
+        private void OnRecruitFailedOneShotFinished()
+        {
+            UnsubscribeOneShotFinished(OnRecruitFailedOneShotFinished);
+            ReturnToActionsMenu();
+            PersistAvatarSupportPoints();
         }
 
         private void OnGiftOneshotFinished()
@@ -172,17 +216,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             UnsubscribeOneShotFinished(OnGiftOneshotFinished);
             // 6a. support points ui
             // 7. return back to action choice menu
-            ShowActionsMenu();
-            InputProvider.OnInput -= HandleInput;
-            InputProvider.OnInput += HandleInput;
+            ReturnToActionsMenu();
             // 8. save storehouse and support points to LTM
             CharacterManager._brain.storehouseBrain.SaveCurrentStorehouse();
-            var avatar = CharacterManager._brain.gamewideContextBrain?.GetOrCreateAvatarInstance();
-            if (avatar != null)
-            {
-                CharacterManager._brain.gamewideContextBrain.PersistCharacter(avatar);
-                $"Persisted avatar with updated support points: {avatar.CharacterTemplate.FullName}, {ActiveCharacter.CharacterTemplate.DisplayName}, SupportPoints: {avatar.GetSupportRelationship(ActiveCharacter.CharacterTemplate)?.SupportPoints}".LogInfo();
-            }
+            PersistAvatarSupportPoints();
         }
 
         private void PlayOneShotThen(OneShot oneShot, UnityAction onFinished)
