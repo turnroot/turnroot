@@ -4,6 +4,7 @@ using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 {
@@ -27,6 +28,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         public UIFade GiftChoiceMenuFade;
         public int MaxVisibleGiftChoices = 8;
 
+        public PlayableDirector SupportUpTimeline;
+        public PlayableDirector SupportDownTimeline;
+
         #endregion
 
         #region Runtime State
@@ -36,6 +40,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private UiChoice[] _navigableChoices;
         private int _currentChoiceIndex;
         private ConversationController _subscribedController;
+
+        /// <summary>True while a mid-interaction one-shot (e.g. chitchat, gift reaction) is playing.</summary>
+        public bool IsOneShotPlaying => _subscribedController != null;
 
         #endregion
 

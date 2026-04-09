@@ -71,6 +71,19 @@ namespace Turnroot.Gameplay.Brain
 
         internal void HandleHubCharacterInteracted(CharacterInstance visitedCharacter)
         {
+            var fullName = visitedCharacter?.CharacterTemplate?.FullName;
+            if (string.IsNullOrEmpty(fullName))
+            {
+                return;
+            }
+
+            if (NonCombatScenes.Hub.HubDayStateStore.HasInteractionHappenedToday(fullName))
+            {
+                $"Hub interaction support points already awarded for {fullName} today — skipping.".LogInfo();
+                return;
+            }
+
+            NonCombatScenes.Hub.HubDayStateStore.MarkInteractionHappenedToday(Brain, fullName);
             AwardHubSupportPointsAvatarPairing(
                 visitedCharacter,
                 GameplayGeneralSettings.Instance?.HubInteractionSupportPoints ?? 0f
