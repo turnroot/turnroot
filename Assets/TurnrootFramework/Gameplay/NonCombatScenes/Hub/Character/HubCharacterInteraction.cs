@@ -39,10 +39,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private UiChoice[] _navigableChoices;
         private int _currentChoiceIndex;
-        private ConversationController _subscribedController;
 
         /// <summary>True while a mid-interaction one-shot (e.g. chitchat, gift reaction) is playing.</summary>
-        public bool IsOneShotPlaying => _subscribedController != null;
+        public bool IsOneShotPlaying
+        {
+            get
+            {
+                var audioBrain = CharacterManager._brain?.audioBrain;
+                return audioBrain != null
+                    && audioBrain.TryGetComponent(out OneShotPlayer player)
+                    && player.HasPendingCallback;
+            }
+        }
 
         #endregion
 

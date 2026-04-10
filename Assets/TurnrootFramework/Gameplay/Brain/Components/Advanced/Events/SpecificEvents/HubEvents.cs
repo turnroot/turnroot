@@ -37,6 +37,13 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public event Action<CharacterInstance> OnHubCharacterTalked;
 
+        /// <summary>
+        /// Fired when the post-one-shot recruit completion sequence finishes (UI/audio fanfare etc.)
+        /// and the hub interaction flow is ready to return to the actions menu.
+        /// Subscribe in <see cref="HubCharacterInteraction"/> to gate the return.
+        /// </summary>
+        public event Action<CharacterInstance> OnHubCharacterRecruitCompleted;
+
         public void PublishHubSublocationVisited(HubSublocationName name) =>
             OnHubSublocationVisited?.Invoke(name);
 
@@ -51,5 +58,8 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishHubCharacterTalked(CharacterInstance character) =>
             OnHubCharacterTalked?.Invoke(character);
+
+        public void PublishHubCharacterRecruitCompleted(CharacterInstance character) =>
+            OnHubCharacterRecruitCompleted?.Invoke(character);
     }
 }

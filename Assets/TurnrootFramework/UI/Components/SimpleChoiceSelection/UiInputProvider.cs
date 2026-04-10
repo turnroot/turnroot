@@ -46,11 +46,7 @@ namespace Turnroot.UI
             }
         }
 
-        private void OnEnable()
-        {
-            "UiInputProvider: OnEnable".LogInfo("UiInputProvider");
-            Subscribe();
-        }
+        private void OnEnable() => Subscribe();
 
         private void Subscribe()
         {

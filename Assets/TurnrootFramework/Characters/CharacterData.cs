@@ -76,10 +76,10 @@ namespace Turnroot.Characters
         public bool IsRecruitable { get; private set; } = false;
 
         [field: SerializeField, HideInInspector]
-        public bool RequiresMinSupportLevel { get; private set; } = true;
+        public bool RecruitRequiresMinSupportLevel { get; private set; } = true;
 
         [field: SerializeField, HideInInspector]
-        public LeveledLetteredField SupportRelationshipMinRank { get; private set; } =
+        public LeveledLetteredField RecruitSupportRelationshipMinRank { get; private set; } =
             new LeveledLetteredField(LeveledLetteredField.E);
 
         [HideInInspector]
@@ -523,7 +523,7 @@ namespace Turnroot.Characters
         public bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
 
         private bool IsRecruitableRequiresMinSupportLevel() =>
-            IsRecruitable && RequiresMinSupportLevel;
+            IsRecruitable && RecruitRequiresMinSupportLevel;
 
         public Portrait[] PortraitArray
         {

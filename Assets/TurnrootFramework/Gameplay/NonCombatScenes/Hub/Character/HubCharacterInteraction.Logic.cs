@@ -1,4 +1,5 @@
 using System.Linq;
+using Turnroot.Conversations;
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -256,10 +257,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void OnDisable()
         {
-            if (_subscribedController != null)
+            var audioBrain =
+                CharacterManager._brain != null ? CharacterManager._brain.audioBrain : null;
+            if (audioBrain != null)
             {
-                _subscribedController.OnAnyConversationFinished.RemoveListener(OnChitChatFinished);
-                _subscribedController = null;
+                audioBrain.GetComponent<OneShotPlayer>()?.ClearPendingCallback();
+            }
+            if (CharacterManager._brain != null)
+            {
+                CharacterManager._brain.OnHubCharacterRecruitCompleted -=
+                    OnRecruitCompleteSequenceFinished;
             }
         }
 
