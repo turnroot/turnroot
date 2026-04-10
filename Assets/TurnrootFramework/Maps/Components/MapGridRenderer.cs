@@ -168,8 +168,10 @@ namespace Turnroot.Gameplay.Maps
             int width = bounds.width * _cellSize;
             int height = bounds.height * _cellSize;
 
-            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            texture.filterMode = FilterMode.Point; // Crisp pixel art style
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Point // Crisp pixel art style
+            };
 
             // Load terrain asset for colors
             TerrainTypes terrainAsset = TerrainTypes.LoadDefault();
@@ -231,8 +233,10 @@ namespace Turnroot.Gameplay.Maps
             int width = bounds.width * _cellSize;
             int height = bounds.height * _cellSize;
 
-            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            texture.filterMode = FilterMode.Point;
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Point
+            };
 
             // Load terrain asset to check terrain types
             TerrainTypes terrainAsset = TerrainTypes.LoadDefault();
@@ -296,8 +300,10 @@ namespace Turnroot.Gameplay.Maps
             int width = bounds.width * _cellSize;
             int height = bounds.height * _cellSize;
 
-            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            texture.filterMode = FilterMode.Point;
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Point
+            };
 
             // Draw each cell within traversable area
             for (int row = bounds.minRow; row <= bounds.maxRow; row++)

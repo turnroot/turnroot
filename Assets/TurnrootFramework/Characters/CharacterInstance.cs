@@ -191,39 +191,40 @@ namespace Turnroot.Characters
         /// </summary>
         public CharacterInstance CreateBattleCopy()
         {
-            var copy = new CharacterInstance();
+            var copy = new CharacterInstance
+            {
+                _id = this._id,
+                _characterTemplate = this._characterTemplate,
+                settings = this.settings,
 
-            copy._id = this._id;
-            copy._characterTemplate = this._characterTemplate;
-            copy.settings = this.settings;
+                _currentLevel = this._currentLevel,
+                _currentExp = this._currentExp,
+                _runtimeBoundedStats = this._runtimeBoundedStats,
+                _runtimeUnboundedStats = this._runtimeUnboundedStats,
+                _inventoryInstance = this._inventoryInstance,
+                _skillInstances = this._skillInstances,
+                _supportRelationships = this._supportRelationships,
+                _experienceRanks = this._experienceRanks,
+                _currentClass = this._currentClass,
+                _equippedClassHistory = this._equippedClassHistory,
 
-            copy._currentLevel = this._currentLevel;
-            copy._currentExp = this._currentExp;
-            copy._runtimeBoundedStats = this._runtimeBoundedStats;
-            copy._runtimeUnboundedStats = this._runtimeUnboundedStats;
-            copy._inventoryInstance = this._inventoryInstance;
-            copy._skillInstances = this._skillInstances;
-            copy._supportRelationships = this._supportRelationships;
-            copy._experienceRanks = this._experienceRanks;
-            copy._currentClass = this._currentClass;
-            copy._equippedClassHistory = this._equippedClassHistory;
+                _meshRenderer = this._meshRenderer,
+                _useBattleModel = this._useBattleModel,
+                _currentWeaponPrefab = this._currentWeaponPrefab,
+                _currentShieldPrefab = this._currentShieldPrefab,
+                _isMounted = this._isMounted,
+                _currentMountModel = this._currentMountModel,
 
-            copy._meshRenderer = this._meshRenderer;
-            copy._useBattleModel = this._useBattleModel;
-            copy._currentWeaponPrefab = this._currentWeaponPrefab;
-            copy._currentShieldPrefab = this._currentShieldPrefab;
-            copy._isMounted = this._isMounted;
-            copy._currentMountModel = this._currentMountModel;
-
-            // Battle-specific state (RESET for new battle)
-            copy._mapGridPosition = new Vector2Int(-9999, -9999);
-            copy._isDefeatedInCurrentBattle = false;
-            copy._wasSpawnedDuringBattle = false;
-            copy.IsSelectedForBattle = this.IsSelectedForBattle;
-            copy._activeStatusEffects = new List<StatusEffectInstance>();
-            copy.LastAttackedTarget = null;
-            copy.CurrentMovementSpline = null;
-            copy.WalkingSpeed = this.WalkingSpeed;
+                // Battle-specific state (RESET for new battle)
+                _mapGridPosition = new Vector2Int(-9999, -9999),
+                _isDefeatedInCurrentBattle = false,
+                _wasSpawnedDuringBattle = false,
+                IsSelectedForBattle = this.IsSelectedForBattle,
+                _activeStatusEffects = new List<StatusEffectInstance>(),
+                LastAttackedTarget = null,
+                CurrentMovementSpline = null,
+                WalkingSpeed = this.WalkingSpeed
+            };
 
             return copy;
         }

@@ -130,8 +130,10 @@ namespace Turnroot.Utilities
             [CallerLineNumber] int lineNumber = 0
         )
         {
-            var nextBuilder = new ValidationBuilder<TNext>(nextValue, caller, filePath, lineNumber);
-            nextBuilder._currentResult = _currentResult; // Carry forward any existing failure
+            var nextBuilder = new ValidationBuilder<TNext>(nextValue, caller, filePath, lineNumber)
+            {
+                _currentResult = _currentResult // Carry forward any existing failure
+            };
             return nextBuilder;
         }
 

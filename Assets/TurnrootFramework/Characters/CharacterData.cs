@@ -75,35 +75,24 @@ namespace Turnroot.Characters
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowRecruitable))]
         public bool IsRecruitable { get; private set; } = false;
 
-        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsRecruitable))]
-        public bool RequiresMinSupportLevel { get; private set; } = true;
+        [field: SerializeField, HideInInspector]
+        public bool RecruitRequiresMinSupportLevel { get; private set; } = true;
 
-        [field:
-            Foldout("Character Flags"),
-            SerializeField,
-            ShowIf(nameof(IsRecruitableRequiresMinSupportLevel))
-        ]
-        public LeveledLetteredField SupportRelationshipMinRank { get; private set; } =
+        [field: SerializeField, HideInInspector]
+        public LeveledLetteredField RecruitSupportRelationshipMinRank { get; private set; } =
             new LeveledLetteredField(LeveledLetteredField.E);
 
-        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsRecruitable))]
-        public bool UseRecruitmentChance { get; private set; } = true;
+        [HideInInspector]
+        public bool AvatarMustHaveMinimumExperienceLevelsToRecruit;
 
-        [field:
-            Foldout("Character Flags"),
-            SerializeField,
-            Range(0f, 100f),
-            ShowIf(nameof(IsRecruitableUseRecruitmentChance))
-        ]
-        public float RecruitmentChance { get; private set; } = 25f;
+        [HideInInspector]
+        public List<ExperienceRank> AvatarMinimumExperienceRanksToRecruit = new();
 
-        [field:
-            Foldout("Character Flags"),
-            SerializeField,
-            Range(0f, 100f),
-            ShowIf(nameof(IsRecruitableUseRecruitmentChance))
-        ]
-        public float RecruitmentChanceIncreasePerConversation { get; private set; } = 15f;
+        [HideInInspector]
+        public bool WillJoinIfAllyIsAlreadyRecruited;
+
+        [HideInInspector]
+        public CharacterData SpecificAllyRequiredForRecruitment;
 
         [SerializeField, Foldout("Character Flags"), ShowIf(nameof(CanShowUnique))]
         [FormerlySerializedAs("<IsUnique>k__BackingField")]
@@ -504,7 +493,7 @@ namespace Turnroot.Characters
             "Experience/aptitude ranks for weapon types and other trainable skills (e.g., Riding, Flying)"
         )]
         [field: HideInInspector]
-        public List<ExperienceRank> ExperienceRanks { get; private set; } = new(); // TODO: Only showing one magic type
+        public List<ExperienceRank> ExperienceRanks { get; private set; } = new();
 
         // NOTE: properties are declared inline with field-targeted attributes.
 #if TURNROOT_BLOODLINES_MODULE
@@ -534,9 +523,7 @@ namespace Turnroot.Characters
         public bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
 
         private bool IsRecruitableRequiresMinSupportLevel() =>
-            IsRecruitable && RequiresMinSupportLevel;
-
-        private bool IsRecruitableUseRecruitmentChance() => IsRecruitable && UseRecruitmentChance;
+            IsRecruitable && RecruitRequiresMinSupportLevel;
 
         public Portrait[] PortraitArray
         {
@@ -581,41 +568,6 @@ namespace Turnroot.Characters
             public Vector2 Offset;
             public float Scale;
             public Color Tint;
-        }
-
-        /// <summary>
-        /// Represents a character's experience rank in a specific skill type (e.g., sword, riding).
-        /// </summary>
-        [Serializable]
-        public class ExperienceRank
-        {
-            [Tooltip("ID of the experience type (e.g., 'sword', 'riding', 'flying')")]
-            [SerializeField]
-            private string _experienceTypeId;
-
-            [Tooltip("Current rank/level (E=0, D=1, C=2, B=3, A=4, S=5)")]
-            [SerializeField]
-            private LeveledLetteredField _rank = new(LeveledLetteredField.E);
-
-            public string ExperienceTypeId
-            {
-                get => _experienceTypeId;
-                set => _experienceTypeId = value;
-            }
-
-            public LeveledLetteredField Rank
-            {
-                get => _rank;
-                set => _rank = value;
-            }
-
-            public ExperienceRank() { }
-
-            public ExperienceRank(string experienceTypeId, string rankValue)
-            {
-                _experienceTypeId = experienceTypeId;
-                _rank = new LeveledLetteredField(rankValue);
-            }
         }
     }
 }

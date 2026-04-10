@@ -15,6 +15,7 @@ namespace Turnroot.Characters.Editor
         private SerializedProperty _personalGrowthRates;
 
         private bool _behaviorFoldout = false;
+        private bool _showRecruitment = false;
 
         private bool _showBaseStats = false;
         private bool _showGrowthRates = false;
@@ -165,6 +166,22 @@ namespace Turnroot.Characters.Editor
                 DrawBehaviorProperty(rect, behaviorProp);
             }
             serializedObject.ApplyModifiedProperties();
+
+            // Recruitment section - only shown when IsRecruitable is true
+            var isRecruitableProp = FindAutoProperty("IsRecruitable");
+            if (isRecruitableProp != null && isRecruitableProp.boolValue)
+            {
+                EditorGUILayout.Space();
+                _showRecruitment = EditorGUILayout.Foldout(_showRecruitment, "Recruitment", true);
+                if (_showRecruitment)
+                {
+                    DrawRecruitmentSection();
+                }
+                if (serializedObject.hasModifiedProperties)
+                {
+                    serializedObject.ApplyModifiedProperties();
+                }
+            }
 
             EditorGUILayout.Space();
             _showBaseStats = EditorGUILayout.Foldout(_showBaseStats, "Base Stats", true);
@@ -990,6 +1007,128 @@ namespace Turnroot.Characters.Editor
             property.FindPropertyRelative("BrashWary").floatValue = presetValues.BrashWary;
             property.FindPropertyRelative("BloodthirstGreed").floatValue =
                 presetValues.BloodthirstGreed;
+        }
+
+        private void DrawRecruitmentSection()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Recruitment", EditorStyles.boldLabel);
+
+            DrawAutoPropertyField("RequiresMinSupportLevel");
+
+            var requiresMinSupportProp = FindAutoProperty("RequiresMinSupportLevel");
+            if (requiresMinSupportProp != null && requiresMinSupportProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                DrawAutoPropertyField("SupportRelationshipMinRank");
+                EditorGUI.indentLevel--;
+            }
+
+            DrawAutoPropertyField("AvatarMustHaveMinimumExperienceLevelsToRecruit");
+
+            var avatarMinLevelsProp = serializedObject.FindProperty(
+                "AvatarMustHaveMinimumExperienceLevelsToRecruit"
+            );
+            if (avatarMinLevelsProp != null && avatarMinLevelsProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                DrawExperienceRankListWithTypeDropdown("AvatarMinimumExperienceRanksToRecruit");
+                EditorGUI.indentLevel--;
+            }
+
+            DrawAutoPropertyField("WillJoinIfAllyIsAlreadyRecruited");
+
+            var willJoinProp = serializedObject.FindProperty("WillJoinIfAllyIsAlreadyRecruited");
+            if (willJoinProp != null && willJoinProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                DrawAutoPropertyField("SpecificAllyRequiredForRecruitment");
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        private void DrawExperienceRankListWithTypeDropdown(string fieldName)
+        {
+            var listProp =
+                serializedObject.FindProperty(fieldName)
+                ?? serializedObject.FindProperty($"<{fieldName}>k__BackingField");
+            if (listProp == null || !listProp.isArray)
+            {
+                EditorGUILayout.LabelField($"Missing property: {fieldName}");
+                return;
+            }
+
+            var gs = GameSettings.GameplayGeneralSettings.Instance;
+            var allTypes = gs != null ? gs.GetAllExperienceTypes() : null;
+            string[] typeNames =
+                allTypes != null ? System.Array.ConvertAll(allTypes, t => t.Name) : new string[0];
+
+            EditorGUILayout.LabelField("Minimum Experience Ranks", EditorStyles.miniBoldLabel);
+
+            for (int i = 0; i < listProp.arraySize; i++)
+            {
+                var elem = listProp.GetArrayElementAtIndex(i);
+                if (elem == null)
+                {
+                    continue;
+                }
+
+                var idProp = elem.FindPropertyRelative("_experienceTypeId");
+                var rankProp = elem.FindPropertyRelative("_rank");
+
+                EditorGUILayout.BeginHorizontal();
+
+                if (idProp != null && typeNames.Length > 0)
+                {
+                    int currentIndex = System.Array.IndexOf(typeNames, idProp.stringValue);
+                    if (currentIndex < 0)
+                    {
+                        currentIndex = 0;
+                    }
+
+                    int newIndex = EditorGUILayout.Popup(
+                        currentIndex,
+                        typeNames,
+                        GUILayout.Width(140)
+                    );
+                    if (newIndex != currentIndex)
+                    {
+                        idProp.stringValue = typeNames[newIndex];
+                    }
+                }
+                else if (idProp != null)
+                {
+                    EditorGUILayout.PropertyField(idProp, GUIContent.none, GUILayout.Width(140));
+                }
+
+                if (rankProp != null)
+                {
+                    EditorGUILayout.PropertyField(rankProp, GUIContent.none);
+                }
+
+                if (GUILayout.Button("-", GUILayout.Width(22)))
+                {
+                    listProp.DeleteArrayElementAtIndex(i);
+                    EditorGUILayout.EndHorizontal();
+                    break;
+                }
+
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (GUILayout.Button("Add Rank Requirement", GUILayout.Width(160)))
+            {
+                listProp.InsertArrayElementAtIndex(listProp.arraySize);
+                var newElem = listProp.GetArrayElementAtIndex(listProp.arraySize - 1);
+                if (newElem != null)
+                {
+                    var idProp = newElem.FindPropertyRelative("_experienceTypeId");
+                    if (idProp != null && typeNames.Length > 0)
+                    {
+                        idProp.stringValue = typeNames[0];
+                    }
+                }
+            }
         }
     }
 }

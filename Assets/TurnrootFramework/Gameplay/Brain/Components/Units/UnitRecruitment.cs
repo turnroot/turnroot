@@ -1,156 +1,137 @@
+using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts.UI;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
-    /// <summary>
-    /// Handles character recruitment system, including recruitability overrides, recruitment chances, and support requirements.
-    /// </summary>
     [RequireComponent(typeof(LongTermMemory))]
     public partial class CharactersBrain : BrainComponent
     {
-        #region Recruitment System API
-
-        public void SetCharacterRecruitableOverride(
-            CharacterInstance character,
-            CharacterData targetCharacter,
-            bool isRecruitable
-        )
+        public bool CanRecruit(CharacterInstance character)
         {
-            if (!Validate(character, targetCharacter))
+            var status = false;
+            var characterData = character.CharacterTemplate;
+            if (characterData == null)
             {
-                return;
-            }
-
-            var res = character.SetCharacterRecruitable(targetCharacter, isRecruitable);
-            if (res.Success)
-            {
-                Brain.PublishCharacterRecruitableChanged(character, targetCharacter, isRecruitable);
-
-                $"Set recruitable for {targetCharacter.DisplayName} to {isRecruitable}"
-            .LogInfo();
-            }
-        }
-
-        public void SetCharacterRecruitmentChanceOverride(
-            CharacterInstance character,
-            CharacterData targetCharacter,
-            float chance
-        )
-        {
-            if (!Validate(character, targetCharacter))
-            {
-                return;
-            }
-
-            var res = character.SetCharacterRecruitmentChance(targetCharacter, chance);
-            if (res.Success)
-            {
-                Brain.PublishCharacterRecruitmentChanceChanged(character, targetCharacter, chance);
-
-                $"Set recruitment chance for {targetCharacter.DisplayName} to {chance}"
-            .LogInfo();
-            }
-        }
-
-        public void SetCharacterRecruitmentChanceIncreaseOverride(
-            CharacterInstance character,
-            CharacterData targetCharacter,
-            float increase
-        )
-        {
-            if (!Validate(character, targetCharacter))
-            {
-                return;
-            }
-
-            var res = character.SetCharacterRecruitmentChanceIncreasePerConversation(
-                targetCharacter,
-                increase
-            );
-            if (res.Success)
-            {
-                Brain.PublishCharacterRecruitmentChanceIncreaseChanged(
-                    character,
-                    targetCharacter,
-                    increase
+                "CharactersBrain.CanRecruit: Character instance has no template, cannot determine recruitability.".LogWarning(
+                    "CharactersBrain"
                 );
-
-                $"Set recruitment increase for {targetCharacter.DisplayName} to {increase}"
-            .LogInfo();
+                status = false;
             }
-        }
 
-        public void SetCharacterRequiresMinSupportLevelOverride(
-            CharacterInstance character,
-            CharacterData targetCharacter,
-            bool requiresMinSupportLevel
-        )
-        {
-            if (!Validate(character, targetCharacter))
+            if (characterData.WillJoinIfAllyIsAlreadyRecruited)
             {
-                return;
+                var requiredAlly = characterData.SpecificAllyRequiredForRecruitment;
+                var roster =
+                    _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
+                if (roster != null)
+                {
+                    // Check if the required ally is in the roster
+                    var rosterInstance = _gamewideContextBrain?.GetOrCreatePlayerTeamRoster(roster);
+                    return rosterInstance?.GetInstanceFor(requiredAlly) != null;
+                    ; // If true,  return early, the character is recruitable regardless of other conditions
+                }
             }
 
-            character.SetCharacterRequiresMinSupportLevel(targetCharacter, requiresMinSupportLevel);
-            Brain.PublishCharacterRequiresMinSupportLevelChanged(
-                character,
-                targetCharacter,
-                requiresMinSupportLevel
-            );
-
-            $"Set requires-min-support for {targetCharacter.DisplayName} to {requiresMinSupportLevel}"
-        .LogInfo();
-        }
-
-        public void ClearCharacterRecruitmentOverrides(
-            CharacterInstance character,
-            CharacterData targetCharacter
-        )
-        {
-            if (!Validate(character, targetCharacter))
+            if (characterData.AvatarMustHaveMinimumExperienceLevelsToRecruit)
             {
-                return;
+                // check avatar experience ranks against characterData.AvatarMinimumExperienceRanksToRecruit
+                var avatar = _gamewideContextBrain?.GetOrCreateAvatarInstance();
+                if (avatar == null)
+                {
+                    status = false;
+                }
+                else
+                {
+                    foreach (var required in characterData.AvatarMinimumExperienceRanksToRecruit)
+                    {
+                        var avatarRank = avatar.ExperienceRanks.Find(r =>
+                            r.ExperienceTypeId == required.ExperienceTypeId
+                        );
+                        if (
+                            avatarRank == null
+                            || required.Rank.CompareTo(avatarRank.Rank.Value) > 0
+                        )
+                        {
+                            status = false;
+                            break;
+                        }
+                    }
+                }
             }
 
-            character.ClearRecruitmentOverrides(targetCharacter);
-            Brain.PublishCharacterRecruitmentOverridesCleared(character, targetCharacter);
-            $"Cleared recruitment overrides for {targetCharacter.DisplayName}".LogInfo();
+            if (characterData.RecruitRequiresMinSupportLevel)
+            {
+                // check avatar support relationship with character against characterData.RecruitSupportRelationshipMinRank
+                var avatar = _gamewideContextBrain?.GetOrCreateAvatarInstance();
+                if (avatar == null)
+                {
+                    status = false;
+                }
+                else
+                {
+                    var supportRel = avatar.GetSupportRelationship(characterData);
+                    if (
+                        supportRel == null
+                        || characterData.RecruitSupportRelationshipMinRank.CompareTo(
+                            supportRel.CurrentLevel
+                        ) > 0
+                    )
+                    {
+                        status = false;
+                    }
+                }
+            }
+            return status;
         }
 
-        public bool IsCharacterRecruitable(
-            CharacterInstance character,
-            CharacterData targetCharacter
-        ) =>
-            Validate(character, targetCharacter)
-            && character.IsCharacterRecruitable(targetCharacter);
+        public OperationResult Recruit(CharacterInstance character)
+        {
+            if (!CanRecruit(character))
+            {
+                return OperationResult.Failure(
+                    $"Cannot recruit {character.CharacterTemplate.DisplayName}: requirements not met."
+                );
+            }
 
-        public float GetCharacterRecruitmentChance(
-            CharacterInstance character,
-            CharacterData targetCharacter
-        ) =>
-            Validate(character, targetCharacter)
-                ? character.GetCharacterRecruitmentChance(targetCharacter)
-                : 0f;
+            var roster = _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
+            if (roster == null)
+            {
+                return OperationResult.Failure("Could not access player roster.");
+            }
 
-        public float GetCharacterRecruitmentChanceIncreasePerConversation(
-            CharacterInstance character,
-            CharacterData targetCharacter
-        ) =>
-            Validate(character, targetCharacter)
-                ? character.GetCharacterRecruitmentChanceIncreasePerConversation(targetCharacter)
-                : 0f;
+            var rosterInstance = _gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
+            if (rosterInstance == null)
+            {
+                return OperationResult.Failure("Could not access player roster instance.");
+            }
 
-        public bool GetCharacterRequiresMinSupportLevel(
-            CharacterInstance character,
-            CharacterData targetCharacter
-        ) =>
-            Validate(character, targetCharacter)
-            && character.GetCharacterRequiresMinSupportLevel(targetCharacter);
+            roster.AddCharacter(character.CharacterTemplate);
+            rosterInstance.AddRuntimePlacement(character.CharacterTemplate);
+            rosterInstance.AddInstance(character); // fires OnRosterModified → SavePlayerRoster → LTM
+            _brain.gamewideContextBrain.PersistCharacter(character, updateIndex: true);
 
-        #endregion
+            return OperationResult.Successful();
+        }
+
+        /// <summary>
+        /// Triggers the post-recruit UI/audio sequence for a newly recruited character, then
+        /// fires <see cref="Brain.OnHubCharacterRecruitCompleted"/> when the sequence is done.
+        /// </summary>
+        public void PlayRecruitCompleteSequence(CharacterInstance character)
+        {
+            var celebration = FindFirstObjectByType<RecruitmentCelebration>();
+            if (celebration != null)
+            {
+                celebration.Activate(character);
+            }
+            else
+            {
+                _brain.PublishHubCharacterRecruitCompleted(character); // progress immediately if no celebration component
+            }
+        }
     }
 }
-

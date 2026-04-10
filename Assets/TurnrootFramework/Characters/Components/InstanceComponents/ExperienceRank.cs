@@ -40,7 +40,7 @@ namespace Turnroot.Characters
             _experiencePoints = 0;
         }
 
-        public ExperienceRankInstance(CharacterData.ExperienceRank template)
+        public ExperienceRankInstance(ExperienceRank template)
         {
             _experienceTypeId = template.ExperienceTypeId;
             _rank = new CommonAncestors.LeveledLetteredField(template.Rank.Value);

@@ -158,6 +158,34 @@ namespace Turnroot.Characters
         public CharacterInstance GetInstanceFor(CharacterData data) =>
             _instances.Find(i => i.CharacterTemplate == data);
 
+        public void AddRuntimePlacement(CharacterData data)
+        {
+            if (data == null)
+            {
+                return;
+            }
+
+            if (_runtimePlacements == null)
+            {
+                InitializeRuntimePlacementsFromTemplate();
+            }
+
+            if (GetPlacementFor(data) != null)
+            {
+                return;
+            }
+
+            var newPlacement = new UnitPlacement
+            {
+                CharacterData = data,
+                SpawnPosition = Vector2Int.zero,
+                Order = _runtimePlacements.Length,
+            };
+
+            var tempList = new List<UnitPlacement>(_runtimePlacements) { newPlacement };
+            _runtimePlacements = tempList.ToArray();
+        }
+
         public void AddInstance(CharacterInstance instance)
         {
             if (instance == null)

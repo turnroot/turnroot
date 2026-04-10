@@ -171,11 +171,13 @@ namespace Turnroot.Graphics2D
 
         protected virtual ImageStackLayer CreateLayerForTag(ILayerTag tag)
         {
-            var l = new UnmaskedImageStackLayer();
-            l.Tag = tag.Name;
-            l.Order = tag.Order;
-            l.Sprite = null;
-            l.Tint = Color.white;
+            var l = new UnmaskedImageStackLayer
+            {
+                Tag = tag.Name,
+                Order = tag.Order,
+                Sprite = null,
+                Tint = Color.white
+            };
             return l;
         }
 

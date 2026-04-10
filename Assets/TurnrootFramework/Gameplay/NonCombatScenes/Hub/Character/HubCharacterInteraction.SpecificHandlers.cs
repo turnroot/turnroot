@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Turnroot.Characters;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
@@ -15,16 +16,53 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private ObjectItem[] _giftItems;
         private int _giftChoiceIndex;
 
+        private OneShotPlayer OneShotPlayer =>
+            CharacterManager._brain.audioBrain.GetOrCreateOneShotPlayer();
+
+        private int CurrentChapter =>
+            CharacterManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
+
+        #region Menu Helpers
+
+        private void ResubscribeInput()
+        {
+            InputProvider.OnInput -= HandleInput;
+            InputProvider.OnInput += HandleInput;
+        }
+
+        private void ReturnToActionsMenu(bool persistSupportPoints = true)
+        {
+            ShowActionsMenu();
+            ResubscribeInput();
+            if (persistSupportPoints)
+            {
+                PersistAvatarSupportPoints();
+            }
+        }
+
+        private void PersistAvatarSupportPoints()
+        {
+            var avatar = CharacterManager._brain.gamewideContextBrain.GetOrCreateAvatarInstance();
+            if (avatar != null)
+            {
+                CharacterManager._brain.gamewideContextBrain.PersistCharacter(avatar);
+                $"Persisted avatar with updated support points: {avatar.CharacterTemplate.FullName}, {ActiveCharacter.CharacterTemplate.DisplayName}, SupportPoints: {avatar.GetSupportRelationship(ActiveCharacter.CharacterTemplate)?.SupportPoints}".LogInfo();
+            }
+        }
+
+        #endregion
+
+        #region Action Handlers
+
         private void HandleTalk()
         {
             InputProvider.OnInput -= HandleInput;
-            var currentChapter = CharacterManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
             var oneShot = CharacterManager.GetDailyOneShotForType(
                 ActiveCharacter,
-                currentChapter,
+                CurrentChapter,
                 HubCharacterOneShotType.ChitChat
             );
-            PlayOneShotThen(oneShot, OnChitChatFinished);
+            OneShotPlayer.PlayOneShotThen(oneShot, OnChitChatFinished);
         }
 
         private void HandleMeal() { }
@@ -90,6 +128,60 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             );
         }
 
+        private void HandleLostItem() { }
+
+        private void HandleSupport() { }
+
+        private void HandleRecruit()
+        {
+            var canRecruit = CharacterManager._brain.charactersBrain.CanRecruit(ActiveCharacter);
+            if (canRecruit == false)
+            {
+                var oneShot = CharacterManager.GetDailyOneShotForType(
+                    ActiveCharacter,
+                    CurrentChapter,
+                    HubCharacterOneShotType.RecruitFail
+                );
+                var basePoints = GameplayGeneralSettings.Instance.RecruitFailureSupportPoints;
+                CharacterManager._brain.charactersBrain.AwardHubSupportPointsAvatarPairing(
+                    ActiveCharacter,
+                    basePoints
+                );
+                OneShotPlayer.PlayOneShotThen(oneShot, OnRecruitFailedOneShotFinished);
+                return;
+            }
+            else
+            {
+                CharacterManager._brain.charactersBrain.Recruit(ActiveCharacter);
+                var oneShot = CharacterManager.GetDailyOneShotForType(
+                    ActiveCharacter,
+                    CurrentChapter,
+                    HubCharacterOneShotType.RecruitSucceed
+                );
+                OneShotPlayer.PlayOneShotThen(oneShot, OnRecruitSucceededOneShotFinished);
+            }
+        }
+
+        private void HandleTrain() { }
+
+        #endregion
+
+        #region Action Callbacks
+
+        private void OnChitChatFinished()
+        {
+            OneShotPlayer.UnsubscribeOneShotFinished(OnChitChatFinished);
+            if (ActiveCharacter.CharacterTemplate != null)
+            {
+                HubDayStateStore.MarkChitChatHappenedToday(
+                    CharacterManager._brain,
+                    ActiveCharacter.CharacterTemplate.FullName
+                );
+            }
+            CharacterManager._brain.PublishHubCharacterTalked(ActiveCharacter);
+            ReturnToActionsMenu(false);
+        }
+
         private void OnGiftChosen()
         {
             InputProvider.OnInput -= HandleGiftInput;
@@ -108,17 +200,51 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             // 4. adjust support points
             AdjustSupportPointsBasedOnGift(chosenGift);
             // 5. play reaction one shot
-            var currentChapter = CharacterManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
             var oneShot = CharacterManager.GetDailyOneShotForType(
                 ActiveCharacter,
-                currentChapter,
+                CurrentChapter,
                 chosenGift.UnitsLove.Contains(ActiveCharacter.CharacterTemplate)
                     ? HubCharacterOneShotType.GetGiftLove
                     : HubCharacterOneShotType.GetGiftDislike
             );
 
-            PlayOneShotThen(oneShot, OnGiftOneshotFinished);
+            OneShotPlayer.PlayOneShotThen(oneShot, OnGiftOneshotFinished);
         }
+
+        private void OnGiftOneshotFinished()
+        {
+            OneShotPlayer.UnsubscribeOneShotFinished(OnGiftOneshotFinished);
+            // 6a. support points ui
+            // 7. return back to action choice menu
+            ReturnToActionsMenu(true);
+            // 8. save storehouse and support points to LTM
+            CharacterManager._brain.storehouseBrain.SaveCurrentStorehouse();
+        }
+
+        private void OnRecruitFailedOneShotFinished()
+        {
+            OneShotPlayer.UnsubscribeOneShotFinished(OnRecruitFailedOneShotFinished);
+            ReturnToActionsMenu(true);
+        }
+
+        private void OnRecruitSucceededOneShotFinished()
+        {
+            OneShotPlayer.UnsubscribeOneShotFinished(OnRecruitSucceededOneShotFinished);
+            CharacterManager._brain.OnHubCharacterRecruitCompleted +=
+                OnRecruitCompleteSequenceFinished;
+            CharacterManager._brain.charactersBrain.PlayRecruitCompleteSequence(ActiveCharacter);
+        }
+
+        private void OnRecruitCompleteSequenceFinished(CharacterInstance _)
+        {
+            CharacterManager._brain.OnHubCharacterRecruitCompleted -=
+                OnRecruitCompleteSequenceFinished;
+            ReturnToActionsMenu(true);
+        }
+
+        #endregion
+
+        #region Gift Support Point Adjustment
 
         private void AdjustSupportPointsBasedOnGift(ObjectItem gift)
         {
@@ -129,7 +255,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 : negative;
             $"Gift {gift.Name} given to {ActiveCharacter.CharacterTemplate.DisplayName}, reaction: {reaction}".LogInfo();
             var basePoints = reaction * gift.GiftRank;
-            $"Base support points: {basePoints}".LogInfo();
             CharacterManager._brain.charactersBrain.AwardHubSupportPointsAvatarPairing(
                 ActiveCharacter,
                 basePoints
@@ -140,75 +265,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             }
         }
 
-        private void HandleLostItem() { }
-
-        private void HandleSupport() { }
-
-        private void HandleRecruit() { }
-
-        private void HandleTrain() { }
-
-        private void OnChitChatFinished()
-        {
-            UnsubscribeOneShotFinished(OnChitChatFinished);
-            if (ActiveCharacter?.CharacterTemplate != null)
-            {
-                HubDayStateStore.MarkChitChatHappenedToday(
-                    CharacterManager._brain,
-                    ActiveCharacter.CharacterTemplate.FullName
-                );
-            }
-            CharacterManager._brain.PublishHubCharacterTalked(ActiveCharacter);
-            InputProvider.OnInput -= HandleInput;
-            InputProvider.OnInput += HandleInput;
-            SetUpActionsMenuChoices();
-        }
-
-        private void OnGiftOneshotFinished()
-        {
-            UnsubscribeOneShotFinished(OnGiftOneshotFinished);
-            // 6a. support points ui
-            // 7. return back to action choice menu
-            ShowActionsMenu();
-            InputProvider.OnInput -= HandleInput;
-            InputProvider.OnInput += HandleInput;
-            // 8. save storehouse and support points to LTM
-            CharacterManager._brain.storehouseBrain.SaveCurrentStorehouse();
-            var avatar = CharacterManager._brain.gamewideContextBrain?.GetOrCreateAvatarInstance();
-            if (avatar != null)
-            {
-                CharacterManager._brain.gamewideContextBrain.PersistCharacter(avatar);
-                $"Persisted avatar with updated support points: {avatar.CharacterTemplate.FullName}, {ActiveCharacter.CharacterTemplate.DisplayName}, SupportPoints: {avatar.GetSupportRelationship(ActiveCharacter.CharacterTemplate)?.SupportPoints}".LogInfo();
-            }
-        }
-
-        private void PlayOneShotThen(OneShot oneShot, UnityAction onFinished)
-        {
-            if (!string.IsNullOrWhiteSpace(oneShot.Dialogue))
-            {
-                var cc = FindFirstObjectByType<ConversationController>();
-                if (cc != null)
-                {
-                    _subscribedController = cc;
-                    cc.OnAnyConversationFinished.AddListener(onFinished);
-                }
-                CharacterManager
-                    ._brain?.audioBrain?.GetOrCreateOneShotPlayer()
-                    ?.PlayOneShot(oneShot);
-            }
-            else
-            {
-                onFinished?.Invoke();
-            }
-        }
-
-        private void UnsubscribeOneShotFinished(UnityAction onFinished)
-        {
-            if (_subscribedController != null)
-            {
-                _subscribedController.OnAnyConversationFinished.RemoveListener(onFinished);
-                _subscribedController = null;
-            }
-        }
+        #endregion
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -62,16 +63,31 @@ namespace Turnroot.Characters
                     }
                     else if (v != null)
                     {
-                        var copy = new PlayerTeamRosterUnitPlacement();
-                        copy.CharacterData = v.CharacterData;
-                        copy.SpawnPosition = v.SpawnPosition;
-                        copy.Order = v.Order;
+                        var copy = new PlayerTeamRosterUnitPlacement
+                        {
+                            CharacterData = v.CharacterData,
+                            SpawnPosition = v.SpawnPosition,
+                            Order = v.Order,
+                        };
                         copy.SetStatus(v.Status);
                         copy.SetActiveRightNow(v.IsActiveRightNow);
                         _playerCharacters[i] = copy;
                     }
                 }
             }
+        }
+
+        public void AddCharacter(CharacterData characterData)
+        {
+            var newUnit = new PlayerTeamRosterUnitPlacement
+            {
+                CharacterData = characterData,
+                SpawnPosition = Vector2Int.zero,
+                Order = _playerCharacters != null ? _playerCharacters.Length : 0,
+            };
+
+            var tempList = new List<PlayerTeamRosterUnitPlacement>(_playerCharacters) { newUnit };
+            _playerCharacters = tempList.ToArray();
         }
     }
 }
