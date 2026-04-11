@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
@@ -6,15 +7,15 @@ using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 {
     public partial class HubCharacterInteraction : MonoBehaviour
     {
-        private GiftItemRowUiRefs[] _giftChoiceRows;
-        private ObjectItem[] _giftItems;
-        private int _giftChoiceIndex;
+        private MonoBehaviour[] _activeItemRows;
+        private ObjectItem[] _items;
+        private int _activeItemChoiceIndex;
+        private Action _activeOnItemChosen;
 
         private OneShotPlayer OneShotPlayer =>
             CharacterManager._brain.audioBrain.GetOrCreateOneShotPlayer();
@@ -71,64 +72,86 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void HandleDance() { }
 
-        private void HandleGift()
-        {
-            // 1. pull up gift choice ui (shopui-ish, probably just a VL with instances of ItemRowPrefab)
-            var container = GiftChoiceParentContainer;
-            // Clear any leftover rows from a previous visit.
-            foreach (Transform child in container.transform)
-            {
-                Destroy(child.gameObject);
-            }
-            var storehouse = CharacterManager._brain.storehouseBrain;
-            var materials = storehouse.GetAllMaterials();
-            var gifts = materials
-                .Where(m => m.Key.IsGiftSubtype() && m.Value > 0)
-                .ToDictionary(kv => kv.Key, kv => kv.Value);
-            // 1a. populate list from storehouse
-            var rows = new List<GiftItemRowUiRefs>();
-            var itemList = new List<ObjectItem>();
-            foreach (var gift in gifts)
-            {
-                var itemRow = Instantiate(GiftItemRowPrefab, container.transform);
-                var refs = itemRow.GetComponent<GiftItemRowUiRefs>();
-                refs.Initialize(gift.Key, gift.Value);
-                rows.Add(refs);
-                itemList.Add(gift.Key);
-            }
-            _giftChoiceRows = rows.ToArray();
-            _giftItems = itemList.ToArray();
-            _giftChoiceIndex = 0;
-            // 2. redirect input to that ui until a choice is made
-            InputProvider.OnInput -= HandleInput;
-            HideActionsMenu();
-            GiftChoiceMenuFade.Show();
-            if (_giftChoiceRows.Length > 0)
-            {
-                _giftChoiceRows[0]
-                    .BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver);
-            }
+        private void HandleGift() =>
+            OpenItemChoiceMenu(
+                m => m.IsGiftSubtype(),
+                (item, qty) =>
+                {
+                    var go = Instantiate(GiftItemRowPrefab, ItemChoiceParentContainer.transform);
+                    var refs = go.GetComponent<GiftItemRowUiRefs>();
+                    refs.Initialize(item, qty);
+                    return refs;
+                },
+                OnGiftChosen
+            );
 
-            InputProvider.OnInput += HandleGiftInput;
-        }
-
-        private void HandleGiftInput(string action)
+        private void HandleItemInput(string action)
         {
-            if (_giftChoiceRows == null || _giftChoiceRows.Length == 0)
+            if (_activeItemRows == null || _activeItemRows.Length == 0)
             {
                 return;
             }
 
             InputProvider.Navigate(
                 action,
-                _giftChoiceRows,
-                ref _giftChoiceIndex,
-                _giftChoiceRows.Length,
-                OnGiftChosen
+                _activeItemRows,
+                ref _activeItemChoiceIndex,
+                _activeItemRows.Length,
+                _activeOnItemChosen
             );
         }
 
-        private void HandleLostItem() { }
+        private void HandleLostItem() =>
+            OpenItemChoiceMenu(
+                m => m.IsLostItemSubtype(),
+                (item, qty) =>
+                {
+                    var go = Instantiate(LostItemRowPrefab, ItemChoiceParentContainer.transform);
+                    var refs = go.GetComponent<LostItemUiRowRefs>();
+                    refs.Initialize(item, qty);
+                    return refs;
+                },
+                OnLostItemChosen
+            );
+
+        private void OpenItemChoiceMenu(
+            Func<ObjectItem, bool> filter,
+            Func<ObjectItem, int, MonoBehaviour> createAndInitRow,
+            Action onChosen
+        )
+        {
+            var container = ItemChoiceParentContainer;
+            foreach (Transform child in container.transform)
+            {
+                Destroy(child.gameObject);
+            }
+
+            var materials = CharacterManager._brain.storehouseBrain.GetAllMaterials();
+            var rows = new List<MonoBehaviour>();
+            var itemList = new List<ObjectItem>();
+            foreach (var kv in materials.Where(m => filter(m.Key) && m.Value > 0))
+            {
+                rows.Add(createAndInitRow(kv.Key, kv.Value));
+                itemList.Add(kv.Key);
+            }
+
+            _activeItemRows = rows.ToArray();
+            _items = itemList.ToArray();
+            _activeItemChoiceIndex = 0;
+            _activeOnItemChosen = onChosen;
+
+            InputProvider.OnInput -= HandleInput;
+            HideActionsMenu();
+            GiftChoiceMenuFade.Show();
+
+            if (_activeItemRows.Length > 0)
+            {
+                _activeItemRows[0]
+                    .BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver);
+            }
+
+            InputProvider.OnInput += HandleItemInput;
+        }
 
         private void HandleSupport() { }
 
@@ -182,23 +205,29 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             ReturnToActionsMenu(false);
         }
 
-        private void OnGiftChosen()
+        private void CleanUpItems()
         {
-            InputProvider.OnInput -= HandleGiftInput;
-            var chosenGift = _giftItems[_giftChoiceIndex];
-            // 3. on submit, remove 1x of gift from storehouse
-            CharacterManager._brain.storehouseBrain.ConsumeMaterials(chosenGift, 1);
-            // clean up gift list
-            foreach (Transform child in GiftChoiceParentContainer.transform)
+            foreach (Transform child in ItemChoiceParentContainer.transform)
             {
                 Destroy(child.gameObject);
             }
 
-            _giftChoiceRows = null;
-            _giftItems = null;
+            _activeItemRows = null;
+            _items = null;
             GiftChoiceMenuFade.Hide();
+        }
+
+        private void OnGiftChosen()
+        {
+            InputProvider.OnInput -= HandleItemInput;
+            var chosenGift = _items[_activeItemChoiceIndex];
+            // 3. on submit, remove 1x of gift from storehouse
+            CharacterManager._brain.storehouseBrain.ConsumeMaterials(chosenGift, 1);
+            // clean up gift list
+            CleanUpItems();
+
             // 4. adjust support points
-            AdjustSupportPointsBasedOnGift(chosenGift);
+            AdjustSupportPointsBasedOnItem(chosenGift);
             // 5. play reaction one shot
             var oneShot = CharacterManager.GetDailyOneShotForType(
                 ActiveCharacter,
@@ -208,13 +237,43 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                     : HubCharacterOneShotType.GetGiftDislike
             );
 
-            OneShotPlayer.PlayOneShotThen(oneShot, OnGiftOneshotFinished);
+            OneShotPlayer.PlayOneShotThen(oneShot, OnItemOneshotFinished);
         }
 
-        private void OnGiftOneshotFinished()
+        private void OnLostItemChosen()
         {
-            OneShotPlayer.UnsubscribeOneShotFinished(OnGiftOneshotFinished);
-            // 6a. support points ui
+            InputProvider.OnInput -= HandleItemInput;
+            var chosenLostItem = _items[_activeItemChoiceIndex];
+            // IS ITEM THEIRS???
+            var isTheirs =
+                chosenLostItem.BelongsTo != null
+                && chosenLostItem.BelongsTo.Equals(ActiveCharacter.CharacterTemplate);
+            if (isTheirs)
+            {
+                CharacterManager._brain.storehouseBrain.ConsumeMaterials(chosenLostItem, 1);
+            }
+            // always clean up
+            CleanUpItems();
+
+            if (isTheirs)
+            {
+                AdjustSupportPointsBasedOnItem(chosenLostItem, false);
+            }
+            // 5. play reaction one shot
+            var oneShot = CharacterManager.GetDailyOneShotForType(
+                ActiveCharacter,
+                CurrentChapter,
+                isTheirs
+                    ? HubCharacterOneShotType.GetLostItemMine
+                    : HubCharacterOneShotType.GetLostItemNotMine
+            );
+
+            OneShotPlayer.PlayOneShotThen(oneShot, OnItemOneshotFinished);
+        }
+
+        private void OnItemOneshotFinished()
+        {
+            OneShotPlayer.UnsubscribeOneShotFinished(OnItemOneshotFinished);
             // 7. return back to action choice menu
             ReturnToActionsMenu(true);
             // 8. save storehouse and support points to LTM
@@ -244,17 +303,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         #endregion
 
-        #region Gift Support Point Adjustment
+        #region Support Point Adjustment
 
-        private void AdjustSupportPointsBasedOnGift(ObjectItem gift)
+        private void AdjustSupportPointsBasedOnItem(ObjectItem item, bool isGift = true)
         {
-            var positive = GameplayGeneralSettings.Instance.GiftSupportPointsUnitLikes;
-            var negative = GameplayGeneralSettings.Instance.GiftSupportPointsUnitDislikes;
-            var reaction = gift.UnitsLove.Contains(ActiveCharacter.CharacterTemplate)
+            var positive = isGift
+                ? GameplayGeneralSettings.Instance.GiftSupportPointsUnitLikes
+                : GameplayGeneralSettings.Instance.LostItemIsUnits;
+            var negative = isGift
+                ? GameplayGeneralSettings.Instance.GiftSupportPointsUnitDislikes
+                : GameplayGeneralSettings.Instance.LostItemIsNotUnits;
+            var reaction = item.UnitsLove.Contains(ActiveCharacter.CharacterTemplate)
                 ? positive
                 : negative;
-            $"Gift {gift.Name} given to {ActiveCharacter.CharacterTemplate.DisplayName}, reaction: {reaction}".LogInfo();
-            var basePoints = reaction * gift.GiftRank;
+            var basePoints = reaction * item.GiftRank;
             CharacterManager._brain.charactersBrain.AwardHubSupportPointsAvatarPairing(
                 ActiveCharacter,
                 basePoints
