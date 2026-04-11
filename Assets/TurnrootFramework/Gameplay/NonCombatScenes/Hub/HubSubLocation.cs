@@ -61,8 +61,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 if (tutorialPrefab != null)
                 {
-                    Instantiate(tutorialPrefab);
-                    tutorialPrefab.SetActive(true);
+                    var tutorialInstance = Instantiate(tutorialPrefab);
+                    tutorialInstance.SetActive(true);
                     acceptingInput = false;
                     _tutorialActive = true;
                 }
@@ -128,6 +128,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (FadeToBlack != null)
             {
+                FadeToBlack.OnVisible.RemoveListener(OnFadeVisible);
+                FadeToBlack.OnHidden.RemoveListener(OnFadeHidden);
                 FadeToBlack.OnVisible.AddListener(OnFadeVisible);
                 FadeToBlack.OnHidden.AddListener(OnFadeHidden);
 

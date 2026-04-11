@@ -42,6 +42,12 @@ namespace Turnroot.GameSettings
         [BoxGroup("Support Settings")]
         public float GiftSupportPointsUnitDislikes = 0.25f;
 
+        [BoxGroup("Support Settings")]
+        public float LostItemIsUnits = 3f;
+
+        [BoxGroup("Support Settings")]
+        public float LostItemIsNotUnits = 0f;
+
         [
             BoxGroup("Support Settings"),
             InfoBox(

@@ -141,7 +141,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
             var isTooExpensive =
                 brain?.storehouseBrain != null
-                && !brain.storehouseBrain.CanAfford(item.Item.BasePrice * selectionCount);
+                && !brain.storehouseBrain.CanAfford(
+                    (item.CurrentStatus.IsOnSale ? item.SalePrice : item.Item.BasePrice)
+                        * selectionCount
+                );
 
             item.UiRefs.PriceText.color =
                 isTooExpensive ? item.UiRefs.TooExpensivePriceColor
@@ -178,7 +181,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         protected void InitializePageIndicators() => paginationHelper?.InitializePageIndicators();
 
-        protected void UpdatePaginationIndicators() => paginationHelper?.UpdatePaginationIndicators();
+        protected void UpdatePaginationIndicators() =>
+            paginationHelper?.UpdatePaginationIndicators();
 
         protected void UpdateVisiblePageItems() => paginationHelper?.UpdateVisiblePageItems();
 

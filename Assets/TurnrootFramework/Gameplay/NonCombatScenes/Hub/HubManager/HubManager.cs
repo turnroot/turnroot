@@ -371,10 +371,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             Initialize();
-            for (int i = 0; i < subLocations.Length; i++)
-            {
-                subLocations[i].Initialize(_brain);
-            }
         }
 
         public void Initialize()

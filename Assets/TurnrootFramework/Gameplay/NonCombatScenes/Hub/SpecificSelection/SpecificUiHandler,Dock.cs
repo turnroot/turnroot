@@ -41,7 +41,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_activeDockShip.CurrentDockShipShopType == DockShipShopType.Normal)
             {
-                RetrieveDockShipUi()?.HandleItemChangeInput(action);
+                RetrieveDockShipUi()?.ChangePageInput(action);
             }
         }
 

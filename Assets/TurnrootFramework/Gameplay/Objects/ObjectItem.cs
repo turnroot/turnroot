@@ -325,7 +325,7 @@ namespace Turnroot.Gameplay.Objects
         private bool IsWeaponOrMagicOrStaffSubtype() =>
             IsWeaponOrMagicSubtype() || EquipableType == EquipableObjectType.Staff;
 
-        private bool IsLostItemSubtype() => Subtype == ObjectSubtype.LostItem;
+        public bool IsLostItemSubtype() => Subtype == ObjectSubtype.LostItem;
 
         public bool IsGiftSubtype() => Subtype == ObjectSubtype.Gift;
 

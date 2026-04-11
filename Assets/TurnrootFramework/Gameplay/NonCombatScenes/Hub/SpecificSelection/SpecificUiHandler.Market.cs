@@ -17,18 +17,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleMarketPageChange(string action)
         {
-            var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
-            if (activeVendor != null)
+            if (_activeShop != null)
             {
-                if (_activeShop != null)
-                {
-                    _activeShop.Ui.HandleItemChangeInput(action);
-                }
-                else if (_activeBlacksmith != null)
-                {
-                    var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
-                    blacksmithUi?.HandleItemChangeInput(action);
-                }
+                _activeShop.Ui.ChangePageInput(action);
+            }
+            else if (_activeBlacksmith != null)
+            {
+                var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
+                blacksmithUi?.ChangePageInput(action);
             }
         }
 

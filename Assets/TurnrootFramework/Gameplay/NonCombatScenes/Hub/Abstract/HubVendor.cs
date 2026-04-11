@@ -26,7 +26,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         protected virtual void Awake()
         {
-            cachedWelcomeDialogues = WelcomeDialogues;
+            cachedWelcomeDialogues = (OneShotDialogue[])WelcomeDialogues.Clone();
 
             brain ??= FindFirstObjectByType<Brain.Brain>();
             audioBrain ??= brain?.audioBrain;

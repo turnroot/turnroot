@@ -118,10 +118,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         public bool CanTryLostItem()
         {
-            var storehouseBrain = CharacterManager._brain.storehouseBrain;
-            var items = storehouseBrain.GetStoredItems();
-            return items.Any(i =>
-                i?.Template != null && i.Template.Subtype == ObjectSubtype.LostItem
+            var materials = CharacterManager._brain.storehouseBrain.GetAllMaterials();
+            return materials.Any(kvp =>
+                kvp.Key != null && kvp.Key.IsLostItemSubtype() && kvp.Value > 0
             );
         }
 
