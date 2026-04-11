@@ -183,6 +183,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         public void HandleInput(string action)
         {
+            if (_subMenuActive)
+            {
+                return;
+            }
+
             if (action is "Back" or InputActionConstants.Cancel)
             {
                 CharacterManager.NotifyCharacterExited();

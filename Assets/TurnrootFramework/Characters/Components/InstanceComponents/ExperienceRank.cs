@@ -23,14 +23,27 @@ namespace Turnroot.Characters
         public CommonAncestors.LeveledLetteredField Rank => _rank;
         public int ExperiencePoints => _experiencePoints;
 
-        [JsonConstructor]
         public ExperienceRankInstance()
         {
-            // Parameterless constructor used by Newtonsoft.Json when deserializing objects
-            // Use the parameterless LeveledLetteredField ctor which defaults to 'E'
             _experienceTypeId = string.Empty;
             _rank = new CommonAncestors.LeveledLetteredField();
             _experiencePoints = 0;
+        }
+
+        /// <summary>
+        /// Deserialization constructor: Newtonsoft.Json matches JSON property names
+        /// (ExperienceTypeId, Rank, ExperiencePoints) to these parameter names case-insensitively.
+        /// </summary>
+        [JsonConstructor]
+        public ExperienceRankInstance(
+            string experienceTypeId,
+            CommonAncestors.LeveledLetteredField rank,
+            int experiencePoints
+        )
+        {
+            _experienceTypeId = experienceTypeId ?? string.Empty;
+            _rank = rank ?? new CommonAncestors.LeveledLetteredField();
+            _experiencePoints = experiencePoints;
         }
 
         public ExperienceRankInstance(string experienceTypeId, string rankLetter)

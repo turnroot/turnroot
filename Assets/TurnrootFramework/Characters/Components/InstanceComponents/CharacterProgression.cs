@@ -88,6 +88,9 @@ namespace Turnroot.Characters
                 hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
             }
 
+            // Persist the new stat values immediately so they survive the session.
+            PersistStatsToLtm();
+
             return OperationResult.Successful();
         }
 
@@ -292,6 +295,7 @@ namespace Turnroot.Characters
                 newRank.AddExperience(amount);
                 _experienceRanks.Add(newRank);
             }
+            NeedsPersist = true;
         }
 
         public bool MeetsExperienceRequirement(string experienceTypeId, string minRankLetter)

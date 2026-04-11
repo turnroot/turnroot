@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.Brain.Components
     {
         // replaced by JsonConstants.UnityMarker
         private const BindingFlags PrivateInstanceFlags =
-            BindingFlags.Instance | BindingFlags.NonPublic;
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 
         // Field name constants
         /// <summary>
@@ -35,8 +35,10 @@ namespace Turnroot.Gameplay.Brain.Components
             public const string RuntimeBoundedStats = "_runtimeBoundedStats";
             public const string RuntimeUnboundedStats = "_runtimeUnboundedStats";
             public const string InventoryInstance = "_inventoryInstance";
-            public const string SkillInstances = "_skill_instances";
+            public const string SkillInstances = "_skillInstances";
             public const string SupportRelationships = "_supportRelationships";
+            public const string TotalKills = "_totalKills";
+            public const string TotalBattles = "_totalBattles";
 
             // Additional persistent fields
             public const string ExperienceRanks = "_experienceRanks";
@@ -126,6 +128,15 @@ namespace Turnroot.Gameplay.Brain.Components
             );
             token[FieldNames.SupportRelationships] = SerializeFieldOrNull(
                 supportRelationships,
+                serializer
+            );
+
+            token[FieldNames.TotalKills] = JToken.FromObject(
+                GetPrivateFieldValue(instance, FieldNames.TotalKills) ?? 0,
+                serializer
+            );
+            token[FieldNames.TotalBattles] = JToken.FromObject(
+                GetPrivateFieldValue(instance, FieldNames.TotalBattles) ?? 0,
                 serializer
             );
 
@@ -304,7 +315,7 @@ namespace Turnroot.Gameplay.Brain.Components
                 instance,
                 token,
                 FieldNames.SkillInstances,
-                "SkillInstances",
+                "_skill_instances",
                 serializer
             );
             SetFieldFromToken(
@@ -358,6 +369,9 @@ namespace Turnroot.Gameplay.Brain.Components
                 "UseBattleModel",
                 serializer
             );
+
+            SetFieldFromToken(instance, token, FieldNames.TotalKills, "TotalKills", serializer);
+            SetFieldFromToken(instance, token, FieldNames.TotalBattles, "TotalBattles", serializer);
         }
 
         private void SetFieldFromToken(

@@ -64,6 +64,7 @@ namespace Turnroot.Characters
             if (relationship != null)
             {
                 relationship.Increase(amount);
+                NeedsPersist = true;
                 return OperationResult.Successful();
             }
 
@@ -74,6 +75,7 @@ namespace Turnroot.Characters
                 return res;
             }
             GetSupportRelationship(character)?.Increase(amount);
+            NeedsPersist = true;
             return OperationResult.Successful();
         }
 

@@ -34,7 +34,7 @@ namespace Turnroot.Characters
             HandleCurrentClass();
             RepairMissingStats();
             EnsureWeaponInSlot0();
-            EnsurePersistedInLtm();
+            RestoreStatsFromLtm();
             if (RangeWeaponsCache == null)
             {
                 GetAvailableWeapons();
@@ -152,4 +152,3 @@ namespace Turnroot.Characters
         #endregion
     }
 }
-

@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Turnroot.Characters.StatusEffects
@@ -9,26 +10,29 @@ namespace Turnroot.Characters.StatusEffects
     [Serializable]
     public class StatusEffectInstance
     {
-        [SerializeField]
+        [SerializeField, JsonProperty("_effectType")]
         private StatusEffectType _effectType;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("RemainingDuration")]
         private int _remainingDuration;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("CurrentStacks")]
         private int _currentStacks;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_sourceCharacterId")]
         private string _sourceCharacterId;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_sourceSkillId")]
         private string _sourceSkillId;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_intensity")]
         private float _intensity;
         public StatusEffectType EffectType => _effectType;
+
+        [JsonIgnore]
         public int RemainingDuration => _remainingDuration;
 
+        [JsonIgnore]
         public int CurrentStacks => _currentStacks;
         public string SourceCharacterId => _sourceCharacterId;
 

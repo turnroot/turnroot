@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using Turnroot.Characters;
+using Turnroot.Characters.CharacterClass;
+using Turnroot.Characters.Subclasses;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.PlayerSettings;
@@ -80,8 +84,55 @@ namespace Turnroot.Gameplay.Brain
         {
             _playerSettingsPersistence?.Initialize();
             TryLoadAndRecallPersistentPlayerRoster();
+            RestoreAvatarProfileFromLtm();
             _brain.volumeBrain?.ApplySettingsToVolumes(PlayerSettings);
             PopulateMapExplorationStatusesFromLtm();
+        }
+
+        private void RestoreAvatarProfileFromLtm()
+        {
+            var ltm = GetComponent<LongTermMemory>();
+            if (ltm == null)
+                return;
+
+            var displayName = ltm.Recall("Avatar/DisplayName");
+            if (string.IsNullOrEmpty(displayName))
+                return;
+
+            var avatar = GetOrCreateAvatarInstance();
+            if (avatar?.CharacterTemplate == null)
+                return;
+
+            var fullName = ltm.Recall("Avatar/FullName");
+            var pronounType = ltm.Recall("Avatar/Pronouns");
+            avatar.CharacterTemplate.SetAvatarNameAndPronouns(
+                displayName,
+                fullName ?? displayName,
+                new Pronouns(pronounType ?? Pronouns.KeyThey)
+            );
+
+            var growthJson = ltm.Recall("Avatar/GrowthRates");
+            if (!string.IsNullOrEmpty(growthJson))
+            {
+                try
+                {
+                    var rates = JsonConvert.DeserializeObject<List<UnboundedStatModifier>>(
+                        growthJson
+                    );
+                    if (rates != null)
+                    {
+                        avatar.CharacterTemplate.PersonalGrowthRates.Clear();
+                        foreach (var r in rates)
+                            avatar.CharacterTemplate.PersonalGrowthRates.Add(r);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    $"GamewideContextBrain: Failed to restore avatar growth rates: {ex.Message}".LogWarning();
+                }
+            }
+
+            $"GamewideContextBrain: Restored avatar profile '{displayName}' from LTM.".LogInfo();
         }
         #endregion
 
@@ -100,6 +151,15 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnSavePlayerRosterRequestedWithTurn -= HandleSavePlayerRosterRequestedWithTurn;
             _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
             _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
+        }
+
+        private void OnApplicationQuit()
+        {
+            var rosterInstance = _rosterManager?.GetPersistentPlayerRosterInstance();
+            if (rosterInstance == null)
+                return;
+            foreach (var instance in rosterInstance.Instances)
+                PersistIfNeeded(instance);
         }
 
         private void HandlePreBattleCompleted()

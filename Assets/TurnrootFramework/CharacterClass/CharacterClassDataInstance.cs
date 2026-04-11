@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using Turnroot.Serialization;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -14,19 +15,19 @@ namespace Turnroot.Characters.CharacterClass
     {
         #region Fields
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_characterData")]
         private CharacterData _characterData;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_classData")]
         private CharacterClassData _classData;
 
-        [SerializeField]
+        [NonSerialized]
         private SkinnedMeshRenderer _meshRenderer;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_stats")]
         private ClassStatsInstance _stats = new();
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_mastery")]
         private ClassMasteryInstance _mastery = new();
 
         private bool _disposed = false;
@@ -183,7 +184,8 @@ namespace Turnroot.Characters.CharacterClass
         public OperationResult ApplyClassChangeBonuses(CharacterInstance character) =>
             _stats.ApplyClassChangeBonuses(character, _classData);
 
-        public void EnforceStatMinimums(CharacterInstance character) => _stats.EnforceStatMinimums(character, _classData);
+        public void EnforceStatMinimums(CharacterInstance character) =>
+            _stats.EnforceStatMinimums(character, _classData);
 
         public void ApplyStatCaps(CharacterInstance character) =>
             _stats.ApplyStatCaps(character, _classData);

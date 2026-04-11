@@ -11,6 +11,8 @@ namespace Turnroot.Gameplay.Brain
             _playerSettingsPersistence.UpdatePlayerSetting(settingName, value);
             Brain.volumeBrain.ApplySettingsToVolumes(PlayerSettings);
         }
+
+        public void SavePlayerSettings() => _playerSettingsPersistence?.SavePlayerSettings();
         #endregion
     }
 }
