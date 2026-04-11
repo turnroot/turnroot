@@ -85,11 +85,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             {
                 return CurrentStatus.AvailableQuantity;
             }
-            else if (
-                currentDay.year > lastRestockDate.year
-                || currentDay.month > lastRestockDate.month
-                || currentDay.day >= lastRestockDate.day + RestockIntervalDays
-            )
+            else if (ToDayApprox(currentDay) >= ToDayApprox(lastRestockDate) + RestockIntervalDays)
             {
                 CurrentStatus.AvailableQuantity = Math.Min(
                     CurrentStatus.AvailableQuantity + RestockQuantityPerDay,
@@ -101,6 +97,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
         }
 
         public void Initialize(GameDate currentDay) => lastRestockDate = currentDay;
+
+        private static int ToDayApprox(GameDate d) => d.year * 365 + d.month * 30 + d.day;
 
         public struct Status
         {

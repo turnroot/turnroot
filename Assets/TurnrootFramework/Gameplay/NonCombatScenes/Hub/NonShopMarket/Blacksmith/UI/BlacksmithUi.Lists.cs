@@ -184,14 +184,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                     continue;
                 }
 
-                var uiChoice = itemUiObject.GetComponent<UiChoice>();
-                if (uiChoice == null)
+                if (!itemUiObject.TryGetComponent<UiChoice>(out var uiChoice))
                 {
                     uiChoice = itemUiObject.AddComponent<UiChoice>();
                 }
 
-                var itemRefs = itemUiObject.GetComponent<BlacksmithItemRefs>();
-                if (itemRefs == null)
+                if (!itemUiObject.TryGetComponent<BlacksmithItemRefs>(out var itemRefs))
                 {
                     $"BlacksmithUi.BuildItemListForCurrentMode: itemRefs is null for instantiated row index {i}".LogWarning(
                         "BlacksmithUi"
