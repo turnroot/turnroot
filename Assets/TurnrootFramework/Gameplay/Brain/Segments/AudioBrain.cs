@@ -27,6 +27,15 @@ namespace Turnroot.Gameplay.Brain
 
         public void SetMusic(AudioClip newMusic, float fadeDuration = 1f)
         {
+            if (newMusic == null)
+            {
+                $"AudioBrain: Received request to set music to null with fade duration {fadeDuration}s.".LogInfo();
+            }
+            else
+            {
+                $"AudioBrain: Received request to set music to '{newMusic.name}' with fade duration {fadeDuration}s.".LogInfo();
+            }
+
             if (currentMusic == newMusic)
             {
                 return;
