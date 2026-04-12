@@ -19,20 +19,13 @@ namespace Turnroot.Utilities.SceneFlows
         // reference to storage system for dates/etc.
         private LongTermMemory _ltm;
 
-        [Header("Scene Flow Configuration")]
-        [Tooltip("The scene flow graph defining available scenes and transitions.")]
-        public SceneFlowGraph sceneFlowGraph;
+        [HideInInspector]
+        public SceneFlowGraph sceneFlowGraph; // this is auto-set
 
-        [Header("Runtime State")]
-        [Tooltip("The current scene node in the flow.")]
-        [SerializeField]
+        [SerializeField, HideInInspector]
         private SceneNode _currentScene;
-
-        [Tooltip("Navigation history for back/return functionality.")]
         private Stack<string> _sceneHistory = new();
 
-        [Header("Custom Flags")]
-        [Tooltip("Runtime flags for custom conditions (can be set by game events).")]
         [SerializeField]
         private Dictionary<string, bool> _customFlags = new();
 
@@ -41,16 +34,6 @@ namespace Turnroot.Utilities.SceneFlows
 
         [SerializeField]
         private Dictionary<string, string> _customStringValues = new();
-
-        [Header("Loading Settings")]
-        [Tooltip("Should scene transitions show a loading screen?")]
-        public bool useLoadingScreen = true;
-
-        [Tooltip("Minimum time (seconds) to show loading screen, even if scene loads faster.")]
-        public float minimumLoadingTime = 0.5f;
-
-        [Tooltip("Time (seconds) to wait for loading UI to fade in before starting scene load.")]
-        public float loadingFadeInTime = 0.75f;
 
         // Condition evaluator instance
         private SceneFlowConditionEvaluatorImpl _conditionEvaluator;
@@ -88,6 +71,16 @@ namespace Turnroot.Utilities.SceneFlows
             if (_brain != null)
             {
                 _brain.OnLongTermMemoryInitialized += OnLtmInitialized;
+            }
+
+            if (sceneFlowGraph == null)
+            {
+                // scan resources, it's a singleton SO so there can only be one
+                sceneFlowGraph = Resources.Load<SceneFlowGraph>("SceneFlowGraph");
+                if (sceneFlowGraph == null)
+                {
+                    "SceneFlowBrain: No SceneFlowGraph assigned or found in Resources!".LogError();
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Turnroot.GameSettings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -33,7 +34,7 @@ namespace Turnroot.Utilities.SceneFlows
 
             // Wait for loading screen fade-in before starting scene load
             // This ensures the loading UI is visible and ready before the actual loading begins
-            yield return new WaitForSeconds(loadingFadeInTime);
+            yield return new WaitForSeconds(GamewideUiSettings.Instance.LoadingFadeInTime);
 
             // Store the previous scene name for unloading (preserve Brain scene)
             string previousSceneName = _currentScene?.sceneName;
@@ -103,9 +104,11 @@ namespace Turnroot.Utilities.SceneFlows
 
             // Ensure minimum loading time if configured
             float elapsedTime = Time.time - startTime;
-            if (elapsedTime < minimumLoadingTime)
+            if (elapsedTime < GamewideUiSettings.Instance.MinimumLoadingTime)
             {
-                yield return new WaitForSeconds(minimumLoadingTime - elapsedTime);
+                yield return new WaitForSeconds(
+                    GamewideUiSettings.Instance.MinimumLoadingTime - elapsedTime
+                );
             }
 
             // Report 100% completion so loading UI can show it

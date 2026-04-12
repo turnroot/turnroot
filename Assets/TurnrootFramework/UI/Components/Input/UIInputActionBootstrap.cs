@@ -1,4 +1,6 @@
 using Turnroot.Gameplay.Brain;
+using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,57 +9,41 @@ namespace Turnroot.UI
     [RequireComponent(typeof(Brain))]
     public class UIInputActionBootstrap : BrainComponent
     {
-        [Header("UI Action References")]
-        public InputActionReference Select;
-        public InputActionReference Back;
-        public InputActionReference NavigateUp;
-        public InputActionReference NavigateDown;
-        public InputActionReference NavigateLeft;
-        public InputActionReference NavigateRight;
-        public InputActionReference ScrollLeft;
-        public InputActionReference ScrollRight;
-        public InputActionReference Navigate;
-        public InputActionReference Confirm;
-        public InputActionReference Cancel;
-        public InputActionReference Menu;
-        public InputActionReference RotateCamera;
-        public InputActionReference Start;
-        public InputActionReference ToggleDetails;
-
         protected override void Awake()
         {
             base.Awake();
             InitializeActions();
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
-            // No brain events required for this component.
-        }
+        protected override void SubscribeToBrainEvents() { }
 
-        protected override void UnsubscribeFromBrainEvents()
-        {
-            // No brain events required for this component.
-        }
+        protected override void UnsubscribeFromBrainEvents() { }
 
         private void InitializeActions()
         {
+            var s = GameplayInputSettings.Instance;
+            if (s == null)
+            {
+                "UIInputActionBootstrap: GameplayInputSettings asset not found in Resources!".LogError();
+                return;
+            }
+
             UIInputActionDefaults.Initialize(
-                Select,
-                Back,
-                NavigateUp,
-                NavigateDown,
-                NavigateLeft,
-                NavigateRight,
-                ScrollLeft,
-                ScrollRight,
-                Navigate,
-                Confirm,
-                Cancel,
-                Menu,
-                RotateCamera,
-                Start,
-                ToggleDetails
+                s.Select,
+                s.Back,
+                s.NavigateUp,
+                s.NavigateDown,
+                s.NavigateLeft,
+                s.NavigateRight,
+                s.ScrollLeft,
+                s.ScrollRight,
+                s.Navigate,
+                s.Confirm,
+                s.Cancel,
+                s.Menu,
+                s.RotateCamera,
+                s.Start,
+                s.ToggleDetails
             );
 
             // Enable everything immediately so all consumers can listen to all actions.
