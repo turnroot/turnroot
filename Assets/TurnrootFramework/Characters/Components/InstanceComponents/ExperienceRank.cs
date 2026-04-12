@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.Characters
@@ -60,7 +61,22 @@ namespace Turnroot.Characters
             _experiencePoints = 0;
         }
 
-        public void AddExperience(int amount) => _experiencePoints += amount; // TODO: Implement rank progression based on experience thresholds
+        public void AddExperience(int amount)
+        {
+            _experiencePoints += amount;
+
+            var settings = GameplayGeneralSettings.Instance;
+            int threshold = settings != null ? settings.ExperienceRankUpThreshold : 100;
+
+            while (
+                _experiencePoints >= threshold
+                && _rank.Value != CommonAncestors.LeveledLetteredField.S
+            )
+            {
+                _experiencePoints -= threshold;
+                _rank.Increase();
+            }
+        }
 
         public void SetRank(string rankLetter) =>
             _rank = new CommonAncestors.LeveledLetteredField(rankLetter);

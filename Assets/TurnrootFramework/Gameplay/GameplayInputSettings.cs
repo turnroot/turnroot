@@ -31,5 +31,12 @@ namespace Turnroot.GameSettings
         public InputActionReference RotateCamera;
         public InputActionReference Start;
         public InputActionReference ToggleDetails;
+
+        [Header("Hold Repeat"), HorizontalLine(color: EColor.Green)]
+        [Tooltip("Seconds before held navigation begins repeating.")]
+        public float InitialRepeatDelay = 0.4f;
+
+        [Tooltip("Seconds between each repeated navigation event while held.")]
+        public float RepeatInterval = 0.1f;
     }
 }

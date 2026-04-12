@@ -54,8 +54,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (allTiles)
             {
-                // All target tiles must NOT be reached
-                // TODO: Set this up later
+                // Condition triggers when ALL target tiles have been reached by enemies
+                foreach (var tile in TargetTiles)
+                {
+                    if (!_reachedTilesSet.Contains(tile))
+                    {
+                        return;
+                    }
+                }
                 ConditionMet();
             }
             else
