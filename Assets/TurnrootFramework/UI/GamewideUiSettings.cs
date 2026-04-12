@@ -88,10 +88,7 @@ namespace Turnroot.GameSettings
         // Runtime cache of created MenuEntry objects created from MenuPrefabs.
         // This allows the menu system to maintain runtime state (activeInstance, etc.)
         // without requiring a complex serialized hierarchy.
-        private readonly Dictionary<
-            MenuName,
-            MenuEntry
-        > _menuEntryCache = new();
+        private readonly Dictionary<MenuName, MenuEntry> _menuEntryCache = new();
 
         [
             Header("Portraits"),
@@ -205,6 +202,18 @@ namespace Turnroot.GameSettings
 
         [Range(0f, 1.5f)]
         public float MenuFadeTime = .75f;
+
+        [
+            Range(0f, 5f),
+            Tooltip("Minimum time (seconds) to show loading screen, even if scene loads faster.")
+        ]
+        public float MinimumLoadingTime = 0.5f;
+
+        [
+            Range(0f, 5f),
+            Tooltip("Time (seconds) to wait for loading UI to fade in before starting scene load.")
+        ]
+        public float LoadingFadeInTime = 0.75f;
 
         [
             Range(0f, 1.5f),

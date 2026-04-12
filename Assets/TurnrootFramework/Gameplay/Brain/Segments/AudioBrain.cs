@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -20,6 +22,90 @@ namespace Turnroot.Gameplay.Brain
     public class AudioBrain : BrainComponent
     {
         private Dictionary<AudioSource, Coroutine> _activeFades = new();
+
+        private readonly AudioClip currentMusic;
+
+        public void SetMusic(AudioClip newMusic, float fadeDuration = 1f)
+        {
+            if (newMusic == null)
+            {
+                $"AudioBrain: Received request to set music to null with fade duration {fadeDuration}s.".LogInfo();
+            }
+            else
+            {
+                $"AudioBrain: Received request to set music to '{newMusic.name}' with fade duration {fadeDuration}s.".LogInfo();
+            }
+
+            if (currentMusic == newMusic)
+            {
+                return;
+            }
+
+            var musicPlayer = GetOrCreateMusicPlayer();
+            if (musicPlayer == null)
+            {
+                $"AudioBrain: Failed to get or create music player.".LogError();
+                return;
+            }
+
+            var audioSource = musicPlayer.Player;
+
+            if (_activeFades.TryGetValue(audioSource, out var existingFade) && existingFade != null)
+            {
+                StopCoroutine(existingFade);
+                _activeFades.Remove(audioSource);
+            }
+
+            _activeFades[audioSource] = StartCoroutine(
+                FadeToNewMusicCoroutine(audioSource, newMusic, fadeDuration)
+            );
+        }
+
+        public IEnumerator FadeToNewMusicCoroutine(
+            AudioSource musicPlayer,
+            AudioClip newMusic,
+            float fadeDuration
+        )
+        {
+            var initialVolume = musicPlayer.volume;
+            var time = 0f;
+
+            while (time < fadeDuration)
+            {
+                time += Time.deltaTime;
+                musicPlayer.volume = Mathf.Lerp(initialVolume, 0f, time / fadeDuration);
+                yield return null;
+            }
+
+            musicPlayer.Stop();
+            musicPlayer.clip = newMusic;
+            musicPlayer.Play();
+
+            time = 0f;
+            while (time < fadeDuration)
+            {
+                time += Time.deltaTime;
+                musicPlayer.volume = Mathf.Lerp(0f, initialVolume, time / fadeDuration);
+                yield return null;
+            }
+
+            musicPlayer.volume = initialVolume;
+            _activeFades.Remove(musicPlayer);
+        }
+
+        public MusicPlayer GetOrCreateMusicPlayer()
+        {
+            musicPlayer = musicPlayer != null ? musicPlayer : FindFirstObjectByType<MusicPlayer>();
+            if (musicPlayer == null)
+            {
+                $"AudioBrain: No MusicPlayer found in scene.".LogError();
+                return null;
+            }
+
+            return musicPlayer;
+        }
+
+        private MusicPlayer musicPlayer;
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 

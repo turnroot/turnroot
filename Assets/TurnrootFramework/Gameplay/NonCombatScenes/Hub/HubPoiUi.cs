@@ -548,7 +548,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
             Hide();
-            // TODO: if sublocation has music, crossfade current music to sublocation music
+        
         }
         #endregion
     }

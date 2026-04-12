@@ -38,6 +38,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UnitSpawnEntry[] UnitSpawnPoints;
 
         public Camera GeneralCamera;
+        public AudioClip SublocationMusic;
 
         public UIFade FadeToBlack;
 
@@ -82,6 +83,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             brain.PublishHubSublocationVisited(LocationName);
             DoCameraTransition();
+            brain.audioBrain.SetMusic(SublocationMusic);
         }
 
         public void HandleOnHubSublocationTutorialCompleted()

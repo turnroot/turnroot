@@ -11,6 +11,7 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class BattleInputControllerBrain : BrainComponent
     {
+        [HideInInspector]
         public MapGridPoint destination;
 
         private List<Vector2Int> HandlePathPreview()

@@ -33,7 +33,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public TextMeshProUGUI dateText;
 
         [BoxGroup("Core")]
-        [Tooltip("Selectable UI elements corresponding to each hub location.")]
+        [InfoBox("Selectable UI elements corresponding to each hub location")]
         public UiChoice[] LocationChoices;
 
         [BoxGroup("Core")]
@@ -43,19 +43,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UiChoice Settings;
 
         [BoxGroup("Core")]
-        [Tooltip("Optional loading screen controller used during scene transitions.")]
+        [InfoBox("Loading screen controller used during scene transitions")]
         public LoadingScreenController LoadingScreen;
 
         // Runtime list used for navigation (locations + end day + settings).
         private UiChoice[] _navigableChoices;
 
         [BoxGroup("Core")]
-        [Tooltip("Optional input provider used for navigating hub choices.")]
+        [InfoBox("Input provider used for navigating hub choices.")]
         public UiInputProvider InputProvider;
 
         [BoxGroup("Core")]
-        [Tooltip("Prefab containing the menu canvas used while settings is open.")]
+        [InfoBox("Prefab containing the menu canvas used while settings is open.")]
         public GameObject MenuCanvasPrefab;
+
+        [BoxGroup("Core")]
+        public AudioClip HubBackgroundMusic;
 
         private GameObject _menuCanvasInstance;
         private bool _settingsMenuOpen;
@@ -196,6 +199,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 SetInputMode(HubInputMode.Location);
                 UpdateChoiceSelection();
                 UpdateDateText();
+                _brain.audioBrain.SetMusic(HubBackgroundMusic);
 
                 if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
                 {
@@ -381,6 +385,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             UpdateDateText();
             _brain.charactersBrain.CheckBirthdays();
 
+            _brain.audioBrain.SetMusic(HubBackgroundMusic);
+
             pastShipDockedStatuses = LoadDockShipStatuses();
 
             if (!HubDayStateStore.HasProcessedDailyUpdates)
@@ -394,7 +400,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             else
             {
                 // Daily updates already processed for today; rebuild dock runtime lists and
-                // re-enforce capacity so MaxDockedShipsPerSide is respected on hub re-entry.
+                // re-enforce capacity so MaxDockedShipsPerSide is respected on hub re-entry
                 dock?.EnforceCapacityOnLoad();
             }
 

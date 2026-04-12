@@ -137,6 +137,7 @@ namespace Turnroot.EditorTools
             _statusMessage = "Checking...";
 
             CheckGameplayGeneralSettings();
+            CheckGameplayInputSettings();
             CheckGamewideUiSettings();
             CheckGraphics2DSettings();
             CheckGameplayPlayerSettings();
@@ -187,6 +188,34 @@ namespace Turnroot.EditorTools
                 new CheckResult
                 {
                     Label = "GameplayGeneralSettings",
+                    Note = $"Found: {AssetDatabase.GetAssetPath(asset)}",
+                    Color = Color.green,
+                    Asset = asset,
+                }
+            );
+        }
+
+        private void CheckGameplayInputSettings()
+        {
+            var asset = FindSingleton<GameplayInputSettings>("GameplayInputSettings");
+            if (asset == null)
+            {
+                _results.Add(
+                    new CheckResult
+                    {
+                        Label = "GameplayInputSettings",
+                        Note =
+                            "Asset not found in Resources. Required for UI input action bindings at runtime.",
+                        Color = Color.red,
+                    }
+                );
+                return;
+            }
+
+            _results.Add(
+                new CheckResult
+                {
+                    Label = "GameplayInputSettings",
                     Note = $"Found: {AssetDatabase.GetAssetPath(asset)}",
                     Color = Color.green,
                     Asset = asset,
