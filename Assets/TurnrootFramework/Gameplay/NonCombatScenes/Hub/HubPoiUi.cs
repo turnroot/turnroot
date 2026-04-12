@@ -548,7 +548,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
             Hide();
-        
         }
         #endregion
     }

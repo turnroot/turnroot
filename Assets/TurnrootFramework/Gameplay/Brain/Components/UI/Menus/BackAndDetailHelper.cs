@@ -30,7 +30,11 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             bool inSubmenu = (_menuTracker?.CurrentDepth ?? 0) > 1;
 
-            bool needsBackButton = stateNeedsMenus || inSubmenu;
+            // Also show Back button at depth 1 when in the hub with a menu open,
+            // so the special-case close logic in HandleBackButtonPressed can be reached.
+            bool atHubRootMenu = IsInHubState() && (_menuTracker?.CurrentDepth ?? 0) == 1;
+
+            bool needsBackButton = stateNeedsMenus || inSubmenu || atHubRootMenu;
 
             if (needsBackButton)
             {

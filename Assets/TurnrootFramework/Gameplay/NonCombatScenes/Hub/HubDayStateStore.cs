@@ -227,10 +227,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _currentState.TeamPlacements = map.Select(kv => new TeamPlacementEntry
-                {
-                    RosterIndex = kv.Key,
-                    Location = kv.Value,
-                })
+            {
+                RosterIndex = kv.Key,
+                Location = kv.Value,
+            })
                 .ToList();
 
             SaveState(brain);

@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -36,6 +39,8 @@ namespace Turnroot.UI
         private InputAction _subscribedScrollLeft;
         private InputAction _subscribedScrollRight;
 
+        private readonly Dictionary<string, Coroutine> _repeatCoroutines = new();
+
         private void Awake()
         {
             // Always register for initialization so we can bind once the shared actions are ready.
@@ -47,6 +52,10 @@ namespace Turnroot.UI
         }
 
         private void OnEnable() => Subscribe();
+
+        private void OnDisable() => StopAllHeldRepeats();
+
+        private void OnDestroy() => Unsubscribe();
 
         private void Subscribe()
         {
@@ -125,18 +134,26 @@ namespace Turnroot.UI
             if (_subscribedNavigateUp != null)
             {
                 _subscribedNavigateUp.performed += HandleNavigateUp;
+                _subscribedNavigateUp.started += OnNavigateUpStarted;
+                _subscribedNavigateUp.canceled += OnNavigateUpCanceled;
             }
             if (_subscribedNavigateDown != null)
             {
                 _subscribedNavigateDown.performed += HandleNavigateDown;
+                _subscribedNavigateDown.started += OnNavigateDownStarted;
+                _subscribedNavigateDown.canceled += OnNavigateDownCanceled;
             }
             if (_subscribedNavigateLeft != null)
             {
                 _subscribedNavigateLeft.performed += HandleNavigateLeft;
+                _subscribedNavigateLeft.started += OnNavigateLeftStarted;
+                _subscribedNavigateLeft.canceled += OnNavigateLeftCanceled;
             }
             if (_subscribedNavigateRight != null)
             {
                 _subscribedNavigateRight.performed += HandleNavigateRight;
+                _subscribedNavigateRight.started += OnNavigateRightStarted;
+                _subscribedNavigateRight.canceled += OnNavigateRightCanceled;
             }
             if (_subscribedStart != null)
             {
@@ -170,23 +187,32 @@ namespace Turnroot.UI
             if (_subscribedNavigateUp != null)
             {
                 _subscribedNavigateUp.performed -= HandleNavigateUp;
+                _subscribedNavigateUp.started -= OnNavigateUpStarted;
+                _subscribedNavigateUp.canceled -= OnNavigateUpCanceled;
                 _subscribedNavigateUp = null;
             }
             if (_subscribedNavigateDown != null)
             {
                 _subscribedNavigateDown.performed -= HandleNavigateDown;
+                _subscribedNavigateDown.started -= OnNavigateDownStarted;
+                _subscribedNavigateDown.canceled -= OnNavigateDownCanceled;
                 _subscribedNavigateDown = null;
             }
             if (_subscribedNavigateLeft != null)
             {
                 _subscribedNavigateLeft.performed -= HandleNavigateLeft;
+                _subscribedNavigateLeft.started -= OnNavigateLeftStarted;
+                _subscribedNavigateLeft.canceled -= OnNavigateLeftCanceled;
                 _subscribedNavigateLeft = null;
             }
             if (_subscribedNavigateRight != null)
             {
                 _subscribedNavigateRight.performed -= HandleNavigateRight;
+                _subscribedNavigateRight.started -= OnNavigateRightStarted;
+                _subscribedNavigateRight.canceled -= OnNavigateRightCanceled;
                 _subscribedNavigateRight = null;
             }
+            StopAllHeldRepeats();
             if (_subscribedStart != null)
             {
                 _subscribedStart.performed -= HandleStart;
@@ -225,6 +251,76 @@ namespace Turnroot.UI
 
         private void HandleNavigateRight(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke(InputActionConstants.NavigateRight);
+
+        // Hold-repeat started/canceled handlers
+        private void OnNavigateUpStarted(InputAction.CallbackContext ctx) =>
+            StartHeldRepeat(InputActionConstants.NavigateUp);
+
+        private void OnNavigateUpCanceled(InputAction.CallbackContext ctx) =>
+            StopHeldRepeat(InputActionConstants.NavigateUp);
+
+        private void OnNavigateDownStarted(InputAction.CallbackContext ctx) =>
+            StartHeldRepeat(InputActionConstants.NavigateDown);
+
+        private void OnNavigateDownCanceled(InputAction.CallbackContext ctx) =>
+            StopHeldRepeat(InputActionConstants.NavigateDown);
+
+        private void OnNavigateLeftStarted(InputAction.CallbackContext ctx) =>
+            StartHeldRepeat(InputActionConstants.NavigateLeft);
+
+        private void OnNavigateLeftCanceled(InputAction.CallbackContext ctx) =>
+            StopHeldRepeat(InputActionConstants.NavigateLeft);
+
+        private void OnNavigateRightStarted(InputAction.CallbackContext ctx) =>
+            StartHeldRepeat(InputActionConstants.NavigateRight);
+
+        private void OnNavigateRightCanceled(InputAction.CallbackContext ctx) =>
+            StopHeldRepeat(InputActionConstants.NavigateRight);
+
+        private void StartHeldRepeat(string actionName)
+        {
+            StopHeldRepeat(actionName);
+            if (isActiveAndEnabled)
+            {
+                _repeatCoroutines[actionName] = StartCoroutine(HoldRepeatCoroutine(actionName));
+            }
+        }
+
+        private void StopHeldRepeat(string actionName)
+        {
+            if (_repeatCoroutines.TryGetValue(actionName, out var coroutine) && coroutine != null)
+            {
+                StopCoroutine(coroutine);
+            }
+            _repeatCoroutines.Remove(actionName);
+        }
+
+        private void StopAllHeldRepeats()
+        {
+            foreach (var coroutine in _repeatCoroutines.Values)
+            {
+                if (coroutine != null)
+                {
+                    StopCoroutine(coroutine);
+                }
+            }
+            _repeatCoroutines.Clear();
+        }
+
+        private IEnumerator HoldRepeatCoroutine(string actionName)
+        {
+            var settings = GameplayInputSettings.Instance;
+            float initialDelay = settings != null ? settings.InitialRepeatDelay : 0.4f;
+            float interval = settings != null ? settings.RepeatInterval : 0.1f;
+            const float minInterval = 0.016f; // cap at ~60Hz
+            yield return new WaitForSecondsRealtime(initialDelay);
+            while (true)
+            {
+                OnInput?.Invoke(actionName);
+                yield return new WaitForSecondsRealtime(interval);
+                interval = Mathf.Max(minInterval, interval - 0.005f);
+            }
+        }
 
         private void HandleScrollLeft(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke(InputActionConstants.ScrollLeft);

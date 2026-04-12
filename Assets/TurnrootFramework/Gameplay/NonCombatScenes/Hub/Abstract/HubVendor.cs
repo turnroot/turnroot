@@ -75,10 +75,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
                 player.PlayOneShot(welcomeOneShot);
             }
-            else
-            {
-                $"{componentName} '{name}': No welcome dialogue to play".LogInfo();
-            }
         }
 
         protected void NotifyExited(Action hideUi, string componentName)
@@ -183,11 +179,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 audioBrain != null ? audioBrain.GetRandomOneShot(dialogueConversations) : default;
             if (!string.IsNullOrWhiteSpace(oneShot.Dialogue))
             {
-                audioBrain?.GetOrCreateOneShotPlayer()?.PlayOneShot(oneShot);
-            }
-            else
-            {
-                $"{name}: {onEmptyLogFormat}".LogInfo();
+                audioBrain.GetOrCreateOneShotPlayer()?.PlayOneShot(oneShot);
             }
         }
 
@@ -215,14 +207,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             return !string.IsNullOrWhiteSpace(farewell.Dialogue);
         }
 
-        public virtual void HandleConfirmInput(string action)
-        {
-            // Implemented by concrete vendors (e.g., shop and blacksmith).
-        }
+        public virtual void HandleConfirmInput(string action) { }
 
-        public virtual void HandleBackInput(string action)
-        {
-            // Implemented by concrete vendors with the appropriate NotifyXExited call.
-        }
+        public virtual void HandleBackInput(string action) { }
     }
 }

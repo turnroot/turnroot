@@ -168,6 +168,10 @@ namespace Turnroot.GameSettings
         [BoxGroup("General Gameplay")]
         public bool UseExperienceAptitudes;
 
+        [BoxGroup("General Gameplay")]
+        [Tooltip("Experience points required to advance one weapon/skill rank (E→D, D→C, etc.).")]
+        public int ExperienceRankUpThreshold = 100;
+
         [BoxGroup("Hub")]
         public bool HubHasTeamLocations;
 

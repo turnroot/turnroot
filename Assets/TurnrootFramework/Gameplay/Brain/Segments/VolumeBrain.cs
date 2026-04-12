@@ -130,24 +130,36 @@ namespace Turnroot.Gameplay.Brain
                     rpAsset.additionalLightsShadowmapResolution = 256;
                     rpAsset.shadowDistance = 30f;
                     rpAsset.shadowCascadeCount = 1;
+                    rpAsset.maxAdditionalLightsCount = 1;
+                    rpAsset.msaaSampleCount = 1;
+                    rpAsset.colorGradingMode = ColorGradingMode.LowDynamicRange;
                     break;
                 case 1: // Medium
                     rpAsset.mainLightShadowmapResolution = 1024;
                     rpAsset.additionalLightsShadowmapResolution = 512;
                     rpAsset.shadowDistance = 80f;
                     rpAsset.shadowCascadeCount = 2;
+                    rpAsset.maxAdditionalLightsCount = 3;
+                    rpAsset.msaaSampleCount = 2;
+                    rpAsset.colorGradingMode = ColorGradingMode.LowDynamicRange;
                     break;
                 case 2: // High
-                    rpAsset.mainLightShadowmapResolution = 2048;
-                    rpAsset.additionalLightsShadowmapResolution = 1024;
+                    rpAsset.mainLightShadowmapResolution = 4096;
+                    rpAsset.additionalLightsShadowmapResolution = 2048;
                     rpAsset.shadowDistance = 150f;
                     rpAsset.shadowCascadeCount = 4;
+                    rpAsset.maxAdditionalLightsCount = 5;
+                    rpAsset.msaaSampleCount = 4;
+                    rpAsset.colorGradingMode = ColorGradingMode.HighDynamicRange;
                     break;
                 case 3: // Ultra
-                    rpAsset.mainLightShadowmapResolution = 4096;
-                    rpAsset.additionalLightsShadowmapResolution = 4096;
+                    rpAsset.mainLightShadowmapResolution = 8192;
+                    rpAsset.additionalLightsShadowmapResolution = 8192;
                     rpAsset.shadowDistance = 300f;
                     rpAsset.shadowCascadeCount = 4;
+                    rpAsset.maxAdditionalLightsCount = 8;
+                    rpAsset.msaaSampleCount = 8;
+                    rpAsset.colorGradingMode = ColorGradingMode.HighDynamicRange;
                     break;
             }
         }
