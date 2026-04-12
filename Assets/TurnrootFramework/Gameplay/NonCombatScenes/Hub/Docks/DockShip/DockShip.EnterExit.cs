@@ -26,7 +26,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
                     dockShipUi.MainOverlayUiFade?.Hide();
                     dockShipUi.RefreshDockShipDisplay();
-                    $"DockShip '{name}': DockShipUi refreshed, NormalGoodsForSale count={dockShipUi?.DockShipData?.NormalGoodsForSale?.Length ?? 0}".LogInfo();
                 },
                 "DockShip"
             );

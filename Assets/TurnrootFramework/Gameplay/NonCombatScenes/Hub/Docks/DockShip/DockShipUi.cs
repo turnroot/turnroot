@@ -40,6 +40,29 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             DockShipData.IncreaseTrust(trustGain);
         }
 
+        protected override void PersistItemQuantity(int vendorIndex, int quantity)
+        {
+            // DockShip reads stock using ShipName, not the GameObject name — use the same key here.
+            if (brain == null || DockShipData == null || vendorIndex < 0 || VendorItems == null)
+            {
+                return;
+            }
+
+            if (vendorIndex < VendorItems.Length)
+            {
+                var item = VendorItems[vendorIndex];
+                if (item.Item != null)
+                {
+                    HubDayStateStore.SetShopItemQuantity(
+                        brain,
+                        DockShipData.ShipName,
+                        item.Item.name,
+                        quantity
+                    );
+                }
+            }
+        }
+
         protected override string VendorDisplayName => DockShipData?.ShipName ?? string.Empty;
 
         protected override string VendorDescription => string.Empty;

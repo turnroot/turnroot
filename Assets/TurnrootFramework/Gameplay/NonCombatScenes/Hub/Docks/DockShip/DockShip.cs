@@ -155,7 +155,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             {
                 return OperationResult.Failure(
                     $"Cannot load state for {ShipName}. Brain or LTM is null, or ShipName is empty.",
-                    this.GetType().Name
+                    GetType().Name
                 );
             }
 
@@ -207,7 +207,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             {
                 return OperationResult.Failure(
                     $"Cannot save state for {ShipName}. ShipName is empty.",
-                    this.GetType().Name
+                    GetType().Name
                 );
             }
 
@@ -225,7 +225,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             {
                 return OperationResult.Failure(
                     $"Cannot save state for {ShipName}. Brain or LTM is null.",
-                    this.GetType().Name
+                    GetType().Name
                 );
             }
 

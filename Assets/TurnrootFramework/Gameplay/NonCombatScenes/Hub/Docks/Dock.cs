@@ -123,7 +123,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             ships.Sort((a, b) => a.CurrentDockedTime.CompareTo(b.CurrentDockedTime));
             for (int i = capacity; i < ships.Count; i++)
             {
-                $"Dock: {side} side over capacity — sending '{ships[i].ShipName}' (dockedTime={ships[i].CurrentDockedTime}) to sea.".LogInfo();
                 ships[i].ForceSendToSea();
             }
         }

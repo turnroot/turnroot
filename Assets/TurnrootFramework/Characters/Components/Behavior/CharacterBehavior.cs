@@ -44,13 +44,13 @@ namespace Turnroot.Characters.Components.Behavior
         {
             return new CharacterBehavior
             {
-                MovementDisabled = this.MovementDisabled,
-                AttackDisabled = this.AttackDisabled,
-                SoldierLoneWolf = this.SoldierLoneWolf,
-                MindlessCunning = this.MindlessCunning,
-                SelfishSelfless = this.SelfishSelfless,
-                BrashWary = this.BrashWary,
-                BloodthirstGreed = this.BloodthirstGreed,
+                MovementDisabled = MovementDisabled,
+                AttackDisabled = AttackDisabled,
+                SoldierLoneWolf = SoldierLoneWolf,
+                MindlessCunning = MindlessCunning,
+                SelfishSelfless = SelfishSelfless,
+                BrashWary = BrashWary,
+                BloodthirstGreed = BloodthirstGreed,
             };
         }
 

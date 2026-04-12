@@ -129,7 +129,7 @@ namespace Turnroot.Characters
         public CharacterStat GetUnboundedStat(UnboundedStatType type) =>
             StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, type);
 
-        public float GetHealthPercentage() => StatHelpers.GetHealthPercentage(this.BoundedStats);
+        public float GetHealthPercentage() => StatHelpers.GetHealthPercentage(BoundedStats);
         #endregion
     }
 }

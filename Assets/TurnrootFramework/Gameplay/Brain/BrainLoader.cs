@@ -29,7 +29,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 // Unity's SceneManager can throw if scene doesn't exist
                 SceneManager.LoadScene(BrainSceneName, LoadSceneMode.Additive);
-                $"BrainLoader: Loaded '{BrainSceneName}' scene additively".LogInfo();
                 return OperationResult.Successful();
             }
             catch (System.Exception e)

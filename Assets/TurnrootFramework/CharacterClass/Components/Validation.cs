@@ -30,7 +30,7 @@ namespace Turnroot.Characters.CharacterClass
 
             // Validate class visuals (mesh/prefab contain required blendshapes)
 #if UNITY_EDITOR
-            this.ValidateClassVisuals();
+            ValidateClassVisuals();
 #endif
         }
 
