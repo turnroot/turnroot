@@ -28,9 +28,9 @@ namespace Turnroot.Skills.Nodes
         /// </summary>
         public void Execute(BattleContext battleContext)
         {
-            this.context = battleContext;
-            this.visitedNodes = new HashSet<SkillNode>();
-            this.currentNode = null;
+            context = battleContext;
+            visitedNodes = new HashSet<SkillNode>();
+            currentNode = null;
 
             context.Skill.CurrentSkillGraph = graph;
             context.SetCustomData("_executor", this);

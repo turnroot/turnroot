@@ -204,7 +204,6 @@ namespace Turnroot.Utilities.AbstractScripts
                 }
             }
 
-            $"DynamicSceneFlow: Activating high-level state {stateId}".LogInfo();
             brain.stateBrain.ActivateHighLevelState(stateId);
         }
 

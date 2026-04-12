@@ -35,7 +35,7 @@ namespace Turnroot.UI.Components
 
             // Find the child GameObject tagged 'BattleMapEnvironment' and use it directly
             var uf = new UtilityFunctions();
-            var c = uf.FindChildByTag(this.gameObject, "BattleMapEnvironment");
+            var c = uf.FindChildByTag(gameObject, "BattleMapEnvironment");
             GameObject envRoot = c != null ? c.gameObject : null;
             if (envRoot == null)
             {

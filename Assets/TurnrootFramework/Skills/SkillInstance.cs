@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Newtonsoft.Json;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
@@ -15,14 +16,14 @@ namespace Turnroot.Skills
     [Serializable]
     public class SkillInstance : IPostDeserialize
     {
-        [SerializeField]
+        [SerializeField, JsonProperty("_skillTemplate")]
         private Skill _skillTemplate;
 
         // Runtime state - unique per character/entity
         [SerializeField]
         private bool _readyToFire;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_equipped")]
         private bool _equipped;
 
         public Skill SkillTemplate => _skillTemplate;

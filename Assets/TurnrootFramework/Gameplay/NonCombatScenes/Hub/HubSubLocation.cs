@@ -55,7 +55,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (!HasBeenVisitedEver)
             {
-                $"First time visiting {LocationName}, showing tutorial.".LogInfo();
                 HasBeenVisitedEver = true;
                 SaveVisitedFlag();
 

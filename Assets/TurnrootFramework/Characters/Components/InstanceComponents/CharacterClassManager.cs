@@ -213,6 +213,16 @@ namespace Turnroot.Characters
 
             GetAvailableWeapons();
 
+            // Persist stat changes that resulted from bonuses / minimums / caps.
+            // Guard with applyClassChangeBonuses so we skip when ChangeClass is called
+            // during initialization / deserialization (those paths pass false) and avoid
+            // overwriting already-saved stats with fresh template values.
+            if (applyClassChangeBonuses)
+            {
+                PersistStatsToLtm();
+                NeedsPersist = true;
+            }
+
             return OperationResult.Successful();
         }
 

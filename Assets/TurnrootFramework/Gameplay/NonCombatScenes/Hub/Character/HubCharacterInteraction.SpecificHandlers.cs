@@ -16,6 +16,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private ObjectItem[] _items;
         private int _activeItemChoiceIndex;
         private Action _activeOnItemChosen;
+        private bool _subMenuActive;
 
         private OneShotPlayer OneShotPlayer =>
             CharacterManager._brain.audioBrain.GetOrCreateOneShotPlayer();
@@ -25,16 +26,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         #region Menu Helpers
 
-        private void ResubscribeInput()
-        {
-            InputProvider.OnInput -= HandleInput;
-            InputProvider.OnInput += HandleInput;
-        }
-
         private void ReturnToActionsMenu(bool persistSupportPoints = true)
         {
             ShowActionsMenu();
-            ResubscribeInput();
             if (persistSupportPoints)
             {
                 PersistAvatarSupportPoints();
@@ -139,8 +133,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             _items = itemList.ToArray();
             _activeItemChoiceIndex = 0;
             _activeOnItemChosen = onChosen;
+            _subMenuActive = true;
 
-            InputProvider.OnInput -= HandleInput;
             HideActionsMenu();
             GiftChoiceMenuFade.Show();
 
@@ -214,6 +208,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
             _activeItemRows = null;
             _items = null;
+            _subMenuActive = false;
             GiftChoiceMenuFade.Hide();
         }
 

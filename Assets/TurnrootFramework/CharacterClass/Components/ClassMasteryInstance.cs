@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -12,13 +13,13 @@ namespace Turnroot.Characters.CharacterClass
     [Serializable]
     public class ClassMasteryInstance : Serialization.IPostDeserialize
     {
-        [SerializeField]
+        [SerializeField, JsonProperty("_progressPercent")]
         private int _progressPercent = 0; // 0..100
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_isMastered")]
         private bool _isMastered = false;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_battlesCompleted")]
         private int _battlesCompleted = 0;
 
         public int BattlesCompleted => _battlesCompleted;
@@ -91,6 +92,8 @@ namespace Turnroot.Characters.CharacterClass
 
             _battlesCompleted += effectivePoints;
             AddProgress(owner, classData, effectivePoints);
+            if (owner != null)
+                owner.NeedsPersist = true;
         }
 
         /// <summary>
@@ -134,4 +137,3 @@ namespace Turnroot.Characters.CharacterClass
         }
     }
 }
-

@@ -367,7 +367,7 @@ namespace Turnroot.Gameplay.Maps
             )
             {
                 UnityEditor.EditorUtility.SetDirty(this);
-                UnityEditor.EditorUtility.SetDirty(this.gameObject);
+                UnityEditor.EditorUtility.SetDirty(gameObject);
                 UnityEditor.SceneView.RepaintAll();
             }
         }

@@ -174,7 +174,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 var (utility, chosenWeapon) = CalculateAttackUtility(target, behavior);
                 utility -= behavior.SelfishSelfless * 3f; // Selfless units are less kill-focused
-                utility *= this.IsAttackable(targetGridPoint) ? 5f : 3f;
+                utility *= IsAttackable(targetGridPoint) ? 5f : 3f;
 
                 // Weapon-effectiveness adjustments (use cached summaries)
                 var attackerInfo = _context.GetCachedWeaponInfo(_context.Unit.UnitInstance);
@@ -300,7 +300,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 // Check if target is in attack range
                 utility +=
                     (1f - behavior.BloodthirstGreed)
-                    * (this.IsAttackable(targetGridPoint) ? 5f : 3f);
+                    * (IsAttackable(targetGridPoint) ? 5f : 3f);
 
                 // Use CalculateAttackUtility to pick a preferred weapon
                 var (_, chosenWeapon) = CalculateAttackUtility(closestEnemy, behavior);
@@ -333,13 +333,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 attackGoals.Add(
                     new AIGoal
                     {
-                        Type = this.IsAttackable(targetGridPoint)
+                        Type = IsAttackable(targetGridPoint)
                             ? AIGoal.GoalType.AttackEnemy
                             : AIGoal.GoalType.GainPosition,
                         UtilityScore = utility,
                         Target = closestEnemy,
                         Destination = DestinationFromTargetGridPoint(targetGridPoint),
-                        ActionToTake = this.IsAttackable(targetGridPoint)
+                        ActionToTake = IsAttackable(targetGridPoint)
                             ? AIGoal.Action.Attack
                             : AIGoal.Action.Move,
                         ChosenWeapon = chosenWeapon,

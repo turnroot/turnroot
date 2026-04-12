@@ -98,7 +98,7 @@ namespace Turnroot.Characters
         public Vector2Int MapGridPosition
         {
             get => _mapGridPosition;
-            set { _mapGridPosition = value; }
+            set => _mapGridPosition = value;
         }
         public GameObject CurrentWeaponPrefab
         {
@@ -193,37 +193,37 @@ namespace Turnroot.Characters
         {
             var copy = new CharacterInstance
             {
-                _id = this._id,
-                _characterTemplate = this._characterTemplate,
-                settings = this.settings,
+                _id = _id,
+                _characterTemplate = _characterTemplate,
+                settings = settings,
 
-                _currentLevel = this._currentLevel,
-                _currentExp = this._currentExp,
-                _runtimeBoundedStats = this._runtimeBoundedStats,
-                _runtimeUnboundedStats = this._runtimeUnboundedStats,
-                _inventoryInstance = this._inventoryInstance,
-                _skillInstances = this._skillInstances,
-                _supportRelationships = this._supportRelationships,
-                _experienceRanks = this._experienceRanks,
-                _currentClass = this._currentClass,
-                _equippedClassHistory = this._equippedClassHistory,
+                _currentLevel = _currentLevel,
+                _currentExp = _currentExp,
+                _runtimeBoundedStats = _runtimeBoundedStats,
+                _runtimeUnboundedStats = _runtimeUnboundedStats,
+                _inventoryInstance = _inventoryInstance,
+                _skillInstances = _skillInstances,
+                _supportRelationships = _supportRelationships,
+                _experienceRanks = _experienceRanks,
+                _currentClass = _currentClass,
+                _equippedClassHistory = _equippedClassHistory,
 
-                _meshRenderer = this._meshRenderer,
-                _useBattleModel = this._useBattleModel,
-                _currentWeaponPrefab = this._currentWeaponPrefab,
-                _currentShieldPrefab = this._currentShieldPrefab,
-                _isMounted = this._isMounted,
-                _currentMountModel = this._currentMountModel,
+                _meshRenderer = _meshRenderer,
+                _useBattleModel = _useBattleModel,
+                _currentWeaponPrefab = _currentWeaponPrefab,
+                _currentShieldPrefab = _currentShieldPrefab,
+                _isMounted = _isMounted,
+                _currentMountModel = _currentMountModel,
 
                 // Battle-specific state (RESET for new battle)
                 _mapGridPosition = new Vector2Int(-9999, -9999),
                 _isDefeatedInCurrentBattle = false,
                 _wasSpawnedDuringBattle = false,
-                IsSelectedForBattle = this.IsSelectedForBattle,
+                IsSelectedForBattle = IsSelectedForBattle,
                 _activeStatusEffects = new List<StatusEffectInstance>(),
                 LastAttackedTarget = null,
                 CurrentMovementSpline = null,
-                WalkingSpeed = this.WalkingSpeed
+                WalkingSpeed = WalkingSpeed,
             };
 
             return copy;

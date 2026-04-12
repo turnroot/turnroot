@@ -42,7 +42,7 @@ namespace Turnroot.Utilities.AbstractScripts
             if (_instance == null)
             {
                 _instance = this as T;
-                DontDestroyOnLoad(this.gameObject); // Make it persistent
+                DontDestroyOnLoad(gameObject); // Make it persistent
             }
             else
             {

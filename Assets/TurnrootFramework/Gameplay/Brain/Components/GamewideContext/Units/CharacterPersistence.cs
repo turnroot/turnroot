@@ -37,6 +37,9 @@ namespace Turnroot.Gameplay.Brain
 
             _ltm.Remember(key, encoded);
 
+            // Also save the current runtime stat values so they survive the next session.
+            instance.PersistStatsToLtm();
+
             if (updateIndex)
             {
                 AddToCharacterIndex(instance.CharacterTemplate.name);

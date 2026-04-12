@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using Turnroot.Characters.Subclasses;
 using UnityEngine;
 
@@ -10,22 +11,22 @@ namespace Turnroot.Characters.Components.Support
     [Serializable]
     public class SupportRelationshipInstance
     {
-        [SerializeField]
+        [SerializeField, JsonProperty("_character")]
         private CharacterData _character;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_supportLevels")]
         private SupportLevels _supportLevels;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_maxLevel")]
         private string _maxLevel;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_supportSpeed")]
         private int _supportSpeed = 1;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_supportGainMultiplier")]
         private float _supportGainMultiplier = 1f;
 
-        [SerializeField]
+        [SerializeField, JsonProperty("_supportPoints")]
         private float _supportPoints = 0f;
 
         public SupportRelationshipInstance()
@@ -77,7 +78,16 @@ namespace Turnroot.Characters.Components.Support
             set => _supportPoints = value;
         }
 
-        public string CurrentLevel => _supportLevels.Value;
+        public string CurrentLevel
+        {
+            get => _supportLevels.Value;
+            set
+            {
+                if (_supportLevels == null)
+                    _supportLevels = new SupportLevels();
+                _supportLevels.Value = value;
+            }
+        }
 
         public void Increase(float points)
         {

@@ -57,12 +57,14 @@ namespace Turnroot.Characters
         {
             _totalKills++;
             LastTurnKilledEnemy = true; // mark that a kill occurred during the current turn
+            NeedsPersist = true;
         }
 
         public void RecordBattleStart()
         {
             _totalBattles++;
             _turnsAliveThisBattle = 0;
+            NeedsPersist = true;
         }
 
         public void IncrementTurnsAlive() => _turnsAliveThisBattle++;

@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace Turnroot.Characters.CharacterClass
     [Serializable]
     public class ClassStatsInstance
     {
-        [SerializeField]
+        [SerializeField, JsonProperty("_isFirstTimeEquipped")]
         private bool _isFirstTimeEquipped = true;
 
         public bool IsFirstTimeEquipped
