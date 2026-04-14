@@ -85,10 +85,6 @@ Shader "Turnroot/Character Cel Shader"
         _Highlight_Mask_Amount("Highlight Mask Amount", Range(0,1)) = 1
         _Highlight_Saturation("Highlight Saturation", Range(0,2)) = 0
         _Show_Masks("Show Masks (RGB S/M/H)", Float) = 0
-        [Toggle(_USE_LIGHT_TEX_ON)] _use_light_tex("Use Light Texture", Float) = 0
-        _LightTex("Light Texture", 2D) = "white" {}
-        [Toggle(_USE_DARK_TEX_ON)] _use_dark_tex("Use Dark Texture", Float) = 0
-        _DarkTex("Dark Texture", 2D) = "black" {}
     }
 
     SubShader
