@@ -30,6 +30,9 @@ namespace Turnroot.Graphics3D
         public ComputeShader computeShader;
         public Material grassMaterial;
 
+        [Tooltip("The ground mesh this grass sits on. Used by AlignGroundTexture to map _GroundTex over the full ground footprint.")]
+        public MeshFilter groundSource;
+
         [Tooltip("Culling camera. Falls back to Camera.main, then any active camera.")]
         public UnityEngine.Camera targetCamera;
 

@@ -18,25 +18,27 @@ namespace Turnroot.Graphics3D
                 return;
             }
 
-            var mf = GetComponent<MeshFilter>();
+            // Use the assigned ground source; fall back to this object's own mesh.
+            MeshFilter mf = groundSource != null ? groundSource : GetComponent<MeshFilter>();
             if (mf == null || mf.sharedMesh == null)
             {
                 return;
             }
 
+            Transform t = mf.transform;
             Bounds local = mf.sharedMesh.bounds;
             Vector3 lMin = local.min;
             Vector3 lMax = local.max;
             Vector3[] corners = new Vector3[8]
             {
-                transform.TransformPoint(new Vector3(lMin.x, lMin.y, lMin.z)),
-                transform.TransformPoint(new Vector3(lMax.x, lMin.y, lMin.z)),
-                transform.TransformPoint(new Vector3(lMin.x, lMax.y, lMin.z)),
-                transform.TransformPoint(new Vector3(lMax.x, lMax.y, lMin.z)),
-                transform.TransformPoint(new Vector3(lMin.x, lMin.y, lMax.z)),
-                transform.TransformPoint(new Vector3(lMax.x, lMin.y, lMax.z)),
-                transform.TransformPoint(new Vector3(lMin.x, lMax.y, lMax.z)),
-                transform.TransformPoint(new Vector3(lMax.x, lMax.y, lMax.z)),
+                t.TransformPoint(new Vector3(lMin.x, lMin.y, lMin.z)),
+                t.TransformPoint(new Vector3(lMax.x, lMin.y, lMin.z)),
+                t.TransformPoint(new Vector3(lMin.x, lMax.y, lMin.z)),
+                t.TransformPoint(new Vector3(lMax.x, lMax.y, lMin.z)),
+                t.TransformPoint(new Vector3(lMin.x, lMin.y, lMax.z)),
+                t.TransformPoint(new Vector3(lMax.x, lMin.y, lMax.z)),
+                t.TransformPoint(new Vector3(lMin.x, lMax.y, lMax.z)),
+                t.TransformPoint(new Vector3(lMax.x, lMax.y, lMax.z)),
             };
             Vector3 worldMin = corners[0];
             Vector3 worldMax = corners[0];
