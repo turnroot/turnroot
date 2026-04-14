@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 #if UNITY_EDITOR
 #endif
 
@@ -7,8 +8,9 @@ namespace Turnroot.Graphics3D
     public partial class GrassRenderer
     {
         /// <summary>
-        /// Sets _GroundTex_ST so world-space UVs span 0–1 over the mesh footprint.
-        /// Called automatically on Init; call manually after rescaling.
+        /// Sets _GroundTex_ST by fitting a linear world-XZ → UV transform to the ground mesh's
+        /// own vertex UVs. This correctly handles any UV flip or scale the artist baked in.
+        /// Called automatically on Init; call manually after rescaling or reassigning groundSource.
         /// </summary>
         [ContextMenu("Align Ground Texture")]
         public void AlignGroundTexture()
@@ -25,38 +27,64 @@ namespace Turnroot.Graphics3D
                 return;
             }
 
-            Transform t = mf.transform;
-            Bounds local = mf.sharedMesh.bounds;
-            Vector3 lMin = local.min;
-            Vector3 lMax = local.max;
-            Vector3[] corners = new Vector3[8]
+            if (!TryFitWorldToUV(mf, out Vector4 st))
             {
-                t.TransformPoint(new Vector3(lMin.x, lMin.y, lMin.z)),
-                t.TransformPoint(new Vector3(lMax.x, lMin.y, lMin.z)),
-                t.TransformPoint(new Vector3(lMin.x, lMax.y, lMin.z)),
-                t.TransformPoint(new Vector3(lMax.x, lMax.y, lMin.z)),
-                t.TransformPoint(new Vector3(lMin.x, lMin.y, lMax.z)),
-                t.TransformPoint(new Vector3(lMax.x, lMin.y, lMax.z)),
-                t.TransformPoint(new Vector3(lMin.x, lMax.y, lMax.z)),
-                t.TransformPoint(new Vector3(lMax.x, lMax.y, lMax.z)),
-            };
-            Vector3 worldMin = corners[0];
-            Vector3 worldMax = corners[0];
-            for (int i = 1; i < 8; i++)
-            {
-                worldMin = Vector3.Min(worldMin, corners[i]);
-                worldMax = Vector3.Max(worldMax, corners[i]);
+                Debug.LogWarning("GrassRenderer: Ground mesh has no UVs or too few vertices to fit UV transform.", this);
+                return;
             }
 
-            float w = Mathf.Max(Mathf.Abs(worldMax.x - worldMin.x), 0.001f);
-            float d = Mathf.Max(Mathf.Abs(worldMax.z - worldMin.z), 0.001f);
+            grassMaterial.SetVector("_GroundTex_ST", st);
+        }
 
-            Vector2 scale = new Vector2(1f / w, 1f / d);
-            Vector2 offset = new Vector2(-worldMin.x * scale.x, -worldMin.z * scale.y);
-            grassMaterial.SetVector(
-                "_GroundTex_ST",
-                new Vector4(scale.x, scale.y, offset.x, offset.y)
-            );
+        // Fits a linear transform  uv = (sx * world.x + ox,  sy * world.z + oy)
+        // to the ground mesh's vertex UVs using ordinary least-squares per axis.
+        // This correctly recovers flips and axis-proportional scales.
+        private static bool TryFitWorldToUV(MeshFilter mf, out Vector4 st)
+        {
+            st = new Vector4(1, 1, 0, 0);
+            Mesh mesh = mf.sharedMesh;
+            Vector3[] verts = mesh.vertices;
+            Vector2[] uvs   = mesh.uv;
+
+            if (uvs == null || uvs.Length < 2 || uvs.Length != verts.Length)
+            {
+                return false;
+            }
+
+            Transform tr = mf.transform;
+            int n = verts.Length;
+
+            // Accumulate sums for two independent 2-parameter least-squares fits:
+            //   U = sx * wx + ox   (world X  → texture U)
+            //   V = sy * wz + oy   (world Z  → texture V)
+            double swx2 = 0, swx = 0, swxu = 0, su = 0;
+            double swz2 = 0, swz = 0, swzv = 0, sv = 0;
+
+            for (int i = 0; i < n; i++)
+            {
+                Vector3 wp = tr.TransformPoint(verts[i]);
+                double wx = wp.x, wz = wp.z;
+                double u  = uvs[i].x, v = uvs[i].y;
+
+                swx2 += wx * wx;  swx  += wx;  swxu += wx * u;  su += u;
+                swz2 += wz * wz;  swz  += wz;  swzv += wz * v;  sv += v;
+            }
+
+            double detX = swx2 * n - swx * swx;
+            double detZ = swz2 * n - swz * swz;
+
+            if (Math.Abs(detX) < 1e-6 || Math.Abs(detZ) < 1e-6)
+            {
+                return false;
+            }
+
+            float sx = (float)((swxu * n - swx * su) / detX);
+            float ox = (float)((swx2 * su - swx * swxu) / detX);
+            float sy = (float)((swzv * n - swz * sv) / detZ);
+            float oy = (float)((swz2 * sv - swz * swzv) / detZ);
+
+            st = new Vector4(sx, sy, ox, oy);
+            return true;
         }
 
 #if UNITY_EDITOR
