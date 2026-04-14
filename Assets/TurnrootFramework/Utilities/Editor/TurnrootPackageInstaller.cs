@@ -9,9 +9,15 @@ namespace Turnroot.Utilities.Editor
     {
         private static readonly Dictionary<string, string> RequiredPackages = new()
         {
-            { "com.github.siccity.xnode",       "https://github.com/siccity/xNode.git" },
-            { "com.dbrizov.naughtyattributes",   "https://github.com/dbrizov/NaughtyAttributes.git#upm" },
-            { "com.coffee.ui-effect",            "https://github.com/mob-sakai/UIEffect.git?path=Packages/src" },
+            { "com.github.siccity.xnode", "https://github.com/siccity/xNode.git" },
+            {
+                "com.dbrizov.naughtyattributes",
+                "https://github.com/dbrizov/NaughtyAttributes.git#upm"
+            },
+            {
+                "com.coffee.ui-effect",
+                "https://github.com/mob-sakai/UIEffect.git?path=Packages/src"
+            },
         };
 
         [MenuItem("Tools/Turnroot/Install Required Packages")]
@@ -44,12 +50,18 @@ namespace Turnroot.Utilities.Editor
             if (added.Count == 0)
             {
                 Debug.Log("[Turnroot] All required packages are already in the manifest.");
-                EditorUtility.DisplayDialog("Turnroot", "All required packages are already installed.", "OK");
+                EditorUtility.DisplayDialog(
+                    "Turnroot",
+                    "All required packages are already installed.",
+                    "OK"
+                );
                 return;
             }
 
             File.WriteAllText(manifestPath, contents);
-            Debug.Log($"[Turnroot] Added {added.Count} package(s) to manifest: {string.Join(", ", added)}");
+            Debug.Log(
+                $"[Turnroot] Added {added.Count} package(s) to manifest: {string.Join(", ", added)}"
+            );
             EditorUtility.DisplayDialog(
                 "Turnroot",
                 $"Added {added.Count} package(s) to manifest:\n\n{string.Join("\n", added)}\n\nUnity will now resolve packages.",
