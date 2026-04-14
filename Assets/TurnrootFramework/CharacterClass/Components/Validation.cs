@@ -37,11 +37,20 @@ namespace Turnroot.Characters.CharacterClass
         private OperationResult ValidateStatLists()
         {
             var gs = GameplayGeneralSettings.Instance;
-            if (!ValidationHelper.ValidateNotNull(gs, nameof(gs), name))
+            if (gs == null)
             {
-                return OperationResult.Failure(
-                    $"{name}: Cannot validate stat lists - GameplayGeneralSettings not found in GameSettings."
-                );
+#if UNITY_EDITOR
+                // During the initial asset import phase, Resources.Load is not yet available.
+                // Skip validation silently — it will re-run once assets are fully loaded.
+                if (EditorApplication.isUpdatingAssets)
+                    return OperationResult.Success();
+#endif
+                if (!ValidationHelper.ValidateNotNull(gs, nameof(gs), name))
+                {
+                    return OperationResult.Failure(
+                        $"{name}: Cannot validate stat lists - GameplayGeneralSettings not found in GameSettings."
+                    );
+                }
             }
 
             // Define all bounded stat lists to validate in one place
