@@ -112,13 +112,6 @@ namespace Turnroot.Characters
 
         private void OnEnable()
         {
-            // Load settings from centralized cache
-            var settings = CharacterSettings.PrototypeSettings;
-            if (settings == null)
-            {
-                return;
-            }
-
             // Initialize stats from defaults if stats are empty
             if (BoundedStats.Count == 0 && UnboundedStats.Count == 0)
             {

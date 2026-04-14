@@ -142,7 +142,6 @@ namespace Turnroot.EditorTools
             CheckGraphics2DSettings();
             CheckGameplayPlayerSettings();
             CheckGamePackageSettings();
-            CheckCharacterPrototypeSettings();
             CheckPersistentPlayerRoster();
             CheckSupportRelationshipTable();
 
@@ -328,34 +327,6 @@ namespace Turnroot.EditorTools
                 new CheckResult
                 {
                     Label = "GamePackageSettings",
-                    Note = $"Found: {AssetDatabase.GetAssetPath(asset)}",
-                    Color = Color.green,
-                    Asset = asset,
-                }
-            );
-        }
-
-        private void CheckCharacterPrototypeSettings()
-        {
-            var asset = FindSingleton<CharacterPrototypeSettings>("CharacterPrototypeSettings");
-            if (asset == null)
-            {
-                _results.Add(
-                    new CheckResult
-                    {
-                        Label = "CharacterPrototypeSettings",
-                        Note =
-                            "Asset not found in Resources. Required for character prototyping tools.",
-                        Color = Color.yellow,
-                    }
-                );
-                return;
-            }
-
-            _results.Add(
-                new CheckResult
-                {
-                    Label = "CharacterPrototypeSettings",
                     Note = $"Found: {AssetDatabase.GetAssetPath(asset)}",
                     Color = Color.green,
                     Asset = asset,

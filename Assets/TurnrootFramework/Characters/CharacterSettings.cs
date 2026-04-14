@@ -13,7 +13,6 @@ namespace Turnroot.Characters
     public static class CharacterSettings
     {
         private static int? _cachedMaxNonWeaponSlots;
-        private static CharacterPrototypeSettings _cachedPrototypeSettings;
 
         public static int MaxNonWeaponSlots
         {
@@ -34,34 +33,9 @@ namespace Turnroot.Characters
             }
         }
 
-        public static CharacterPrototypeSettings PrototypeSettings
-        {
-            get
-            {
-                if (_cachedPrototypeSettings != null)
-                {
-                    return _cachedPrototypeSettings;
-                }
-
-                _cachedPrototypeSettings = CharacterPrototypeSettings.Instance;
-                if (
-                    !ValidationHelper.ValidateNotNull(
-                        _cachedPrototypeSettings,
-                        nameof(_cachedPrototypeSettings)
-                    )
-                )
-                {
-                    "CharacterPrototypeSettings not found in Resources/GameSettings. Please create one.".LogWarning();
-                }
-
-                return _cachedPrototypeSettings;
-            }
-        }
-
         public static void ClearCache()
         {
             _cachedMaxNonWeaponSlots = null;
-            _cachedPrototypeSettings = null;
         }
 
         /// <summary>

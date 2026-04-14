@@ -1,0 +1,50 @@
+name: Auto Version Tag on PR Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  tag-version:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest version tag and increment patch
+        id: version
+        run: |
+          # Find the latest tag matching semver (vX.Y.Z or X.Y.Z)
+          LATEST=$(git tag --list --sort=-version:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+
+          if [ -z "$LATEST" ]; then
+            NEW_TAG="0.1.664"
+          else
+            # Strip leading 'v' if present
+            STRIPPED="${LATEST#v}"
+            MAJOR=$(echo "$STRIPPED" | cut -d. -f1)
+            MINOR=$(echo "$STRIPPED" | cut -d. -f2)
+            PATCH=$(echo "$STRIPPED" | cut -d. -f3)
+            NEW_PATCH=$((PATCH + 1))
+            NEW_TAG="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          fi
+
+          echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+          echo "Next version: $NEW_TAG"
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.version.outputs.new_tag }}"
+          git push origin "${{ steps.version.outputs.new_tag }}"
