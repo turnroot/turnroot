@@ -31,5 +31,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ steps.version.outputs.version }}"
-          git push origin "${{ steps.version.outputs.version }}"
+
+          # Parse the version from package.json and find the next available tag
+          BASE="${{ steps.version.outputs.version }}"
+          MAJOR=$(echo "$BASE" | cut -d. -f1)
+          MINOR=$(echo "$BASE" | cut -d. -f2)
+          PATCH=$(echo "$BASE" | cut -d. -f3)
+
+          # Increment patch until we find a tag that doesn't exist yet
+          while git ls-remote --tags origin | grep -q "refs/tags/${MAJOR}.${MINOR}.${PATCH}$"; do
+            PATCH=$((PATCH + 1))
+          done
+
+          FINAL_TAG="${MAJOR}.${MINOR}.${PATCH}"
+          echo "Final tag: $FINAL_TAG"
+          git tag "$FINAL_TAG"
+          git push origin "$FINAL_TAG"
