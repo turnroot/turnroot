@@ -1,0 +1,20 @@
+{
+    "name": "TurnrootFramework.Editor.Utilities.SceneFlows",
+    "rootNamespace": "Turnroot",
+    "references": [
+        "TurnrootFramework.Runtime",
+        "NaughtyAttributes.Core",
+        "NaughtyAttributes.Editor",
+        "XNode",
+        "XNodeEditor"
+    ],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
