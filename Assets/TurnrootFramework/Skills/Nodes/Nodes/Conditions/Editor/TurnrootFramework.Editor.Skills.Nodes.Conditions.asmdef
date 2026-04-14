@@ -1,0 +1,21 @@
+{
+    "name": "TurnrootFramework.Editor.Skills.Nodes.Conditions",
+    "rootNamespace": "Turnroot",
+    "references": [
+        "TurnrootFramework.Runtime",
+        "NaughtyAttributes.Core",
+        "NaughtyAttributes.Editor",
+        "XNode",
+        "XNodeEditor",
+        "TurnrootFramework.Editor.Skills.Nodes"
+    ],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
