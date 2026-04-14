@@ -25,8 +25,26 @@ namespace Turnroot.Graphics3D
             }
 
             Bounds local = mf.sharedMesh.bounds;
-            Vector3 worldMin = transform.TransformPoint(local.min);
-            Vector3 worldMax = transform.TransformPoint(local.max);
+            Vector3 lMin = local.min;
+            Vector3 lMax = local.max;
+            Vector3[] corners = new Vector3[8]
+            {
+                transform.TransformPoint(new Vector3(lMin.x, lMin.y, lMin.z)),
+                transform.TransformPoint(new Vector3(lMax.x, lMin.y, lMin.z)),
+                transform.TransformPoint(new Vector3(lMin.x, lMax.y, lMin.z)),
+                transform.TransformPoint(new Vector3(lMax.x, lMax.y, lMin.z)),
+                transform.TransformPoint(new Vector3(lMin.x, lMin.y, lMax.z)),
+                transform.TransformPoint(new Vector3(lMax.x, lMin.y, lMax.z)),
+                transform.TransformPoint(new Vector3(lMin.x, lMax.y, lMax.z)),
+                transform.TransformPoint(new Vector3(lMax.x, lMax.y, lMax.z)),
+            };
+            Vector3 worldMin = corners[0];
+            Vector3 worldMax = corners[0];
+            for (int i = 1; i < 8; i++)
+            {
+                worldMin = Vector3.Min(worldMin, corners[i]);
+                worldMax = Vector3.Max(worldMax, corners[i]);
+            }
 
             float w = Mathf.Max(Mathf.Abs(worldMax.x - worldMin.x), 0.001f);
             float d = Mathf.Max(Mathf.Abs(worldMax.z - worldMin.z), 0.001f);
