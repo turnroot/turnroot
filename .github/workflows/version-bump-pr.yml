@@ -1,0 +1,68 @@
+name: Bump Version on PR
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+
+jobs:
+  bump-version:
+    # Skip commits made by this workflow to avoid an infinite loop
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute next version from latest tag
+        id: version
+        run: |
+          LATEST=$(git tag --list --sort=-version:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+
+          if [ -z "$LATEST" ]; then
+            NEW_VERSION="0.1.664"
+          else
+            STRIPPED="${LATEST#v}"
+            MAJOR=$(echo "$STRIPPED" | cut -d. -f1)
+            MINOR=$(echo "$STRIPPED" | cut -d. -f2)
+            PATCH=$(echo "$STRIPPED" | cut -d. -f3)
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          fi
+
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Computed next version: $NEW_VERSION"
+
+      - name: Check if package.json already has the right version
+        id: check
+        run: |
+          CURRENT=$(grep '"version"' Assets/TurnrootFramework/package.json | sed 's/.*"version": "\([^"]*\)".*/\1/')
+          NEW="${{ steps.version.outputs.new_version }}"
+          echo "Current: $CURRENT  Target: $NEW"
+          if [ "$CURRENT" = "$NEW" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump version in package.json
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          NEW="${{ steps.version.outputs.new_version }}"
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${NEW}\"/" Assets/TurnrootFramework/package.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Assets/TurnrootFramework/package.json
+          git commit -m "chore: bump version to ${NEW}"
+          git push origin ${{ github.head_ref }}
