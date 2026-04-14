@@ -90,7 +90,8 @@
         },
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Characters\\",
-            "color": "foldercustomization.AnsiColor86"
+            "color": "foldercustomization.AnsiColor86",
+            "badge": "👤"
         },
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\CommonAncestors\\",
@@ -218,6 +219,38 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Graphics3D\\",
             "color": "foldercustomization.AnsiColor112"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Resources\\GraphicPacks\\TurnrootDefault\\",
+            "color": "foldercustomization.AnsiColor64"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Resources\\EssentialCores\\",
+            "color": "foldercustomization.AnsiColor136"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Resources\\EditorSettings\\MapGridEditorIcons\\",
+            "color": "foldercustomization.AnsiColor161"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Resources\\",
+            "color": "foldercustomization.AnsiColor151"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\",
+            "color": "foldercustomization.AnsiColor43"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Core\\",
+            "color": "foldercustomization.AnsiColor33"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Brain\\",
+            "color": "foldercustomization.AnsiColor162"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Plugins\\",
+            "color": "foldercustomization.AnsiColor179"
         }
     ],
     "omnisharp.excludePaths": [
