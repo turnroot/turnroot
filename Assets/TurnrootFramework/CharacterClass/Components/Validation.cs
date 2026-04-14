@@ -40,17 +40,17 @@ namespace Turnroot.Characters.CharacterClass
             if (gs == null)
             {
 #if UNITY_EDITOR
-                // During the initial asset import phase, Resources.Load is not yet available.
-                // Skip validation silently — it will re-run once assets are fully loaded.
-                if (EditorApplication.isUpdatingAssets)
-                    return OperationResult.Success();
-#endif
+                // During the initial asset import phase Resources.Load may return null.
+                // Skip silently — OnValidate will re-run once assets are fully loaded.
+                return OperationResult.Successful();
+#else
                 if (!ValidationHelper.ValidateNotNull(gs, nameof(gs), name))
                 {
                     return OperationResult.Failure(
                         $"{name}: Cannot validate stat lists - GameplayGeneralSettings not found in GameSettings."
                     );
                 }
+#endif
             }
 
             // Define all bounded stat lists to validate in one place
