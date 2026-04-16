@@ -93,15 +93,21 @@ namespace Turnroot.Gameplay.Brain
         {
             var ltm = GetComponent<LongTermMemory>();
             if (ltm == null)
+            {
                 return;
+            }
 
             var displayName = ltm.Recall("Avatar/DisplayName");
             if (string.IsNullOrEmpty(displayName))
+            {
                 return;
+            }
 
             var avatar = GetOrCreateAvatarInstance();
             if (avatar?.CharacterTemplate == null)
+            {
                 return;
+            }
 
             var fullName = ltm.Recall("Avatar/FullName");
             var pronounType = ltm.Recall("Avatar/Pronouns");
@@ -123,7 +129,9 @@ namespace Turnroot.Gameplay.Brain
                     {
                         avatar.CharacterTemplate.PersonalGrowthRates.Clear();
                         foreach (var r in rates)
+                        {
                             avatar.CharacterTemplate.PersonalGrowthRates.Add(r);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -157,9 +165,14 @@ namespace Turnroot.Gameplay.Brain
         {
             var rosterInstance = _rosterManager?.GetPersistentPlayerRosterInstance();
             if (rosterInstance == null)
+            {
                 return;
+            }
+
             foreach (var instance in rosterInstance.Instances)
+            {
                 PersistIfNeeded(instance);
+            }
         }
 
         private void HandlePreBattleCompleted()

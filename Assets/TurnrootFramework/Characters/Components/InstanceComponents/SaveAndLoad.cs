@@ -437,14 +437,18 @@ namespace Turnroot.Characters
         private void SaveCurrentStatsToLtm()
         {
             if (_characterTemplate?.IsUnique != true)
+            {
                 return;
+            }
 
             try
             {
                 var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
                 var ltm = brain?.GetComponent<LongTermMemory>();
                 if (ltm == null || !ltm.Initialized)
+                {
                     return;
+                }
 
                 DeduplicateRuntimeStats();
                 var dto = BuildRuntimeDto();
@@ -466,7 +470,9 @@ namespace Turnroot.Characters
         private void RestoreStatsFromLtm()
         {
             if (_characterTemplate?.IsUnique != true)
+            {
                 return;
+            }
 
             try
             {
@@ -486,15 +492,21 @@ namespace Turnroot.Characters
                 string key = $"CharacterInstance/{Id}/Stats";
                 var json = ltm.Recall(key);
                 if (string.IsNullOrEmpty(json))
+                {
                     return;
+                }
 
                 json = brain.DecodeString(json);
                 if (string.IsNullOrEmpty(json))
+                {
                     return;
+                }
 
                 var dto = JsonUtility.FromJson<CharacterInstanceStatsDto>(json);
                 if (dto != null)
+                {
                     ApplyStatDtoToRuntime(dto);
+                }
             }
             catch (Exception ex)
             {
@@ -514,7 +526,9 @@ namespace Turnroot.Characters
                 {
                     var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
                     if (brain != null)
+                    {
                         brain.OnLtmKeyCacheUpdated -= OnBrainLtmStatRestoreDeferred;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -535,7 +549,10 @@ namespace Turnroot.Characters
                 foreach (var b in dto.BoundedStats)
                 {
                     if (b == null || !Enum.TryParse<BoundedStatType>(b.StatType, out var st))
+                    {
                         continue;
+                    }
+
                     var existing = StatHelpers.GetBoundedStat(_runtimeBoundedStats, st);
                     if (existing != null)
                     {
@@ -556,12 +573,19 @@ namespace Turnroot.Characters
                 foreach (var u in dto.UnboundedStats)
                 {
                     if (u == null || !Enum.TryParse<UnboundedStatType>(u.StatType, out var ut))
+                    {
                         continue;
+                    }
+
                     var existing = StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, ut);
                     if (existing != null)
+                    {
                         existing.SetCurrent(u.Current);
+                    }
                     else
+                    {
                         _runtimeUnboundedStats.Add(new CharacterStat(u.Current, ut));
+                    }
                 }
             }
         }

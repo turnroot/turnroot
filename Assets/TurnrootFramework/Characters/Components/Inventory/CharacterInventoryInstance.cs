@@ -105,24 +105,35 @@ namespace Turnroot.Characters.Components
         private void RebuildEquipmentIndexesFromItemFlags()
         {
             if (_inventoryItems == null)
+            {
                 return;
+            }
 
             // Reset all tracking structures to a clean state first.
             for (int i = 0; i < _equippedItemIndices.Length; i++)
+            {
                 _equippedItemIndices[i] = -1;
+            }
+
             _isWeaponEquipped = false;
             for (int i = 0; i < _nonWeaponEquippedFlags.Length; i++)
+            {
                 _nonWeaponEquippedFlags[i] = false;
+            }
 
             for (int idx = 0; idx < _inventoryItems.Count; idx++)
             {
                 var item = _inventoryItems[idx];
                 if (item == null || !item.IsEquipped || item.Template == null)
+                {
                     continue;
+                }
 
                 int slotIndex = GetSlotIndexForItem(item.Template);
                 if (slotIndex < 0 || slotIndex >= _equippedItemIndices.Length)
+                {
                     continue;
+                }
 
                 // Only the first equipped item per slot wins (should only ever be one).
                 if (_equippedItemIndices[slotIndex] == -1)
