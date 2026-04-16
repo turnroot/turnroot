@@ -93,7 +93,9 @@ namespace Turnroot.Characters.CharacterClass
             _battlesCompleted += effectivePoints;
             AddProgress(owner, classData, effectivePoints);
             if (owner != null)
+            {
                 owner.NeedsPersist = true;
+            }
         }
 
         /// <summary>

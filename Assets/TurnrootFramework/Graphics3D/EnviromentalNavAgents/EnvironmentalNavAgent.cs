@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 
 namespace Turnroot.Graphics3D
 {
@@ -47,13 +49,27 @@ namespace Turnroot.Graphics3D
         private Vector3 _wanderTarget;
         private float _noiseOffset;
         private int _currentIdleIndex;
-        private string _currentAnimState;
+
+        private PlayableGraph _playableGraph;
+        private AnimationMixerPlayable _mixer;
+        private AnimationClipPlayable _fromPlayable;
+        private AnimationClipPlayable _toPlayable;
+        private float _crossfadeTimer;
+        private bool _crossfading;
 
         private void Start()
         {
             _noiseOffset = Random.Range(0f, 1000f);
+            if (animator != null)
+                InitPlayableGraph();
             PickNewDestination();
             EnterIdle();
+        }
+
+        private void OnDestroy()
+        {
+            if (_playableGraph.IsValid())
+                _playableGraph.Destroy();
         }
 
         private void Update()
@@ -65,6 +81,8 @@ namespace Turnroot.Graphics3D
             {
                 PickNewDestination();
             }
+
+            UpdateCrossfade();
 
             switch (_state)
             {
@@ -86,7 +104,7 @@ namespace Turnroot.Graphics3D
             if (idleClips != null && idleClips.Length > 0)
             {
                 _currentIdleIndex = Random.Range(0, idleClips.Length);
-                PlayAnimation(idleClips[_currentIdleIndex].name);
+                PlayClip(idleClips[_currentIdleIndex]);
             }
         }
 
@@ -98,14 +116,15 @@ namespace Turnroot.Graphics3D
             agent.isStopped = false;
             agent.SetDestination(_wanderTarget);
 
-            if (walkClip != null)
-                PlayAnimation(walkClip.name);
+            PlayClip(walkClip);
         }
 
         private void UpdateIdle()
         {
             if (_stateTimer <= 0f)
+            {
                 EnterWalking();
+            }
         }
 
         private void UpdateWalking()
@@ -169,15 +188,74 @@ namespace Turnroot.Graphics3D
             }
         }
 
-        private void PlayAnimation(string stateName)
+        private void InitPlayableGraph()
         {
-            if (animator == null || stateName == _currentAnimState)
-            {
+            _playableGraph = PlayableGraph.Create(gameObject.name + "_EnvNav");
+            _playableGraph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
+            _mixer = AnimationMixerPlayable.Create(_playableGraph, 2);
+            var output = AnimationPlayableOutput.Create(_playableGraph, "Animation", animator);
+            output.SetSourcePlayable(_mixer);
+            _playableGraph.Play();
+        }
+
+        private void PlayClip(AnimationClip clip)
+        {
+            if (clip == null || !_playableGraph.IsValid())
                 return;
+
+            bool hasFrom = _toPlayable.IsValid();
+
+            if (_fromPlayable.IsValid())
+            {
+                _mixer.DisconnectInput(0);
+                _fromPlayable.Destroy();
+                _fromPlayable = default;
             }
 
-            _currentAnimState = stateName;
-            animator.CrossFadeInFixedTime(stateName, blendDuration);
+            if (hasFrom)
+            {
+                _mixer.DisconnectInput(1);
+                _fromPlayable = _toPlayable;
+                _toPlayable = default;
+                _mixer.ConnectInput(0, _fromPlayable, 0);
+                _mixer.SetInputWeight(0, 1f);
+            }
+
+            _toPlayable = AnimationClipPlayable.Create(_playableGraph, clip);
+            _mixer.ConnectInput(1, _toPlayable, 0);
+
+            if (hasFrom)
+            {
+                _mixer.SetInputWeight(1, 0f);
+                _crossfadeTimer = 0f;
+                _crossfading = true;
+            }
+            else
+            {
+                _mixer.SetInputWeight(0, 0f);
+                _mixer.SetInputWeight(1, 1f);
+                _crossfading = false;
+            }
+        }
+
+        private void UpdateCrossfade()
+        {
+            if (!_crossfading)
+                return;
+            _crossfadeTimer += Time.deltaTime;
+            float t = Mathf.Clamp01(_crossfadeTimer / blendDuration);
+            _mixer.SetInputWeight(0, 1f - t);
+            _mixer.SetInputWeight(1, t);
+            if (t >= 1f)
+            {
+                _crossfading = false;
+                if (_fromPlayable.IsValid())
+                {
+                    _mixer.DisconnectInput(0);
+                    _fromPlayable.Destroy();
+                    _fromPlayable = default;
+                }
+            }
         }
     }
 }
