@@ -1,5 +1,5 @@
-using UnityEngine;
 using System;
+using UnityEngine;
 #if UNITY_EDITOR
 #endif
 
@@ -29,7 +29,10 @@ namespace Turnroot.Graphics3D
 
             if (!TryFitWorldToUV(mf, out Vector4 st))
             {
-                Debug.LogWarning("GrassRenderer: Ground mesh has no UVs or too few vertices to fit UV transform.", this);
+                Debug.LogWarning(
+                    "GrassRenderer: Ground mesh has no UVs or too few vertices to fit UV transform.",
+                    this
+                );
                 return;
             }
 
@@ -44,7 +47,7 @@ namespace Turnroot.Graphics3D
             st = new Vector4(1, 1, 0, 0);
             Mesh mesh = mf.sharedMesh;
             Vector3[] verts = mesh.vertices;
-            Vector2[] uvs   = mesh.uv;
+            Vector2[] uvs = mesh.uv;
 
             if (uvs == null || uvs.Length < 2 || uvs.Length != verts.Length)
             {
@@ -57,17 +60,31 @@ namespace Turnroot.Graphics3D
             // Accumulate sums for two independent 2-parameter least-squares fits:
             //   U = sx * wx + ox   (world X  → texture U)
             //   V = sy * wz + oy   (world Z  → texture V)
-            double swx2 = 0, swx = 0, swxu = 0, su = 0;
-            double swz2 = 0, swz = 0, swzv = 0, sv = 0;
+            double swx2 = 0,
+                swx = 0,
+                swxu = 0,
+                su = 0;
+            double swz2 = 0,
+                swz = 0,
+                swzv = 0,
+                sv = 0;
 
             for (int i = 0; i < n; i++)
             {
                 Vector3 wp = tr.TransformPoint(verts[i]);
-                double wx = wp.x, wz = wp.z;
-                double u  = uvs[i].x, v = uvs[i].y;
+                double wx = wp.x,
+                    wz = wp.z;
+                double u = uvs[i].x,
+                    v = uvs[i].y;
 
-                swx2 += wx * wx;  swx  += wx;  swxu += wx * u;  su += u;
-                swz2 += wz * wz;  swz  += wz;  swzv += wz * v;  sv += v;
+                swx2 += wx * wx;
+                swx += wx;
+                swxu += wx * u;
+                su += u;
+                swz2 += wz * wz;
+                swz += wz;
+                swzv += wz * v;
+                sv += v;
             }
 
             double detX = swx2 * n - swx * swx;

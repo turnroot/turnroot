@@ -4,6 +4,7 @@
     "references": [
         "XNode",
         "NaughtyAttributes.Core",
+        "Unity.AI.Navigation",
         "Coffee.UIEffect",
         "Unity.InputSystem",
         "Unity.Splines",
