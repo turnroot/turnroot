@@ -1,6 +1,6 @@
 {
 	"name": "com.turnroot.framework",
-	"version": "0.1.677",
+	"version": "0.1.678",
 	"displayName": "Turnroot Framework",
 	"description": "A turn-based RPG framework for Unity.",
 	"author": {
@@ -12,6 +12,7 @@
 	"licensesUrl": "https://github.com/turnroot/turnroot/blob/main/LICENSE.md",
 	"unity": "6000.3",
 	"dependencies": {
+		"com.unity.ai.navigation": "2.0.8",
 		"com.unity.inputsystem": "1.18.0",
 		"com.unity.render-pipelines.universal": "17.3.0",
 		"com.unity.splines": "2.8.3",
