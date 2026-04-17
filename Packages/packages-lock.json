@@ -36,13 +36,6 @@
       "source": "embedded",
       "dependencies": {}
     },
-    "com.needle.compilation-visualizer": {
-      "version": "1.8.9",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://package.openupm.com"
-    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
@@ -261,13 +254,6 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
-    },
-    "com.wooshii.pinnedassets": {
-      "version": "https://github.com/WooshiiDev/PinnedAssets.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "3c1bd46c6428866f1c1d1a3c40094cffaa6cf365"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",

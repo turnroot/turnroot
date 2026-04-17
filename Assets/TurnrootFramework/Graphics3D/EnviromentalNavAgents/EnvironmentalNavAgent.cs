@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Animations;
@@ -11,9 +12,13 @@ namespace Turnroot.Graphics3D
         public NavMeshAgent agent;
         public Animator animator;
 
+        public AudioClip[] neutralSounds;
+        private AudioClip currentSound;
+
         [Header("Animation")]
         public AnimationClip walkClip;
         public AnimationClip[] idleClips;
+        public float walkAnimationSpeedMultiplier = .7f;
 
         [Range(0.05f, 1f)]
         public float blendDuration = 0.25f;
@@ -21,6 +26,7 @@ namespace Turnroot.Graphics3D
         [Header("Wander")]
         public float minWalkSpeed = 0.4f;
         public float maxWalkSpeed = 0.9f;
+
         public float minIdleTime = 4f;
         public float maxIdleTime = 12f;
         public float minWalkTime = 2f;
@@ -61,7 +67,10 @@ namespace Turnroot.Graphics3D
         {
             _noiseOffset = Random.Range(0f, 1000f);
             if (animator != null)
+            {
                 InitPlayableGraph();
+            }
+
             PickNewDestination();
             EnterIdle();
         }
@@ -69,7 +78,9 @@ namespace Turnroot.Graphics3D
         private void OnDestroy()
         {
             if (_playableGraph.IsValid())
+            {
                 _playableGraph.Destroy();
+            }
         }
 
         private void Update()
@@ -117,6 +128,7 @@ namespace Turnroot.Graphics3D
             agent.SetDestination(_wanderTarget);
 
             PlayClip(walkClip);
+            _toPlayable.SetSpeed(agent.speed * walkAnimationSpeedMultiplier);
         }
 
         private void UpdateIdle()
@@ -201,7 +213,9 @@ namespace Turnroot.Graphics3D
         private void PlayClip(AnimationClip clip)
         {
             if (clip == null || !_playableGraph.IsValid())
+            {
                 return;
+            }
 
             bool hasFrom = _toPlayable.IsValid();
 
@@ -241,7 +255,10 @@ namespace Turnroot.Graphics3D
         private void UpdateCrossfade()
         {
             if (!_crossfading)
+            {
                 return;
+            }
+
             _crossfadeTimer += Time.deltaTime;
             float t = Mathf.Clamp01(_crossfadeTimer / blendDuration);
             _mixer.SetInputWeight(0, 1f - t);
@@ -254,6 +271,35 @@ namespace Turnroot.Graphics3D
                     _mixer.DisconnectInput(0);
                     _fromPlayable.Destroy();
                     _fromPlayable = default;
+                }
+            }
+        }
+
+        public OperationResult EmitSound()
+        {
+            TryGetComponent(out AudioSource source);
+            if (source == null)
+            {
+                return OperationResult.Failure("No AudioSource found on EnvironmentalNavAgent.");
+            }
+            else
+            {
+                if (neutralSounds != null && neutralSounds.Length > 0)
+                {
+                    AudioClip newClip;
+                    do
+                    {
+                        newClip = neutralSounds[Random.Range(0, neutralSounds.Length)];
+                    } while (newClip == currentSound && neutralSounds.Length > 1);
+                    currentSound = newClip;
+                    source.PlayOneShot(currentSound);
+                    return OperationResult.Successful();
+                }
+                else
+                {
+                    return OperationResult.Failure(
+                        "No neutral sounds assigned to EnvironmentalNavAgent."
+                    );
                 }
             }
         }
