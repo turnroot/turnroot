@@ -360,6 +360,56 @@ namespace Turnroot.Conversations
         }
 
         /// <summary>
+        /// Plays a full <see cref="Conversation"/> asset immediately without requiring it to be
+        /// pre-registered in the <c>ConversationInstances</c> list.
+        /// Intended for runtime-selected conversations (e.g. hub chitchat).
+        /// <paramref name="onFinished"/> is called once the conversation completes.
+        /// </summary>
+        public void PlayConversationDirect(Conversation conversation, UnityAction onFinished = null)
+        {
+            if (conversation == null)
+            {
+                "PlayConversationDirect called with null conversation.".LogInfo();
+                return;
+            }
+
+            CleanupPreviousConversation();
+            ResetUI();
+            ShowConversationUI();
+
+            conversation.StartConversation();
+            OnAnyConversationStart?.Invoke();
+
+            SubscribeAdvanceInput();
+            _conversationRoutine = StartCoroutine(RunConversationDirect(conversation, onFinished));
+        }
+
+        private IEnumerator RunConversationDirect(Conversation conversation, UnityAction onFinished)
+        {
+            var sceneFlow = FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+
+            yield return conversation.BranchingConversation
+                ? RunBranchingConversation(conversation, sceneFlow)
+                : RunLinearConversation(conversation, sceneFlow);
+
+            onFinished?.Invoke();
+            UnsubscribeAdvanceInput();
+            OnAnyConversationFinished?.Invoke();
+
+            if (
+                sceneFlow != null
+                && sceneFlow.IsInterruptQueued
+                && sceneFlow.CurrentInterrupt
+                    == Utilities.AbstractScripts.InterruptType.Conversation
+            )
+            {
+                sceneFlow.CompleteInterrupt();
+            }
+
+            _conversationRoutine = null;
+        }
+
+        /// <summary>
         /// Play a short, one‑layer conversation (e.g. a single NPC quip).
         /// This is intended for lightweight notifications or UI flavor.
         /// </summary>

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Conversations;
@@ -17,10 +18,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
     public class HubCharacterManager : MonoBehaviour
     {
         [BoxGroup("Dialogue")]
-        [Tooltip(
+        [InfoBox(
             "Per-chapter one-shot dialogue data. At runtime the entry matching the current chapter is used."
         )]
         public HubCharacterOneShotChapter[] ChapterOneshots;
+
+        [BoxGroup("Dialogue")]
+        [InfoBox(
+            "Per-chapter chitchat conversation data for the Talk interaction. "
+                + "A random unplayed conversation is chosen each time the player talks. "
+                + "When all conversations for a chapter are exhausted, Talk is disabled until the next chapter."
+        )]
+        public HubCharacterConversationChapter[] ChapterChitChatConversations;
 
         [BoxGroup("Interaction")]
         [Tooltip(
@@ -55,6 +64,54 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         }
 
         // ── Public API ───────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Returns a random chitchat <see cref="Conversation"/> for <paramref name="character"/> in the given
+        /// chapter that has not yet been completed, or <c>null</c> if all have been played (or none configured).
+        /// </summary>
+        public Conversation GetRandomUnplayedChitChatConversation(
+            CharacterInstance character,
+            int chapterNumber
+        )
+        {
+            if (character?.CharacterTemplate == null || _brain?.conversationalBrain == null)
+            {
+                return null;
+            }
+
+            if (ChapterChitChatConversations == null)
+            {
+                return null;
+            }
+
+            foreach (var chapter in ChapterChitChatConversations)
+            {
+                if (chapter.ChapterNumber != chapterNumber)
+                {
+                    continue;
+                }
+
+                var all = chapter.GetConversationsForCharacter(character.CharacterTemplate);
+                if (all == null || all.Length == 0)
+                {
+                    return null;
+                }
+
+                var unplayed = all.Where(c =>
+                        c != null && !_brain.conversationalBrain.HasCompletedConversation(c)
+                    )
+                    .ToArray();
+
+                if (unplayed.Length == 0)
+                {
+                    return null;
+                }
+
+                return unplayed[UnityEngine.Random.Range(0, unplayed.Length)];
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Returns a random one-shot of <paramref name="type"/> for <paramref name="character"/> in the given chapter.

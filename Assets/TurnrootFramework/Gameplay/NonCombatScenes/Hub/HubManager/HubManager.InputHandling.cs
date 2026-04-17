@@ -26,6 +26,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     break;
                 case HubInputMode.Training:
                 case HubInputMode.Battlefields:
+                case HubInputMode.ExploreMisc:
                     SublocationInput.HandleSubLocationInput(action);
                     break;
                 case HubInputMode.Chosen:
@@ -52,6 +53,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 HubInputMode.Battlefields => false,
                 HubInputMode.Docks => true,
                 HubInputMode.Training => true,
+                HubInputMode.ExploreMisc => true,
                 HubInputMode.Chosen => false,
                 HubInputMode.None => false,
                 _ => false,

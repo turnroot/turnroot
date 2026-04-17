@@ -156,6 +156,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Battlefields,
             Docks,
             Training,
+            ExploreMisc,
         }
 
         private readonly System.Collections.Generic.Dictionary<

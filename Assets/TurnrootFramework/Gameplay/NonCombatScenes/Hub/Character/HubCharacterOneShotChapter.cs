@@ -1,5 +1,6 @@
 using System;
 using Turnroot.Characters;
+using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain;
 using UnityEngine;
 
@@ -15,7 +16,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         GetLostItemNotMine,
         RecruitFail,
         RecruitSucceed,
-        ChitChat,
     }
 
     /// <summary>
@@ -72,6 +72,59 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             }
 
             return Array.Empty<OneShotDialogue>();
+        }
+    }
+
+    /// <summary>
+    /// Maps a character to a set of full chitchat <see cref="Conversation"/> assets for a specific chapter.
+    /// A random unplayed conversation is chosen each time the player initiates Talk.
+    /// </summary>
+    [Serializable]
+    public struct HubCharacterChitChatEntry
+    {
+        [Tooltip("The character this entry belongs to.")]
+        public CharacterData Character;
+
+        [Tooltip(
+            "Conversations available for chitchat with this character in this chapter. "
+                + "A random unplayed one is chosen at runtime. When all are exhausted Talk is disabled."
+        )]
+        public Conversation[] Conversations;
+    }
+
+    /// <summary>
+    /// Stores per-chapter chitchat conversation data.
+    /// Add instances to the <c>ChapterChitChatConversations</c> list on <see cref="HubCharacterManager"/>.
+    /// </summary>
+    [Serializable]
+    public struct HubCharacterConversationChapter
+    {
+        [Tooltip("The chapter number this data applies to.")]
+        public int ChapterNumber;
+
+        [Tooltip("Per-character chitchat conversation entries for this chapter.")]
+        public HubCharacterChitChatEntry[] Entries;
+
+        /// <summary>
+        /// Returns all chitchat conversations configured for <paramref name="character"/> in this chapter,
+        /// or an empty array if none are configured.
+        /// </summary>
+        public Conversation[] GetConversationsForCharacter(CharacterData character)
+        {
+            if (character == null || Entries == null)
+            {
+                return Array.Empty<Conversation>();
+            }
+
+            foreach (var entry in Entries)
+            {
+                if (entry.Character == character)
+                {
+                    return entry.Conversations ?? Array.Empty<Conversation>();
+                }
+            }
+
+            return Array.Empty<Conversation>();
         }
     }
 }

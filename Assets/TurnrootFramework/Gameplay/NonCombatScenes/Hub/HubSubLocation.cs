@@ -188,6 +188,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 HubSublocationName.Battlefields => HubInputMode.Battlefields,
                 HubSublocationName.Docks => HubInputMode.Docks,
                 HubSublocationName.Training => HubInputMode.Training,
+                HubSublocationName.ExploreMisc => HubInputMode.ExploreMisc,
                 _ => HubInputMode.Chosen,
             };
         }
