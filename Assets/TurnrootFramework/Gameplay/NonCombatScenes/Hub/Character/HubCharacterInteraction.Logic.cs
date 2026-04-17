@@ -136,18 +136,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return false;
             }
 
-            var oneShots = CharacterManager.ChapterOneshots;
             var currentChapter = CharacterManager._brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
-            var chapterOneShots = oneShots.FirstOrDefault(c => c.ChapterNumber == currentChapter);
-            if (chapterOneShots.Entries == null)
-            {
-                return false;
-            }
-
-            var chitChatOneShots = chapterOneShots.Entries.Where(e =>
-                e.Type == HubCharacterOneShotType.ChitChat
-            );
-            return chitChatOneShots.Any(e => e.Character == ActiveCharacter.CharacterTemplate);
+            return CharacterManager.GetRandomUnplayedChitChatConversation(
+                    ActiveCharacter,
+                    currentChapter
+                ) != null;
         }
 
         public bool CanGiveGift()

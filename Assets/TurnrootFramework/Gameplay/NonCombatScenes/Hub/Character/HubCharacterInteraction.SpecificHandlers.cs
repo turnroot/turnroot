@@ -17,6 +17,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private int _activeItemChoiceIndex;
         private Action _activeOnItemChosen;
         private bool _subMenuActive;
+        private Conversation _activeChitChatConversation;
 
         private OneShotPlayer OneShotPlayer =>
             CharacterManager._brain.audioBrain.GetOrCreateOneShotPlayer();
@@ -52,12 +53,30 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private void HandleTalk()
         {
             InputProvider.OnInput -= HandleInput;
-            var oneShot = CharacterManager.GetDailyOneShotForType(
+            var conversation = CharacterManager.GetRandomUnplayedChitChatConversation(
                 ActiveCharacter,
-                CurrentChapter,
-                HubCharacterOneShotType.ChitChat
+                CurrentChapter
             );
-            OneShotPlayer.PlayOneShotThen(oneShot, OnChitChatFinished);
+
+            if (conversation == null)
+            {
+                // Exhausted — should not normally reach here since CanChat() guards it,
+                // but fall back gracefully.
+                ReturnToActionsMenu();
+                return;
+            }
+
+            _activeChitChatConversation = conversation;
+
+            var controller = UnityEngine.Object.FindFirstObjectByType<ConversationController>();
+            if (controller == null)
+            {
+                $"HubCharacterInteraction: No ConversationController found in scene. Cannot play chitchat conversation.".LogWarning();
+                ReturnToActionsMenu();
+                return;
+            }
+
+            controller.PlayConversationDirect(conversation, OnChitChatFinished);
         }
 
         private void HandleMeal() { }
@@ -187,7 +206,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void OnChitChatFinished()
         {
-            OneShotPlayer.UnsubscribeOneShotFinished(OnChitChatFinished);
+            if (_activeChitChatConversation != null)
+            {
+                CharacterManager._brain.conversationalBrain.MarkConversationCompleted(
+                    _activeChitChatConversation
+                );
+                _activeChitChatConversation = null;
+            }
+
             if (ActiveCharacter.CharacterTemplate != null)
             {
                 HubDayStateStore.MarkChitChatHappenedToday(
@@ -195,6 +221,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                     ActiveCharacter.CharacterTemplate.FullName
                 );
             }
+
             CharacterManager._brain.PublishHubCharacterTalked(ActiveCharacter);
             ReturnToActionsMenu(false);
         }

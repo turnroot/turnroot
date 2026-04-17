@@ -8,5 +8,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         Docks,
         Training,
         Unit,
+        ExploreMisc,
     }
 }
