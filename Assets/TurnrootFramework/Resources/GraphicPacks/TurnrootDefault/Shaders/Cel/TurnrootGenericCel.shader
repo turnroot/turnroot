@@ -4,7 +4,7 @@ Shader "Turnroot/Generic Cel Shader"
     {
         [Header(Outlines)]
         [Toggle(_USE_OUTLINES_ON)] _use_outlines("Use Outlines", Float) = 0
-        _ASEOutlineWidth("Outline Width", Range(0, .005)) = 0.002
+        _ASEOutlineWidth("Outline Width", Range(0, .03)) = 0.002
         _ASEOutlineColor("Outline Color", Color) = (0.0, 0.0, 0, 1)
         [HideInInspector] _ASEOutalpha("_ASEOutalpha", Range(-1, 0)) = 0
 
