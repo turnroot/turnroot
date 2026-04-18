@@ -35,7 +35,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool _isLooking;
 
-        public LayerMask zoomLayerMask;
+        [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
+        public LayerMask poiLayerMask;
         public float normalFov = 60f;
         public float zoomedFov = 30f;
 
@@ -47,6 +48,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float zoomCastRadius = 0.25f;
         private bool _isPoiActive;
         private bool _isZoomed;
+        private InputAction _subscribedRightStickClick;
 
         // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
         private float _cachedUpLimit;
@@ -54,11 +56,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleSubLocationInput(string action)
         {
-            if (hubManager == null)
-            {
-                hubManager = GetComponent<HubManager>();
-            }
-
             if (
                 action
                 is InputActionConstants.Select
@@ -101,27 +98,46 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_isLooking)
             {
+                if (hubCamera == null)
+                {
+                    hubCamera = hubManager.GeneralCamera;
+                    hubCamera.fieldOfView = normalFov;
+                }
                 _hasBaseRotation = false;
                 _pitchOffset = _yawOffset = 0f;
                 _cachedUpLimit = Mathf.Abs(MaxTiltUp);
                 _cachedDownLimit = Mathf.Abs(MaxTiltDown);
-                if (UiChoice.RightStickClickAction != null)
-                {
-                    UiChoice.RightStickClickAction.performed += HandleZoomToggle;
-                }
+                UIInputActionDefaults.WhenInitialized(SubscribeZoom);
             }
             else
             {
-                if (UiChoice.RightStickClickAction != null)
-                {
-                    UiChoice.RightStickClickAction.performed -= HandleZoomToggle;
-                }
+                UIInputActionDefaults.RemoveInitializedHandler(SubscribeZoom);
+                UnsubscribeZoom();
                 _isZoomed = false;
                 if (hubCamera != null)
                 {
                     hubCamera.fieldOfView = normalFov;
                 }
                 FocusOverlayFade?.Hide();
+            }
+        }
+
+        private void SubscribeZoom()
+        {
+            UnsubscribeZoom();
+            _subscribedRightStickClick = UIInputActionDefaults.RightStickClick;
+            if (_subscribedRightStickClick != null)
+            {
+                _subscribedRightStickClick.performed += HandleZoomToggle;
+            }
+        }
+
+        private void UnsubscribeZoom()
+        {
+            if (_subscribedRightStickClick != null)
+            {
+                _subscribedRightStickClick.performed -= HandleZoomToggle;
+                _subscribedRightStickClick = null;
             }
         }
 
@@ -142,6 +158,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        private void Awake()
+        {
+            hubManager = GetComponent<HubManager>();
+        }
+
         private void Update()
         {
             if (!_isLooking)
@@ -149,15 +170,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (hubManager == null)
-            {
-                hubManager = GetComponent<HubManager>();
-            }
-
             if (hubCamera == null)
             {
                 hubCamera = hubManager.GeneralCamera;
-                hubCamera.fieldOfView = normalFov;
             }
 
             if (!_hasBaseRotation)
@@ -209,12 +224,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             // skip raycast if Location or Chosen
-            if (hubManager != null)
+            if (hubManager.CurrentInputMode is HubInputMode.Location or HubInputMode.Chosen)
             {
-                if (hubManager.CurrentInputMode is HubInputMode.Location or HubInputMode.Chosen)
-                {
-                    return;
-                }
+                return;
             }
 
             Vector3 origin = hubCamera.transform.position;
@@ -225,7 +237,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 forward,
                 out RaycastHit rayInfo,
                 Mathf.Infinity,
-                zoomLayerMask
+                poiLayerMask
             );
 
             bool sphereHit = Physics.SphereCast(
@@ -234,7 +246,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 forward,
                 out RaycastHit sphereInfo,
                 Mathf.Infinity,
-                zoomLayerMask
+                poiLayerMask
             );
 
             Collider newTarget = null;
