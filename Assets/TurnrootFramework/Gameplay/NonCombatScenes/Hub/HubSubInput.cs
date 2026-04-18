@@ -128,6 +128,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void Update()
         {
+            $"HubSubInput.Update — _isLooking={_isLooking}".LogInfo();
             if (!_isLooking)
             {
                 return;
