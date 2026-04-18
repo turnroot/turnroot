@@ -135,9 +135,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 hubCamera = hubManager.GeneralCamera;
             }
 
-            if (UIInputActionDefaults.RightStickClick?.WasPressedThisFrame() == true)
+            var zoomAction = UIInputActionDefaults.RightStickClick;
+            if (zoomAction == null)
+            {
+                "Zoom action (RightStickClick) is null — not initialized yet".LogWarning();
+            }
+            else if (!zoomAction.enabled)
+            {
+                $"Zoom action '{zoomAction.name}' exists but is DISABLED".LogWarning();
+            }
+            else if (zoomAction.WasPressedThisFrame())
             {
                 _isZoomed = !_isZoomed;
+                $"Zoom toggled: _isZoomed={_isZoomed}, fov={(_isZoomed ? zoomedFov : normalFov)}, camera={hubCamera?.name}".LogInfo();
                 hubCamera.fieldOfView = _isZoomed ? zoomedFov : normalFov;
                 if (_isZoomed)
                 {
