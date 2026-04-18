@@ -172,9 +172,7 @@ namespace Turnroot.Gameplay.Maps
         private void OnEnable()
         {
             _terrainAsset = TerrainTypes.LoadDefault();
-            _editorSettings = Resources.Load<MapGridEditorSettings>(
-                "EditorSettings/MapGridEditorSettings"
-            );
+            _editorSettings = MapGridEditorSettings.Load();
 
             if (_editorSettings != null)
             {
@@ -272,9 +270,7 @@ namespace Turnroot.Gameplay.Maps
 
         private void ReloadEditorSettingsIfChanged()
         {
-            var loaded = Resources.Load<MapGridEditorSettings>(
-                "EditorSettings/MapGridEditorSettings"
-            );
+            var loaded = MapGridEditorSettings.Load();
             if (loaded == null)
             {
                 if (_editorSettings != null)

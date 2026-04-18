@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
@@ -60,5 +61,26 @@ namespace Turnroot.Gameplay.Maps
 
         [Tooltip("Accent color for event property headers")]
         public Color headerAccentEventColor = new(0.7f, 0.2f, 0.4f, 0.18f);
+
+        /// <summary>
+        /// Loads the settings, preferring a project-level override (any asset of this type outside
+        /// Assets/TurnrootFramework/) over the package default.
+        /// Users can place their customized copy anywhere outside the TurnrootFramework folder.
+        /// </summary>
+        public static MapGridEditorSettings Load()
+        {
+            var guids = AssetDatabase.FindAssets("t:MapGridEditorSettings");
+            string fallbackPath = null;
+            foreach (var guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.StartsWith("Assets/TurnrootFramework/"))
+                    return AssetDatabase.LoadAssetAtPath<MapGridEditorSettings>(path);
+                fallbackPath ??= path;
+            }
+            return fallbackPath != null
+                ? AssetDatabase.LoadAssetAtPath<MapGridEditorSettings>(fallbackPath)
+                : null;
+        }
     }
 }

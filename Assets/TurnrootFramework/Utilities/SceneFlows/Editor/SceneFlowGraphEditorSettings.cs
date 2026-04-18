@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEngine;
 
 namespace Turnroot.Utilities.SceneFlows.Editor
@@ -84,14 +85,28 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             {
                 if (_instance == null)
                 {
-                    _instance = Resources.Load<SceneFlowGraphEditorSettings>(
-                        "SceneFlowGraphEditorSettings"
-                    );
-
-                    if (_instance == null)
+                    // Prefer a project-level override (any asset outside Assets/TurnrootFramework/)
+                    // over the package default so users can customise without editing the package.
+                    var guids = AssetDatabase.FindAssets("t:SceneFlowGraphEditorSettings");
+                    string fallbackPath = null;
+                    foreach (var guid in guids)
                     {
-                        _instance = CreateInstance<SceneFlowGraphEditorSettings>();
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
+                        if (!path.StartsWith("Assets/TurnrootFramework/"))
+                        {
+                            _instance = AssetDatabase.LoadAssetAtPath<SceneFlowGraphEditorSettings>(
+                                path
+                            );
+                            return _instance;
+                        }
+                        fallbackPath ??= path;
                     }
+                    _instance =
+                        fallbackPath != null
+                            ? AssetDatabase.LoadAssetAtPath<SceneFlowGraphEditorSettings>(
+                                fallbackPath
+                            )
+                            : CreateInstance<SceneFlowGraphEditorSettings>();
                 }
                 return _instance;
             }

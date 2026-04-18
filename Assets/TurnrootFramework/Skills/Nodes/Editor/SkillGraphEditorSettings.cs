@@ -52,17 +52,25 @@ namespace Turnroot.Skills.Nodes.Editor
         {
             get
             {
-                // Always reload to get latest changes
-                // Try multiple paths in Resources
-                _instance = Resources.Load<SkillGraphEditorSettings>(
-                    "EditorSettings/SkillGraphEditorSettings"
-                );
-                if (_instance == null)
+                // Always reload to get latest changes.
+                // Prefer a project-level override (any asset outside Assets/TurnrootFramework/)
+                // over the package default so users can customise without editing the package.
+                var guids = AssetDatabase.FindAssets("t:SkillGraphEditorSettings");
+                string fallbackPath = null;
+                foreach (var guid in guids)
                 {
-                    _instance = Resources.Load<SkillGraphEditorSettings>(
-                        "SkillGraphEditorSettings"
-                    );
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!path.StartsWith("Assets/TurnrootFramework/"))
+                    {
+                        _instance = AssetDatabase.LoadAssetAtPath<SkillGraphEditorSettings>(path);
+                        return _instance;
+                    }
+                    fallbackPath ??= path;
                 }
+                _instance =
+                    fallbackPath != null
+                        ? AssetDatabase.LoadAssetAtPath<SkillGraphEditorSettings>(fallbackPath)
+                        : null;
                 return _instance;
             }
         }

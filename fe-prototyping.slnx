@@ -37,7 +37,6 @@
   <Project Path="TurnrootFramework.Editor.Utilities.csproj" />
   <Project Path="Unity.AI.Navigation.Editor.csproj" />
   <Project Path="NaughtyAttributes.Test.csproj" />
-  <Project Path="TurnrootFramework.Editor.GraphicPacks.DefaultShaders.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.csproj" />
   <Project Path="UIEffect.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
@@ -55,6 +54,7 @@
   <Project Path="TurnrootFramework.Editor.Conversations.Nodes.csproj" />
   <Project Path="XNode.csproj" />
   <Project Path="TurnrootFramework.Editor.Maps.Terrain.csproj" />
+  <Project Path="TurnrootFramework.Editor.GraphicPacks.DefaultShaders.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Hub.Shop.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Objects.Components.csproj" />
   <Project Path="TurnrootFramework.Editor.Conversations.csproj" />

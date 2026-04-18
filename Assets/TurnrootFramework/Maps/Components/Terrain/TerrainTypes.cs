@@ -119,36 +119,39 @@ namespace Turnroot.Gameplay.Maps
 
         public static TerrainTypes LoadDefault(string resourcesName = "TerrainTypes")
         {
+#if UNITY_EDITOR
+            // In the editor, prefer any asset outside Assets/TurnrootFramework/ so a project-level
+            // override takes precedence over the package default without needing a Resources folder.
+            var guids = UnityEditor.AssetDatabase.FindAssets("t:TerrainTypes");
+            string fallbackPath = null;
+            foreach (var guid in guids)
+            {
+                var p = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                if (!p.StartsWith("Assets/TurnrootFramework/"))
+                    return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(p);
+                fallbackPath ??= p;
+            }
+            if (fallbackPath != null)
+                return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(fallbackPath);
+            return null;
+#else
+            // At runtime, check a well-known override path first so the project can shadow the
+            // package default by placing a TerrainTypes asset at:
+            //   Assets/<anywhere>/Resources/TurnrootOverrides/TerrainTypes.asset
+            var fromOverride = Resources.Load<TerrainTypes>("TurnrootOverrides/TerrainTypes");
+            if (fromOverride != null)
+                return fromOverride;
+
             var fromResources = Resources.Load<TerrainTypes>(resourcesName);
             if (fromResources != null)
-            {
                 return fromResources;
-            }
 
             var fromGameSettings = Resources.Load<TerrainTypes>("GameSettings/TerrainTypes");
             if (fromGameSettings != null)
-            {
                 return fromGameSettings;
-            }
 
-            var fromEssentialCores = Resources.Load<TerrainTypes>(
-                "EssentialCores/GameSettings/Map/Terrain Types"
-            );
-            if (fromEssentialCores != null)
-            {
-                return fromEssentialCores;
-            }
-
-#if UNITY_EDITOR
-            var guids = UnityEditor.AssetDatabase.FindAssets("t:TerrainTypes");
-            if (guids.Length > 0)
-            {
-                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
-                return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(path);
-            }
+            return Resources.Load<TerrainTypes>("EssentialCores/GameSettings/Map/Terrain Types");
 #endif
-
-            return null;
         }
     }
 }
