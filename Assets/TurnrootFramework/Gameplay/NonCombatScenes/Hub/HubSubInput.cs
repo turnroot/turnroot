@@ -1,3 +1,5 @@
+using System.Collections;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
@@ -40,6 +42,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float normalFov = 60f;
         public float zoomedFov = 30f;
 
+        [Tooltip("Time in seconds to transition between normal and zoomed FOV when AnimatedCameraMovement is enabled.")]
+        public float zoomSmoothTime = 0.2f;
+        private Coroutine _zoomCoroutine;
+
         public UIFade FocusOverlayFade;
 
         [Tooltip(
@@ -55,7 +61,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleSubLocationInput(string action)
         {
-            $"HandleSubLocationInput: '{action}'".LogInfo();
             if (
                 action
                 is InputActionConstants.Select
@@ -112,6 +117,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _isZoomed = false;
                 _wasZoomPressed = false;
+                if (_zoomCoroutine != null)
+                {
+                    StopCoroutine(_zoomCoroutine);
+                    _zoomCoroutine = null;
+                }
                 if (hubCamera != null)
                 {
                     hubCamera.fieldOfView = normalFov;
@@ -140,31 +150,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             var zoomAction = UiChoice.RightStickClickAction;
-            if (zoomAction == null)
+            if (zoomAction == null || !zoomAction.enabled)
             {
-                "Zoom action (RightStickClick) is null — not initialized yet".LogWarning();
-            }
-            else if (!zoomAction.enabled)
-            {
-                $"Zoom action '{zoomAction.name}' exists but is DISABLED".LogWarning();
             }
             else
             {
                 bool zoomPressed = zoomAction.IsPressed();
-                $"Zoom: name='{zoomAction.name}' IsPressed={zoomPressed} ReadValue={zoomAction.ReadValue<float>()}".LogInfo();
                 if (zoomPressed && !_wasZoomPressed)
                 {
                     _isZoomed = !_isZoomed;
-                    $"Zoom toggled: _isZoomed={_isZoomed}, fov={(_isZoomed ? zoomedFov : normalFov)}, camera={hubCamera?.name}".LogInfo();
-                    hubCamera.fieldOfView = _isZoomed ? zoomedFov : normalFov;
-                    if (_isZoomed)
+                    float targetFov = _isZoomed ? zoomedFov : normalFov;
+                    if (_zoomCoroutine != null) StopCoroutine(_zoomCoroutine);
+                    if (GameplayPlayerSettings.Instance != null && GameplayPlayerSettings.Instance.AnimatedCameraMovement)
                     {
-                        FocusOverlayFade?.Show();
+                        _zoomCoroutine = StartCoroutine(AnimateFov(targetFov));
                     }
                     else
                     {
-                        FocusOverlayFade?.Hide();
+                        hubCamera.fieldOfView = targetFov;
                     }
+                    if (_isZoomed) FocusOverlayFade?.Show();
+                    else FocusOverlayFade?.Hide();
                 }
                 _wasZoomPressed = zoomPressed;
             }
@@ -319,9 +325,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 result.y -= 1;
             }
 
-            $"GetLookInput: L={UiChoice.NavigateLeftAction?.IsPressed()} R={UiChoice.NavigateRightAction?.IsPressed()} U={UiChoice.NavigateUpAction?.IsPressed()} D={UiChoice.NavigateDownAction?.IsPressed()} result={result}".LogInfo();
-
             return result;
+        }
+
+        private IEnumerator AnimateFov(float targetFov)
+        {
+            float startFov = hubCamera.fieldOfView;
+            float elapsed = 0f;
+            while (elapsed < zoomSmoothTime)
+            {
+                elapsed += Time.deltaTime;
+                hubCamera.fieldOfView = Mathf.Lerp(startFov, targetFov, elapsed / zoomSmoothTime);
+                yield return null;
+            }
+            hubCamera.fieldOfView = targetFov;
+            _zoomCoroutine = null;
         }
     }
 }
