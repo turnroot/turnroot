@@ -31,6 +31,7 @@ namespace Turnroot.GameSettings
         public InputActionReference RotateCamera;
         public InputActionReference Start;
         public InputActionReference ToggleDetails;
+        public InputActionReference RightStickClick;
 
         [Header("Hold Repeat"), HorizontalLine(color: EColor.Green)]
         [Tooltip("Seconds before held navigation begins repeating.")]

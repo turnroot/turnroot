@@ -1,3 +1,4 @@
+using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
@@ -10,9 +11,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     public class HubSubInput : MonoBehaviour
     {
         // absolute degree limits from the default hub sublocation base orientation; use positive values.
-        // World-space tilt is clamped to [default - left,right] and [default - up,down], even when returning from POI.
-        public float MaxTiltLeft;
-        public float MaxTiltRight;
+        // World-space tilt is clamped to [default - up,down], even when returning from POI.
         public float MaxTiltUp;
         public float MaxTiltDown;
 
@@ -38,6 +37,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public LayerMask zoomLayerMask;
         public float normalFov = 60f;
+        public float zoomedFov = 30f;
 
         public UIFade FocusOverlayFade;
 
@@ -46,10 +46,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )]
         public float zoomCastRadius = 0.25f;
         private bool _isPoiActive;
+        private bool _isZoomed;
 
         // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
-        private float _cachedLeftLimit;
-        private float _cachedRightLimit;
         private float _cachedUpLimit;
         private float _cachedDownLimit;
 
@@ -104,10 +103,42 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _hasBaseRotation = false;
                 _pitchOffset = _yawOffset = 0f;
-                _cachedLeftLimit = Mathf.Abs(MaxTiltLeft);
-                _cachedRightLimit = Mathf.Abs(MaxTiltRight);
                 _cachedUpLimit = Mathf.Abs(MaxTiltUp);
                 _cachedDownLimit = Mathf.Abs(MaxTiltDown);
+                if (UiChoice.RightStickClickAction != null)
+                {
+                    UiChoice.RightStickClickAction.performed += HandleZoomToggle;
+                }
+            }
+            else
+            {
+                if (UiChoice.RightStickClickAction != null)
+                {
+                    UiChoice.RightStickClickAction.performed -= HandleZoomToggle;
+                }
+                _isZoomed = false;
+                if (hubCamera != null)
+                {
+                    hubCamera.fieldOfView = normalFov;
+                }
+                FocusOverlayFade?.Hide();
+            }
+        }
+
+        private void HandleZoomToggle(InputAction.CallbackContext _)
+        {
+            _isZoomed = !_isZoomed;
+            if (hubCamera != null)
+            {
+                hubCamera.fieldOfView = _isZoomed ? zoomedFov : normalFov;
+            }
+            if (_isZoomed)
+            {
+                FocusOverlayFade?.Show();
+            }
+            else
+            {
+                FocusOverlayFade?.Hide();
             }
         }
 
@@ -151,13 +182,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _yawOffset += h * lookStep * Time.deltaTime;
             _pitchOffset -= v * lookStep * Time.deltaTime;
 
-            // Clamp the scalar offsets directly. This is always correct: _yawOffset and
-            // _pitchOffset are degree-of-deviation scalars (never exceeding ±180), so
-            // Mathf.Clamp with scalar limits needs no wrapping logic. The previous world-space
-            // approach (ClampAngleToRange) introduced a wrapped-interval bug: going to max-left
-            // then max-right caused the wrapped "angle >= min || angle <= max" check to pass for
-            // all angles near the ±180 boundary, disabling clamping for the rest of the session.
-            _yawOffset = Mathf.Clamp(_yawOffset, -_cachedLeftLimit, _cachedRightLimit);
             _pitchOffset = Mathf.Clamp(_pitchOffset, -_cachedUpLimit, _cachedDownLimit);
 
             Vector3 targetRotation = new Vector3(
@@ -269,34 +293,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             Vector2 result = Vector2.zero;
 
-            if (Keyboard.current != null)
+            if (UiChoice.NavigateLeftAction?.IsPressed() == true)
             {
-                if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
-                {
-                    result.x -= 1;
-                }
-
-                if (Keyboard.current.rightArrowKey.isPressed || Keyboard.current.dKey.isPressed)
-                {
-                    result.x += 1;
-                }
-
-                if (Keyboard.current.upArrowKey.isPressed || Keyboard.current.wKey.isPressed)
-                {
-                    result.y += 1;
-                }
-
-                if (Keyboard.current.downArrowKey.isPressed || Keyboard.current.sKey.isPressed)
-                {
-                    result.y -= 1;
-                }
+                result.x -= 1;
             }
 
-            if (Gamepad.current != null)
+            if (UiChoice.NavigateRightAction?.IsPressed() == true)
             {
-                result += Gamepad.current.leftStick.ReadValue();
-                result += Gamepad.current.rightStick.ReadValue();
-                result += Gamepad.current.dpad.ReadValue();
+                result.x += 1;
+            }
+
+            if (UiChoice.NavigateUpAction?.IsPressed() == true)
+            {
+                result.y += 1;
+            }
+
+            if (UiChoice.NavigateDownAction?.IsPressed() == true)
+            {
+                result.y -= 1;
             }
 
             return result;

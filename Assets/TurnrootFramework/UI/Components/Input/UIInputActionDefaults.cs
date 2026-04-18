@@ -49,6 +49,7 @@ namespace Turnroot.UI
         public static InputAction ToggleDetails;
         public static InputAction ScrollLeft;
         public static InputAction ScrollRight;
+        public static InputAction RightStickClick;
 
         private static bool _enforceActionsAlwaysEnabled;
 
@@ -67,6 +68,7 @@ namespace Turnroot.UI
             InputActionReference menu,
             InputActionReference rotateCamera,
             InputActionReference start,
+            InputActionReference rightStickClick,
             InputActionReference toggleDetails
         )
         {
@@ -76,6 +78,7 @@ namespace Turnroot.UI
             NavigateDown = navigateDown?.action;
             NavigateLeft = navigateLeft?.action;
             NavigateRight = navigateRight?.action;
+            RightStickClick = rightStickClick?.action;
 
             Navigate = navigate?.action;
             Confirm = confirm?.action;
@@ -136,6 +139,7 @@ namespace Turnroot.UI
             TryEnable(ToggleDetails);
             TryEnable(ScrollLeft);
             TryEnable(ScrollRight);
+            TryEnable(RightStickClick);
         }
 
         private static void EnsureSharedActionsStayEnabled()
@@ -188,7 +192,8 @@ namespace Turnroot.UI
                 || action == Start
                 || action == ToggleDetails
                 || action == ScrollLeft
-                || action == ScrollRight;
+                || action == ScrollRight
+                || action == RightStickClick;
         }
     }
 }

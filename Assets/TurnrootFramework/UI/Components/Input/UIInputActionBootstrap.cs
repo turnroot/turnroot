@@ -43,7 +43,8 @@ namespace Turnroot.UI
                 s.Menu,
                 s.RotateCamera,
                 s.Start,
-                s.ToggleDetails
+                s.ToggleDetails,
+                s.RightStickClick
             );
 
             // Enable everything immediately so all consumers can listen to all actions.
@@ -78,6 +79,7 @@ namespace Turnroot.UI
             TryEnable(UIInputActionDefaults.RotateCamera);
             TryEnable(UIInputActionDefaults.Start);
             TryEnable(UIInputActionDefaults.ToggleDetails);
+            TryEnable(UIInputActionDefaults.RightStickClick);
         }
     }
 }

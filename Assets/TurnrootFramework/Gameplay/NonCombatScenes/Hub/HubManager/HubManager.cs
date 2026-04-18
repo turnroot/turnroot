@@ -422,9 +422,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             CacheSpawnPointHeights();
 
+            if (LocationChoices == null || LocationChoices.Length != subLocations.Length)
+            {
+                $"LocationChoices has {LocationChoices?.Length ?? 0} entries but subLocations has {subLocations.Length}. They must be the same length and in the same order. Check the HubManager inspector.".LogWarning();
+            }
+
             for (int i = 0; i < subLocations.Length; i++)
             {
                 subLocations[i].Initialize(_brain);
+
+                if (LocationChoices == null || i >= LocationChoices.Length)
+                {
+                    $"No LocationChoices entry at index {i} for sublocation '{subLocations[i].LocationName}'. Add a UiChoice for it in the HubManager inspector.".LogWarning();
+                    continue;
+                }
+
                 LocationChoices[i].CanBeSelected = subLocations[i].CanBeVisitedToday();
             }
 
