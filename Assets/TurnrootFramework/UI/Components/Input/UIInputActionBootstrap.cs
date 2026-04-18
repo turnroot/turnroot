@@ -43,8 +43,8 @@ namespace Turnroot.UI
                 s.Menu,
                 s.RotateCamera,
                 s.Start,
-                s.ToggleDetails,
-                s.RightStickClick
+                s.RightStickClick,
+                s.ToggleDetails
             );
 
             // Enable everything immediately so all consumers can listen to all actions.
