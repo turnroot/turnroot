@@ -110,6 +110,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             else
             {
                 _isZoomed = false;
+                _wasZoomPressed = false;
                 if (hubCamera != null)
                 {
                     hubCamera.fieldOfView = normalFov;
@@ -117,6 +118,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 FocusOverlayFade?.Hide();
             }
         }
+
+        private bool _wasZoomPressed;
 
         private void Awake()
         {
@@ -144,19 +147,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 $"Zoom action '{zoomAction.name}' exists but is DISABLED".LogWarning();
             }
-            else if (zoomAction.WasPressedThisFrame())
+            else
             {
-                _isZoomed = !_isZoomed;
-                $"Zoom toggled: _isZoomed={_isZoomed}, fov={(_isZoomed ? zoomedFov : normalFov)}, camera={hubCamera?.name}".LogInfo();
-                hubCamera.fieldOfView = _isZoomed ? zoomedFov : normalFov;
-                if (_isZoomed)
+                bool zoomPressed = zoomAction.IsPressed();
+                if (zoomPressed && !_wasZoomPressed)
                 {
-                    FocusOverlayFade?.Show();
+                    _isZoomed = !_isZoomed;
+                    $"Zoom toggled: _isZoomed={_isZoomed}, fov={(_isZoomed ? zoomedFov : normalFov)}, camera={hubCamera?.name}".LogInfo();
+                    hubCamera.fieldOfView = _isZoomed ? zoomedFov : normalFov;
+                    if (_isZoomed)
+                    {
+                        FocusOverlayFade?.Show();
+                    }
+                    else
+                    {
+                        FocusOverlayFade?.Hide();
+                    }
                 }
-                else
-                {
-                    FocusOverlayFade?.Hide();
-                }
+                _wasZoomPressed = zoomPressed;
             }
 
             if (!_hasBaseRotation)
