@@ -55,6 +55,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleSubLocationInput(string action)
         {
+            $"HandleSubLocationInput: '{action}'".LogInfo();
             if (
                 action
                 is InputActionConstants.Select
@@ -82,7 +83,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void SetLookEnabled(bool enabled)
         {
-            $"SetLookEnabled({enabled}) called — current _isLooking={_isLooking}\n{new System.Diagnostics.StackTrace(true)}".LogInfo();
             if (enabled == _isLooking)
             {
                 return;
@@ -121,7 +121,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
 
         private bool _wasZoomPressed;
-        private float _lookFalseLogTimer;
 
         private void Awake()
         {
@@ -130,15 +129,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void Update()
         {
-            $"HubSubInput.Update — _isLooking={_isLooking}".LogInfo();
             if (!_isLooking)
             {
-                _lookFalseLogTimer += Time.deltaTime;
-                if (_lookFalseLogTimer >= 2f)
-                {
-                    _lookFalseLogTimer = 0f;
-                    $"HubSubInput: _isLooking still false — hubManager={hubManager?.name}, SublocationInput ref matches this={hubManager != null && hubManager.SublocationInput == this}".LogWarning();
-                }
                 return;
             }
 
@@ -147,7 +139,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 hubCamera = hubManager.GeneralCamera;
             }
 
-            var zoomAction = UIInputActionDefaults.RightStickClick;
+            var zoomAction = UiChoice.RightStickClickAction;
             if (zoomAction == null)
             {
                 "Zoom action (RightStickClick) is null — not initialized yet".LogWarning();
@@ -159,6 +151,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             else
             {
                 bool zoomPressed = zoomAction.IsPressed();
+                $"Zoom: name='{zoomAction.name}' IsPressed={zoomPressed} ReadValue={zoomAction.ReadValue<float>()}".LogInfo();
                 if (zoomPressed && !_wasZoomPressed)
                 {
                     _isZoomed = !_isZoomed;
@@ -325,6 +318,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 result.y -= 1;
             }
+
+            $"GetLookInput: L={UiChoice.NavigateLeftAction?.IsPressed()} R={UiChoice.NavigateRightAction?.IsPressed()} U={UiChoice.NavigateUpAction?.IsPressed()} D={UiChoice.NavigateDownAction?.IsPressed()} result={result}".LogInfo();
 
             return result;
         }
