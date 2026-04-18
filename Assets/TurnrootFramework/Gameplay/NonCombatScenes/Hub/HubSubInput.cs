@@ -48,7 +48,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float zoomCastRadius = 0.25f;
         private bool _isPoiActive;
         private bool _isZoomed;
-        private InputAction _subscribedRightStickClick;
 
         // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
         private float _cachedUpLimit;
@@ -107,53 +106,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _pitchOffset = _yawOffset = 0f;
                 _cachedUpLimit = Mathf.Abs(MaxTiltUp);
                 _cachedDownLimit = Mathf.Abs(MaxTiltDown);
-                UIInputActionDefaults.WhenInitialized(SubscribeZoom);
             }
             else
             {
-                UIInputActionDefaults.RemoveInitializedHandler(SubscribeZoom);
-                UnsubscribeZoom();
                 _isZoomed = false;
                 if (hubCamera != null)
                 {
                     hubCamera.fieldOfView = normalFov;
                 }
-                FocusOverlayFade?.Hide();
-            }
-        }
-
-        private void SubscribeZoom()
-        {
-            UnsubscribeZoom();
-            _subscribedRightStickClick = UIInputActionDefaults.RightStickClick;
-            if (_subscribedRightStickClick != null)
-            {
-                _subscribedRightStickClick.performed += HandleZoomToggle;
-            }
-        }
-
-        private void UnsubscribeZoom()
-        {
-            if (_subscribedRightStickClick != null)
-            {
-                _subscribedRightStickClick.performed -= HandleZoomToggle;
-                _subscribedRightStickClick = null;
-            }
-        }
-
-        private void HandleZoomToggle(InputAction.CallbackContext _)
-        {
-            _isZoomed = !_isZoomed;
-            if (hubCamera != null)
-            {
-                hubCamera.fieldOfView = _isZoomed ? zoomedFov : normalFov;
-            }
-            if (_isZoomed)
-            {
-                FocusOverlayFade?.Show();
-            }
-            else
-            {
                 FocusOverlayFade?.Hide();
             }
         }
@@ -173,6 +133,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (hubCamera == null)
             {
                 hubCamera = hubManager.GeneralCamera;
+            }
+
+            if (UIInputActionDefaults.RightStickClick?.WasPressedThisFrame() == true)
+            {
+                _isZoomed = !_isZoomed;
+                hubCamera.fieldOfView = _isZoomed ? zoomedFov : normalFov;
+                if (_isZoomed)
+                {
+                    FocusOverlayFade?.Show();
+                }
+                else
+                {
+                    FocusOverlayFade?.Hide();
+                }
             }
 
             if (!_hasBaseRotation)
