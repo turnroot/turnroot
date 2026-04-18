@@ -337,10 +337,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 case GameplayPlayerSettings.GameSpeed.Normal:
                     break;
                 case GameplayPlayerSettings.GameSpeed.Fast:
-                    result *= 1.5f;
+                    result *= 1.25f;
                     break;
                 case GameplayPlayerSettings.GameSpeed.VeryFast:
-                    result *= 2f;
+                    result *= 1.5f;
                     break;
             }
 
