@@ -42,7 +42,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float normalFov = 60f;
         public float zoomedFov = 30f;
 
-        [Tooltip("Time in seconds to transition between normal and zoomed FOV when AnimatedCameraMovement is enabled.")]
+        [Tooltip(
+            "Time in seconds to transition between normal and zoomed FOV when AnimatedCameraMovement is enabled."
+        )]
         public float zoomSmoothTime = 0.2f;
         private Coroutine _zoomCoroutine;
 
@@ -150,18 +152,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             var zoomAction = UiChoice.RightStickClickAction;
-            if (zoomAction == null || !zoomAction.enabled)
-            {
-            }
-            else
+            if (zoomAction != null && zoomAction.enabled)
             {
                 bool zoomPressed = zoomAction.IsPressed();
                 if (zoomPressed && !_wasZoomPressed)
                 {
                     _isZoomed = !_isZoomed;
                     float targetFov = _isZoomed ? zoomedFov : normalFov;
-                    if (_zoomCoroutine != null) StopCoroutine(_zoomCoroutine);
-                    if (GameplayPlayerSettings.Instance != null && GameplayPlayerSettings.Instance.AnimatedCameraMovement)
+                    if (_zoomCoroutine != null)
+                        StopCoroutine(_zoomCoroutine);
+                    if (
+                        GameplayPlayerSettings.Instance != null
+                        && GameplayPlayerSettings.Instance.AnimatedCameraMovement
+                    )
                     {
                         _zoomCoroutine = StartCoroutine(AnimateFov(targetFov));
                     }
@@ -169,8 +172,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     {
                         hubCamera.fieldOfView = targetFov;
                     }
-                    if (_isZoomed) FocusOverlayFade?.Show();
-                    else FocusOverlayFade?.Hide();
+                    if (_isZoomed)
+                        FocusOverlayFade?.Show();
+                    else
+                        FocusOverlayFade?.Hide();
                 }
                 _wasZoomPressed = zoomPressed;
             }
@@ -323,6 +328,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (UiChoice.NavigateDownAction?.IsPressed() == true)
             {
                 result.y -= 1;
+            }
+
+            var gameSpeed = GameplayPlayerSettings.Instance.SpeedSetting;
+
+            switch (gameSpeed)
+            {
+                case GameplayPlayerSettings.GameSpeed.Normal:
+                    break;
+                case GameplayPlayerSettings.GameSpeed.Fast:
+                    result *= 1.5f;
+                    break;
+                case GameplayPlayerSettings.GameSpeed.VeryFast:
+                    result *= 2f;
+                    break;
             }
 
             return result;
