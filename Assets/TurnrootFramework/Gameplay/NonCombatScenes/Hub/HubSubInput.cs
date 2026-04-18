@@ -82,6 +82,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void SetLookEnabled(bool enabled)
         {
+            $"SetLookEnabled({enabled}) called — current _isLooking={_isLooking}\n{new System.Diagnostics.StackTrace(true)}".LogInfo();
             if (enabled == _isLooking)
             {
                 return;
@@ -120,6 +121,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
 
         private bool _wasZoomPressed;
+        private float _lookFalseLogTimer;
 
         private void Awake()
         {
@@ -131,6 +133,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             $"HubSubInput.Update — _isLooking={_isLooking}".LogInfo();
             if (!_isLooking)
             {
+                _lookFalseLogTimer += Time.deltaTime;
+                if (_lookFalseLogTimer >= 2f)
+                {
+                    _lookFalseLogTimer = 0f;
+                    $"HubSubInput: _isLooking still false — hubManager={hubManager?.name}, SublocationInput ref matches this={hubManager != null && hubManager.SublocationInput == this}".LogWarning();
+                }
                 return;
             }
 
