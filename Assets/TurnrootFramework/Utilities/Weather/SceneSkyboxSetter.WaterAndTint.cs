@@ -255,7 +255,14 @@ namespace Turnroot.Utilities.Weather
                         }
                     }
 
-                    Color desiredBaseTint = Color.Lerp(baseTint, skyTint, CelBlendFactor);
+                    // Blend hue and saturation from the sky tint but preserve the base tint's brightness (value).
+                    Color.RGBToHSV(baseTint, out float baseH, out float baseS, out float baseV);
+                    Color.RGBToHSV(skyTint, out float skyH, out float skyS, out float _);
+                    float blendedH =
+                        Mathf.LerpAngle(baseH * 360f, skyH * 360f, CelBlendFactor) / 360f;
+                    float blendedS = Mathf.Lerp(baseS, skyS, CelBlendFactor);
+                    Color desiredBaseTint = Color.HSVToRGB(blendedH, blendedS, baseV);
+                    desiredBaseTint.a = baseTint.a;
 
                     if (runtimeMat.HasProperty("_BaseTint"))
                     {
