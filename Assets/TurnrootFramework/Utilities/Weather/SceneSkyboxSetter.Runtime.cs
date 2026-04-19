@@ -2,12 +2,15 @@ using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Turnroot.Utilities.Weather
 {
     public partial class SceneSkyboxSetter : MonoBehaviour
     {
-        // Runtime-instanced materials used for tinting so we don't modify shared assets.
+        public UnityEvent NightStart;
+        public UnityEvent NightEnd;
+
         private readonly System.Collections.Generic.Dictionary<
             Renderer,
             Material[]
@@ -176,6 +179,15 @@ namespace Turnroot.Utilities.Weather
                 if (TimeOfDay >= 24f)
                 {
                     TimeOfDay = 0f;
+                }
+
+                if (Mathf.Approximately(TimeOfDay, NightStartHour))
+                {
+                    NightStart.Invoke();
+                }
+                else if (Mathf.Approximately(TimeOfDay, NightEndHour))
+                {
+                    NightEnd.Invoke();
                 }
             }
 
