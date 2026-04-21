@@ -412,6 +412,8 @@ Shader "Turnroot/Generic Cel Shader"
                 
                 // Additional lights accumulate colored highlights separately
                 float3 additionalHighlights = float3(0.0, 0.0, 0.0);
+                // Additional lights also accumulate shadow darkening (lit-but-occluded areas)
+                float  additionalShadowDark = 0.0;
 
                 // Main light — controls base cel shading (shadow/mid/highlight)
                 #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
@@ -440,32 +442,41 @@ Shader "Turnroot/Generic Cel Shader"
                     }
                 }
 
-                // Additional lights — add colored highlights on top of main lighting
+                // Additional lights — add colored highlights and cast shadows
                 #if defined(_ADDITIONAL_LIGHTS)
                 {
                     int addLightCount = GetAdditionalLightsCount();
                     for (int li = 0; li < addLightCount; ++li)
                     {
                         Light addLight = GetAdditionalLight(li, input.positionWS, unity_ProbesOcclusion);
-                        float luma = dot(addLight.color, float3(0.2126, 0.7152, 0.0722));
-                        if (luma > 0.0001)
+                        float distAtten = addLight.distanceAttenuation;
+
+                        // Skip lights with no reach at this pixel
+                        if (distAtten > 0.001)
                         {
-                            float ndl   = dot(normalWS, addLight.direction);
-                            float atten = addLight.shadowAttenuation * addLight.distanceAttenuation;
-                            
-                            // Additional lights only contribute when facing the light (ndl > 0)
+                            float ndl = dot(normalWS, addLight.direction);
+
                             if (ndl > 0.0)
                             {
-                                // Map ndl*atten [0..1] to highlight range
-                                float lightIntensity = ndl * atten;
-                                
-                                // Apply cel-style threshold for additional light highlights
+                                // Use ndl * distAtten as the raw influence.
+                                // NOTE: do NOT threshold against _Highlight_Offset here —
+                                // that value is tuned for the main light's half-Lambert
+                                // (ndl*atten+1)*0.5 remapping. Additional lights use raw
+                                // ndl, so the offset would reject almost every point light.
+                                // Instead start the smoothstep at 0 so any facing pixel
+                                // contributes, with _Highlight_Smoothness controlling
+                                // edge softness exactly as the user expects.
+                                float lightInfluence = ndl * distAtten;
+
                                 float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
-                                float addHlBase = smoothstep(_Highlight_Offset, _Highlight_Offset + max(_Highlight_Smoothness, 0.0001), lightIntensity);
+                                float addHlBase = smoothstep(0.0, max(_Highlight_Smoothness, 0.001), lightInfluence);
                                 float addHlMask = pow(saturate(addHlBase), highlightExp);
-                                
-                                // Accumulate colored highlight contribution from this light
-                                additionalHighlights += addLight.color * addHlMask * _Highlight_Amount;
+
+                                // Highlight: light color scaled by shadow attenuation
+                                additionalHighlights += addLight.color * addHlMask * addLight.shadowAttenuation;
+
+                                // Shadow: areas that would be lit but are occluded
+                                additionalShadowDark += addHlMask * (1.0 - addLight.shadowAttenuation);
                             }
                         }
                     }
@@ -528,12 +539,19 @@ Shader "Turnroot/Generic Cel Shader"
                     #endif
                     
                     // Apply saturation control to additional highlights
-                    float3 additionalHl = additionalHighlights * albedo.rgb * additionalMask;
+                    float3 additionalHl = additionalHighlights * _Highlight_Amount * albedo.rgb * additionalMask;
                     float addGray = dot(additionalHl, float3(0.299, 0.58701, 0.114));
                     additionalHl = saturate(addGray + (additionalHl - addGray) * (1.0 + _Highlight_Saturation));
                     
                     // Add additional highlights on top (additive blend)
                     litColor.rgb = saturate(litColor.rgb + additionalHl);
+
+                    // Apply shadows from additional lights (areas lit but occluded by a shadow caster)
+                    float addShadow = saturate(additionalShadowDark * additionalMask * _Shadow_Strength);
+                    if (_Shadow_Replace > 0.5)
+                        litColor.rgb = lerp(litColor.rgb, darkCol.rgb, addShadow);
+                    else
+                        litColor.rgb = lerp(litColor.rgb, litColor.rgb * darkCol.rgb, addShadow);
                 }
                 #endif
 
@@ -636,6 +654,10 @@ Shader "Turnroot/Generic Cel Shader"
             #pragma vertex   shadowVert
             #pragma fragment shadowFrag
             #pragma multi_compile_instancing
+            // Required so URP passes _LightPosition when rendering point/spot shadow maps.
+            // Without this the vertex shader always uses _LightDirection (directional) and
+            // point/spot lights never produce correct shadow maps.
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
