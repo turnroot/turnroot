@@ -214,6 +214,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
             #pragma multi_compile _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile _ DECAL_NORMAL_BLEND_LOW DECAL_NORMAL_BLEND_MEDIUM DECAL_NORMAL_BLEND_HIGH
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -457,10 +458,13 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 // Additional lights — add colored highlights and cast shadows
                 #if defined(_ADDITIONAL_LIGHTS)
                 {
+                    uint meshRenderingLayers = GetMeshRenderingLayer();
                     int addLightCount = GetAdditionalLightsCount();
                     for (int li = 0; li < addLightCount; ++li)
                     {
                         Light addLight = GetAdditionalLight(li, input.positionWS, unity_ProbesOcclusion);
+                        // Skip lights that don't target this mesh's rendering layer
+                        if (!IsMatchingLightLayer(addLight.layerMask, meshRenderingLayers)) continue;
                         float distAtten = addLight.distanceAttenuation;
 
                         if (distAtten > 0.001)

@@ -445,10 +445,13 @@ Shader "Turnroot/Generic Cel Shader"
                 // Additional lights — add colored highlights and cast shadows
                 #if defined(_ADDITIONAL_LIGHTS)
                 {
+                    uint meshRenderingLayers = GetMeshRenderingLayer();
                     int addLightCount = GetAdditionalLightsCount();
                     for (int li = 0; li < addLightCount; ++li)
                     {
                         Light addLight = GetAdditionalLight(li, input.positionWS, unity_ProbesOcclusion);
+                        // Skip lights that don't target this mesh's rendering layer
+                        if (!IsMatchingLightLayer(addLight.layerMask, meshRenderingLayers)) continue;
                         float distAtten = addLight.distanceAttenuation;
 
                         // Skip lights with no reach at this pixel
