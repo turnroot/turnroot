@@ -477,8 +477,9 @@ Shader "Turnroot/Class Outfit Cel Shader"
                                 float addHlBase = smoothstep(0.0, max(_Highlight_Smoothness, 0.001), ndl);
                                 float addHlMask = pow(saturate(addHlBase), highlightExp);
 
-                                // Highlight: light color scaled by shadow attenuation
-                                additionalHighlights += addLight.color * addHlMask * addLight.shadowAttenuation;
+                                // Clamp light color to [0,1] — preserves hue but prevents
+                                // intensity from blowing out the highlight into a hard-clipped edge.
+                                additionalHighlights += saturate(addLight.color) * addHlMask * addLight.shadowAttenuation;
 
                                 // Shadow: areas that would be lit but are occluded
                                 additionalShadowDark += addHlMask * (1.0 - addLight.shadowAttenuation);
@@ -546,8 +547,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
                     float addGray = dot(additionalHl, float3(0.299, 0.587, 0.114));
                     additionalHl = saturate(addGray + (additionalHl - addGray) * (1.0 + _Highlight_Saturation));
 
-                    // Add additional highlights on top (additive blend)
-                    litColor.rgb = saturate(litColor.rgb + additionalHl);
+                    // Screen blend — asymptotes to 1 smoothly, no hard saturation-clip edge.
+                    litColor.rgb = 1.0 - (1.0 - litColor.rgb) * (1.0 - saturate(additionalHl));
 
                     // Apply shadows from additional lights
                     float addShadow = saturate(additionalShadowDark * additionalMask * _Shadow_Strength);
