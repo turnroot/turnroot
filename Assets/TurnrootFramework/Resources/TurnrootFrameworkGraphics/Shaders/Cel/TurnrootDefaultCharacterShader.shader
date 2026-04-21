@@ -175,10 +175,10 @@ Shader "Turnroot/Character Cel Shader"
             #pragma shader_feature_local _USE_MATCAP_REFLECTION_ON
             #pragma shader_feature_local _USE_MATCAP_ANIMATION_ON
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -337,6 +337,8 @@ Shader "Turnroot/Character Cel Shader"
 
                 float shadowMask = 0;
                 float highlightMask = 0;
+                float3 additionalHighlights = float3(0.0, 0.0, 0.0);
+                float  additionalShadowDark = 0.0;
 
                 // Main light
                 Light mainLight = GetMainLight(input.shadowCoord, input.positionWS, 1);
@@ -363,31 +365,32 @@ Shader "Turnroot/Character Cel Shader"
                     highlightMask = max(highlightMask, sHighlight);
                 }
 
-                // Additional lights
+                // Additional lights — colored highlights and shadow darkening
                 #if defined(_ADDITIONAL_LIGHTS)
                 int addLightCount = GetAdditionalLightsCount();
                 for (int li = 0; li < addLightCount; ++li)
                 {
                     Light addLight = GetAdditionalLight(li, input.positionWS, 1);
-                    if (addLight.color.r + addLight.color.g + addLight.color.b > 0.0001)
+                    float distAtten = addLight.distanceAttenuation;
+
+                    if (distAtten > 0.001)
                     {
                         float ndl = dot(normalWS, addLight.direction);
-                        float atten = addLight.shadowAttenuation * addLight.distanceAttenuation;
-                        float hl = (ndl * atten + 1.0) * 0.5;
-                        float hl_noised = hl + noiseN * _Shadow_Noise_Amount;
 
-                        // Edge mask (smoothness controls edge width)
-                        float shadowBase = 1.0 - smoothstep(_Shadow_Offset, _Shadow_Offset + _Shadow_Smoothness, hl_noised);
-                        float highlightBase = smoothstep(_Highlight_Offset, _Highlight_Offset + _Highlight_Smoothness, hl);
+                        if (ndl > 0.0)
+                        {
+                            float lightInfluence = ndl * distAtten;
 
-                        float shadowExp = lerp(0.6, 3.0, 1.0 - _Shadow_Roughness);
-                        float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
+                            float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
+                            float addHlBase = smoothstep(0.0, max(_Highlight_Smoothness, 0.001), lightInfluence);
+                            float addHlMask = pow(saturate(addHlBase), highlightExp);
 
-                        float sShadow = pow(saturate(shadowBase), shadowExp);
-                        float sHighlight = pow(saturate(highlightBase), highlightExp);
+                            // Highlight: light color scaled by shadow attenuation
+                            additionalHighlights += addLight.color * addHlMask * addLight.shadowAttenuation;
 
-                        shadowMask = max(shadowMask, sShadow);
-                        highlightMask = max(highlightMask, sHighlight);
+                            // Shadow: areas that would be lit but are occluded
+                            additionalShadowDark += addHlMask * (1.0 - addLight.shadowAttenuation);
+                        }
                     }
                 }
                 #endif
@@ -437,6 +440,30 @@ Shader "Turnroot/Character Cel Shader"
                     float4 scaledHl = highlightCol * hm;
                     litColor = 1.0 - (1.0 - litColor) * (1.0 - scaledHl);
                 }
+
+                // Apply additional light highlights and shadows
+                #if defined(_ADDITIONAL_LIGHTS)
+                {
+                    float additionalMask = 1.0;
+                    if (_use_highlight_mask > 0.5)
+                    {
+                        float2 uv_hm = TRANSFORM_TEX(input.uv, _Highlight_Mask_Tex);
+                        float  hmask2 = SAMPLE_TEXTURE2D(_Highlight_Mask_Tex, sampler_Highlight_Mask_Tex, uv_hm).r;
+                        additionalMask = saturate(1.0 - hmask2 * _Highlight_Mask_Amount);
+                    }
+
+                    float3 additionalHl = additionalHighlights * _Highlight_Amount * albedo.rgb * additionalMask;
+                    float addGray = dot(additionalHl, float3(0.299, 0.587, 0.114));
+                    additionalHl = saturate(addGray + (additionalHl - addGray) * (1.0 + _Highlight_Saturation));
+                    litColor.rgb = saturate(litColor.rgb + additionalHl);
+
+                    float addShadow = saturate(additionalShadowDark * additionalMask * _Shadow_Strength);
+                    if (_Shadow_Replace > 0.5)
+                        litColor.rgb = lerp(litColor.rgb, darkCol.rgb, addShadow);
+                    else
+                        litColor.rgb = lerp(litColor.rgb, litColor.rgb * darkCol.rgb, addShadow);
+                }
+                #endif
 
                 // ──────────────────────────────────────────
                 // Matcap
@@ -528,10 +555,14 @@ Shader "Turnroot/Character Cel Shader"
             Tags{"LightMode" = "ShadowCaster"}
             ZWrite On
             ColorMask 0
+            ZTest LEqual
 
             HLSLPROGRAM
             #pragma vertex shadowVert
             #pragma fragment shadowFrag
+            #pragma multi_compile_instancing
+            // Required so URP uses _LightPosition for point/spot shadow maps.
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
@@ -546,34 +577,55 @@ Shader "Turnroot/Character Cel Shader"
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
+                float3 normalOS   : NORMAL;
+                float2 uv         : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
+                float2 uv         : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
-            float3 _LightDirection; // For normal bias
+            #if !defined(SHADOWS_SHADOWMASK)
+            float3 _LightDirection;
+            float3 _LightPosition;
+            #endif
 
-            Varyings shadowVert (Attributes input)
+            Varyings shadowVert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-                float3 normalWS = TransformObjectToWorldNormal(float3(0,0,1)); // Simple, since no normal needed for clip
-                float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
-                output.positionCS = clipPos;
+                float3 normalWS   = TransformObjectToWorldNormal(input.normalOS);
+
+                #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+                    float3 lightDir = normalize(_LightPosition - positionWS);
+                #else
+                    float3 lightDir = _LightDirection;
+                #endif
+
+                output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDir));
+
+                #if UNITY_REVERSED_Z
+                    output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
+                #else
+                    output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
+                #endif
+
                 output.uv = input.uv;
                 return output;
             }
 
-            half4 shadowFrag (Varyings input) : SV_Target
+            half4 shadowFrag(Varyings input) : SV_Target
             {
-                float2 uv_MainTex = TRANSFORM_TEX(input.uv, _MainTex);
-                float4 baseTexShadow = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv_MainTex);
-                float alpha = baseTexShadow.a;
-                clip(alpha - _Cutoff);
+                float2 uv = TRANSFORM_TEX(input.uv, _MainTex);
+                float4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+                clip(col.a - _Cutoff);
                 return 0;
             }
             ENDHLSL

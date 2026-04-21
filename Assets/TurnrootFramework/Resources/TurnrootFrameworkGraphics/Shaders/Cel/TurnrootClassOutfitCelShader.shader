@@ -424,6 +424,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 
                 // Additional lights accumulate colored highlights separately
                 float3 additionalHighlights = float3(0.0, 0.0, 0.0);
+                // Additional lights also accumulate shadow darkening (lit-but-occluded areas)
+                float  additionalShadowDark = 0.0;
 
                 // Main light — controls base cel shading (shadow/mid/highlight)
                 #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
@@ -452,32 +454,32 @@ Shader "Turnroot/Class Outfit Cel Shader"
                     }
                 }
 
-                // Additional lights — add colored highlights on top of main lighting
+                // Additional lights — add colored highlights and cast shadows
                 #if defined(_ADDITIONAL_LIGHTS)
                 {
                     int addLightCount = GetAdditionalLightsCount();
                     for (int li = 0; li < addLightCount; ++li)
                     {
                         Light addLight = GetAdditionalLight(li, input.positionWS, unity_ProbesOcclusion);
-                        float luma = dot(addLight.color, float3(0.2126, 0.7152, 0.0722));
-                        if (luma > 0.0001)
+                        float distAtten = addLight.distanceAttenuation;
+
+                        if (distAtten > 0.001)
                         {
-                            float ndl   = dot(normalWS, addLight.direction);
-                            float atten = addLight.shadowAttenuation * addLight.distanceAttenuation;
-                            
-                            // Additional lights only contribute when facing the light (ndl > 0)
+                            float ndl = dot(normalWS, addLight.direction);
+
                             if (ndl > 0.0)
                             {
-                                // Map ndl*atten [0..1] to highlight range
-                                float lightIntensity = ndl * atten;
-                                
-                                // Apply cel-style threshold for additional light highlights
+                                float lightInfluence = ndl * distAtten;
+
                                 float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
-                                float addHlBase = smoothstep(_Highlight_Offset, _Highlight_Offset + max(_Highlight_Smoothness, 0.0001), lightIntensity);
+                                float addHlBase = smoothstep(0.0, max(_Highlight_Smoothness, 0.001), lightInfluence);
                                 float addHlMask = pow(saturate(addHlBase), highlightExp);
-                                
-                                // Accumulate colored highlight contribution from this light
-                                additionalHighlights += addLight.color * addHlMask * _Highlight_Amount;
+
+                                // Highlight: light color scaled by shadow attenuation
+                                additionalHighlights += addLight.color * addHlMask * addLight.shadowAttenuation;
+
+                                // Shadow: areas that would be lit but are occluded
+                                additionalShadowDark += addHlMask * (1.0 - addLight.shadowAttenuation);
                             }
                         }
                     }
@@ -526,10 +528,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 }
 
                 // ── Apply additional light highlights ────────────────────────
-                // Additional lights add colored highlights on top of main lighting
                 #if defined(_ADDITIONAL_LIGHTS)
                 {
-                    // Apply highlight mask texture to additional lights too
                     float additionalMask = 1.0;
                     #if defined(_USE_HIGHLIGHT_MASK_ON)
                     {
@@ -538,14 +538,21 @@ Shader "Turnroot/Class Outfit Cel Shader"
                         additionalMask = saturate(1.0 - hmask * _Highlight_Mask_Amount);
                     }
                     #endif
-                    
+
                     // Apply saturation control to additional highlights
-                    float3 additionalHl = additionalHighlights * albedo.rgb * additionalMask;
+                    float3 additionalHl = additionalHighlights * _Highlight_Amount * albedo.rgb * additionalMask;
                     float addGray = dot(additionalHl, float3(0.299, 0.587, 0.114));
                     additionalHl = saturate(addGray + (additionalHl - addGray) * (1.0 + _Highlight_Saturation));
-                    
+
                     // Add additional highlights on top (additive blend)
                     litColor.rgb = saturate(litColor.rgb + additionalHl);
+
+                    // Apply shadows from additional lights
+                    float addShadow = saturate(additionalShadowDark * additionalMask * _Shadow_Strength);
+                    if (_Shadow_Replace > 0.5)
+                        litColor.rgb = lerp(litColor.rgb, darkCol.rgb, addShadow);
+                    else
+                        litColor.rgb = lerp(litColor.rgb, litColor.rgb * darkCol.rgb, addShadow);
                 }
                 #endif
 
