@@ -379,10 +379,12 @@ Shader "Turnroot/Character Cel Shader"
 
                         if (ndl > 0.0)
                         {
-                            float lightInfluence = ndl * distAtten;
-
+                                // Cel shading: use ndl alone for the highlight shape.
+                            // Using ndl*distAtten here causes 1/r² falloff inside the
+                            // threshold — many orders of magnitude per unit of distance.
+                            // The distAtten > 0.001 gate above already handles range cutoff.
                             float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
-                            float addHlBase = smoothstep(0.0, max(_Highlight_Smoothness, 0.001), lightInfluence);
+                            float addHlBase = smoothstep(0.0, max(_Highlight_Smoothness, 0.001), ndl);
                             float addHlMask = pow(saturate(addHlBase), highlightExp);
 
                             // Highlight: light color scaled by shadow attenuation
