@@ -179,6 +179,8 @@ Shader "Turnroot/Character Cel Shader"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -367,10 +369,13 @@ Shader "Turnroot/Character Cel Shader"
 
                 // Additional lights — colored highlights and shadow darkening
                 #if defined(_ADDITIONAL_LIGHTS)
+                uint meshRenderingLayers = GetMeshRenderingLayer();
                 int addLightCount = GetAdditionalLightsCount();
                 for (int li = 0; li < addLightCount; ++li)
                 {
                     Light addLight = GetAdditionalLight(li, input.positionWS, 1);
+                    // Skip lights that don't target this mesh's rendering layer
+                    if (!IsMatchingLightLayer(addLight.layerMask, meshRenderingLayers)) continue;
                     float distAtten = addLight.distanceAttenuation;
 
                     if (distAtten > 0.001)
