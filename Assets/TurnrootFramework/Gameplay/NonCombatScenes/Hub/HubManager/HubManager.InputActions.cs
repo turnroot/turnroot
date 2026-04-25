@@ -51,14 +51,34 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            var choice = _navigableChoices[currentIndex];
+
+            // ExploreChoice may be embedded inside LocationChoices or appended after —
+            // handle it first regardless of position.
+            if (ExploreChoice != null && choice == ExploreChoice)
+            {
+                OpenExploreMenu();
+                return;
+            }
+
             var locationCount = LocationChoices?.Length ?? 0;
 
-            // Location items (first N choices map 1:1 with subLocations)
+            // Choices inside LocationChoices: map to subLocations, skipping ExploreChoice slots.
             if (currentIndex < locationCount)
             {
-                if (currentIndex < subLocations.Length)
+                // Count how many non-Explore choices precede currentIndex.
+                int subIndex = 0;
+                for (int i = 0; i < currentIndex; i++)
                 {
-                    var selectedLocation = subLocations[currentIndex];
+                    if (LocationChoices[i] != ExploreChoice)
+                    {
+                        subIndex++;
+                    }
+                }
+
+                if (subLocations != null && subIndex < subLocations.Length)
+                {
+                    var selectedLocation = subLocations[subIndex];
                     if (selectedLocation != null && selectedLocation.CanBeVisitedToday())
                     {
                         selectedLocation.PlayerVisit();
@@ -67,10 +87,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            // Choices after LocationChoices: ExploreChoice → EndDay → Settings
+            // Choices after LocationChoices.
+            // If ExploreChoice was NOT embedded, it sits here before EndDay/Settings.
+            bool exploreEmbedded =
+                ExploreChoice != null
+                && LocationChoices != null
+                && System.Array.IndexOf(LocationChoices, ExploreChoice) >= 0;
+
             int remaining = currentIndex - locationCount;
 
-            if (ExploreChoice != null)
+            if (ExploreChoice != null && !exploreEmbedded)
             {
                 if (remaining == 0)
                 {
