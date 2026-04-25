@@ -8,5 +8,7 @@ namespace Turnroot.Utilities
             int minutes = (totalSeconds % 3600) / 60;
             return $"{hours}h {minutes}m";
         }
+
+        public static int PosMod(int a, int b) => ((a % b) + b) % b;
     }
 }

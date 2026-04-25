@@ -83,10 +83,7 @@ namespace Turnroot.Characters.Components.Support
             get => _supportLevels.Value;
             set
             {
-                if (_supportLevels == null)
-                {
-                    _supportLevels = new SupportLevels();
-                }
+                _supportLevels ??= new SupportLevels();
 
                 _supportLevels.Value = value;
             }

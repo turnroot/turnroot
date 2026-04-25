@@ -214,10 +214,7 @@ namespace Turnroot.Characters
                 return;
             }
 
-            if (Portraits == null)
-            {
-                Portraits = new PortraitEntry[0];
-            }
+            Portraits ??= new PortraitEntry[0];
 
             bool updated = false;
             for (int i = 0; i < Portraits.Length; i++)
