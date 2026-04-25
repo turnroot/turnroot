@@ -26,8 +26,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public int UnlockAfterChapter;
 
         [Tooltip(
-            "(CharacterSupport) Any character in the player roster must have at least the "
-                + "required support level with this character for the condition to pass."
+            "(CharacterSupport) The avatar must have at least the required support level "
+                + "with this character for the condition to pass."
         )]
         public CharacterData RequiredCharacter;
 

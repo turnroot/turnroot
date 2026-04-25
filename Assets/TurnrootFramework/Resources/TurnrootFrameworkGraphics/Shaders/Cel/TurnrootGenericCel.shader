@@ -452,28 +452,32 @@ Shader "Turnroot/Generic Cel Shader"
                         Light addLight = GetAdditionalLight(li, input.positionWS, unity_ProbesOcclusion);
                         // Skip lights that don't target this mesh's rendering layer
                         if (!IsMatchingLightLayer(addLight.layerMask, meshRenderingLayers)) continue;
-                        float distAtten = addLight.distanceAttenuation;
 
-                        // Skip lights with no reach at this pixel
-                        if (distAtten > 0.001)
+                        float soft = max(_Highlight_Smoothness, 0.001);
+
+                        // Angular terminator softness: controls the lit/unlit edge on curved surfaces.
+                        float ndl = dot(normalWS, addLight.direction);
+                        float angleMask = smoothstep(-soft, soft, ndl);
+
+                        // Range boundary softness: reconstruct normalized distance (0=center, 1=edge)
+                        // from URP's light arrays so we can apply a _Highlight_Smoothness-controlled
+                        // soft fade at the range boundary instead of a hard distAtten > threshold gate.
+                        // _AdditionalLightsAttenuation[li].x = 1/range², so distSq*(1/range²) = (r/range)².
+                        float3 lightPosWS   = _AdditionalLightsPosition[li].xyz;
+                        float3 toLight      = lightPosWS - input.positionWS;
+                        float  distSqNorm   = saturate(dot(toLight, toLight) * _AdditionalLightsAttenuation[li].x);
+                        // smoothstep(1, 1-soft, distSqNorm): 1.0 at center, 0.0 at range edge,
+                        // with a soft band of width 'soft' (in normalized-distance² space) at the boundary.
+                        float rangeFade = smoothstep(1.0, saturate(1.0 - soft), distSqNorm);
+
+                        float addHlMask = angleMask * rangeFade;
+
+                        if (addHlMask > 0.0)
                         {
-                            float ndl = dot(normalWS, addLight.direction);
-
-                            // Center the smoothstep symmetrically on the terminator (ndl=0).
-                            // smoothstep(0, smooth, ndl) + pow() was the old approach: it
-                            // started the gradient at the terminator but pow() crushed it,
-                            // making the edge visually hard regardless of the slider.
-                            // smoothstep(-soft, +soft, ndl) spans the terminator correctly.
-                            float soft = max(_Highlight_Smoothness, 0.001);
-                            float addHlMask = smoothstep(-soft, soft, ndl);
-
-                            if (addHlMask > 0.0)
-                            {
-                                // Clamp light color to [0,1] — preserves hue, prevents
-                                // intensity blowing out to a hard saturation-clip edge.
-                                additionalHighlights += saturate(addLight.color) * addHlMask * addLight.shadowAttenuation;
-                                additionalShadowDark  += addHlMask * (1.0 - addLight.shadowAttenuation);
-                            }
+                            // Clamp light color to [0,1] — preserves hue, prevents
+                            // intensity blowing out to a hard saturation-clip edge.
+                            additionalHighlights += saturate(addLight.color) * addHlMask * addLight.shadowAttenuation;
+                            additionalShadowDark  += addHlMask * (1.0 - addLight.shadowAttenuation);
                         }
                     }
                 }
