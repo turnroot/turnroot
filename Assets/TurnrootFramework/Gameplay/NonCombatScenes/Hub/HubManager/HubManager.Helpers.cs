@@ -76,7 +76,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 list.AddRange(LocationChoices);
             }
 
-            if (ExploreChoice != null)
+            // Only append ExploreChoice separately if it is NOT already embedded inside LocationChoices.
+            bool exploreEmbedded =
+                ExploreChoice != null
+                && LocationChoices != null
+                && System.Array.IndexOf(LocationChoices, ExploreChoice) >= 0;
+
+            if (ExploreChoice != null && !exploreEmbedded)
             {
                 list.Add(ExploreChoice);
             }

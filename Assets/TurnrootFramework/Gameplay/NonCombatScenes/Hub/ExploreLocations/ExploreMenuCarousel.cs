@@ -42,6 +42,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             [ResizableTextArea]
             public string FlavorText;
 
+            public string LockedFlavorText;
+
             public string Name;
         }
 
@@ -466,7 +468,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (FlavorTextLabel != null && _activeIndex >= 0 && _activeIndex < Entries.Length)
             {
-                FlavorTextLabel.text = Entries[_activeIndex].FlavorText ?? string.Empty;
+                FlavorTextLabel.text =
+                    Entries[_activeIndex].Location != null
+                    && Entries[_activeIndex].Location.IsLocked
+                        ? Entries[_activeIndex].LockedFlavorText ?? string.Empty
+                        : Entries[_activeIndex].FlavorText ?? string.Empty;
             }
             if (LocationNameLabel != null && _activeIndex >= 0 && _activeIndex < Entries.Length)
             {
