@@ -6,6 +6,7 @@ using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
+using UnityEngine.UI;
 using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
@@ -40,6 +41,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             [Tooltip("Short flavour text shown in the FlavorTextLabel when this entry is focused.")]
             [ResizableTextArea]
             public string FlavorText;
+
+            public string Name;
         }
 
         #endregion
@@ -63,7 +66,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             "TextMeshPro label that displays the flavour text of the currently focused entry. "
                 + "Updated whenever the active index changes."
         )]
-        public TMP_Text FlavorTextLabel;
+        public TextMeshProUGUI FlavorTextLabel;
+        public TextMeshProUGUI LocationNameLabel;
 
         [BoxGroup("Carousel")]
         [Tooltip("Whether items scroll left-right or up-down.")]
@@ -463,6 +467,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (FlavorTextLabel != null && _activeIndex >= 0 && _activeIndex < Entries.Length)
             {
                 FlavorTextLabel.text = Entries[_activeIndex].FlavorText ?? string.Empty;
+            }
+            if (LocationNameLabel != null && _activeIndex >= 0 && _activeIndex < Entries.Length)
+            {
+                LocationNameLabel.text = Entries[_activeIndex].Name ?? string.Empty;
             }
         }
 
