@@ -14,6 +14,11 @@ namespace Turnroot.Utilities.AbstractScripts
         public Color startColor;
         public Color endColor;
 
+        public bool HoldAtCycleMidpoint = false;
+
+        [Range(0f, 1f)]
+        public float HoldAmount = 0f;
+
         private Material _materialInstance;
         private Renderer _renderer;
 
@@ -45,6 +50,16 @@ namespace Turnroot.Utilities.AbstractScripts
             if (_materialInstance != null)
             {
                 float sineValue = (Mathf.Sin(Time.time * Speed) + 1) / 2; // Normalize sine to [0,1]
+                if (HoldAtCycleMidpoint && HoldAmount > 0f)
+                {
+                    float half = HoldAmount * 0.5f;
+                    float lo = half;
+                    float hi = 1f - half;
+                    sineValue =
+                        lo >= hi
+                            ? (sineValue >= 0.5f ? 1f : 0f)
+                            : Mathf.Clamp01(Mathf.InverseLerp(lo, hi, sineValue));
+                }
                 Color newColor = Color.Lerp(startColor, endColor, sineValue);
                 _materialInstance.color = newColor;
             }
