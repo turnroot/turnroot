@@ -1,4 +1,3 @@
-using System;
 using Turnroot.Characters;
 using Turnroot.Components.UI;
 using Turnroot.Utilities;
@@ -106,7 +105,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             };
             assignedLocation.CharactersPresent = list.ToArray();
 
-            int layoutIndex = FindLayoutIndexForLocation(assignedLocation.LocationName);
+            // All explore locations (Cafe, DanceHall, Spa, etc.) share the ExploreMisc layout group.
+            var layoutLocationName =
+                assignedLocation is HubExploreLocation
+                    ? HubSublocationName.ExploreMisc
+                    : assignedLocation.LocationName;
+            int layoutIndex = FindLayoutIndexForLocation(layoutLocationName);
             if (
                 layoutIndex >= 0
                 && layoutIndex < LocationLayouts.Length

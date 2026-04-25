@@ -214,7 +214,7 @@ namespace Turnroot.Gameplay.Brain
         // - PlayerSettings.cs: Player settings management
     }
 
-    [System.Serializable]
+    [Serializable]
     public class PlayerRosterSaveData
     {
         public string RosterId;

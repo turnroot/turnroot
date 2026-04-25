@@ -386,7 +386,7 @@ namespace Turnroot.Conversations
 
         private IEnumerator RunConversationDirect(Conversation conversation, UnityAction onFinished)
         {
-            var sceneFlow = FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+            var sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
 
             yield return conversation.BranchingConversation
                 ? RunBranchingConversation(conversation, sceneFlow)

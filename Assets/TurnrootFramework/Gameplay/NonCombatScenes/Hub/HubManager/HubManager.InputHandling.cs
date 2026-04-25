@@ -66,9 +66,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleExploreMenuInput(string action)
         {
-            // Navigation within the explore submenu is handled by your UI.
-            // Back/Cancel closes the submenu and returns to the main hub menu.
-            if (action is "Cancel" or "Back")
+            // All input is forwarded exclusively to the carousel while the explore menu is open.
+            // The carousel handles navigation, confirm, and back — nothing else receives input.
+            if (ExploreCarousel != null)
+            {
+                ExploreCarousel.HandleInput(action);
+                return;
+            }
+
+            // Fallback (no carousel assigned): at least handle back.
+            if (action is InputActionConstants.Cancel or "Back")
             {
                 BackFromExploreMenu();
             }

@@ -141,10 +141,7 @@ namespace Turnroot.Characters
                     continue;
                 }
 
-                if (first == null)
-                {
-                    first = entry.Portrait;
-                }
+                first ??= entry.Portrait;
 
                 if (
                     string.Equals(entry.Key, DefaultPortraitKey, StringComparison.OrdinalIgnoreCase)

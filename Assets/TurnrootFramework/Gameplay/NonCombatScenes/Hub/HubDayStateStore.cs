@@ -45,9 +45,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SaveState(brain);
         }
 
-        /// <summary>
-        /// Sets the quantity for a given shop item on this hub day.
-        /// </summary>
         public static void SetShopItemQuantity(
             Brain.Brain brain,
             string shopName,
@@ -60,10 +57,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (_currentState.ShopStock == null)
-            {
-                _currentState.ShopStock = new System.Collections.Generic.List<ShopStockEntry>();
-            }
+            _currentState.ShopStock ??= new System.Collections.Generic.List<ShopStockEntry>();
 
             string shopKey = LongTermMemory.EncodeKey(shopName);
             string itemKey = LongTermMemory.EncodeKey(itemName);
@@ -132,16 +126,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SaveState(brain);
         }
 
-        /// <summary>
-        /// Returns true if the avatar has already received interaction support points for the given character today.
-        /// </summary>
         public static bool HasInteractionHappenedToday(string characterFullName) =>
             _currentState?.InteractionDoneIds != null
             && _currentState.InteractionDoneIds.Contains(characterFullName);
 
-        /// <summary>
-        /// Records that interaction support points were awarded for the specified character today and persists it.
-        /// </summary>
         public static void MarkInteractionHappenedToday(Brain.Brain brain, string characterFullName)
         {
             if (
@@ -161,16 +149,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        /// <summary>
-        /// Returns true if the avatar has already had a ChitChat conversation with the given character today.
-        /// </summary>
         public static bool HasChitChatHappenedToday(string characterFullName) =>
             _currentState?.ChitChatDoneIds != null
             && _currentState.ChitChatDoneIds.Contains(characterFullName);
 
-        /// <summary>
-        /// Records that a ChitChat conversation happened with the specified character today and persists it.
-        /// </summary>
         public static void MarkChitChatHappenedToday(Brain.Brain brain, string characterFullName)
         {
             if (
@@ -190,15 +172,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        /// <summary>
-        /// Returns true if team placement has already been generated and saved for today.
-        /// </summary>
         public static bool HasTeamPlacements() =>
             _currentState?.TeamPlacements != null && _currentState.TeamPlacements.Count > 0;
 
-        /// <summary>
-        /// Returns the saved team placement as a roster-index → location map, or null if none saved.
-        /// </summary>
         public static System.Collections.Generic.Dictionary<
             int,
             HubSublocationName
@@ -212,10 +188,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             return _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
         }
 
-        /// <summary>
-        /// Saves the team placement for today. Subsequent sessions that day will load this map
-        /// instead of re-picking via RNG.
-        /// </summary>
         public static void SaveTeamPlacements(
             Brain.Brain brain,
             System.Collections.Generic.Dictionary<int, HubSublocationName> map
@@ -226,11 +198,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _currentState.TeamPlacements = map.Select(kv => new TeamPlacementEntry
-            {
-                RosterIndex = kv.Key,
-                Location = kv.Value,
-            })
+            _currentState.TeamPlacements = map.Select(static kv => new TeamPlacementEntry
+                {
+                    RosterIndex = kv.Key,
+                    Location = kv.Value,
+                })
                 .ToList();
 
             SaveState(brain);
@@ -299,7 +271,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_currentState == null)
             {
-                // Create a new deterministic seed for this day.
                 int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
                 _currentState = new HubDayState
                 {
@@ -317,18 +288,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private static string GetKey(GameDate date) =>
             $"{HubDayStateKeyPrefix}{date.year:0000}{date.month:00}{date.day:00}";
 
-        /// <summary>
-        /// Returns the encoded key used internally by LongTermMemory for the specified date.
-        /// </summary>
         public static string GetEncodedKey(GameDate date)
         {
             var raw = GetKey(date);
             return LongTermMemory.EncodeKey(raw);
         }
 
-        /// <summary>
-        /// Decodes a stored LTM key string back into the raw HubDayState key.
-        /// </summary>
         public static string DecodeKey(string encodedKey) => LongTermMemory.DecodeKey(encodedKey);
 
         [Serializable]
@@ -340,20 +305,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public int Seed;
             public bool HasProcessedDailyUpdates;
 
-            // Weather state is kept in LTM so the same weather can be used across sessions.
             public WeatherType Weather;
             public bool HasWeather;
             public int SkyboxIndex = -1;
             public System.Collections.Generic.List<ShopStockEntry> ShopStock;
 
-            // Characters the avatar has had a ChitChat conversation with today.
             public System.Collections.Generic.List<string> ChitChatDoneIds;
 
-            // Characters the avatar has visited (for the once-per-day interaction support points).
             public System.Collections.Generic.List<string> InteractionDoneIds;
-
-            // Team character locations for this day. Populated on first hub load for the day
-            // and kept fixed so locations are stable across session restarts.
             public System.Collections.Generic.List<TeamPlacementEntry> TeamPlacements;
         }
 

@@ -251,6 +251,10 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Plugins\\",
             "color": "foldercustomization.AnsiColor179"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\NonCombatScenes\\Hub\\ExploreLocations\\",
+            "color": "foldercustomization.AnsiColor107"
         }
     ],
     "omnisharp.excludePaths": [

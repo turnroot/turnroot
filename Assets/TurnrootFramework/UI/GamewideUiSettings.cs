@@ -138,10 +138,7 @@ namespace Turnroot.GameSettings
             base.OnEnable();
 
             // Ensure we have a list to work with (prevents null ref errors elsewhere)
-            if (MenuPrefabs == null)
-            {
-                MenuPrefabs = new List<MenuPrefabBinding>();
-            }
+            MenuPrefabs ??= new List<MenuPrefabBinding>();
 
             // Clear the cache when the asset is reloaded
             _menuEntryCache.Clear();

@@ -4,7 +4,6 @@ using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
