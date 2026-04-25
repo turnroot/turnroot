@@ -37,18 +37,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public Sprite FallBackPortrait;
 
-        public void Initialize(Brain.Brain brain, HubSubLocation[] subLocations)
+        private HubExploreLocation[] _exploreLocations;
+
+        public void Initialize(
+            Brain.Brain brain,
+            HubSubLocation[] subLocations,
+            HubExploreLocation[] exploreLocations = null
+        )
         {
             _hubManager = GetComponent<HubManager>();
             _brain = brain;
             _charFactory = new CharacterFactory(_brain.ltm);
+            _exploreLocations = exploreLocations ?? System.Array.Empty<HubExploreLocation>();
 
             var persistentRoster =
                 _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
-            SetTeamLocations(persistentRoster, subLocations);
-            SetNonRosterUnitsInHub(subLocations);
+            SetTeamLocations(persistentRoster, subLocations, _exploreLocations);
+            SetNonRosterUnitsInHub(subLocations, _exploreLocations);
 
             SpawnAllCharacters(subLocations, _brain);
+            SpawnAllCharacters(_exploreLocations, _brain);
         }
 
         public void SpawnAllCharacters(HubSubLocation[] subLocations, Brain.Brain brain)
@@ -64,7 +72,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public void SetTeamLocations(PlayerTeamRoster roster, HubSubLocation[] subLocations)
+        public void SetTeamLocations(
+            PlayerTeamRoster roster,
+            HubSubLocation[] subLocations,
+            HubExploreLocation[] exploreLocations = null
+        )
         {
             int maxPerLocation = GameplayGeneralSettings.Instance.MaxUnitsPerHubLocation;
 
@@ -93,7 +105,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 if (!placementMap.TryGetValue(i, out var desiredLocation))
                 {
-                    desiredLocation = PickRandomValidLocation(subLocations, maxPerLocation);
+                    desiredLocation = PickRandomValidLocation(
+                        subLocations,
+                        exploreLocations ?? System.Array.Empty<HubExploreLocation>(),
+                        maxPerLocation
+                    );
                     placementMap[i] = desiredLocation;
                     changed = true;
                 }
@@ -104,6 +120,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     unit,
                     desiredLocation,
                     subLocations,
+                    exploreLocations ?? System.Array.Empty<HubExploreLocation>(),
                     maxPerLocation
                 );
             }
@@ -114,35 +131,49 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public void SetNonRosterUnitsInHub(HubSubLocation[] subLocations)
+        public void SetNonRosterUnitsInHub(
+            HubSubLocation[] subLocations,
+            HubExploreLocation[] exploreLocations = null
+        )
         {
             int maxPerLocation = GameplayGeneralSettings.Instance.MaxUnitsPerHubLocation;
 
             foreach (var info in NonRosterUnitsInHub)
             {
-                var location = subLocations.FirstOrDefault(s => s.LocationName == info.location);
-                if (location != null)
+                HubSubLocation location = subLocations.FirstOrDefault(s =>
+                    s.LocationName == info.location
+                );
+                if (location == null && exploreLocations != null)
                 {
-                    location.CharactersPresent ??= new CharacterInstance[0];
-                    if (location.CharactersPresent.Length >= maxPerLocation)
-                    {
-                        continue;
-                    }
-
-                    var instance = _charFactory.CreateOrRecall(info.character);
-                    if (instance == null)
-                    {
-                        continue;
-                    }
-
-                    var list = new System.Collections.Generic.List<CharacterInstance>(
-                        location.CharactersPresent
-                    )
-                    {
-                        instance,
-                    };
-                    location.CharactersPresent = list.ToArray();
+                    location = exploreLocations.FirstOrDefault(e =>
+                        e.LocationName == info.location
+                    );
                 }
+
+                if (location == null)
+                {
+                    continue;
+                }
+
+                location.CharactersPresent ??= new CharacterInstance[0];
+                if (location.CharactersPresent.Length >= maxPerLocation)
+                {
+                    continue;
+                }
+
+                var instance = _charFactory.CreateOrRecall(info.character);
+                if (instance == null)
+                {
+                    continue;
+                }
+
+                var list = new System.Collections.Generic.List<CharacterInstance>(
+                    location.CharactersPresent
+                )
+                {
+                    instance,
+                };
+                location.CharactersPresent = list.ToArray();
             }
         }
     }

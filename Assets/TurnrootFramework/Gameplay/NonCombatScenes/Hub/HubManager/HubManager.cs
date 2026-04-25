@@ -184,19 +184,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             CurrentSubLocation = subLocation;
 
-            if (subLocations == null)
+            if (subLocations != null)
             {
-                return;
+                foreach (var loc in subLocations)
+                {
+                    if (loc != null)
+                    {
+                        loc.gameObject.SetActive(loc == subLocation);
+                    }
+                }
             }
 
-            foreach (var loc in subLocations)
+            if (ExploreLocations != null)
             {
-                if (loc == null)
+                foreach (var loc in ExploreLocations)
                 {
-                    continue;
+                    if (loc != null)
+                    {
+                        loc.gameObject.SetActive(loc == subLocation);
+                    }
                 }
-
-                loc.gameObject.SetActive(loc == subLocation);
             }
         }
 
@@ -231,6 +238,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (subLocations != null)
                 {
                     foreach (var loc in subLocations)
+                    {
+                        if (loc != null)
+                        {
+                            loc.gameObject.SetActive(true);
+                        }
+                    }
+                }
+
+                // Restore explore locations too — they were deactivated by SetCurrentSubLocation.
+                if (ExploreLocations != null)
+                {
+                    foreach (var loc in ExploreLocations)
                     {
                         if (loc != null)
                         {
@@ -436,17 +455,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             );
             SetInputMode(HubInputMode.Location);
 
-            if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
-            {
-                GetComponent<HubTeamLocations>().Initialize(_brain, subLocations);
-            }
-            else
-            {
-                GetComponent<HubTeamLocations>().gameObject.SetActive(false);
-            }
-
-            CacheSpawnPointHeights();
-
+            // Initialize sublocations and explore locations BEFORE HubTeamLocations.Initialize,
+            // so that CanBeVisitedToday() / IsLocked can safely access _brain.
             if (LocationChoices == null || LocationChoices.Length != subLocations.Length)
             {
                 $"LocationChoices has {LocationChoices?.Length ?? 0} entries but subLocations has {subLocations.Length}. They must be the same length and in the same order. Check the HubManager inspector.".LogWarning();
@@ -475,6 +485,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     }
                 }
             }
+
+            if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
+            {
+                GetComponent<HubTeamLocations>().Initialize(_brain, subLocations, ExploreLocations);
+            }
+            else
+            {
+                GetComponent<HubTeamLocations>().gameObject.SetActive(false);
+            }
+
+            CacheSpawnPointHeights();
 
             if (ExploreChoice != null)
             {

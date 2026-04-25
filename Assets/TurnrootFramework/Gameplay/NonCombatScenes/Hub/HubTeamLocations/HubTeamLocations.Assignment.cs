@@ -9,43 +9,55 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         private HubSublocationName PickRandomValidLocation(
             HubSubLocation[] subLocations,
+            HubExploreLocation[] exploreLocations,
             int maxPerLocation
         )
         {
+            // Build a combined pool of candidate locations, excluding Battlefields and locked explore locations.
+            var pool = new System.Collections.Generic.List<HubSubLocation>();
+            if (subLocations != null)
+            {
+                foreach (var loc in subLocations)
+                {
+                    if (loc != null && loc.LocationName != HubSublocationName.Battlefields)
+                    {
+                        pool.Add(loc);
+                    }
+                }
+            }
+            if (exploreLocations != null)
+            {
+                foreach (var loc in exploreLocations)
+                {
+                    if (loc != null && !loc.IsLocked)
+                    {
+                        pool.Add(loc);
+                    }
+                }
+            }
+
+            if (pool.Count == 0)
+            {
+                return HubSublocationName.Market;
+            }
+
+            int pickIndex = HubDayRandom.Range(0, pool.Count);
             int attempts = 0;
-            int pickIndex = HubDayRandom.Range(0, subLocations.Length);
 
-            while (attempts < subLocations.Length)
+            while (attempts < pool.Count)
             {
-                var assignedLocation = subLocations[pickIndex];
-
-                if (assignedLocation.LocationName == HubSublocationName.Battlefields)
+                var candidate = pool[pickIndex];
+                candidate.CharactersPresent ??= new CharacterInstance[0];
+                if (candidate.CharactersPresent.Length < maxPerLocation)
                 {
-                    pickIndex = (pickIndex + 1) % subLocations.Length;
-                    attempts++;
-                    continue;
+                    return candidate.LocationName;
                 }
-
-                assignedLocation.CharactersPresent ??= new CharacterInstance[0];
-                if (assignedLocation.CharactersPresent.Length >= maxPerLocation)
-                {
-                    pickIndex = (pickIndex + 1) % subLocations.Length;
-                    attempts++;
-                    continue;
-                }
-
-                return assignedLocation.LocationName;
+                pickIndex = (pickIndex + 1) % pool.Count;
+                attempts++;
             }
 
-            foreach (var location in subLocations)
-            {
-                if (location.LocationName != HubSublocationName.Battlefields)
-                {
-                    return location.LocationName;
-                }
-            }
-
-            return HubSublocationName.Market;
+            // All locations are full — return the first non-Battlefield.
+            return pool[0].LocationName;
         }
 
         private void AssignUnitToLocation(
@@ -54,10 +66,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Characters.Roster.UnitPlacement unit,
             HubSublocationName desiredLocation,
             HubSubLocation[] subLocations,
+            HubExploreLocation[] exploreLocations,
             int maxPerLocation
         )
         {
-            var assignedLocation = Array.Find(subLocations, l => l.LocationName == desiredLocation);
+            HubSubLocation assignedLocation = System.Array.Find(
+                subLocations,
+                l => l.LocationName == desiredLocation
+            );
+            if (assignedLocation == null && exploreLocations != null)
+            {
+                assignedLocation = System.Array.Find(
+                    exploreLocations,
+                    l => l.LocationName == desiredLocation
+                );
+            }
             if (assignedLocation == null)
             {
                 return;
