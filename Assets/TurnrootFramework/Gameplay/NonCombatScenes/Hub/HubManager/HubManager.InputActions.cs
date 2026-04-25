@@ -46,14 +46,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnNavigateSelect()
         {
-            var locationCount = LocationChoices?.Length ?? 0;
-
             if (currentIndex < 0 || currentIndex >= _navigableChoices.Length)
             {
                 return;
             }
 
-            // Location items (first N choices)
+            var locationCount = LocationChoices?.Length ?? 0;
+
+            // Location items (first N choices map 1:1 with subLocations)
             if (currentIndex < locationCount)
             {
                 if (currentIndex < subLocations.Length)
@@ -67,16 +67,62 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            // Extra choices (End Day, Settings)
-            var extraIndex = currentIndex - locationCount;
-            if (extraIndex == 0)
+            // Choices after LocationChoices: ExploreChoice → EndDay → Settings
+            int remaining = currentIndex - locationCount;
+
+            if (ExploreChoice != null)
+            {
+                if (remaining == 0)
+                {
+                    OpenExploreMenu();
+                    return;
+                }
+                remaining--;
+            }
+
+            if (remaining == 0)
             {
                 HandleEndDaySelected();
             }
-            else if (extraIndex == 1)
+            else if (remaining == 1)
             {
                 OpenSettingsMenu();
             }
+        }
+
+        /// <summary>Opens the Explore submenu from the main hub menu.</summary>
+        public void OpenExploreMenu()
+        {
+            HubActionsFade?.Hide();
+            SetInputMode(HubInputMode.ExploreMenu);
+            OnExploreMenuOpened?.Invoke();
+        }
+
+        /// <summary>Called when the player presses Back while in ExploreMenu mode.</summary>
+        public void BackFromExploreMenu()
+        {
+            SetInputMode(HubInputMode.Location);
+            HubActionsFade?.Show();
+            UpdateChoiceSelection();
+        }
+
+        /// <summary>Called by your explore-submenu UI when the player confirms a location.
+        /// Validates the location is not locked before calling PlayerVisit().</summary>
+        public void EnterExploreLocation(HubExploreLocation location)
+        {
+            if (location == null)
+            {
+                "HubManager: EnterExploreLocation called with a null location.".LogWarning();
+                return;
+            }
+
+            if (!location.CanBeVisitedToday())
+            {
+                $"HubManager: {location.LocationName} is locked and cannot be visited.".LogWarning();
+                return;
+            }
+
+            location.PlayerVisit();
         }
 
         private void HandleEndDaySelected()

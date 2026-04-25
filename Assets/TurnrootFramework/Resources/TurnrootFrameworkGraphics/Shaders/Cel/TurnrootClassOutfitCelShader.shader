@@ -471,22 +471,19 @@ Shader "Turnroot/Class Outfit Cel Shader"
                         {
                             float ndl = dot(normalWS, addLight.direction);
 
-                            if (ndl > 0.0)
+                            // Center the smoothstep symmetrically on the terminator (ndl=0).
+                            // smoothstep(0, smooth, ndl) + pow() crushed the gradient,
+                            // making the edge hard regardless of the slider.
+                            // smoothstep(-soft, +soft, ndl) spans the terminator correctly.
+                            float soft = max(_Highlight_Smoothness, 0.001);
+                            float addHlMask = smoothstep(-soft, soft, ndl);
+
+                            if (addHlMask > 0.0)
                             {
-                                    // Cel shading: use ndl alone for the highlight shape.
-                                // Using ndl*distAtten here causes 1/r² falloff inside the
-                                // threshold — many orders of magnitude per unit of distance.
-                                // The distAtten > 0.001 gate above already handles range cutoff.
-                                float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
-                                float addHlBase = smoothstep(0.0, max(_Highlight_Smoothness, 0.001), ndl);
-                                float addHlMask = pow(saturate(addHlBase), highlightExp);
-
-                                // Clamp light color to [0,1] — preserves hue but prevents
-                                // intensity from blowing out the highlight into a hard-clipped edge.
+                                // Clamp light color to [0,1] — preserves hue, prevents
+                                // intensity blowing out to a hard saturation-clip edge.
                                 additionalHighlights += saturate(addLight.color) * addHlMask * addLight.shadowAttenuation;
-
-                                // Shadow: areas that would be lit but are occluded
-                                additionalShadowDark += addHlMask * (1.0 - addLight.shadowAttenuation);
+                                additionalShadowDark  += addHlMask * (1.0 - addLight.shadowAttenuation);
                             }
                         }
                     }

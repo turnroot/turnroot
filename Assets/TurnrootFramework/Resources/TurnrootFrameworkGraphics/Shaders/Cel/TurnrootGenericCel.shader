@@ -459,30 +459,20 @@ Shader "Turnroot/Generic Cel Shader"
                         {
                             float ndl = dot(normalWS, addLight.direction);
 
-                            if (ndl > 0.0)
+                            // Center the smoothstep symmetrically on the terminator (ndl=0).
+                            // smoothstep(0, smooth, ndl) + pow() was the old approach: it
+                            // started the gradient at the terminator but pow() crushed it,
+                            // making the edge visually hard regardless of the slider.
+                            // smoothstep(-soft, +soft, ndl) spans the terminator correctly.
+                            float soft = max(_Highlight_Smoothness, 0.001);
+                            float addHlMask = smoothstep(-soft, soft, ndl);
+
+                            if (addHlMask > 0.0)
                             {
-                                // Use ndl * distAtten as the raw influence.
-                                // NOTE: do NOT threshold against _Highlight_Offset here —
-                                // that value is tuned for the main light's half-Lambert
-                                // (ndl*atten+1)*0.5 remapping. Additional lights use raw
-                                // ndl, so the offset would reject almost every point light.
-                                // Instead start the smoothstep at 0 so any facing pixel
-                                // contributes, with _Highlight_Smoothness controlling
-                                // edge softness exactly as the user expects.
-                                    // Cel shading: use ndl alone for the highlight shape.
-                                // Using ndl*distAtten here causes 1/r² falloff inside the
-                                // threshold — many orders of magnitude per unit of distance.
-                                // The distAtten > 0.001 gate above already handles range cutoff.
-                                float highlightExp = lerp(0.6, 3.0, 1.0 - _Highlight_Roughness);
-                                float addHlBase = smoothstep(0.0, max(_Highlight_Smoothness, 0.001), ndl);
-                                float addHlMask = pow(saturate(addHlBase), highlightExp);
-
-                                // Clamp light color to [0,1] — preserves hue but prevents
-                                // intensity from blowing out the highlight into a hard-clipped edge.
+                                // Clamp light color to [0,1] — preserves hue, prevents
+                                // intensity blowing out to a hard saturation-clip edge.
                                 additionalHighlights += saturate(addLight.color) * addHlMask * addLight.shadowAttenuation;
-
-                                // Shadow: areas that would be lit but are occluded
-                                additionalShadowDark += addHlMask * (1.0 - addLight.shadowAttenuation);
+                                additionalShadowDark  += addHlMask * (1.0 - addLight.shadowAttenuation);
                             }
                         }
                     }

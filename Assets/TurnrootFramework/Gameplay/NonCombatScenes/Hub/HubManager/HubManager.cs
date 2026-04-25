@@ -117,6 +117,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public HubSubLocation[] subLocations;
 
         [BoxGroup("Hub Content")]
+        [Tooltip(
+            "All explore locations available in this scene. "
+                + "Set by you in the inspector; locked ones show as unavailable in the Explore submenu."
+        )]
+        public HubExploreLocation[] ExploreLocations;
+
+        [BoxGroup("Hub Content")]
+        [InfoBox("UiChoice for the Explore entry in the main hub menu.")]
+        public UiChoice ExploreChoice;
+
+        [BoxGroup("Hub Content")]
         public ShopsManager shopsManager;
 
         [BoxGroup("Hub Content")]
@@ -146,17 +157,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public HubSubLocation CurrentSubLocation { get; private set; }
 
+        /// <summary>Fired whenever the Explore submenu should become visible — both when the
+        /// player first enters from the hub menu and when they return from an explore location.
+        /// Subscribe from your explore-submenu UI to show/refresh the panel.</summary>
+        public System.Action OnExploreMenuOpened;
+
         public enum HubInputMode
         {
             None,
             Location,
             Chosen,
             MarketChoice,
-            CafeChoice,
             Battlefields,
             Docks,
             Training,
             ExploreMisc,
+            ExploreMenu,
         }
 
         private readonly System.Collections.Generic.Dictionary<
@@ -186,9 +202,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void TransitionBackToHub(UIFade fadeToBlack = null)
         {
-            void DoReturnToHub()
+            bool returningToExploreMenu = CurrentSubLocation is HubExploreLocation;
+
+            void DoReturn()
             {
-                // Hide  POIs
                 if (CurrentSubLocation != null)
                 {
                     foreach (var poi in CurrentSubLocation.GetComponentsInChildren<HubPoiUi>())
@@ -197,10 +214,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     }
                 }
 
-                SetInputMode(HubInputMode.Location);
-                UpdateChoiceSelection();
-                UpdateDateText();
                 _brain.audioBrain.SetMusic(HubBackgroundMusic);
+                GeneralCamera.fieldOfView = HubMainFov;
+                BackButtonFade.Hide();
 
                 if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
                 {
@@ -209,14 +225,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
                 }
 
-                HubActionsFade.Show();
-                GeneralCamera.fieldOfView = HubMainFov;
-                BackButtonFade.Hide();
-
-                _brain?.charactersBrain.CheckBirthdays();
-
                 CurrentSubLocation = null;
 
+                // Always restore regular sublocations so the hub overview is correct.
                 if (subLocations != null)
                 {
                     foreach (var loc in subLocations)
@@ -227,11 +238,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         }
                     }
                 }
+
+                if (returningToExploreMenu)
+                {
+                    SetInputMode(HubInputMode.ExploreMenu);
+                    OnExploreMenuOpened?.Invoke();
+                }
+                else
+                {
+                    SetInputMode(HubInputMode.Location);
+                    UpdateChoiceSelection();
+                    UpdateDateText();
+                    HubActionsFade.Show();
+                    _brain?.charactersBrain.CheckBirthdays();
+                }
             }
 
             if (fadeToBlack == null)
             {
-                DoReturnToHub();
+                DoReturn();
                 return;
             }
 
@@ -241,7 +266,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             onVisible = () =>
             {
                 fadeToBlack.OnVisible.RemoveListener(onVisible);
-                DoReturnToHub();
+                DoReturn();
                 fadeToBlack.Hide();
             };
 
@@ -438,6 +463,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
 
                 LocationChoices[i].CanBeSelected = subLocations[i].CanBeVisitedToday();
+            }
+
+            if (ExploreLocations != null)
+            {
+                foreach (var exploreLoc in ExploreLocations)
+                {
+                    if (exploreLoc != null)
+                    {
+                        exploreLoc.Initialize(_brain);
+                    }
+                }
+            }
+
+            if (ExploreChoice != null)
+            {
+                ExploreChoice.CanBeSelected =
+                    ExploreLocations != null && ExploreLocations.Length > 0;
             }
 
             if (EndDay != null)
