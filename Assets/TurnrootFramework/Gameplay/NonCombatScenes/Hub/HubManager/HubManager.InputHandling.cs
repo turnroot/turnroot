@@ -20,7 +20,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     HandleLocationInput(action);
                     break;
                 case HubInputMode.MarketChoice:
-                case HubInputMode.CafeChoice:
                 case HubInputMode.Docks:
                     SublocationInput.HandleSubLocationInput(action);
                     break;
@@ -28,6 +27,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 case HubInputMode.Battlefields:
                 case HubInputMode.ExploreMisc:
                     SublocationInput.HandleSubLocationInput(action);
+                    break;
+                case HubInputMode.ExploreMenu:
+                    HandleExploreMenuInput(action);
                     break;
                 case HubInputMode.Chosen:
                     SpecificUiInputHandler.HandleInput(action);
@@ -49,17 +51,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 HubInputMode.Location => false,
                 HubInputMode.MarketChoice => true,
-                HubInputMode.CafeChoice => true,
                 HubInputMode.Battlefields => false,
                 HubInputMode.Docks => true,
                 HubInputMode.Training => true,
                 HubInputMode.ExploreMisc => true,
+                HubInputMode.ExploreMenu => false,
                 HubInputMode.Chosen => false,
                 HubInputMode.None => false,
                 _ => false,
             };
 
             SublocationInput.SetLookEnabled(allowLook);
+        }
+
+        private void HandleExploreMenuInput(string action)
+        {
+            // Navigation within the explore submenu is handled by your UI.
+            // Back/Cancel closes the submenu and returns to the main hub menu.
+            if (action is "Cancel" or "Back")
+            {
+                BackFromExploreMenu();
+            }
         }
 
         public void RevertToPreviousInputMode()

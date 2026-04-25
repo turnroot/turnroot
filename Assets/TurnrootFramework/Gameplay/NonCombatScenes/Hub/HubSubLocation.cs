@@ -25,7 +25,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool HasBeenVisitedEver;
 
-        private Brain.Brain brain;
+        protected Brain.Brain brain;
         public GameObject tutorialPrefab;
 
         private bool acceptingInput = false;
@@ -48,7 +48,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UIFade NotificationFade;
         private string LtmKey => "HubSubLocation_Visited_" + LocationName.ToString();
 
-        public bool CanBeVisitedToday() => true;
+        public virtual bool CanBeVisitedToday() => true;
 
         public bool AcceptingInput => acceptingInput;
 
@@ -97,7 +97,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             acceptingInput = true;
         }
 
-        public void Initialize(Brain.Brain brain)
+        public virtual void Initialize(Brain.Brain brain)
         {
             this.brain = brain;
             brain.OnHubSublocationTutorialCompleted += HandleOnHubSublocationTutorialCompleted;
@@ -179,12 +179,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private HubInputMode GetSublocationChoiceMode()
+        protected virtual HubInputMode GetSublocationChoiceMode()
         {
             return LocationName switch
             {
                 HubSublocationName.Market => HubInputMode.MarketChoice,
-                HubSublocationName.Cafe => HubInputMode.CafeChoice,
                 HubSublocationName.Battlefields => HubInputMode.Battlefields,
                 HubSublocationName.Docks => HubInputMode.Docks,
                 HubSublocationName.Training => HubInputMode.Training,

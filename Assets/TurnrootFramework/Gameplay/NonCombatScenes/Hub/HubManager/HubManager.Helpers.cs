@@ -76,6 +76,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 list.AddRange(LocationChoices);
             }
 
+            if (ExploreChoice != null)
+            {
+                list.Add(ExploreChoice);
+            }
+
             if (EndDay != null)
             {
                 list.Add(EndDay);

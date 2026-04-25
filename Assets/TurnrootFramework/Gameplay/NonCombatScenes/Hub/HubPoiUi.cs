@@ -475,18 +475,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             hubmanager?.SpecificUiInputHandler?.SetCurrentSelection(subLocation, this);
 
-            switch (Type)
+            // POIs inside any ExploreLocation always move to Chosen mode.
+            // Regular sublocations (Market, Docks, Training, Unit) do the same.
+            bool setChosen = subLocation is HubExploreLocation;
+            if (!setChosen)
             {
-                case HubSublocationName.Market:
-                case HubSublocationName.Docks:
-                case HubSublocationName.Cafe:
-                case HubSublocationName.Training:
-                case HubSublocationName.Unit:
-                    hubmanager.SetInputMode(HubInputMode.Chosen);
-                    break;
-                // battlefields don't have pois
-                default:
-                    break;
+                switch (Type)
+                {
+                    case HubSublocationName.Market:
+                    case HubSublocationName.Docks:
+                    case HubSublocationName.Training:
+                    case HubSublocationName.Unit:
+                        setChosen = true;
+                        break;
+                }
+            }
+
+            if (setChosen)
+            {
+                hubmanager.SetInputMode(HubInputMode.Chosen);
             }
 
             if (CameraPoint != null)
