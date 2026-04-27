@@ -84,6 +84,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip("Field of view used for the hub camera when not in a sublocation.")]
         public float HubMainFov;
 
+        [BoxGroup("Camera & Fade")]
+        [InfoBox(
+            "If an explore location is Indoors, these effects will be disabled when visiting it and re-enabled when returning to the hub"
+        )]
+        public GameObject[] OutdoorEffects;
+
         [Header("Spawn Point Sampling")]
         [Tooltip("Collider used to sample terrain height for unit spawn points.")]
         public MeshCollider SpawnGroundCollider;

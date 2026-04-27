@@ -17,9 +17,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )]
         public HubExploreUnlockCondition[] UnlockConditions;
 
-        private Brain.Brain _brain;
+        public bool Indoors;
 
-        /// <summary>True if any unlock condition has not yet been met.</summary>
+        private Brain.Brain _brain;
         public bool IsLocked
         {
             get
