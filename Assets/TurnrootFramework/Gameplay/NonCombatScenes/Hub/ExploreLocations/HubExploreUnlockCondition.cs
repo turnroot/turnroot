@@ -83,6 +83,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return true;
             }
 
+            // Guard against unset/invalid GameDate values (year 0, month 0, day 0 are not
+            // representable by System.DateTime and would throw ArgumentOutOfRangeException).
+            if (
+                UnlockDate.year < 1
+                || UnlockDate.month < 1
+                || UnlockDate.month > 12
+                || UnlockDate.day < 1
+                || UnlockDate.day > 31
+            )
+            {
+                "HubExploreUnlockCondition: UnlockDate has invalid values; treating as unlocked.".LogWarning();
+                return true;
+            }
+
+            if (
+                currentDate.year < 1
+                || currentDate.month < 1
+                || currentDate.month > 12
+                || currentDate.day < 1
+                || currentDate.day > 31
+            )
+            {
+                return false;
+            }
+
             var unlock = new DateTime(UnlockDate.year, UnlockDate.month, UnlockDate.day);
             var current = new DateTime(currentDate.year, currentDate.month, currentDate.day);
             return current >= unlock;
