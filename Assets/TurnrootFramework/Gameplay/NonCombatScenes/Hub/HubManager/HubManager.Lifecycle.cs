@@ -139,22 +139,50 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             // Initialize sublocations and explore locations BEFORE HubTeamLocations.Initialize,
             // so that CanBeVisitedToday() / IsLocked can safely access _brain.
-            if (LocationChoices == null || LocationChoices.Length != subLocations.Length)
+
+            // Count how many LocationChoices slots are reserved for ExploreChoice (0 or 1).
+            // ExploreChoice may be embedded inside LocationChoices; if so, the remaining slots
+            // map 1:1 with subLocations.
+            int embeddedExploreCount =
+                ExploreChoice != null
+                && LocationChoices != null
+                && System.Array.IndexOf(LocationChoices, ExploreChoice) >= 0
+                    ? 1
+                    : 0;
+
+            int expectedChoiceCount = subLocations.Length + embeddedExploreCount;
+            if (LocationChoices == null || LocationChoices.Length != expectedChoiceCount)
             {
-                $"LocationChoices has {LocationChoices?.Length ?? 0} entries but subLocations has {subLocations.Length}. They must be the same length and in the same order. Check the HubManager inspector.".LogWarning();
+                $"LocationChoices has {LocationChoices?.Length ?? 0} entries but subLocations has {subLocations.Length} (plus {embeddedExploreCount} embedded ExploreChoice). Expected {expectedChoiceCount} total. Check the HubManager inspector.".LogWarning();
             }
 
+            // Walk LocationChoices in order; skip the ExploreChoice slot and map the rest to subLocations.
+            int subIndex = 0;
             for (int i = 0; i < subLocations.Length; i++)
             {
                 subLocations[i].Initialize(_brain);
+            }
 
-                if (LocationChoices == null || i >= LocationChoices.Length)
+            if (LocationChoices != null)
+            {
+                subIndex = 0;
+                for (int i = 0; i < LocationChoices.Length; i++)
                 {
-                    $"No LocationChoices entry at index {i} for sublocation '{subLocations[i].LocationName}'. Add a UiChoice for it in the HubManager inspector.".LogWarning();
-                    continue;
-                }
+                    if (LocationChoices[i] == ExploreChoice)
+                    {
+                        // This slot is the explore button — no subLocation to map to.
+                        continue;
+                    }
 
-                LocationChoices[i].CanBeSelected = subLocations[i].CanBeVisitedToday();
+                    if (subIndex >= subLocations.Length)
+                    {
+                        $"LocationChoices has more non-explore entries than subLocations. Extra entry at index {i}.".LogWarning();
+                        break;
+                    }
+
+                    LocationChoices[i].CanBeSelected = subLocations[subIndex].CanBeVisitedToday();
+                    subIndex++;
+                }
             }
 
             if (ExploreLocations != null)

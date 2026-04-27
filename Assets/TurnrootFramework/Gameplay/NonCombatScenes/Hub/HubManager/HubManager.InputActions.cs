@@ -124,7 +124,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             OnExploreMenuOpened?.Invoke();
         }
 
-        /// <summary>Called when the player presses Back while in ExploreMenu mode.</summary>
         public void BackFromExploreMenu()
         {
             SetInputMode(HubInputMode.Location);
@@ -132,8 +131,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             UpdateChoiceSelection();
         }
 
-        /// <summary>Called by your explore-submenu UI when the player confirms a location.
-        /// Validates the location is not locked before calling PlayerVisit().</summary>
         public void EnterExploreLocation(HubExploreLocation location)
         {
             if (location == null)
@@ -146,6 +143,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 $"HubManager: {location.LocationName} is locked and cannot be visited.".LogWarning();
                 return;
+            }
+            
+            if (location.Indoors)
+            {
+                foreach (var effect in OutdoorEffects)
+                {
+                    if (effect != null)
+                    {
+                        effect.SetActive(false);
+                    }
+                }
             }
 
             location.PlayerVisit();
