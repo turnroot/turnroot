@@ -119,7 +119,7 @@ namespace Turnroot.Gameplay.Brain
         {
             if (dialogues == null)
             {
-                return System.Array.Empty<OneShot>();
+                return Array.Empty<OneShot>();
             }
 
             var result = new OneShot[dialogues.Length];

@@ -18,7 +18,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             HubDayStateStore.SaveTeamPlacements(_brain, map);
         }
+
+        private System.Collections.Generic.Dictionary<
+            string,
+            HubSublocationName
+        > LoadSavedNonRosterPlacement()
+        {
+            return HubDayStateStore.GetNonRosterPlacements();
+        }
+
+        private void SaveNonRosterPlacement(
+            System.Collections.Generic.Dictionary<string, HubSublocationName> map
+        )
+        {
+            HubDayStateStore.SaveNonRosterPlacements(_brain, map);
+        }
     }
 }
-
-

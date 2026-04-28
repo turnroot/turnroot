@@ -107,7 +107,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                     return null;
                 }
 
-                return unplayed[UnityEngine.Random.Range(0, unplayed.Length)];
+                return unplayed[Random.Range(0, unplayed.Length)];
             }
 
             return null;
