@@ -27,10 +27,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Inspector Fields
 
-        [Tooltip("Which hub sublocation this POI represents (Market, Cafe, Docks, etc.).")]
-        public HubSublocationName Type;
+        [Tooltip("What kind of interaction this POI drives (Market, Docks, Training, or Unit).")]
+        public HubPoiType Type;
 
-        [ShowIf(nameof(Type), HubSublocationName.Market)]
+        [ShowIf(nameof(Type), HubPoiType.Market)]
         public bool IsShop = false;
 
         [HideIf(nameof(IsShop))]
@@ -306,7 +306,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             switch (Type)
             {
-                case HubSublocationName.Market:
+                case HubPoiType.Market:
                     if (IsShop)
                     {
                         _shop = TryGetComponent<Shop.Shop>(out var shop) ? shop : null;
@@ -482,10 +482,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 switch (Type)
                 {
-                    case HubSublocationName.Market:
-                    case HubSublocationName.Docks:
-                    case HubSublocationName.Training:
-                    case HubSublocationName.Unit:
+                    case HubPoiType.Market:
+                    case HubPoiType.Docks:
+                    case HubPoiType.Training:
+                    case HubPoiType.Unit:
                         setChosen = true;
                         break;
                 }

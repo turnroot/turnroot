@@ -7,6 +7,7 @@ using Turnroot.UI;
 using Turnroot.UI.Components.Notifications;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
+using Turnroot.Utilities.Weather;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
@@ -216,6 +217,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void TransitionBackToHub(UIFade fadeToBlack = null)
         {
             bool returningToExploreMenu = CurrentSubLocation is HubExploreLocation;
+            bool wasIndoorExploreLocation =
+                CurrentSubLocation is HubExploreLocation iel && iel.Indoors;
 
             void DoReturn()
             {
@@ -261,6 +264,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         {
                             loc.gameObject.SetActive(true);
                         }
+                    }
+                }
+
+                // When returning from an indoor explore location, restore outdoor effects.
+                // First re-enable all OutdoorEffects as the base outdoor state, then let
+                // SceneSkyboxSetter apply the correct weather-specific particle overrides on top.
+                if (wasIndoorExploreLocation)
+                {
+                    foreach (var effect in OutdoorEffects)
+                    {
+                        if (effect != null)
+                        {
+                            effect.SetActive(true);
+                        }
+                    }
+                    var skyboxSetter = FindFirstObjectByType<SceneSkyboxSetter>();
+                    if (skyboxSetter != null)
+                    {
+                        skyboxSetter.SetActiveParticles(gameDate.month);
                     }
                 }
 
