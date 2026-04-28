@@ -400,7 +400,7 @@ namespace Turnroot.Conversations
                 sceneFlow != null
                 && sceneFlow.IsInterruptQueued
                 && sceneFlow.CurrentInterrupt
-                    == Utilities.AbstractScripts.InterruptType.Conversation
+                    == InterruptType.Conversation
             )
             {
                 sceneFlow.CompleteInterrupt();

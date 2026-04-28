@@ -290,7 +290,7 @@ namespace Turnroot.Gameplay.Brain.Components
                 return string.Empty;
             }
 
-            var result = Utilities.DeviceDataCipher.EncryptToBase64(key);
+            var result = DeviceDataCipher.EncryptToBase64(key);
             if (result.Success)
             {
                 return result.Value;
@@ -308,7 +308,7 @@ namespace Turnroot.Gameplay.Brain.Components
                 return encoded;
             }
 
-            var result = Utilities.DeviceDataCipher.DecryptFromBase64(encoded);
+            var result = DeviceDataCipher.DecryptFromBase64(encoded);
             if (result.Success)
             {
                 return result.Value;

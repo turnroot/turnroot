@@ -68,7 +68,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
             _activeChitChatConversation = conversation;
 
-            var controller = UnityEngine.Object.FindFirstObjectByType<ConversationController>();
+            var controller = FindFirstObjectByType<ConversationController>();
             if (controller == null)
             {
                 $"HubCharacterInteraction: No ConversationController found in scene. Cannot play chitchat conversation.".LogWarning();

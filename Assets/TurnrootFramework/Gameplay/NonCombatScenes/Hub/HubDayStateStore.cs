@@ -208,6 +208,46 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SaveState(brain);
         }
 
+        public static bool HasNonRosterPlacements() =>
+            _currentState?.NonRosterPlacements != null
+            && _currentState.NonRosterPlacements.Count > 0;
+
+        public static System.Collections.Generic.Dictionary<
+            string,
+            HubSublocationName
+        > GetNonRosterPlacements()
+        {
+            if (!HasNonRosterPlacements())
+            {
+                return null;
+            }
+
+            return _currentState.NonRosterPlacements.ToDictionary(
+                e => e.CharacterKey,
+                e => e.Location
+            );
+        }
+
+        public static void SaveNonRosterPlacements(
+            Brain.Brain brain,
+            System.Collections.Generic.Dictionary<string, HubSublocationName> map
+        )
+        {
+            if (brain?.ltm == null || _currentState == null || map == null)
+            {
+                return;
+            }
+
+            _currentState.NonRosterPlacements = map.Select(static kv => new NonRosterPlacementEntry
+                {
+                    CharacterKey = kv.Key,
+                    Location = kv.Value,
+                })
+                .ToList();
+
+            SaveState(brain);
+        }
+
         public static void SetWeather(Brain.Brain brain, WeatherType weather)
         {
             if (brain?.ltm == null || _currentState == null)
@@ -314,6 +354,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             public System.Collections.Generic.List<string> InteractionDoneIds;
             public System.Collections.Generic.List<TeamPlacementEntry> TeamPlacements;
+            public System.Collections.Generic.List<NonRosterPlacementEntry> NonRosterPlacements;
         }
 
         [Serializable]
@@ -328,6 +369,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public class TeamPlacementEntry
         {
             public int RosterIndex;
+            public HubSublocationName Location;
+        }
+
+        [Serializable]
+        public class NonRosterPlacementEntry
+        {
+            public string CharacterKey;
             public HubSublocationName Location;
         }
     }

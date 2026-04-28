@@ -6,6 +6,42 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubTeamLocations
     {
+        /// <summary>
+        /// Returns the best-matching <see cref="HubCharacterLocation"/> for <paramref name="character"/>
+        /// given the current save-file chapter. An exact chapter match takes priority; chapter 0 is the
+        /// "all chapters" fallback. Returns a default struct (Character == null) if nothing is configured.
+        /// </summary>
+        private HubCharacterLocation FindHubCharacterLocationForChapter(CharacterData character)
+        {
+            if (character == null || HubCharacterLocations == null)
+            {
+                return default;
+            }
+
+            int currentChapter = _brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
+            HubCharacterLocation fallback = default;
+
+            foreach (var entry in HubCharacterLocations)
+            {
+                if (entry.Character != character)
+                {
+                    continue;
+                }
+
+                if (entry.Chapter == currentChapter)
+                {
+                    return entry;
+                }
+
+                if (entry.Chapter == 0)
+                {
+                    fallback = entry;
+                }
+            }
+
+            return fallback;
+        }
+
         private HubSublocationName PickRandomValidLocation(
             HubSubLocation[] subLocations,
             HubExploreLocation[] exploreLocations,
