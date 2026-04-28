@@ -102,13 +102,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void UpdateChoiceSelection()
         {
-            foreach (var effect in OutdoorEffects)
-            {
-                if (effect != null)
-                {
-                    effect.SetActive(true);
-                }
-            }
             if (_navigableChoices == null || _navigableChoices.Length == 0)
             {
                 return;

@@ -7,7 +7,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         Battlefields,
         Docks,
         Training,
-        Unit,
 
         // Explore sublocations (accessed via the Explore submenu)
         Cafe,
