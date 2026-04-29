@@ -27,10 +27,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Inspector Fields
 
-        [Tooltip("What kind of interaction this POI drives (Market, Docks, Training, or Unit).")]
+        [Tooltip("What kind of interaction this POI drives (MarketPOI, DocksPOI, TrainingPOI, or UnitPOI).")]
         public HubPoiType Type;
 
-        [ShowIf(nameof(Type), HubPoiType.Market)]
+        [ShowIf(nameof(Type), HubPoiType.MarketPOI)]
         public bool IsShop = false;
 
         [HideIf(nameof(IsShop))]
@@ -306,7 +306,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             switch (Type)
             {
-                case HubPoiType.Market:
+                case HubPoiType.MarketPOI:
                     if (IsShop)
                     {
                         _shop = TryGetComponent<Shop.Shop>(out var shop) ? shop : null;
@@ -476,16 +476,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             hubmanager?.SpecificUiInputHandler?.SetCurrentSelection(subLocation, this);
 
             // POIs inside any ExploreLocation always move to Chosen mode.
-            // Regular sublocations (Market, Docks, Training, Unit) do the same.
+            // Regular POIs (MarketPOI, DocksPOI, TrainingPOI, UnitPOI) do the same.
             bool setChosen = subLocation is HubExploreLocation;
             if (!setChosen)
             {
                 switch (Type)
                 {
-                    case HubPoiType.Market:
-                    case HubPoiType.Docks:
-                    case HubPoiType.Training:
-                    case HubPoiType.Unit:
+                    case HubPoiType.MarketPOI:
+                    case HubPoiType.DocksPOI:
+                    case HubPoiType.TrainingPOI:
+                    case HubPoiType.UnitPOI:
                         setChosen = true;
                         break;
                 }
@@ -559,3 +559,4 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #endregion
     }
 }
+
