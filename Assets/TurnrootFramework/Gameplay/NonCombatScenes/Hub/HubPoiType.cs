@@ -6,9 +6,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     /// </summary>
     public enum HubPoiType
     {
-        Market,
-        Docks,
-        Training,
-        Unit,
+        MarketPOI,
+        DocksPOI,
+        TrainingPOI,
+        UnitPOI,
     }
 }

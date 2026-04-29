@@ -58,15 +58,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             hubManager?.MainOverlayUiFade?.Hide();
             hubManager?.SublocationInput?.FocusOverlayFade?.Hide();
 
-            if (type == HubPoiType.Market)
+            if (type == HubPoiType.MarketPOI)
             {
                 HandleMarketSelection(poi);
             }
-            else if (type == HubPoiType.Docks)
+            else if (type == HubPoiType.DocksPOI)
             {
                 HandleDockSelection(poi);
             }
-            else if (type == HubPoiType.Unit)
+            else if (type == HubPoiType.UnitPOI)
             {
                 HandleCharacterPoiSelection(poi);
             }
@@ -169,71 +169,71 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (action is "Back" or InputActionConstants.Cancel)
             {
-                if (_currentType == HubPoiType.Market)
+                if (_currentType == HubPoiType.MarketPOI)
                 {
                     HandleMarketExit(action);
                 }
-                else if (_currentType == HubPoiType.Docks)
+                else if (_currentType == HubPoiType.DocksPOI)
                 {
                     HandleDockShopBack(action);
                 }
-                else if (_currentType == HubPoiType.Unit)
+                else if (_currentType == HubPoiType.UnitPOI)
                 {
                     HandleCharacterBack(action);
                 }
             }
             if (action is InputActionConstants.NavigateRight or InputActionConstants.NavigateLeft)
             {
-                if (_currentType == HubPoiType.Market)
+                if (_currentType == HubPoiType.MarketPOI)
                 {
                     HandleMarketLeftRight(action);
                 }
-                else if (_currentType == HubPoiType.Docks)
+                else if (_currentType == HubPoiType.DocksPOI)
                 {
                     HandleDockShopLeftRight(action);
                 }
-                else if (_currentType == HubPoiType.Unit)
+                else if (_currentType == HubPoiType.UnitPOI)
                 {
                     HandleCharacterLeftRight(action);
                 }
             }
             if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
             {
-                if (_currentType == HubPoiType.Market)
+                if (_currentType == HubPoiType.MarketPOI)
                 {
                     HandleMarketUpDown(action);
                 }
-                else if (_currentType == HubPoiType.Docks)
+                else if (_currentType == HubPoiType.DocksPOI)
                 {
                     HandleDockShopUpDown(action);
                 }
-                else if (_currentType == HubPoiType.Unit)
+                else if (_currentType == HubPoiType.UnitPOI)
                 {
                     HandleCharacterUpDown(action);
                 }
             }
             if (action is InputActionConstants.Submit or InputActionConstants.Select)
             {
-                if (_currentType == HubPoiType.Market)
+                if (_currentType == HubPoiType.MarketPOI)
                 {
                     HandleMarketSelection(action);
                 }
-                else if (_currentType == HubPoiType.Docks)
+                else if (_currentType == HubPoiType.DocksPOI)
                 {
                     HandleDockShopSelection(action);
                 }
-                else if (_currentType == HubPoiType.Unit)
+                else if (_currentType == HubPoiType.UnitPOI)
                 {
                     HandleCharacterSelection(action);
                 }
             }
             if (action is InputActionConstants.ScrollLeft or InputActionConstants.ScrollRight)
             {
-                if (_currentType == HubPoiType.Market)
+                if (_currentType == HubPoiType.MarketPOI)
                 {
                     HandleMarketPageChange(action);
                 }
-                else if (_currentType == HubPoiType.Docks)
+                else if (_currentType == HubPoiType.DocksPOI)
                 {
                     HandleDockShopPageChange(action);
                 }
@@ -296,3 +296,4 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
     }
 }
+
