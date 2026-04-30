@@ -254,7 +254,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             var oneShot = CharacterManager.GetDailyOneShotForType(
                 ActiveCharacter,
                 CurrentChapter,
-                chosenGift.UnitsLove.Contains(ActiveCharacter.CharacterTemplate)
+                chosenGift.UnitsLove.ContainsMatching(ActiveCharacter.CharacterTemplate)
                     ? HubCharacterOneShotType.GetGiftLove
                     : HubCharacterOneShotType.GetGiftDislike
             );
@@ -269,7 +269,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             // IS ITEM THEIRS???
             var isTheirs =
                 chosenLostItem.BelongsTo != null
-                && chosenLostItem.BelongsTo.Equals(ActiveCharacter.CharacterTemplate);
+                && chosenLostItem.BelongsTo.Matches(ActiveCharacter.CharacterTemplate);
             if (isTheirs)
             {
                 CharacterManager._brain.storehouseBrain.ConsumeMaterials(chosenLostItem, 1);
@@ -335,7 +335,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             var negative = isGift
                 ? GameplayGeneralSettings.Instance.GiftSupportPointsUnitDislikes
                 : GameplayGeneralSettings.Instance.LostItemIsNotUnits;
-            var reaction = item.UnitsLove.Contains(ActiveCharacter.CharacterTemplate)
+            var reaction = item.UnitsLove.ContainsMatching(ActiveCharacter.CharacterTemplate)
                 ? positive
                 : negative;
             var basePoints = reaction * item.GiftRank;

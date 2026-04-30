@@ -81,7 +81,7 @@ namespace Turnroot.Gameplay.Brain
                         continue;
                     }
 
-                    if (!result.Contains(p.CharacterData))
+                    if (!result.ContainsMatching(p.CharacterData))
                     {
                         result.Add(p.CharacterData);
                     }

@@ -1,3 +1,4 @@
+using System;
 using Turnroot.Characters;
 using Turnroot.Components.UI;
 using Turnroot.Utilities;
@@ -23,7 +24,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             foreach (var entry in HubCharacterLocations)
             {
-                if (entry.Character != character)
+                if (!CharacterDataUtilities.CharacterDataMatches(entry.Character, character))
                 {
                     continue;
                 }

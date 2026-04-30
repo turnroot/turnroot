@@ -48,7 +48,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             return _allyCache.GetOrCompute(() =>
                 battleContext.Participants.Allies.FirstOrDefault(a =>
-                    a.CharacterTemplate == AllyToReachTile
+                    a.CharacterTemplate.Matches(AllyToReachTile)
                 )
             );
         }

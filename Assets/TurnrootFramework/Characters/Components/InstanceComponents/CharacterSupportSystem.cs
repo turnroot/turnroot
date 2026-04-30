@@ -10,7 +10,7 @@ namespace Turnroot.Characters
     {
         #region Support Relationships
         public SupportRelationshipInstance GetSupportRelationship(CharacterData character) =>
-            _supportRelationships.Find(s => s.Character == character);
+            _supportRelationships.Find(s => s.Character.Matches(character));
 
         public OperationResult AddSupportRelationship(SupportRelationship template)
         {
@@ -29,7 +29,7 @@ namespace Turnroot.Characters
             }
 
             // Validate that the support relationship is not with the same character
-            if (template.Character == _characterTemplate)
+            if (template.Character.Matches(_characterTemplate))
             {
                 return OperationResult.Failure(
                     $"Cannot add support relationship with the same character ({template.Character.name})"
@@ -94,7 +94,7 @@ namespace Turnroot.Characters
                 );
             }
 
-            _ = _supportRelationships.RemoveAll(s => s.Character == character);
+            _ = _supportRelationships.RemoveAll(s => s.Character.Matches(character));
             return OperationResult.Successful();
         }
 
