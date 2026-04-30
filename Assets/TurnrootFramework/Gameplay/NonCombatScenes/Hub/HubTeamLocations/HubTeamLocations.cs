@@ -110,20 +110,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
+                var userSet = FindHubCharacterLocationForChapter(unit.CharacterData);
+
                 if (!placementMap.TryGetValue(i, out var desiredLocation))
                 {
-                    HubCharacterLocation UserSet = FindHubCharacterLocationForChapter(
-                        unit.CharacterData
-                    );
-                    if (UserSet.Character != null)
+                    if (userSet.Character != null)
                     {
-                        desiredLocation = UserSet.IsRandomForThisChapter
+                        desiredLocation = userSet.IsRandomForThisChapter
                             ? PickRandomValidLocation(
                                 subLocations,
                                 exploreLocations ?? Array.Empty<HubExploreLocation>(),
                                 maxPerLocation
                             )
-                            : UserSet.Location;
+                            : userSet.Location;
                     }
                     else
                     {
@@ -134,6 +133,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                             maxPerLocation
                         );
                     }
+                    placementMap[i] = desiredLocation;
+                    changed = true;
+                }
+                else if (
+                    userSet.Character != null
+                    && !userSet.IsRandomForThisChapter
+                    && desiredLocation != userSet.Location
+                )
+                {
+                    desiredLocation = userSet.Location;
                     placementMap[i] = desiredLocation;
                     changed = true;
                 }
@@ -207,6 +216,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                             maxPerLocation
                         )
                         : info.Location;
+                    placementMap[characterKey] = desiredLocation;
+                    changed = true;
+                }
+                else if (!info.IsRandomForThisChapter && desiredLocation != info.Location)
+                {
+                    desiredLocation = info.Location;
                     placementMap[characterKey] = desiredLocation;
                     changed = true;
                 }
