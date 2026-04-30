@@ -149,7 +149,9 @@ namespace Turnroot.Gameplay.Brain
             );
 
             return placements
-                .Where(p => p.CharacterData != null && selectedTemplates.Contains(p.CharacterData))
+                .Where(p =>
+                    p.CharacterData != null && selectedTemplates.ContainsMatching(p.CharacterData)
+                )
                 .ToArray();
         }
         #endregion

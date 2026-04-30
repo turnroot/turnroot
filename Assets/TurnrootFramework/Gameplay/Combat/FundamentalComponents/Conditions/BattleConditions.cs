@@ -139,7 +139,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         protected List<CharacterInstance> GetMatchingUnits(
             IEnumerable<CharacterInstance> units,
             CharacterData[] templates
-        ) => units.Where(u => templates.Contains(u.CharacterTemplate)).ToList();
+        ) => units.Where(u => templates.ContainsMatching(u.CharacterTemplate)).ToList();
 
         /// <summary>
         /// Get units matching specified templates from Allies and ThirdParty.
@@ -148,7 +148,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             return battleContext
                 .Participants.Allies.Concat(battleContext.Participants.ThirdParty)
-                .Where(u => templates.Contains(u.CharacterTemplate))
+                .Where(u => templates.ContainsMatching(u.CharacterTemplate))
                 .ToList();
         }
     }

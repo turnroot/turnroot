@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Subclasses;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -43,8 +44,14 @@ namespace Turnroot.Characters
             foreach (var p in Pairings)
             {
                 if (
-                    (p.CharacterA == a && p.CharacterB == b)
-                    || (p.CharacterA == b && p.CharacterB == a)
+                    (
+                        CharacterDataUtilities.CharacterDataMatches(p.CharacterA, a)
+                        && CharacterDataUtilities.CharacterDataMatches(p.CharacterB, b)
+                    )
+                    || (
+                        CharacterDataUtilities.CharacterDataMatches(p.CharacterA, b)
+                        && CharacterDataUtilities.CharacterDataMatches(p.CharacterB, a)
+                    )
                 )
                 {
                     pairing = p;
@@ -76,11 +83,11 @@ namespace Turnroot.Characters
             foreach (var pairing in Pairings)
             {
                 CharacterData partner = null;
-                if (pairing.CharacterA == character)
+                if (CharacterDataUtilities.CharacterDataMatches(pairing.CharacterA, character))
                 {
                     partner = pairing.CharacterB;
                 }
-                else if (pairing.CharacterB == character)
+                else if (CharacterDataUtilities.CharacterDataMatches(pairing.CharacterB, character))
                 {
                     partner = pairing.CharacterA;
                 }

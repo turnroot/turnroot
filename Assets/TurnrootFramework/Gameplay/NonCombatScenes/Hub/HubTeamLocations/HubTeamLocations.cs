@@ -4,6 +4,7 @@ using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 using static Turnroot.Characters.Roster;
 
@@ -57,6 +58,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _charFactory = new CharacterFactory(_brain.ltm);
             _exploreLocations = exploreLocations ?? Array.Empty<HubExploreLocation>();
 
+            _spawnedCharacterIds.Clear();
+            ClearAssignedCharacters(subLocations, _exploreLocations);
+
             var persistentRoster =
                 _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
             SetTeamLocations(persistentRoster, subLocations, _exploreLocations);
@@ -64,6 +68,34 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             SpawnAllCharacters(subLocations, _brain);
             SpawnAllCharacters(_exploreLocations, _brain);
+        }
+
+        private void ClearAssignedCharacters(
+            HubSubLocation[] subLocations,
+            HubExploreLocation[] exploreLocations
+        )
+        {
+            if (subLocations != null)
+            {
+                foreach (var location in subLocations)
+                {
+                    if (location != null)
+                    {
+                        location.CharactersPresent = new CharacterInstance[0];
+                    }
+                }
+            }
+
+            if (exploreLocations != null)
+            {
+                foreach (var location in exploreLocations)
+                {
+                    if (location != null)
+                    {
+                        location.CharactersPresent = new CharacterInstance[0];
+                    }
+                }
+            }
         }
 
         public void SpawnAllCharacters(HubSubLocation[] subLocations, Brain.Brain brain)
@@ -200,7 +232,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
 
                 // Skip characters in the roster — SetTeamLocations handles those
-                if (roster.characters.Any(u => u.CharacterData == info.Character))
+                if (roster.characters.Any(u => u.CharacterData.Matches(info.Character)))
                 {
                     continue;
                 }

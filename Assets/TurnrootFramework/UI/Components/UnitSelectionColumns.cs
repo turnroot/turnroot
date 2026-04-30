@@ -289,7 +289,7 @@ namespace Turnroot.UI.Components
                 _brain.battleBrain.PreparationObject?.RequiredPlayerUnits
                 ?? new List<Characters.CharacterData>();
 
-            if (requiredUnits.Contains(unit.CharacterData))
+            if (requiredUnits.ContainsMatching(unit.CharacterData))
             {
                 if (!isSelected)
                 {

@@ -164,7 +164,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             var alreadyRecruited =
                 rosterInstance != null
                 && rosterInstance.Instances.Any(u =>
-                    u?.CharacterTemplate == ActiveCharacter.CharacterTemplate
+                    u?.CharacterTemplate.Matches(ActiveCharacter.CharacterTemplate) == true
                 );
 
             return !alreadyRecruited && ActiveCharacter.CharacterTemplate.IsRecruitable;

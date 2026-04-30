@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Turnroot.Utilities;
 using UnityEngine;
 using static Turnroot.Characters.Roster;
 
@@ -110,7 +111,7 @@ namespace Turnroot.Characters
             {
                 foreach (var placement in _runtimePlacements)
                 {
-                    if (placement != null && placement.CharacterData == data)
+                    if (placement != null && placement.CharacterData.Matches(data))
                     {
                         return placement;
                     }
@@ -122,7 +123,7 @@ namespace Turnroot.Characters
             {
                 foreach (var placement in roster.characters)
                 {
-                    if (placement != null && placement.CharacterData == data)
+                    if (placement != null && placement.CharacterData.Matches(data))
                     {
                         return placement;
                     }
@@ -142,7 +143,10 @@ namespace Turnroot.Characters
 
             for (int i = 0; i < _runtimePlacements.Length; i++)
             {
-                if (_runtimePlacements[i] != null && _runtimePlacements[i].CharacterData == data)
+                if (
+                    _runtimePlacements[i] != null
+                    && _runtimePlacements[i].CharacterData.Matches(data)
+                )
                 {
                     _runtimePlacements[i].Order = order;
                     OnRosterModified?.Invoke();
@@ -156,7 +160,7 @@ namespace Turnroot.Characters
         }
 
         public CharacterInstance GetInstanceFor(CharacterData data) =>
-            _instances.Find(i => i.CharacterTemplate == data);
+            _instances.Find(i => i.CharacterTemplate.Matches(data));
 
         public void AddRuntimePlacement(CharacterData data)
         {
