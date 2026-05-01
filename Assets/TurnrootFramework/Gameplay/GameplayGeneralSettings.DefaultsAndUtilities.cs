@@ -87,6 +87,12 @@ namespace Turnroot.GameSettings
         [Tooltip("Initial in-game calendar date used until a scene with a date is loaded.")]
         public GameDate StartingGameDate = GameDate.Default;
 
+        [Header("Scene Flow")]
+        [Tooltip(
+            "The scene ID (as defined in the SceneFlowGraph) to set as the current scene when the game start screen loads."
+        )]
+        public string StartingSceneId = "scene_1";
+
         [BoxGroup("Extra Experience Types"), HorizontalLine(color: EColor.Orange)]
         public ExperienceType RidingExperienceType = new()
         {
