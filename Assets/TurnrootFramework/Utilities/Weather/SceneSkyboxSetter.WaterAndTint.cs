@@ -179,6 +179,19 @@ namespace Turnroot.Utilities.Weather
                 GrassMaterial.SetFloat("_NightTintIntensity", intensity);
             }
 
+            // GrassExtras materials (optional): same night tint.
+            if (GrassExtrasMaterials != null)
+            {
+                foreach (var mat in GrassExtrasMaterials)
+                {
+                    if (mat != null)
+                    {
+                        mat.SetColor("_NightTintColor", NightTintColor);
+                        mat.SetFloat("_NightTintIntensity", intensity);
+                    }
+                }
+            }
+
             // Also update cel materials (night tint portion only).
             foreach (var runtimeMat in _celMaterialInstances.Values)
             {

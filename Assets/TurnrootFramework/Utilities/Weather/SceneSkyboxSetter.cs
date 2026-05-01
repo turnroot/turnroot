@@ -274,6 +274,10 @@ namespace Turnroot.Utilities.Weather
         [Tooltip("Grass material (uses Grass.shader) to apply cel/night tinting")]
         public Material GrassMaterial;
 
+        [BoxGroup("Grass Tinting")]
+        [Tooltip("GrassExtras materials (uses GrassExtras.shader) to apply cel/night tinting")]
+        public Material[] GrassExtrasMaterials;
+
         [HorizontalLine(2, EColor.Yellow)]
         [Header("Weather Settings")]
         [BoxGroup("Weather")]

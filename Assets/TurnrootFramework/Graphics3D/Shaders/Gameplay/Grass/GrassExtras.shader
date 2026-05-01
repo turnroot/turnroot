@@ -15,6 +15,14 @@ Shader "Turnroot/GrassExtras"
         _WindSpeed      ("Wind Speed", Float) = 1.2
         _WindStrength   ("Wind Strength", Float) = 0.0
         _WindTurbulence ("Wind Turbulence", Float) = 0.0
+
+        [Header(Tinting)]
+        _CelTintColor       ("Cel Tint Color", Color) = (1,1,1,1)
+        [Range(0,1)]
+        _CelTintIntensity   ("Cel Tint Intensity", Float) = 0.0
+        _NightTintColor     ("Night Tint Color", Color) = (0.1,0.13,0.25,1)
+        [Range(0,1)]
+        _NightTintIntensity ("Night Tint Intensity", Float) = 0.0
     }
 
     SubShader
@@ -50,6 +58,10 @@ Shader "Turnroot/GrassExtras"
             float _WindSpeed;
             float _WindStrength;
             float _WindTurbulence;
+            float4 _CelTintColor;
+            float  _CelTintIntensity;
+            float4 _NightTintColor;
+            float  _NightTintIntensity;
             CBUFFER_END
 
             struct Varyings
@@ -97,7 +109,7 @@ Shader "Turnroot/GrassExtras"
                 float3 worldPos = blade.position
                     + surfNorm * (t * blade.height)
                     + right   * (side * blade.width)
-                    + windDir * swayAmt;
+                    + windDir * (swayAmt * t);
 
                 o.positionCS = TransformWorldToHClip(worldPos);
                 o.uv = uv;
@@ -111,6 +123,8 @@ Shader "Turnroot/GrassExtras"
             {
                 float alpha = i.distFade;
                 float4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv) * _Tint;
+                col.rgb = lerp(col.rgb, _CelTintColor.rgb, _CelTintIntensity);
+                col.rgb = lerp(col.rgb, _NightTintColor.rgb, _NightTintIntensity);
                 clip(alpha * col.a - _AlphaCutoff);
                 return half4(col.rgb, alpha * col.a);
             }
@@ -175,7 +189,7 @@ Shader "Turnroot/GrassExtras"
                 float3 worldPos = blade.position
                     + right * (position.x * blade.width)
                     + fwd  * (position.z * blade.width)
-                    + windDir * swayAmt;
+                    + windDir * (swayAmt * position.y);
                 o.pos = TransformWorldToHClip(worldPos);
                 float dist = distance(blade.position, _CameraPosition.xyz);
                 o.distFade = 1.0 - saturate((dist - _FadeStartDistance)/max(_MaxDistance - _FadeStartDistance,0.001));
