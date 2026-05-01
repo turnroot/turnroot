@@ -172,6 +172,11 @@ namespace Turnroot.Utilities.SceneFlows
                 SetCustomFlag(SceneFlowConditionKeys.EndHubDay, false);
             }
 
+            if (scene.SpecificChapter)
+            {
+                Brain.PublishSetSaveFileChapter(scene.ChapterName, scene.ChapterNumber);
+            }
+
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
         }
 
@@ -212,6 +217,11 @@ namespace Turnroot.Utilities.SceneFlows
                 {
                     _ltm.SetGameDate(newYear, monthEnum, newDay);
                 }
+            }
+
+            if (scene.SpecificChapter)
+            {
+                Brain.PublishSetSaveFileChapter(scene.ChapterName, scene.ChapterNumber);
             }
 
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
