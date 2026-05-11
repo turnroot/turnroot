@@ -9,8 +9,25 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
+        private const string WeaponBoneName = "hand.r";
+        private const string ShieldBoneName = "forearm.r";
+
         /// <summary>
-        /// Spawns and attaches the equipped weapon to the unit model with offset.
+        /// Finds a named bone Transform anywhere in the model hierarchy.
+        /// </summary>
+        private static Transform FindBone(GameObject model, string boneName)
+        {
+            foreach (var t in model.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name == boneName)
+                    return t;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Spawns and attaches the equipped weapon as a child of the right hand bone (hand.r).
+        /// All local transforms are zeroed so the weapon follows the bone directly.
         /// </summary>
         public OperationResult AttachWeaponToUnit(CharacterInstance unit, GameObject model)
         {
@@ -37,9 +54,18 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Successful();
             }
 
+            var handBone = FindBone(model, WeaponBoneName);
+            var parent = handBone != null ? handBone : model.transform;
+            if (handBone == null)
+            {
+                LogWarning(
+                    $"AttachWeaponToUnit: '{WeaponBoneName}' bone not found on {unit.CharacterTemplate?.DisplayName}; attaching to model root."
+                );
+            }
+
             var weaponInstance = TryInstantiatePrefab(
                 weaponPrefab,
-                model.transform,
+                parent,
                 $"{equippedWeapon.Template.name}_Weapon",
                 "AttachWeaponToUnit"
             );
@@ -50,9 +76,7 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            // Apply offset - since all models use the same rig structure,
-            // the weapon keeps its own skeleton and just needs positioning
-            weaponInstance.transform.localPosition = unit.CharacterTemplate.HandItemOffset;
+            weaponInstance.transform.localPosition = Vector3.zero;
             weaponInstance.transform.localRotation = Quaternion.identity;
             weaponInstance.transform.localScale = Vector3.one;
 
@@ -62,7 +86,8 @@ namespace Turnroot.Gameplay.Brain
         }
 
         /// <summary>
-        /// Spawns and attaches the equipped shield to the unit model with offset.
+        /// Spawns and attaches the equipped shield as a child of the right forearm bone (forearm.r).
+        /// All local transforms are zeroed so the shield follows the bone directly.
         /// </summary>
         public OperationResult AttachShieldToUnit(CharacterInstance unit, GameObject model)
         {
@@ -89,9 +114,18 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Successful();
             }
 
+            var forearmBone = FindBone(model, ShieldBoneName);
+            var parent = forearmBone != null ? forearmBone : model.transform;
+            if (forearmBone == null)
+            {
+                LogWarning(
+                    $"AttachShieldToUnit: '{ShieldBoneName}' bone not found on {unit.CharacterTemplate?.DisplayName}; attaching to model root."
+                );
+            }
+
             var shieldInstance = TryInstantiatePrefab(
                 shieldPrefab,
-                model.transform,
+                parent,
                 $"{equippedShield.Template.name}_Shield",
                 "AttachShieldToUnit"
             );
@@ -102,9 +136,7 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            // Apply offset - since all models use the same rig structure,
-            // the shield keeps its own skeleton and just needs positioning
-            shieldInstance.transform.localPosition = unit.CharacterTemplate.ShieldOffset;
+            shieldInstance.transform.localPosition = Vector3.zero;
             shieldInstance.transform.localRotation = Quaternion.identity;
             shieldInstance.transform.localScale = Vector3.one;
 

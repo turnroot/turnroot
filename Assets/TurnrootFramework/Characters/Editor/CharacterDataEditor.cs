@@ -121,6 +121,7 @@ namespace Turnroot.Characters.Editor
                 {
                     DrawAutoPropertyField("CharacterPronouns");
                     DrawAutoPropertyField("Height");
+                    DrawAutoPropertyField("Build");
                     DrawAutoPropertyField("BirthdayDay");
                     DrawAutoPropertyField("BirthdayMonth");
                     DrawAutoPropertyField("Species");

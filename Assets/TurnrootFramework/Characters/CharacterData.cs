@@ -17,6 +17,12 @@ using UnityEngine.Serialization;
 
 namespace Turnroot.Characters
 {
+    public enum BodyBuild
+    {
+        Tall,
+        Short,
+    }
+
     [CreateAssetMenu(
         fileName = "NewCharacterConfiguration",
         menuName = "Turnroot/Characters/CharacterData"
@@ -37,6 +43,12 @@ namespace Turnroot.Characters
 
         [field: Foldout("Demographics"), SerializeField, Range(100f, 250f)]
         public float Height { get; private set; } = 166f;
+
+        [field: Foldout("Demographics"), SerializeField]
+        [Tooltip(
+            "Whether this character uses the short or tall body type (affects class outfit model selection)"
+        )]
+        public BodyBuild Build { get; private set; } = BodyBuild.Tall;
 
         [field: Foldout("Demographics"), SerializeField, Range(1, 31)]
         public int BirthdayDay { get; private set; } = 1;
@@ -267,14 +279,6 @@ namespace Turnroot.Characters
         [field: Foldout("Visual"), SerializeField]
         [Tooltip("Height offset for class hat positioning (Y axis)")]
         public float ClassHatHeightOffset { get; private set; } = 0f;
-
-        [field: Foldout("Visual"), SerializeField]
-        [Tooltip("3D offset for hand-held items (weapon position adjustment)")]
-        public Vector3 HandItemOffset { get; private set; } = Vector3.zero;
-
-        [field: Foldout("Visual"), SerializeField]
-        [Tooltip("3D offset for shield position adjustment")]
-        public Vector3 ShieldOffset { get; private set; } = Vector3.zero;
 
         [field:
             Foldout("Animations"),
