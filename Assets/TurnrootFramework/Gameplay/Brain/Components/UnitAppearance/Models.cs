@@ -122,10 +122,29 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var pronounKey = unit.CharacterTemplate.CharacterPronouns.GetPronounKey();
-            var prefab = classInst.ClassData.Identity.GetClassModelPrefabForPronoun(pronounKey);
+            var build = unit.CharacterTemplate.Build;
+            var identity = classInst.ClassData.Identity;
+            var prefab = identity.GetClassModelPrefab(pronounKey, build);
+
+            // Warn if the requested body-build prefab isn't configured and we're falling back
             if (prefab == null)
             {
                 return false;
+            }
+
+            bool hasShort = identity.ClassModelPrefabShort != null;
+            bool hasTall = identity.ClassModelPrefab != null;
+            if (build == Turnroot.Characters.BodyBuild.Short && !hasShort && hasTall)
+            {
+                LogWarning(
+                    $"Class '{classInst.ClassData.GetClassName()}' has no short prefab; using tall prefab for {unit.CharacterTemplate.DisplayName}."
+                );
+            }
+            else if (build == Turnroot.Characters.BodyBuild.Tall && !hasTall && hasShort)
+            {
+                LogWarning(
+                    $"Class '{classInst.ClassData.GetClassName()}' has no tall prefab; using short prefab for {unit.CharacterTemplate.DisplayName}."
+                );
             }
 
             var obj = Instantiate(prefab, parent.transform);

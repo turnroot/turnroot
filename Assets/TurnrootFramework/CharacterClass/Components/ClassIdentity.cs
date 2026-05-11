@@ -1,5 +1,6 @@
 using System;
 using NaughtyAttributes;
+using Turnroot.Characters;
 using Turnroot.GameSettings;
 using UnityEngine;
 
@@ -37,6 +38,9 @@ namespace Turnroot.Characters.CharacterClass
             "Prefab containing a SkinnedMeshRenderer for this class outfit (required). May include head/hands or hat; hair should NOT be included — unit HairPrefab will be used."
         )]
         public GameObject ClassModelPrefab;
+
+        [Tooltip("Prefab for short-body characters. If unset, falls back to ClassModelPrefab.")]
+        public GameObject ClassModelPrefabShort;
 
         [Tooltip("Tint mask texture")]
         public Texture2D TintMask;
@@ -89,15 +93,17 @@ namespace Turnroot.Characters.CharacterClass
         public bool HasRequiredVisuals() =>
             (
                 ClassModelPrefab != null
+                || ClassModelPrefabShort != null
                 || (PronounClassModelPrefabs != null && PronounClassModelPrefabs.Length > 0)
             ) && !string.IsNullOrEmpty(ClassName);
 
         /// <summary>
-        /// Get the class model prefab that best matches the given pronoun key.
-        /// Falls back to the default ClassModelPrefab when no pronoun-specific entry exists.
+        /// Get the class model prefab that best matches the given pronoun key and body build.
+        /// Falls back to the default ClassModelPrefab when no specific override exists.
         /// </summary>
-        public GameObject GetClassModelPrefabForPronoun(string pronounKey)
+        public GameObject GetClassModelPrefab(string pronounKey, BodyBuild build)
         {
+            // Pronoun overrides take highest priority
             if (!string.IsNullOrEmpty(pronounKey) && PronounClassModelPrefabs != null)
             {
                 foreach (var p in PronounClassModelPrefabs)
@@ -116,8 +122,23 @@ namespace Turnroot.Characters.CharacterClass
                     }
                 }
             }
-            return ClassModelPrefab;
+
+            // Short body build: prefer ClassModelPrefabShort, fall back to ClassModelPrefab
+            if (build == BodyBuild.Short)
+            {
+                return ClassModelPrefabShort ?? ClassModelPrefab;
+            }
+
+            // Tall body build: prefer ClassModelPrefab, fall back to ClassModelPrefabShort
+            return ClassModelPrefab ?? ClassModelPrefabShort;
         }
+
+        /// <summary>
+        /// Get the class model prefab that best matches the given pronoun key.
+        /// Falls back to the default ClassModelPrefab when no pronoun-specific entry exists.
+        /// </summary>
+        public GameObject GetClassModelPrefabForPronoun(string pronounKey) =>
+            GetClassModelPrefab(pronounKey, BodyBuild.Tall);
 
         public string GetTierDisplayName()
         {
