@@ -70,6 +70,8 @@ namespace Turnroot.Utilities.SceneFlows
         public bool HasTransition(string fromSceneId, string toSceneId) =>
             transitions.Exists(t => t.fromSceneId == fromSceneId && t.toSceneId == toSceneId);
 
+        public List<SceneNode> GetBattleScenes() => scenes.FindAll(s => s.isBattle);
+
         #endregion
 
         #region Scene Management
@@ -131,6 +133,9 @@ namespace Turnroot.Utilities.SceneFlows
         [Header("Scene Type")]
         [Tooltip("Is this a hub scene that persists and can be returned to multiple times?")]
         public bool isHub = false;
+
+        [Tooltip("Is this a battle scene?")]
+        public bool isBattle = false;
 
         [Tooltip("Should this scene stay loaded in the background when leaving?")]
         public bool persistWhenLeaving = false;
@@ -208,9 +213,11 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Notes about when/why this transition should be used.")]
         public string notes;
 
-        public bool AreConditionsMet(SceneFlowConditionEvaluator evaluator) => AreConditionsMet(evaluator, conditions);
+        public bool AreConditionsMet(SceneFlowConditionEvaluator evaluator) =>
+            AreConditionsMet(evaluator, conditions);
 
-        public bool AreReverseConditionsMet(SceneFlowConditionEvaluator evaluator) => AreConditionsMet(evaluator, reverseConditions);
+        public bool AreReverseConditionsMet(SceneFlowConditionEvaluator evaluator) =>
+            AreConditionsMet(evaluator, reverseConditions);
 
         private bool AreConditionsMet(
             SceneFlowConditionEvaluator evaluator,

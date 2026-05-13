@@ -38,6 +38,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
         // Transition creation
         private SceneNode _transitionStartNode;
+        private bool _transitionIsDrag;
+        private SceneNode _potentialTransitionDrag;
+        private Vector2 _potentialTransitionDragStart;
+        private const float DRAG_TRANSITION_THRESHOLD = 8f;
         private bool _clickedEmptySpace;
 
         // Styles
@@ -45,8 +49,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private GUIStyle _nodeSelectedStyle;
         private GUIStyle _hubNodeStyle;
         private GUIStyle _hubNodeSelectedStyle;
+        private GUIStyle _battleNodeStyle;
+        private GUIStyle _battleNodeSelectedStyle;
         private GUIStyle _labelStyle;
         private bool _stylesInitialized;
+        private const int STATUS_BAR_HEIGHT = 22;
 
         // Settings
         private SceneFlowGraphEditorSettings _settings;
@@ -198,6 +205,12 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     Repaint();
                 }
             }
+
+            // Continuously repaint while creating a transition so the line follows the mouse
+            if (_transitionStartNode != null || _potentialTransitionDrag != null)
+            {
+                Repaint();
+            }
         }
 
         private void InitializeStyles()
@@ -237,6 +250,20 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 _settings.hubNodeSelectedColor
             );
 
+            _battleNodeStyle = new GUIStyle(_nodeStyle);
+            _battleNodeStyle.normal.background = MakeTexture(
+                2,
+                2,
+                new Color(0.45f, 0.1f, 0.1f, 1f)
+            );
+
+            _battleNodeSelectedStyle = new GUIStyle(_battleNodeStyle);
+            _battleNodeSelectedStyle.normal.background = MakeTexture(
+                2,
+                2,
+                new Color(0.75f, 0.2f, 0.2f, 1f)
+            );
+
             _labelStyle = new GUIStyle(GUI.skin.label)
             {
                 fontSize = _settings.nodeFontSize,
@@ -273,16 +300,28 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 return;
             }
 
-            var graphRect = new Rect(0, 20, position.width - SIDEBAR_WIDTH, position.height - 20);
+            var graphRect = new Rect(
+                0,
+                20,
+                position.width - SIDEBAR_WIDTH,
+                position.height - 20 - STATUS_BAR_HEIGHT
+            );
             var sidebarRect = new Rect(
                 position.width - SIDEBAR_WIDTH,
                 20,
                 SIDEBAR_WIDTH,
-                position.height - 20
+                position.height - 20 - STATUS_BAR_HEIGHT
+            );
+            var statusBarRect = new Rect(
+                0,
+                position.height - STATUS_BAR_HEIGHT,
+                position.width,
+                STATUS_BAR_HEIGHT
             );
 
             DrawGraph(graphRect);
             DrawSidebar(sidebarRect);
+            DrawStatusBar(statusBarRect);
         }
 
         private void DrawToolbar()
@@ -417,16 +456,40 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 );
             }
 
+            // Cancel drag-based transition if mouse released over empty space
+            // (nodes consume the event via e.Use() when completing over them)
+            if (
+                _transitionIsDrag
+                && _transitionStartNode != null
+                && Event.current.type == EventType.MouseUp
+                && Event.current.button == 0
+            )
+            {
+                _transitionStartNode = null;
+                _transitionIsDrag = false;
+                Repaint();
+            }
+
+            // Cancel potential shift+drag if released over empty space
+            if (
+                _potentialTransitionDrag != null
+                && Event.current.type == EventType.MouseUp
+                && Event.current.button == 0
+            )
+            {
+                _potentialTransitionDrag = null;
+                Repaint();
+            }
+
             // Handle deselection on empty space click
             if (_clickedEmptySpace && Event.current.type == EventType.MouseDown)
             {
                 _selectedNode = null;
                 _selectedTransition = null;
                 _selectedNodes.Clear();
-                if (_transitionStartNode != null)
-                {
-                    _transitionStartNode = null;
-                }
+                _transitionStartNode = null;
+                _transitionIsDrag = false;
+                _potentialTransitionDrag = null;
                 Repaint();
             }
             _clickedEmptySpace = false;
@@ -462,9 +525,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 || (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
             )
             {
-                if (_transitionStartNode != null)
+                if (_transitionStartNode != null || _potentialTransitionDrag != null)
                 {
                     _transitionStartNode = null;
+                    _transitionIsDrag = false;
+                    _potentialTransitionDrag = null;
                     e.Use();
                     Repaint();
                 }
@@ -537,11 +602,41 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             GUIStyle style;
             if (_selectedNode == node || _selectedNodes.Contains(node))
             {
-                style = node.isHub ? _hubNodeSelectedStyle : _nodeSelectedStyle;
+                style =
+                    node.isBattle ? _battleNodeSelectedStyle
+                    : node.isHub ? _hubNodeSelectedStyle
+                    : _nodeSelectedStyle;
             }
             else
             {
-                style = node.isHub ? _hubNodeStyle : _nodeStyle;
+                style =
+                    node.isBattle ? _battleNodeStyle
+                    : node.isHub ? _hubNodeStyle
+                    : _nodeStyle;
+            }
+
+            // Draw date label above node when this scene advances the game date
+            if (node.TimePasses)
+            {
+                string monthAbbr = node.MonthForThisScene.ToString().Substring(0, 3);
+                string dateLabel = $"{monthAbbr} {node.DayForThisScene}";
+                if (node.HasYear)
+                    dateLabel += $", Y{node.YearForThisScene}";
+                var dateLabelRect = new Rect(rect.x, rect.y - 18, rect.width, 16);
+                EditorGUI.DrawRect(
+                    new Rect(
+                        dateLabelRect.x - 1,
+                        dateLabelRect.y - 1,
+                        dateLabelRect.width + 2,
+                        dateLabelRect.height + 2
+                    ),
+                    new Color(0.1f, 0.1f, 0.3f, 0.85f)
+                );
+                GUI.Label(
+                    dateLabelRect,
+                    dateLabel,
+                    new GUIStyle(_labelStyle) { fontSize = 10, alignment = TextAnchor.MiddleCenter }
+                );
             }
 
             // Draw node box
@@ -560,7 +655,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             };
             GUI.Label(idRect, node.id, idStyle);
 
-            // Hub indicator
+            // Hub indicator (top-left)
             if (node.isHub)
             {
                 var hubRect = new Rect(rect.x + 5, rect.y + 5, 15, 15);
@@ -568,6 +663,18 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 GUI.Label(
                     hubRect,
                     "H",
+                    new GUIStyle(_labelStyle) { fontSize = 11, fontStyle = FontStyle.Bold }
+                );
+            }
+
+            // Battle indicator (bottom-left)
+            if (node.isBattle)
+            {
+                var battleRect = new Rect(rect.x + 5, rect.y + rect.height - 20, 15, 15);
+                EditorGUI.DrawRect(battleRect, new Color(0.9f, 0.2f, 0.2f, 0.75f));
+                GUI.Label(
+                    battleRect,
+                    "B",
                     new GUIStyle(_labelStyle) { fontSize = 11, fontStyle = FontStyle.Bold }
                 );
             }
@@ -589,7 +696,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 );
             }
 
-            // Starting scene indicator
+            // Starting scene indicator (top-right)
             if (_graph.startingScene == node)
             {
                 var startRect = new Rect(rect.x + rect.width - 20, rect.y + 5, 15, 15);
@@ -608,45 +715,49 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 {
                     _clickedEmptySpace = false; // Clicked on a node, not empty space
 
-                    if (_transitionStartNode != null)
+                    if (_transitionStartNode != null && !_transitionIsDrag)
                     {
-                        // Complete transition creation
+                        // Complete click-based transition creation
                         if (_transitionStartNode != node)
                         {
                             CreateTransition(_transitionStartNode, node);
                         }
                         _transitionStartNode = null;
+                        _transitionIsDrag = false;
                     }
-                    else
+                    else if (e.shift && _transitionStartNode == null)
                     {
-                        // Handle multi-selection with Ctrl/Cmd
-                        if (e.control || e.command)
+                        // Shift+mousedown: track for potential drag-to-connect or click multi-select
+                        _potentialTransitionDrag = node;
+                        _potentialTransitionDragStart = mousePos;
+                    }
+                    else if (e.control || e.command)
+                    {
+                        // Ctrl/Cmd: multi-select
+                        if (_selectedNodes.Contains(node))
                         {
-                            if (_selectedNodes.Contains(node))
+                            _selectedNodes.Remove(node);
+                            if (_selectedNode == node)
                             {
-                                _selectedNodes.Remove(node);
-                                if (_selectedNode == node)
-                                {
-                                    _selectedNode = null;
-                                }
+                                _selectedNode = null;
                             }
-                            else
-                            {
-                                _selectedNodes.Add(node);
-                                _selectedNode = node;
-                            }
-                            _selectedTransition = null;
                         }
                         else
                         {
-                            // Normal single selection and start dragging
-                            _selectedNodes.Clear();
+                            _selectedNodes.Add(node);
                             _selectedNode = node;
-                            _selectedTransition = null;
-                            _draggedNode = node;
-                            _dragStartPos = e.mousePosition;
-                            _isDragging = true;
                         }
+                        _selectedTransition = null;
+                    }
+                    else if (_transitionStartNode == null)
+                    {
+                        // Normal single selection and start dragging
+                        _selectedNodes.Clear();
+                        _selectedNode = node;
+                        _selectedTransition = null;
+                        _draggedNode = node;
+                        _dragStartPos = e.mousePosition;
+                        _isDragging = true;
                     }
                     e.Use();
                     Repaint();
@@ -669,8 +780,60 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 Repaint();
             }
 
+            // Handle shift+drag to initiate transition creation from this node
+            if (_potentialTransitionDrag == node && e.type == EventType.MouseDrag && e.button == 0)
+            {
+                if (
+                    Vector2.Distance(e.mousePosition, _potentialTransitionDragStart)
+                    > DRAG_TRANSITION_THRESHOLD
+                )
+                {
+                    _transitionStartNode = node;
+                    _transitionIsDrag = true;
+                    _potentialTransitionDrag = null;
+                    Repaint();
+                }
+                e.Use();
+            }
+
             if (e.type == EventType.MouseUp && e.button == 0)
             {
+                // Complete drag-based transition creation when released over a target node
+                if (
+                    _transitionIsDrag
+                    && _transitionStartNode != null
+                    && _transitionStartNode != node
+                    && rect.Contains(mousePos)
+                )
+                {
+                    CreateTransition(_transitionStartNode, node);
+                    _transitionStartNode = null;
+                    _transitionIsDrag = false;
+                    e.Use();
+                    Repaint();
+                }
+                // Shift+click (drag threshold not exceeded) → multi-select
+                else if (_potentialTransitionDrag == node && rect.Contains(mousePos))
+                {
+                    _potentialTransitionDrag = null;
+                    if (_selectedNodes.Contains(node))
+                    {
+                        _selectedNodes.Remove(node);
+                        if (_selectedNode == node)
+                        {
+                            _selectedNode = null;
+                        }
+                    }
+                    else
+                    {
+                        _selectedNodes.Add(node);
+                        _selectedNode = node;
+                    }
+                    _selectedTransition = null;
+                    e.Use();
+                    Repaint();
+                }
+
                 if (_isDragging && _draggedNode == node)
                 {
                     // Save after dragging is complete
@@ -985,7 +1148,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox(
-                "Click a node to select it.\nCtrl+Click to multi-select nodes.\nRight-click a node to create a transition.\nDelete key removes selected node/transition.",
+                "Click a node to select it.\nCtrl+Click or Shift+Click to multi-select nodes.\nShift+Drag from one node to another to create a transition.\nRight-click a node for more options.\nDelete key removes the selected node/transition.",
                 MessageType.Info
             );
         }
@@ -1096,13 +1259,36 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 }
             }
 
+            _selectedNode.displayName = EditorGUILayout.TextField(
+                "Display Name",
+                _selectedNode.displayName
+            );
+
+            // Track ID changes and update all referencing transitions
+            string oldNodeId = _selectedNode.id;
             _selectedNode.id = EditorGUILayout.TextField("ID", _selectedNode.id);
+            if (_selectedNode.id != oldNodeId && !string.IsNullOrEmpty(_selectedNode.id))
+            {
+                foreach (var t in _graph.transitions)
+                {
+                    if (t.fromSceneId == oldNodeId)
+                        t.fromSceneId = _selectedNode.id;
+                    if (t.toSceneId == oldNodeId)
+                        t.toSceneId = _selectedNode.id;
+                }
+                if (_graph.StartingSceneId == oldNodeId)
+                    _graph.SetStartingSceneById(_selectedNode.id);
+            }
 
             EditorGUILayout.Space();
             _selectedNode.isHub = EditorGUILayout.Toggle("Is Hub Scene", _selectedNode.isHub);
             _selectedNode.persistWhenLeaving = EditorGUILayout.Toggle(
                 "Persist When Leaving",
                 _selectedNode.persistWhenLeaving
+            );
+            _selectedNode.isBattle = EditorGUILayout.Toggle(
+                "Is Battle Scene",
+                _selectedNode.isBattle
             );
 
             EditorGUILayout.Space();
@@ -1196,6 +1382,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             if (GUILayout.Button("Create Transition From This"))
             {
                 _transitionStartNode = _selectedNode;
+                _transitionIsDrag = false;
             }
 
             if (GUILayout.Button("Delete Node", GUILayout.Height(30)))
@@ -1734,6 +1921,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 () =>
                 {
                     _transitionStartNode = node;
+                    _transitionIsDrag = false;
                     Repaint();
                 }
             );
@@ -1833,6 +2021,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 _graph.RemoveScene(node.id);
                 _selectedNode = null;
                 _selectedNodes.Clear();
+                _selectedTransition = null;
                 EditorUtility.SetDirty(_graph);
                 AssetDatabase.SaveAssetIfDirty(_graph);
                 Repaint();
@@ -1857,6 +2046,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 }
                 _selectedNode = null;
                 _selectedNodes.Clear();
+                _selectedTransition = null;
                 EditorUtility.SetDirty(_graph);
                 AssetDatabase.SaveAssetIfDirty(_graph);
                 Repaint();
@@ -1927,6 +2117,43 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 EditorUtility.FocusProjectWindow();
                 Selection.activeObject = newGraph;
             }
+        }
+
+        private void DrawStatusBar(Rect rect)
+        {
+            GUILayout.BeginArea(rect);
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+            var settings = Turnroot.GameSettings.GameplayGeneralSettings.Instance;
+            if (settings != null)
+            {
+                var startDate = settings.StartingGameDate;
+                var monthName = ((Turnroot.Utilities.Month)(startDate.month - 1)).ToString();
+                GUILayout.Label(
+                    $"Game Start: {monthName} {startDate.day}, Year {startDate.year}",
+                    EditorStyles.toolbarButton
+                );
+            }
+            else
+            {
+                GUILayout.Label(
+                    "Game Start Date: (GameplayGeneralSettings not found)",
+                    EditorStyles.toolbarButton
+                );
+            }
+
+            GUILayout.FlexibleSpace();
+
+            if (_transitionStartNode != null)
+            {
+                GUILayout.Label(
+                    $"Creating transition from '{_transitionStartNode.displayName}' — click or drag to target node  |  Esc to cancel",
+                    EditorStyles.toolbarButton
+                );
+            }
+
+            EditorGUILayout.EndHorizontal();
+            GUILayout.EndArea();
         }
     }
 }

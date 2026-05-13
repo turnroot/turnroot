@@ -43,18 +43,34 @@ namespace Turnroot.Skills.Nodes.Editor
         public Color conditionsNodeColor = new(49f / 255f, 46f / 255f, 129f / 255f); // indigo-900
 
         private static SkillGraphEditorSettings _instance;
+        private static bool _searchedForInstance;
 
         /// <summary>
-        /// Get the settings instance. Searches for it in Resources folder.
-        /// Always reloads to ensure fresh data.
+        /// Get the settings instance. Cached after the first successful load.
+        /// The cache is invalidated whenever project assets change or OnValidate fires.
         /// </summary>
         public static SkillGraphEditorSettings Instance
         {
             get
             {
-                // Always reload to get latest changes.
-                // Prefer a project-level override (any asset outside Assets/TurnrootFramework/)
-                // over the package default so users can customise without editing the package.
+                if (_instance != null)
+                {
+                    return _instance;
+                }
+
+                if (_searchedForInstance)
+                {
+                    return null; // Already searched, nothing found
+                }
+
+                _searchedForInstance = true;
+
+                // Subscribe to project-change so the cache is dropped if assets are
+                // added / removed / reimported.
+                EditorApplication.projectChanged -= OnProjectChanged;
+                EditorApplication.projectChanged += OnProjectChanged;
+
+                // Prefer a project-level override over the package default.
                 var guids = AssetDatabase.FindAssets("t:SkillGraphEditorSettings");
                 string fallbackPath = null;
                 foreach (var guid in guids)
@@ -75,10 +91,19 @@ namespace Turnroot.Skills.Nodes.Editor
             }
         }
 
+        private static void OnProjectChanged()
+        {
+            ClearCache();
+        }
+
         /// <summary>
         /// Clear the cached instance to force reload.
         /// </summary>
-        public static void ClearCache() => _instance = null;
+        public static void ClearCache()
+        {
+            _instance = null;
+            _searchedForInstance = false;
+        }
 
         private void OnValidate()
         {

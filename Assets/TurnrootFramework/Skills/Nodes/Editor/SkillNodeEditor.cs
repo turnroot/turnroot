@@ -11,6 +11,47 @@ namespace Turnroot.Skills.Nodes.Editor
     [CustomNodeEditor(typeof(SkillNode))]
     public class SkillNodeEditor : NodeEditor
     {
+        // Cached per-editor-instance values — populated once on first use and
+        // cleared when the target changes (OnEnable / etc.).
+        private string _cachedScriptPath;
+        private bool _scriptPathResolved;
+        private bool _isFlowNode;
+        private bool _isEventsNode;
+        private Color _cachedTint;
+        private bool _tintCached;
+
+        // Make sure we clear caches if the editor is reused for a different node.
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            InvalidateCaches();
+        }
+
+        private void InvalidateCaches()
+        {
+            _scriptPathResolved = false;
+            _tintCached = false;
+            _cachedScriptPath = null;
+        }
+
+        private string GetScriptPath()
+        {
+            if (_scriptPathResolved)
+            {
+                return _cachedScriptPath;
+            }
+
+            _scriptPathResolved = true;
+            var script = MonoScript.FromScriptableObject(target);
+            if (script != null)
+            {
+                _cachedScriptPath = AssetDatabase.GetAssetPath(script);
+                _isFlowNode = _cachedScriptPath?.Contains("/Flow/") ?? false;
+                _isEventsNode = _cachedScriptPath?.Contains("/Events/") ?? false;
+            }
+            return _cachedScriptPath;
+        }
+
         public override int GetWidth() => 300;
 
         public override void OnHeaderGUI()
@@ -38,50 +79,46 @@ namespace Turnroot.Skills.Nodes.Editor
 
         public override Color GetTint()
         {
-            // Try to get colors from settings asset first
+            if (_tintCached)
+            {
+                return _cachedTint;
+            }
+
+            _tintCached = true;
+            string scriptPath = GetScriptPath();
+
+            // Try to get color from settings asset first
             var settings = SkillGraphEditorSettings.Instance;
-            if (settings != null)
+            if (settings != null && scriptPath != null)
             {
-                var script = MonoScript.FromScriptableObject(target);
-                if (script != null)
+                Color color = settings.GetColorForNodeCategory(scriptPath);
+                if (color != Color.gray)
                 {
-                    string scriptPath = AssetDatabase.GetAssetPath(script);
-                    Color color = settings.GetColorForNodeCategory(scriptPath);
-
-                    // Return the color from settings (bypassing fallback to NodeCategoryAttribute)
-                    if (color != Color.gray)
-                    {
-                        return color;
-                    }
+                    _cachedTint = color;
+                    return _cachedTint;
                 }
             }
-            // Fall back to NodeCategoryAttribute if no settings
-            var script2 = MonoScript.FromScriptableObject(target);
-            if (script2 != null)
-            {
-                string scriptPath = AssetDatabase.GetAssetPath(script2);
 
-                // Check if the path contains a category subfolder
-                if (scriptPath.Contains("/Flow/"))
-                {
-                    return NodeCategoryAttribute.GetCategoryColor(NodeCategory.Flow);
-                }
+            // Fall back to NodeCategoryAttribute path matching
+            if (scriptPath != null)
+            {
+                if (_isFlowNode)
+                    _cachedTint = NodeCategoryAttribute.GetCategoryColor(NodeCategory.Flow);
+                else if (_isEventsNode)
+                    _cachedTint = NodeCategoryAttribute.GetCategoryColor(NodeCategory.Events);
                 else if (scriptPath.Contains("/Math/"))
-                {
-                    return NodeCategoryAttribute.GetCategoryColor(NodeCategory.Math);
-                }
-                else if (scriptPath.Contains("/Events/"))
-                {
-                    return NodeCategoryAttribute.GetCategoryColor(NodeCategory.Events);
-                }
+                    _cachedTint = NodeCategoryAttribute.GetCategoryColor(NodeCategory.Math);
                 else if (scriptPath.Contains("/Conditions/"))
-                {
-                    return NodeCategoryAttribute.GetCategoryColor(NodeCategory.Conditions);
-                }
+                    _cachedTint = NodeCategoryAttribute.GetCategoryColor(NodeCategory.Conditions);
+                else
+                    _cachedTint = base.GetTint();
+            }
+            else
+            {
+                _cachedTint = base.GetTint();
             }
 
-            // Fall back to default tint
-            return base.GetTint();
+            return _cachedTint;
         }
 
         public override void OnBodyGUI()
@@ -94,16 +131,10 @@ namespace Turnroot.Skills.Nodes.Editor
             // Set label width to 40% of the node width to give more space
             EditorGUIUtility.labelWidth = GetWidth() * 0.5f;
 
-            // Check if this is a Flow node
-            var script = MonoScript.FromScriptableObject(target);
-            bool isFlowNode = false;
-            bool isEventsNode = false;
-            if (script != null)
-            {
-                string scriptPath = AssetDatabase.GetAssetPath(script);
-                isFlowNode = scriptPath.Contains("/Flow/");
-                isEventsNode = scriptPath.Contains("/Events/");
-            }
+            // Use cached flags (populated by GetScriptPath on first call)
+            GetScriptPath();
+            bool isFlowNode = _isFlowNode;
+            bool isEventsNode = _isEventsNode;
 
             // If not a Flow node, we want to hide OnNodeExecute
             if (!(isFlowNode || isEventsNode))
@@ -121,12 +152,7 @@ namespace Turnroot.Skills.Nodes.Editor
                 while (iterator.NextVisible(false))
                 {
                     // Skip xNode internal fields and OnNodeExecute
-                    if (
-                        iterator.name is "graph"
-                        or "position"
-                        or "ports"
-                        or "OnNodeExecute"
-                    )
+                    if (iterator.name is "graph" or "position" or "ports" or "OnNodeExecute")
                     {
                         continue;
                     }
