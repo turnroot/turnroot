@@ -1,4 +1,5 @@
 using Turnroot.Utilities;
+using UnityEngine;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
@@ -17,6 +18,11 @@ namespace Turnroot.Skills.Nodes.Conditions
         {
             if (port.fieldName == "value" && graph is SkillGraph skillGraph)
             {
+                if (!Application.isPlaying)
+                {
+                    return new FloatValue { value = 0f };
+                }
+
                 var contextFromGraph = GetContextFromGraph(skillGraph);
                 if (contextFromGraph == null)
                 {

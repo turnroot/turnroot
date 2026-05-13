@@ -1,4 +1,5 @@
 using Turnroot.Utilities;
+using UnityEngine;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
@@ -19,6 +20,16 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
+            if (skillGraph == null || !Application.isPlaying)
+            {
+                return port.fieldName switch
+                {
+                    "TurnCount" => new FloatValue { value = 1f },
+                    "FirstTurn" => new BoolValue { value = false },
+                    _ => null,
+                };
+            }
+
             var context = GetContextFromGraph(skillGraph);
             var character = ConditionHelpers.GetCharacterFromContext(
                 context,

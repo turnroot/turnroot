@@ -661,10 +661,21 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Draw date label above node when this scene advances the game date
             if (node.TimePasses)
             {
-                string monthAbbr = node.MonthForThisScene.ToString().Substring(0, 3);
-                string dateLabel = $"{monthAbbr} {node.DayForThisScene}";
-                if (node.HasYear)
-                    dateLabel += $", Y{node.YearForThisScene}";
+                string dateLabel;
+                if (node.IncrementDate)
+                {
+                    int days = node.IncrementDays;
+                    dateLabel = days >= 0 ? $"+{days}d" : $"{days}d";
+                }
+                else
+                {
+                    string monthAbbr = node.MonthForThisScene.ToString().Substring(0, 3);
+                    dateLabel = $"{monthAbbr} {node.DayForThisScene}";
+                    if (node.HasYear)
+                        dateLabel += $", Y{node.YearForThisScene}";
+                    else
+                        dateLabel += "*"; // year auto-advances at runtime
+                }
                 var dateLabelRect = new Rect(rect.x, rect.y - 18, rect.width, 16);
                 EditorGUI.DrawRect(
                     new Rect(
@@ -1321,22 +1332,45 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             if (_selectedNode.TimePasses)
             {
                 EditorGUI.indentLevel++;
-                _selectedNode.MonthForThisScene = (Turnroot.Utilities.Month)
-                    EditorGUILayout.EnumPopup("Month", _selectedNode.MonthForThisScene);
-                _selectedNode.DayForThisScene = EditorGUILayout.IntSlider(
-                    "Day",
-                    _selectedNode.DayForThisScene,
-                    1,
-                    31
+
+                _selectedNode.IncrementDate = EditorGUILayout.Toggle(
+                    new GUIContent(
+                        "Increment Mode",
+                        "When enabled, entering this scene advances the date by a fixed number of days from wherever it currently is. Use this for scenes that should not have a fixed calendar date."
+                    ),
+                    _selectedNode.IncrementDate
                 );
-                _selectedNode.HasYear = EditorGUILayout.Toggle("Has Year?", _selectedNode.HasYear);
-                if (_selectedNode.HasYear)
+
+                if (_selectedNode.IncrementDate)
                 {
-                    _selectedNode.YearForThisScene = EditorGUILayout.IntField(
-                        "Year",
-                        _selectedNode.YearForThisScene
+                    _selectedNode.IncrementDays = EditorGUILayout.IntField(
+                        new GUIContent("Days to Add", "How many days to advance the game date."),
+                        _selectedNode.IncrementDays
                     );
                 }
+                else
+                {
+                    _selectedNode.MonthForThisScene = (Turnroot.Utilities.Month)
+                        EditorGUILayout.EnumPopup("Month", _selectedNode.MonthForThisScene);
+                    _selectedNode.DayForThisScene = EditorGUILayout.IntSlider(
+                        "Day",
+                        _selectedNode.DayForThisScene,
+                        1,
+                        31
+                    );
+                    _selectedNode.HasYear = EditorGUILayout.Toggle(
+                        "Has Year?",
+                        _selectedNode.HasYear
+                    );
+                    if (_selectedNode.HasYear)
+                    {
+                        _selectedNode.YearForThisScene = EditorGUILayout.IntField(
+                            "Year",
+                            _selectedNode.YearForThisScene
+                        );
+                    }
+                }
+
                 EditorGUI.indentLevel--;
             }
 

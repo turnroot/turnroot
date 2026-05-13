@@ -37,12 +37,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
             float changeAmount = GetInputFloat("change", 0f);
-            bool shouldAffectAll = false;
-            var allPort = GetInputPort("affectAllTargets");
-            if (allPort != null && allPort.IsConnected)
-            {
-                shouldAffectAll = GetInputBool("affectAllTargets", false);
-            }
+            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
 
             int affected = ExecuteOnTargets(
                 context,

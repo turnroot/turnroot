@@ -19,6 +19,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnThirdPartyTurnStarted;
         public event Action OnThirdPartyTurnEnded;
         public event Action<CharacterInstance> OnUnitTurnEnded;
+        public event Action<CharacterInstance> OnUnitTurnStarted;
         public event Action<CharacterInstance> OnWaitActionRequested;
         public event Action<CharacterInstance> OnWaitActionConfirmed;
 
@@ -51,6 +52,9 @@ namespace Turnroot.Gameplay.Brain
         public void PublishThirdPartyTurnEnded() => OnThirdPartyTurnEnded?.Invoke();
 
         public void PublishUnitTurnEnded(CharacterInstance unit) => OnUnitTurnEnded?.Invoke(unit);
+
+        public void PublishUnitTurnStarted(CharacterInstance unit) =>
+            OnUnitTurnStarted?.Invoke(unit);
 
         #endregion
     }

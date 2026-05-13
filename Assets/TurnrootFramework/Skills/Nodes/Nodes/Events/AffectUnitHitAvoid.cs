@@ -33,47 +33,31 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             var hitPort = GetInputPort("changeHit");
-            if (hitPort == null || !hitPort.IsConnected)
+            if (hitPort != null && hitPort.IsConnected)
             {
-                "AffectUnitHitAvoid: 'changeHit' input not provided".LogWarning();
-                return;
-            }
-            var changeHitAmount = GetInputFloat("changeHit", 0f);
-
-            // update runtime hit value instead of treating it as a stat
-            var inst = context.Unit.UnitInstance;
-            inst?.AddHit(changeHitAmount);
-            if (SkillDebug.VerboseExecutionLogs)
-            {
-                $"AffectUnitHitAvoid: stored hit now {inst?.CurrentHit}".LogInfo();
+                var changeHitAmount = GetInputFloat("changeHit", 0f);
+                var inst = context.Unit.UnitInstance;
+                inst?.AddHit(changeHitAmount);
+                if (SkillDebug.VerboseExecutionLogs)
+                {
+                    $"AffectUnitHitAvoid: stored hit now {inst?.CurrentHit}".LogInfo();
+                }
             }
 
             var avoidPort = GetInputPort("changeAvoid");
-            if (avoidPort == null || !avoidPort.IsConnected)
+            if (avoidPort != null && avoidPort.IsConnected)
             {
-                "AffectUnitHitAvoid: 'changeAvoid' input not provided".LogWarning();
-                return;
-            }
-            var changeAvoidAmount = GetInputFloat("changeAvoid", 0f);
-            if (changeAvoidAmount != 0f)
-            {
+                var changeAvoidAmount = GetInputFloat("changeAvoid", 0f);
                 if (SkillDebug.VerboseExecutionLogs)
                 {
                     $"AffectUnitHitAvoid: affected unit {context.Unit.UnitInstance.Id} avoid by {changeAvoidAmount}".LogInfo();
                 }
-            }
-            else
-            {
+                var inst2 = context.Unit.UnitInstance;
+                inst2?.AddAvoid(changeAvoidAmount);
                 if (SkillDebug.VerboseExecutionLogs)
                 {
-                    $"AffectUnitHitAvoid: avoid change evaluated to 0 for unit {context.Unit.UnitInstance.Id}".LogInfo();
+                    $"AffectUnitHitAvoid: stored avoid now {inst2?.CurrentAvoid}".LogInfo();
                 }
-            }
-            var inst2 = context.Unit.UnitInstance;
-            inst2?.AddAvoid(changeAvoidAmount);
-            if (SkillDebug.VerboseExecutionLogs)
-            {
-                $"AffectUnitHitAvoid: stored avoid now {inst2?.CurrentAvoid}".LogInfo();
             }
         }
     }

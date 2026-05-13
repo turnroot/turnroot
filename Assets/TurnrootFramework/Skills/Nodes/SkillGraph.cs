@@ -36,10 +36,7 @@ namespace Turnroot.Skills.Nodes
             }
             else
             {
-                "Cannot proceed: No active executor. Creating a new executor.".LogWarning();
-                activeExecutor = new SkillGraphExecutor(this);
-                activeExecutor.Execute(new BattleContext());
-                activeExecutor.Proceed();
+                "SkillGraph.Proceed: called with no active executor — ignoring.".LogWarning();
             }
         }
     }

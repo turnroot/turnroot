@@ -94,6 +94,13 @@ namespace Turnroot.Skills
             // Publish to Brain for centralized tracking
             context.Brain.PublishSkillTriggered(context.Unit.UnitInstance, _skillTemplate);
 
+            // Track use count so SkillUseCountNode can read it during graph execution
+            if (context.Skill.SkillUseCount != null)
+            {
+                context.Skill.SkillUseCount.TryGetValue(_skillTemplate, out int prev);
+                context.Skill.SkillUseCount[_skillTemplate] = prev + 1;
+            }
+
             // Execute the behavior graph (individual effects use their own commands)
             _skillTemplate.BehaviorGraph.Execute(context);
 

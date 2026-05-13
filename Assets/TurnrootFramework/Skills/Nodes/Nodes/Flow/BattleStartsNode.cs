@@ -4,10 +4,15 @@ using XNode;
 namespace Turnroot.Skills.Nodes.Flow
 {
     /// <summary>
-    /// Triggers skill execution once at the start of a battle.
+    /// Entry point that fires once when the battle begins, then re-evaluates as a
+    /// passive aura on every significant battle event (turn begin/end, unit moved, etc.).
+    /// No combat target is set — use a <see cref="ForEachEnemyNode"/> downstream
+    /// to check per-enemy conditions.
     /// </summary>
     [CreateNodeMenu("Flow/Start/Battle Starts")]
-    [NodeLabel("Runs once at the start of battle")]
+    [NodeLabel(
+        "Runs once at battle start, then re-evaluates passively (use For Each Enemy for per-enemy checks)"
+    )]
     public class BattleStartsNode : SkillNode
     {
         [Output(ShowBackingValue.Never, ConnectionType.Multiple)]

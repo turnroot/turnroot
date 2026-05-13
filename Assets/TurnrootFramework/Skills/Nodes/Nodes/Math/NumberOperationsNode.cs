@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
 
@@ -53,7 +54,15 @@ namespace Turnroot.Skills.Nodes.Math
                     resultValue.value = aValue.value * bValue.value;
                     break;
                 case NumberOperationType.Divide:
-                    resultValue.value = aValue.value / bValue.value;
+                    if (Mathf.Approximately(bValue.value, 0f))
+                    {
+                        "NumberOperationsNode: Division by zero".LogWarning();
+                        resultValue.value = 0f;
+                    }
+                    else
+                    {
+                        resultValue.value = aValue.value / bValue.value;
+                    }
                     break;
                 case NumberOperationType.Modulo:
                     resultValue.value = aValue.value % bValue.value;

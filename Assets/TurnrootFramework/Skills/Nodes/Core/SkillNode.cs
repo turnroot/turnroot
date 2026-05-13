@@ -86,7 +86,6 @@ namespace Turnroot.Skills.Nodes
             }
 
             ExecuteImpl(context);
-            OnNodeExecute?.Invoke();
         }
 
         protected virtual SkillNodeValidationResult ValidateRequirements(BattleContext context) =>

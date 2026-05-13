@@ -38,11 +38,6 @@ namespace Turnroot.Skills.Nodes.Events
 
             bool shouldAffectAll = GetInputBool("affectAllTargets", false);
             int duration = durationOverride >= 0 ? durationOverride : debuffType.DefaultDuration;
-            var allPort = GetInputPort("affectAllTargets");
-            if (allPort != null && allPort.IsConnected)
-            {
-                shouldAffectAll = GetInputBool("affectAllTargets", false);
-            }
 
             int affected = ExecuteOnTargets(
                 context,

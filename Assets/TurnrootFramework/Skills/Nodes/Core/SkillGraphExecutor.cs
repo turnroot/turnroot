@@ -29,6 +29,9 @@ namespace Turnroot.Skills.Nodes
         public void Execute(BattleContext battleContext)
         {
             context = battleContext;
+            // Always start with a clean interruption flag so skills sharing a context
+            // don't bleed state from one execution into the next.
+            context.Flags.IsInterrupted = false;
             visitedNodes = new HashSet<SkillNode>();
             currentNode = null;
 
@@ -88,17 +91,20 @@ namespace Turnroot.Skills.Nodes
                 return execResult;
             }
 
-            currentNode = node;
             return OperationResult.Successful();
         }
 
         /// <summary>
         /// Continue execution from the given node to its connected next nodes.
         /// Called by nodes when they're ready to proceed (after animations, etc).
+        /// Stops immediately if <see cref="CombatFlags.IsInterrupted"/> is set (e.g. by
+        /// <see cref="Flow.FlowIfNode"/> on a false condition).
+        /// Recurses into each next node so the full chain executes without every node
+        /// needing to call <see cref="Proceed"/> manually.
         /// </summary>
         public void ContinueFromNode(SkillNode node)
         {
-            if (node == null)
+            if (node == null || context.Flags.IsInterrupted)
             {
                 return;
             }
@@ -121,12 +127,49 @@ namespace Turnroot.Skills.Nodes
                         // skip nodes we've already visited to avoid spinning on cycles
                         if (visitedNodes.Contains(nextNode))
                         {
-                            $"SkillGraphExecutor: skipping already visited {nextNode.name}".LogWarning();
                             continue;
                         }
                         ExecuteNode(nextNode);
+                        // Recurse so the full downstream chain runs without each node
+                        // needing to call Proceed() synchronously.
+                        ContinueFromNode(nextNode);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Executes a subchain starting from <paramref name="startNode"/> with a fresh
+        /// visited-nodes set, preventing re-entry into the nodes listed in
+        /// <paramref name="ancestorsToSkip"/>. Resets <see cref="CombatFlags.IsInterrupted"/>
+        /// for the subchain so that each iteration of a loop node (e.g. ForEachEnemyNode)
+        /// starts clean. All state is restored on exit.
+        /// </summary>
+        public void ExecuteSubchain(SkillNode startNode, HashSet<SkillNode> ancestorsToSkip)
+        {
+            if (startNode == null)
+            {
+                return;
+            }
+
+            var savedVisited = visitedNodes;
+            var savedCurrent = currentNode;
+            bool savedInterrupted = context.Flags.IsInterrupted;
+
+            // Seed the fresh visited set with ancestors so we can't loop back into them.
+            visitedNodes = new HashSet<SkillNode>(ancestorsToSkip);
+            context.Flags.IsInterrupted = false;
+
+            try
+            {
+                ExecuteNode(startNode);
+                ContinueFromNode(startNode);
+            }
+            finally
+            {
+                visitedNodes = savedVisited;
+                currentNode = savedCurrent;
+                context.Flags.IsInterrupted = savedInterrupted;
             }
         }
 
@@ -192,5 +235,19 @@ namespace Turnroot.Skills.Nodes
         }
 
         public BattleContext GetContext() => context;
+
+        /// <summary>
+        /// Marks a node as already visited so the current execution pass skips it.
+        /// Used by <see cref="Flow.ForEachEnemyNode"/> to prevent the outer
+        /// <see cref="ContinueFromNode"/> from re-running subchain entry points that
+        /// were already executed per-enemy inside the loop.
+        /// </summary>
+        public void MarkVisited(SkillNode node)
+        {
+            if (node != null)
+            {
+                visitedNodes?.Add(node);
+            }
+        }
     }
 }

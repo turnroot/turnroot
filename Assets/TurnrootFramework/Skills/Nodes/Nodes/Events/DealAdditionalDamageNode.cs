@@ -31,14 +31,15 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float damage = GetInputFloat("damageAmount", 0f);
-            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
             var dmgPort = GetInputPort("damageAmount");
             if (dmgPort == null || !dmgPort.IsConnected)
             {
                 "DealAdditionalDamageNode: 'damageAmount' input not provided".LogWarning();
                 return;
             }
+
+            float damage = GetInputFloat("damageAmount", 0f);
+            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
 
             int affected = ExecuteOnTargets(
                 context,

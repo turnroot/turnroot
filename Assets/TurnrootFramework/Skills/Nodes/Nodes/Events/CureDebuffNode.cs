@@ -36,12 +36,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAdjacent = false;
-            var adjPort = GetInputPort("affectAdjacentAllies");
-            if (adjPort != null && adjPort.IsConnected)
-            {
-                shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
-            }
+            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
 
             if (shouldAffectAdjacent)
             {

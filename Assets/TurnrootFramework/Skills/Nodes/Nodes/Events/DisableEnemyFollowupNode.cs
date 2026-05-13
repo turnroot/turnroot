@@ -30,38 +30,18 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAll = false;
-            var allPort = GetInputPort("affectAllTargets");
-            if (allPort != null && allPort.IsConnected)
+            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+
+            int count = ExecuteOnTargets(
+                context,
+                shouldAffectAll,
+                target => context.SetCustomData($"DisableFollowup_{target.Id}", true),
+                "DisableEnemyFollowup"
+            );
+
+            if (count > 0)
             {
-                shouldAffectAll = GetInputBool("affectAllTargets", false);
-            }
-
-            // Disable followup for all targeted enemies or just the first one
-            if (shouldAffectAll)
-            {
-                foreach (var target in context.Participants.Targets)
-                {
-                    if (target != null)
-                    {
-                        context.SetCustomData($"DisableFollowup_{target.Id}", true);
-                    }
-                }
-
-                $"DisableEnemyFollowup: Disabled followup for {context.Participants.Targets.Count} enemies".LogInfo();
-            }
-            else
-            {
-                var target = context.Participants.Targets[0];
-                if (target == null)
-                {
-                    "DisableEnemyFollowup: Target is null".LogWarning();
-
-                    return;
-                }
-                context.SetCustomData($"DisableFollowup_{target.Id}", true);
-
-                "DisableEnemyFollowup: Disabled followup attack for target".LogInfo();
+                $"DisableEnemyFollowup: Disabled followup for {count} {(count == 1 ? "enemy" : "enemies")}".LogInfo();
             }
         }
     }

@@ -40,12 +40,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
             float reduction = GetInputFloat("reductionAmount", 0f);
-            bool shouldAffectAdjacent = false;
-            var adjPort = GetInputPort("affectAdjacentAllies");
-            if (adjPort != null && adjPort.IsConnected)
-            {
-                shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
-            }
+            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
 
             // Store in CustomData for combat system to apply during damage calculation
             // Key format: "DamageReduction_{CharacterInstanceId}"

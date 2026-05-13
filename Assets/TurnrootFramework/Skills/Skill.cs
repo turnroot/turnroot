@@ -64,13 +64,31 @@ namespace Turnroot.Skills
         [BoxGroup("Appearance")]
         public Color AccentColor3;
 
-        /// <summary>
-        /// Returns true when the behavior graph contains a
-        /// <see cref="BattleStartsNode"/>, which is used for triggering skills at
-        /// the beginning of a battle.
-        /// </summary>
-        public bool HasBattleStartNode() =>
-            BehaviorGraph != null && BehaviorGraph.nodes.OfType<BattleStartsNode>().Any();
+        // ── Trigger-type helpers ──────────────────────────────────────────────────────
+
+        private bool HasNodeOfType<T>()
+            where T : SkillNode => BehaviorGraph != null && BehaviorGraph.nodes.OfType<T>().Any();
+
+        /// <summary>True when the graph contains a <see cref="BattleStartsNode"/>.</summary>
+        public bool HasBattleStartNode() => HasNodeOfType<BattleStartsNode>();
+
+        /// <summary>True when the graph contains a <see cref="TurnEndsNode"/>.</summary>
+        public bool HasTurnEndsNode() => HasNodeOfType<TurnEndsNode>();
+
+        /// <summary>True when the graph contains a <see cref="TurnStartsNode"/>.</summary>
+        public bool HasTurnStartsNode() => HasNodeOfType<TurnStartsNode>();
+
+        /// <summary>True when the graph contains a <see cref="UnitMovesNode"/>.</summary>
+        public bool HasUnitMovesNode() => HasNodeOfType<UnitMovesNode>();
+
+        /// <summary>True when the graph contains a <see cref="UnitAttacksNode"/>.</summary>
+        public bool HasUnitAttacksNode() => HasNodeOfType<UnitAttacksNode>();
+
+        /// <summary>True when the graph contains an <see cref="EnemyAttacksNode"/>.</summary>
+        public bool HasEnemyAttacksNode() => HasNodeOfType<EnemyAttacksNode>();
+
+        /// <summary>True when the graph contains an <see cref="EnemyDefeatedNode"/>.</summary>
+        public bool HasEnemyDefeatedNode() => HasNodeOfType<EnemyDefeatedNode>();
 
         [BoxGroup("Appearance"), HideInInspector]
         public SkillBadge Badge;
@@ -127,6 +145,14 @@ namespace Turnroot.Skills
 
             context.Skill.CurrentSkill = this;
             context.Skill.CurrentSkillGraph = BehaviorGraph;
+
+            // Track use count so SkillUseCountNode can read it during graph execution
+            if (context.Skill.SkillUseCount != null)
+            {
+                context.Skill.SkillUseCount.TryGetValue(this, out int prev);
+                context.Skill.SkillUseCount[this] = prev + 1;
+            }
+
             BehaviorGraph.Execute(context);
         }
     }

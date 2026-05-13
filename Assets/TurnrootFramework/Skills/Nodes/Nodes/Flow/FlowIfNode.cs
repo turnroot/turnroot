@@ -22,29 +22,16 @@ namespace Turnroot.Skills.Nodes.Flow
 
         public override void Execute(BattleContext context)
         {
-            // Get the condition value from connected node
-            object raw = GetInputValue("condition", new BoolValue());
-            BoolValue conditionValue;
-            if (raw is BoolValue bv)
-            {
-                conditionValue = bv;
-            }
-            else
-            {
-                "FlowIfNode: condition input was not a BoolValue, treating as false".LogWarning();
-                conditionValue = new BoolValue();
-            }
+            // GetInputValue uses the backing field as fallback when nothing is connected.
+            BoolValue conditionValue = GetInputValue("condition", condition);
 
             if (!conditionValue.value)
             {
+                // Mark the flow as interrupted so ContinueFromNode stops here.
                 context.Flags.IsInterrupted = true;
             }
-            else
-            {
-                // advance immediately rather than waiting for external Proceed call
-                var executor = context.GetCustomData<SkillGraphExecutor>("_executor");
-                executor?.Proceed();
-            }
+            // If true, do nothing — the executor's recursive ContinueFromNode handles
+            // continuation automatically.
         }
     }
 }

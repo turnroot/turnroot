@@ -1,5 +1,6 @@
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
 using XNode;
@@ -49,7 +50,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return false;
             }
 
-            float damage = GetIncomingDamage();
+            float damage = GetIncomingDamage(context);
             float currentHealth = GetUnitCurrentHealth(context);
 
             if (currentHealth < 0)
@@ -61,9 +62,27 @@ namespace Turnroot.Skills.Nodes.Conditions
             return (currentHealth - damage) <= 0;
         }
 
-        private float GetIncomingDamage() =>
-            // TODO: Connect to context
-            1;
+        private float GetIncomingDamage(BattleContext context)
+        {
+            // Targets[0] is the attacker when triggered by EnemyAttacks
+            var attacker =
+                context.Participants?.Targets?.Count > 0 ? context.Participants.Targets[0] : null;
+            if (attacker == null)
+            {
+                return 0f;
+            }
+            var weapon = attacker.GetEquippedWeapon();
+            if (weapon == null)
+            {
+                return 0f;
+            }
+            return DamageCalculator.CalculatePotentialDamage(
+                attacker,
+                context.Unit.UnitInstance,
+                weapon,
+                context
+            );
+        }
 
         private float GetUnitCurrentHealth(BattleContext context)
         {
