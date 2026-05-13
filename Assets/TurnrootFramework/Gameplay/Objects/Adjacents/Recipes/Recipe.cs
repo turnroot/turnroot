@@ -22,7 +22,7 @@ namespace Turnroot.Gameplay.Objects.Recipes
         public int CharmBonus;
         public ObjectItem[] Ingredients;
 
-        public CharacterData UnitsLove;
-        public CharacterData UnitsHate;
+        public CharacterData[] UnitsLove;
+        public CharacterData[] UnitsHate;
     }
 }

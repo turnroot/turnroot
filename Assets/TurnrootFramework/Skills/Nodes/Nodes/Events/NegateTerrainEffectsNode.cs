@@ -20,8 +20,8 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            var negateData = new { ShouldNegate = true };
-            // TODO: Negate terrain effects
+            context.SetCustomData("NegateTerrainEffects", true);
+            "NegateTerrainEffects: flagged unit to ignore terrain penalties (consumed by movement system)".LogInfo();
         }
     }
 }
