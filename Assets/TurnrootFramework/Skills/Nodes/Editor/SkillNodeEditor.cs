@@ -12,30 +12,33 @@ namespace Turnroot.Skills.Nodes.Editor
     public class SkillNodeEditor : NodeEditor
     {
         // Cached per-editor-instance values — populated once on first use and
-        // cleared when the target changes (OnEnable / etc.).
+        // reset automatically when the target node changes.
+        private XNode.Node _cachedTarget;
         private string _cachedScriptPath;
         private bool _scriptPathResolved;
         private bool _isFlowNode;
         private bool _isEventsNode;
         private Color _cachedTint;
         private bool _tintCached;
-
-        // Make sure we clear caches if the editor is reused for a different node.
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            InvalidateCaches();
-        }
+        private SkillGraphEditorSettings _settingsForCachedTint;
 
         private void InvalidateCaches()
         {
             _scriptPathResolved = false;
             _tintCached = false;
             _cachedScriptPath = null;
+            _settingsForCachedTint = null;
         }
 
         private string GetScriptPath()
         {
+            // If the underlying node changed (xNode can reuse editor instances), bust the cache.
+            if (_cachedTarget != target)
+            {
+                _cachedTarget = target;
+                InvalidateCaches();
+            }
+
             if (_scriptPathResolved)
             {
                 return _cachedScriptPath;
@@ -79,16 +82,15 @@ namespace Turnroot.Skills.Nodes.Editor
 
         public override Color GetTint()
         {
-            if (_tintCached)
+            var settings = SkillGraphEditorSettings.Instance;
+            if (_tintCached && _settingsForCachedTint == settings)
             {
                 return _cachedTint;
             }
 
             _tintCached = true;
+            _settingsForCachedTint = settings;
             string scriptPath = GetScriptPath();
-
-            // Try to get color from settings asset first
-            var settings = SkillGraphEditorSettings.Instance;
             if (settings != null && scriptPath != null)
             {
                 Color color = settings.GetColorForNodeCategory(scriptPath);

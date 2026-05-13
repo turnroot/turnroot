@@ -52,12 +52,23 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private GUIStyle _battleNodeStyle;
         private GUIStyle _battleNodeSelectedStyle;
         private GUIStyle _labelStyle;
+
+        // Derived cached styles — allocated once in InitializeStyles, not per-frame
+        private GUIStyle _smallLabelStyle;
+        private GUIStyle _dateLabelStyle;
+        private GUIStyle _badgeLabelStyle;
+        private GUIStyle _chapterBadgeLabelStyle;
+        private GUIStyle _nodeIdStyle;
         private bool _stylesInitialized;
         private const int STATUS_BAR_HEIGHT = 22;
 
         // Settings
         private SceneFlowGraphEditorSettings _settings;
         private int _lastSettingsHash;
+
+        // Cached brain state options — built once per session, cleared on domain reload
+        private string[] _cachedBrainStateIds;
+        private string[] _cachedBrainStateOptions;
 
         // Cached singleton graph
         private static SceneFlowGraph _cachedSingletonGraph;
@@ -80,6 +91,8 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private void OnEnable()
         {
             _stylesInitialized = false;
+            _cachedBrainStateIds = null;
+            _cachedBrainStateOptions = null;
             LoadSettings();
             _lastSettingsHash = GetSettingsHash();
             LoadOrFindGraph();
@@ -206,8 +219,15 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 }
             }
 
-            // Continuously repaint while creating a transition so the line follows the mouse
-            if (_transitionStartNode != null || _potentialTransitionDrag != null)
+            // Toggle wantsMouseMove so transition-creation preview updates on every mouse move
+            // rather than relying on the Update poll interval.
+            bool needsMouseTracking =
+                _transitionStartNode != null || _potentialTransitionDrag != null;
+            if (wantsMouseMove != needsMouseTracking)
+            {
+                wantsMouseMove = needsMouseTracking;
+            }
+            if (needsMouseTracking)
             {
                 Repaint();
             }
@@ -271,6 +291,31 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 fontStyle = FontStyle.Normal,
             };
             _labelStyle.normal.textColor = Color.white;
+
+            _smallLabelStyle = new GUIStyle(_labelStyle) { fontSize = 10 };
+
+            _dateLabelStyle = new GUIStyle(_labelStyle)
+            {
+                fontSize = 10,
+                alignment = TextAnchor.MiddleCenter,
+            };
+
+            _badgeLabelStyle = new GUIStyle(_labelStyle)
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+            };
+
+            _chapterBadgeLabelStyle = new GUIStyle(_labelStyle)
+            {
+                fontSize = 9,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+            };
+
+            int idFontSize = Mathf.Max(8, _settings.nodeFontSize - 2);
+            _nodeIdStyle = new GUIStyle(_labelStyle) { fontSize = idFontSize };
+            _nodeIdStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
 
             _stylesInitialized = true;
         }
@@ -342,6 +387,11 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 _selectedNode = null;
                 _selectedTransition = null;
                 _transitionStartNode = null;
+                _transitionIsDrag = false;
+                _potentialTransitionDrag = null;
+                _selectedNodes.Clear();
+                _isDragging = false;
+                _draggedNode = null;
             }
 
             GUILayout.FlexibleSpace();
@@ -419,13 +469,6 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             HandleGraphInput(graphRect);
 
             // Begin zoomed and panned area
-            var zoomedRect = new Rect(
-                graphRect.x + _panOffset.x,
-                graphRect.y + _panOffset.y,
-                graphRect.width * _zoom,
-                graphRect.height * _zoom
-            );
-
             GUILayout.BeginArea(graphRect);
 
             // Draw grid BEFORE applying matrix (in screen space)
@@ -632,11 +675,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     ),
                     new Color(0.1f, 0.1f, 0.3f, 0.85f)
                 );
-                GUI.Label(
-                    dateLabelRect,
-                    dateLabel,
-                    new GUIStyle(_labelStyle) { fontSize = 10, alignment = TextAnchor.MiddleCenter }
-                );
+                GUI.Label(dateLabelRect, dateLabel, _dateLabelStyle);
             }
 
             // Draw node box
@@ -648,23 +687,14 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             // Draw ID (smaller)
             var idRect = new Rect(rect.x, rect.y + 25, rect.width, 15);
-            var idStyle = new GUIStyle(_labelStyle)
-            {
-                fontSize = Mathf.Max(8, _settings.nodeFontSize - 2),
-                normal = { textColor = new Color(0.8f, 0.8f, 0.8f) },
-            };
-            GUI.Label(idRect, node.id, idStyle);
+            GUI.Label(idRect, node.id, _nodeIdStyle);
 
             // Hub indicator (top-left)
             if (node.isHub)
             {
                 var hubRect = new Rect(rect.x + 5, rect.y + 5, 15, 15);
                 EditorGUI.DrawRect(hubRect, new Color(1f, 0.8f, 0f, 0.5f));
-                GUI.Label(
-                    hubRect,
-                    "H",
-                    new GUIStyle(_labelStyle) { fontSize = 11, fontStyle = FontStyle.Bold }
-                );
+                GUI.Label(hubRect, "H", _badgeLabelStyle);
             }
 
             // Battle indicator (bottom-left)
@@ -672,11 +702,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             {
                 var battleRect = new Rect(rect.x + 5, rect.y + rect.height - 20, 15, 15);
                 EditorGUI.DrawRect(battleRect, new Color(0.9f, 0.2f, 0.2f, 0.75f));
-                GUI.Label(
-                    battleRect,
-                    "B",
-                    new GUIStyle(_labelStyle) { fontSize = 11, fontStyle = FontStyle.Bold }
-                );
+                GUI.Label(battleRect, "B", _badgeLabelStyle);
             }
 
             // Chapter number badge (top left corner)
@@ -684,16 +710,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             {
                 var chapterRect = new Rect(rect.x + 5, rect.y + 5, 25, 15);
                 EditorGUI.DrawRect(chapterRect, _settings.chapterBadgeColor);
-                GUI.Label(
-                    chapterRect,
-                    $"Ch{node.ChapterNumber}",
-                    new GUIStyle(_labelStyle)
-                    {
-                        fontSize = 9,
-                        fontStyle = FontStyle.Bold,
-                        alignment = TextAnchor.MiddleCenter,
-                    }
-                );
+                GUI.Label(chapterRect, $"Ch{node.ChapterNumber}", _chapterBadgeLabelStyle);
             }
 
             // Starting scene indicator (top-right)
@@ -701,7 +718,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             {
                 var startRect = new Rect(rect.x + rect.width - 20, rect.y + 5, 15, 15);
                 EditorGUI.DrawRect(startRect, new Color(0f, 1f, 0f, 0.5f));
-                GUI.Label(startRect, "▶", new GUIStyle(_labelStyle) { fontSize = 10 });
+                GUI.Label(startRect, "▶", _smallLabelStyle);
             }
 
             // Handle node interactions
@@ -930,8 +947,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             );
             EditorGUI.DrawRect(bgRect, new Color(0.2f, 0.2f, 0.2f, 0.8f));
 
-            var transLabelStyle = new GUIStyle(_labelStyle) { fontSize = 10 };
-            GUI.Label(labelRect, labelText, transLabelStyle);
+            GUI.Label(labelRect, labelText, _smallLabelStyle);
 
             // Check if clicking on transition - check label area or line proximity
             var e = Event.current;
@@ -949,7 +965,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     Repaint();
                 }
                 // Also check proximity to the line itself
-                else if (IsPointNearLine(mousePos, fromPos, toPos, 15f))
+                else if (IsPointNearLine(mousePos, fromPos, toPos, 15f / _zoom))
                 {
                     _clickedEmptySpace = false;
                     _selectedTransition = transition;
@@ -1017,7 +1033,6 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             Handles.color = color;
 
             Vector2 direction = (to - from).normalized;
-            float distance = Vector2.Distance(from, to);
 
             // Draw main line with thickness
             Handles.DrawAAPolyLine(_settings.transitionWidth, from, to);
@@ -1432,10 +1447,21 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Brain State", EditorStyles.boldLabel);
 
-            var allStates = BrainStateNames.GetAllStateIds();
-            var stateOptions = new string[allStates.Length + 1];
-            stateOptions[0] = "(Keep Current State)";
-            System.Array.Copy(allStates, 0, stateOptions, 1, allStates.Length);
+            if (_cachedBrainStateIds == null)
+            {
+                _cachedBrainStateIds = BrainStateNames.GetAllStateIds();
+                _cachedBrainStateOptions = new string[_cachedBrainStateIds.Length + 1];
+                _cachedBrainStateOptions[0] = "(Keep Current State)";
+                System.Array.Copy(
+                    _cachedBrainStateIds,
+                    0,
+                    _cachedBrainStateOptions,
+                    1,
+                    _cachedBrainStateIds.Length
+                );
+            }
+            var allStates = _cachedBrainStateIds;
+            var stateOptions = _cachedBrainStateOptions;
 
             // Forward direction state
             int currentStateIndex = 0;
