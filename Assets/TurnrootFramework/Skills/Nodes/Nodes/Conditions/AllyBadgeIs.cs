@@ -1,5 +1,6 @@
 using Turnroot.Characters;
 using Turnroot.Utilities;
+using UnityEngine;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
@@ -17,12 +18,10 @@ namespace Turnroot.Skills.Nodes.Conditions
 
         public override object GetValue(NodePort port)
         {
-            // Get context from the graph
             var skillGraph = graph as SkillGraph;
-            if (skillGraph == null)
+            if (skillGraph == null || !Application.isPlaying)
             {
-                "AllyBadgeIs: Could not get SkillGraph".LogWarning();
-                return new FloatValue();
+                return new FloatValue { value = 0f };
             }
 
             var context = GetContextFromGraph(skillGraph);
