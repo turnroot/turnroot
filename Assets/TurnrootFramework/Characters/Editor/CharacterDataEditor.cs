@@ -1021,7 +1021,7 @@ namespace Turnroot.Characters.Editor
             if (requiresMinSupportProp != null && requiresMinSupportProp.boolValue)
             {
                 EditorGUI.indentLevel++;
-                DrawAutoPropertyField("SupportRelationshipMinRank");
+                DrawAutoPropertyField("RecruitSupportRelationshipMinRank");
                 EditorGUI.indentLevel--;
             }
 
