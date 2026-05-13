@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Turnroot.Utilities;
 using UnityEditor;
 using UnityEngine;
@@ -107,6 +108,33 @@ namespace Turnroot.Skills.Nodes.Editor
             var menu = new GenericMenu();
             var graph = target;
 
+            foreach (var (nodeType, menuPath) in GetCachedSkillNodeTypes())
+            {
+                var label = GetFilteredMenuLabel(menuPath, categoryPrefix);
+                if (label == null)
+                {
+                    continue;
+                }
+
+                AddNodeCreationMenuItem(menu, nodeType, menuPath, label, graph);
+            }
+
+            return menu;
+        }
+
+        // Cached list of SkillNode-derived types and their menu paths.
+        // Populated once on first use; automatically reset to null on domain reload.
+        private static List<(Type type, string menuPath)> _cachedSkillNodeTypes;
+
+        private static List<(Type type, string menuPath)> GetCachedSkillNodeTypes()
+        {
+            if (_cachedSkillNodeTypes != null)
+            {
+                return _cachedSkillNodeTypes;
+            }
+
+            _cachedSkillNodeTypes = new List<(Type, string)>();
+
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
                 Type[] types = null;
@@ -118,34 +146,40 @@ namespace Turnroot.Skills.Nodes.Editor
                 {
                     continue;
                 }
+
                 foreach (var t in types)
                 {
-                    if (t == null)
+                    if (
+                        t == null
+                        || !typeof(Node).IsAssignableFrom(t)
+                        || t.IsAbstract
+                        || !typeof(SkillNode).IsAssignableFrom(t)
+                    )
                     {
                         continue;
                     }
 
-                    if (!typeof(Node).IsAssignableFrom(t))
+                    foreach (var cad in t.GetCustomAttributesData())
                     {
-                        continue;
-                    }
+                        if (
+                            cad.AttributeType.Name != "CreateNodeMenuAttribute"
+                            || cad.ConstructorArguments.Count == 0
+                        )
+                        {
+                            continue;
+                        }
 
-                    if (t.IsAbstract)
-                    {
-                        continue;
+                        var menuPath = cad.ConstructorArguments[0].Value as string;
+                        if (!string.IsNullOrEmpty(menuPath))
+                        {
+                            _cachedSkillNodeTypes.Add((t, menuPath));
+                            break;
+                        }
                     }
-
-                    // Only include nodes that derive from SkillNode (covers types with or without namespaces)
-                    if (!typeof(SkillNode).IsAssignableFrom(t))
-                    {
-                        continue;
-                    }
-
-                    TryAddNodeTypeToMenu(t, menu, categoryPrefix, graph);
                 }
             }
 
-            return menu;
+            return _cachedSkillNodeTypes;
         }
 
         private static void TryAddNodeTypeToMenu(

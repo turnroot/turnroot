@@ -3,9 +3,6 @@ using UnityEngine;
 
 namespace Turnroot.Characters.Configuration
 {
-    /// <summary>
-    /// Defines which physical and gameplay traits are hereditary for character relationships.
-    /// </summary>
     [Serializable]
     public class HereditaryTraits
     {
