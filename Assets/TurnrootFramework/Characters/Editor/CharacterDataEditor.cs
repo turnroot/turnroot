@@ -101,14 +101,28 @@ namespace Turnroot.Characters.Editor
                     continue;
                 }
 
-                string key = isB.boolValue ? "B" + bnd.enumValueIndex : "U" + unb.enumValueIndex;
+                // use intValue (raw enum integer) as the key to handle non-contiguous enum values
+                string key = isB.boolValue ? "B" + bnd.intValue : "U" + unb.intValue;
                 existingKeys.Add(key);
             }
 
             bool modified = false;
 
-            // add entries for every unbounded stat type except Movement (movement growth rate is always 0)
-            foreach (UnboundedStatType statType in System.Enum.GetValues(typeof(UnboundedStatType)))
+            // Use GetDefaultUnboundedStatTypes() so that optional stats (Authority, Luck,
+            // CriticalAvoidance) are only added when enabled in GameplayGeneralSettings.
+            // Movement is in that list but growth rate for movement is always 0 — skip it.
+            var gs = GameSettings.GameplayGeneralSettings.Instance;
+            UnboundedStatType[] statTypes;
+            if (gs != null)
+            {
+                statTypes = gs.GetDefaultUnboundedStatTypes();
+            }
+            else
+            {
+                statTypes = (UnboundedStatType[])System.Enum.GetValues(typeof(UnboundedStatType));
+            }
+
+            foreach (UnboundedStatType statType in statTypes)
             {
                 if (statType == UnboundedStatType.Movement)
                 {
@@ -124,8 +138,9 @@ namespace Turnroot.Characters.Editor
                 grProp.InsertArrayElementAtIndex(grProp.arraySize);
                 var el = grProp.GetArrayElementAtIndex(grProp.arraySize - 1);
                 el.FindPropertyRelative("isBounded").boolValue = false;
-                el.FindPropertyRelative("unboundedStatType").enumValueIndex = (int)statType;
-                el.FindPropertyRelative("boundedStatType").enumValueIndex = 0;
+                // use intValue to correctly handle non-contiguous enum values (e.g. Authority=11, CriticalAvoidance=12)
+                el.FindPropertyRelative("unboundedStatType").intValue = (int)statType;
+                el.FindPropertyRelative("boundedStatType").intValue = 0;
                 el.FindPropertyRelative("value").floatValue = 0f;
                 existingKeys.Add(key);
                 modified = true;
@@ -138,9 +153,8 @@ namespace Turnroot.Characters.Editor
                 grProp.InsertArrayElementAtIndex(grProp.arraySize);
                 var el = grProp.GetArrayElementAtIndex(grProp.arraySize - 1);
                 el.FindPropertyRelative("isBounded").boolValue = true;
-                el.FindPropertyRelative("boundedStatType").enumValueIndex = (int)
-                    BoundedStatType.Health;
-                el.FindPropertyRelative("unboundedStatType").enumValueIndex = 0;
+                el.FindPropertyRelative("boundedStatType").intValue = (int)BoundedStatType.Health;
+                el.FindPropertyRelative("unboundedStatType").intValue = 0;
                 el.FindPropertyRelative("value").floatValue = 0f;
                 modified = true;
             }
@@ -463,7 +477,7 @@ namespace Turnroot.Characters.Editor
 
                     bool ib = isB.boolValue;
                     float v = val.floatValue;
-                    string key = ib ? "B" + bnd.enumValueIndex : "U" + unb.enumValueIndex;
+                    string key = ib ? "B" + bnd.intValue : "U" + unb.intValue;
                     if (seenKeys.Contains(key))
                     {
                         continue; // skip duplicate entries
@@ -473,13 +487,11 @@ namespace Turnroot.Characters.Editor
 
                     if (ib)
                     {
-                        temp.Add(new UnboundedStatModifier((BoundedStatType)bnd.enumValueIndex, v));
+                        temp.Add(new UnboundedStatModifier((BoundedStatType)bnd.intValue, v));
                     }
                     else
                     {
-                        temp.Add(
-                            new UnboundedStatModifier((UnboundedStatType)unb.enumValueIndex, v)
-                        );
+                        temp.Add(new UnboundedStatModifier((UnboundedStatType)unb.intValue, v));
                     }
                 }
 
@@ -489,9 +501,9 @@ namespace Turnroot.Characters.Editor
                 {
                     var el = gr.GetArrayElementAtIndex(i);
                     el.FindPropertyRelative("isBounded").boolValue = temp[i].isBounded;
-                    el.FindPropertyRelative("unboundedStatType").enumValueIndex = (int)
+                    el.FindPropertyRelative("unboundedStatType").intValue = (int)
                         temp[i].unboundedStatType;
-                    el.FindPropertyRelative("boundedStatType").enumValueIndex = (int)
+                    el.FindPropertyRelative("boundedStatType").intValue = (int)
                         temp[i].boundedStatType;
                     el.FindPropertyRelative("value").floatValue = temp[i].value;
                 }
@@ -527,7 +539,7 @@ namespace Turnroot.Characters.Editor
                 // movement growth rate is always 0 and not per-character; remove any stale entries
                 if (!isBProp.boolValue)
                 {
-                    var stat = (UnboundedStatType)unbProp.enumValueIndex;
+                    var stat = (UnboundedStatType)unbProp.intValue;
                     if (stat == UnboundedStatType.Movement)
                     {
                         _personalGrowthRates.DeleteArrayElementAtIndex(i);
@@ -536,7 +548,7 @@ namespace Turnroot.Characters.Editor
                 }
             }
 
-            // second pass: deduplicate entries by stat type (keep first occurrence)
+            // second pass: deduplicate entries by stat type (keep first occurrence, remove later duplicates)
             var seen = new HashSet<string>();
             for (int i = _personalGrowthRates.arraySize - 1; i >= 0; i--)
             {
@@ -544,6 +556,22 @@ namespace Turnroot.Characters.Editor
                 if (el == null)
                 {
                     continue;
+                }
+                var isB2 = el.FindPropertyRelative("isBounded");
+                var unb2 = el.FindPropertyRelative("unboundedStatType");
+                var bnd2 = el.FindPropertyRelative("boundedStatType");
+                if (isB2 == null || unb2 == null || bnd2 == null)
+                {
+                    continue;
+                }
+                string key = isB2.boolValue ? "B" + bnd2.intValue : "U" + unb2.intValue;
+                if (seen.Contains(key))
+                {
+                    _personalGrowthRates.DeleteArrayElementAtIndex(i);
+                }
+                else
+                {
+                    seen.Add(key);
                 }
             }
         }
@@ -702,7 +730,7 @@ namespace Turnroot.Characters.Editor
                         var curProp = elem.FindPropertyRelative("_current");
                         string label =
                             typeProp != null
-                                ? ((UnboundedStatType)typeProp.enumValueIndex).ToString()
+                                ? ((UnboundedStatType)typeProp.intValue).ToString()
                                 : $"Element {j}";
                         EditorGUILayout.BeginHorizontal();
                         if (typeProp != null)
@@ -770,7 +798,7 @@ namespace Turnroot.Characters.Editor
                 bool isB = el.FindPropertyRelative("isBounded").boolValue;
                 if (!isB)
                 {
-                    var idx = el.FindPropertyRelative("unboundedStatType").enumValueIndex;
+                    var idx = el.FindPropertyRelative("unboundedStatType").intValue;
                     if (
                         idx == (int)UnboundedStatType.Movement
                         || idx == (int)UnboundedStatType.Charm
