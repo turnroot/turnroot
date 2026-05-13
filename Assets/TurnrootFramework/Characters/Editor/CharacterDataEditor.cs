@@ -1015,9 +1015,9 @@ namespace Turnroot.Characters.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Recruitment", EditorStyles.boldLabel);
 
-            DrawAutoPropertyField("RequiresMinSupportLevel");
+            DrawAutoPropertyField("RecruitRequiresMinSupportLevel");
 
-            var requiresMinSupportProp = FindAutoProperty("RequiresMinSupportLevel");
+            var requiresMinSupportProp = FindAutoProperty("RecruitRequiresMinSupportLevel");
             if (requiresMinSupportProp != null && requiresMinSupportProp.boolValue)
             {
                 EditorGUI.indentLevel++;
