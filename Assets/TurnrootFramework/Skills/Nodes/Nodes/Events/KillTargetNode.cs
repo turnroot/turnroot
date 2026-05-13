@@ -28,11 +28,6 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             bool shouldKillAll = GetInputBool("affectAllTargets", false);
-            var killPort = GetInputPort("affectAllTargets");
-            if (killPort != null && killPort.IsConnected)
-            {
-                shouldKillAll = GetInputBool("affectAllTargets", false);
-            }
             int killedCount = ExecuteOnTargets(
                 context,
                 shouldKillAll,

@@ -31,12 +31,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAdjacent = false;
-            var adjPort = GetInputPort("affectAdjacentAllies");
-            if (adjPort != null && adjPort.IsConnected)
-            {
-                shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
-            }
+            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
 
             // Determine number of attacks to negate: 1 for single attack, -1 for all this turn
             int attacksToNegate = allAttacksThisTurn ? -1 : 1;

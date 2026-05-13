@@ -25,13 +25,14 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            int gold = (int)GetInputFloat("goldAmount", 0f);
             var goldPort = GetInputPort("goldAmount");
             if (goldPort == null || !goldPort.IsConnected)
             {
                 "GainGoldNode: 'goldAmount' input not provided".LogWarning();
                 return;
             }
+
+            int gold = (int)GetInputFloat("goldAmount", 0f);
 
             context.Brain.PublishGoldGained(gold);
 

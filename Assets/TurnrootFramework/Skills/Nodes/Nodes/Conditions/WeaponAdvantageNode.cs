@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Utilities;
+using UnityEngine;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
@@ -51,6 +52,13 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
+            if (skillGraph == null || !Application.isPlaying)
+            {
+                return port.fieldName == "Matchup"
+                    ? new WeaponMatchupValue { matchup = WeaponMatchup.NotOnTriangle }
+                    : new BoolValue { value = false };
+            }
+
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {

@@ -5,10 +5,17 @@ using XNode;
 namespace Turnroot.Skills.Nodes.Conditions
 {
     /// <summary>
-    /// Condition node that calculates the Manhattan distance between the unit and the target enemy.
+    /// Returns the Manhattan distance between the skill user and the current target enemy.
+    ///
+    /// In combat flows (Unit Attacks / Enemy Attacks): the target is the specific enemy
+    /// being engaged — this works automatically.
+    ///
+    /// In non-combat flows (Turn Ends, Unit Moves, Battle Starts): place a
+    /// <see cref="ForEachEnemyNode"/> upstream so each enemy is set as the target in
+    /// turn. Without it, no target is available and this node returns 0 with a warning.
     /// </summary>
     [CreateNodeMenu("Conditions/Position/Enemy Distance")]
-    [NodeLabel("Gets the distance to the target enemy")]
+    [NodeLabel("Gets the distance to the current target enemy (combat, or inside For Each Enemy)")]
     public class EnemyDistanceNode : SkillNode
     {
         [Output]

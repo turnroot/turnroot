@@ -34,9 +34,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new FloatValue { value = 1f };
             }
 
-            // Get turn count from CustomData (set by battle system)
-            // Default to 1 if not set
-            int turnNumber = context.GetCustomData("CurrentTurnNumber", 1);
+            int turnNumber = context.Brain?.battleBrain?.CurrentTurnNumber ?? 1;
             return new FloatValue { value = turnNumber };
         }
     }

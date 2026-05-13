@@ -158,6 +158,16 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Notes about this scene for designers/developers.")]
         public string notes;
         public bool TimePasses;
+
+        /// <summary>
+        /// When true, the date advances by <see cref="IncrementDays"/> from the current date instead of
+        /// being set to the absolute month/day/year values. Use this for scenes that should always
+        /// advance time by a fixed amount regardless of the order they are visited.
+        /// </summary>
+        public bool IncrementDate = false;
+
+        /// <summary>Number of days to add to the current date when <see cref="IncrementDate"/> is true.</summary>
+        public int IncrementDays = 1;
         public Month MonthForThisScene = Month.January;
         public int DayForThisScene = 1;
         public bool HasYear;

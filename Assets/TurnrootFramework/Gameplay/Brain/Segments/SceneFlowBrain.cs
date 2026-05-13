@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components;
@@ -61,11 +62,7 @@ namespace Turnroot.Utilities.SceneFlows
                     _ltm.SetGameDate(start.year, (Month)(start.month - 1), start.day);
                     existing = _ltm.GetGameDate();
                 }
-                _brain?.PublishGameDateChanged(
-                    existing.year,
-                    (int)existing.month + 1,
-                    existing.day
-                );
+                _brain?.PublishGameDateChanged(existing.year, existing.month, existing.day);
             }
 
             if (_brain != null)
@@ -113,7 +110,7 @@ namespace Turnroot.Utilities.SceneFlows
                     _ltm.SetGameDate(start.year, (Month)(start.month - 1), start.day);
                     date = _ltm.GetGameDate();
                 }
-                _brain.PublishGameDateChanged(date.year, (int)date.month + 1, date.day);
+                _brain.PublishGameDateChanged(date.year, date.month, date.day);
             }
         }
 
@@ -146,23 +143,9 @@ namespace Turnroot.Utilities.SceneFlows
             _currentScene = scene;
 
             // update stored game date based on scene metadata
-            if (_ltm != null && _ltm.Initialized)
+            if (scene.TimePasses && _ltm != null && _ltm.Initialized)
             {
-                var oldDate = _ltm.GetGameDate();
-                int newYear = oldDate.year;
-                if (scene.HasYear)
-                {
-                    newYear = scene.YearForThisScene;
-                }
-
-                var monthEnum = scene.MonthForThisScene;
-                int monthInt = (int)monthEnum + 1;
-                int newDay = scene.DayForThisScene;
-
-                if (newYear != oldDate.year || monthInt != oldDate.month || newDay != oldDate.day)
-                {
-                    _ltm.SetGameDate(newYear, monthEnum, newDay);
-                }
+                ApplySceneDateToLtm(scene);
             }
 
             // Reset the end-of-day transition flags when we arrive at a hub scene
@@ -200,23 +183,9 @@ namespace Turnroot.Utilities.SceneFlows
 
             _currentScene = scene;
 
-            if (_ltm != null)
+            if (scene.TimePasses && _ltm != null)
             {
-                var oldDate = _ltm.GetGameDate();
-                int newYear = oldDate.year;
-                if (scene.HasYear)
-                {
-                    newYear = scene.YearForThisScene;
-                }
-
-                var monthEnum = scene.MonthForThisScene;
-                int monthInt = (int)monthEnum + 1;
-                int newDay = scene.DayForThisScene;
-
-                if (newYear != oldDate.year || monthInt != oldDate.month || newDay != oldDate.day)
-                {
-                    _ltm.SetGameDate(newYear, monthEnum, newDay);
-                }
+                ApplySceneDateToLtm(scene);
             }
 
             if (scene.SpecificChapter)
@@ -225,6 +194,66 @@ namespace Turnroot.Utilities.SceneFlows
             }
 
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
+        }
+
+        #endregion
+
+        #region Date Helpers
+
+        /// <summary>
+        /// Applies the date metadata from <paramref name="scene"/> to long-term memory.
+        /// When <see cref="SceneNode.IncrementDate"/> is true the current date is advanced by
+        /// <see cref="SceneNode.IncrementDays"/> days; otherwise the absolute month/day (and
+        /// optionally year) values on the node are written directly.
+        /// Must only be called when <c>scene.TimePasses</c> is true.
+        /// </summary>
+        private void ApplySceneDateToLtm(SceneNode scene)
+        {
+            var oldDate = _ltm.GetGameDate();
+
+            int newYear;
+            Month newMonth;
+            int newDay;
+
+            if (scene.IncrementDate)
+            {
+                // Advance the current date by the configured number of days.
+                var dt = new DateTime(oldDate.year, oldDate.month, oldDate.day).AddDays(
+                    scene.IncrementDays
+                );
+                newYear = dt.Year;
+                newMonth = (Month)(dt.Month - 1);
+                newDay = dt.Day;
+            }
+            else
+            {
+                // Set to the absolute date recorded on the node.
+                newMonth = scene.MonthForThisScene;
+                newDay = scene.DayForThisScene;
+
+                if (scene.HasYear)
+                {
+                    newYear = scene.YearForThisScene;
+                }
+                else
+                {
+                    // No year pinned — advance to the next *occurrence* of this month/day.
+                    // If the target falls later in the same calendar year, keep the current year.
+                    // If it has already passed (or is the same day and the intent is to
+                    // stay in place), roll forward to the next year.
+                    int targetMonthInt = (int)newMonth + 1; // Month enum is 0-based; LTM is 1-based
+                    bool alreadyPassedThisYear =
+                        targetMonthInt < oldDate.month
+                        || (targetMonthInt == oldDate.month && newDay < oldDate.day);
+                    newYear = alreadyPassedThisYear ? oldDate.year + 1 : oldDate.year;
+                }
+            }
+
+            int newMonthInt = (int)newMonth + 1;
+            if (newYear != oldDate.year || newMonthInt != oldDate.month || newDay != oldDate.day)
+            {
+                _ltm.SetGameDate(newYear, newMonth, newDay);
+            }
         }
 
         #endregion

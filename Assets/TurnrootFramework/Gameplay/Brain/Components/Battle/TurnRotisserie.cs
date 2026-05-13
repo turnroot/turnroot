@@ -353,6 +353,16 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}".LogInfo();
 
+            // Publish TurnEnded for the unit whose turn is finishing — do this BEFORE changing
+            // Context.Unit so skill graphs still see the correct outgoing unit. This covers all
+            // unit types (player, enemy, third-party) since EndTurnCommand is not always called
+            // for enemy/third-party units.
+            var previousUnit = Context.Unit?.UnitInstance;
+            if (previousUnit != null)
+            {
+                Brain.PublishUnitTurnEnded(previousUnit);
+            }
+
             // Set active unit in context
             Context.Unit.UnitInstance = activeUnit;
             if (Context.Flags?.ActiveUnitFlags == null)
@@ -364,6 +374,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Update participants data for the newly active unit
             Context.UpdateAdjacentUnits();
             Context.UpdateTargetsInRange();
+
+            // Notify all systems that a new unit's turn has started (player, enemy, or third party).
+            Brain.PublishUnitTurnStarted(activeUnit);
 
             if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
             {

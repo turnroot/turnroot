@@ -31,13 +31,13 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            float speedMod = GetInputFloat("speedModifier", 0f);
             var speedPort = GetInputPort("speedModifier");
             if (speedPort == null || !speedPort.IsConnected)
             {
                 "ChangeBattleOrderNode: 'speedModifier' input not provided".LogWarning();
                 return;
             }
+            float speedMod = GetInputFloat("speedModifier", 0f);
 
             // Store in CustomData for combat system to use during attack resolution
             context.SetCustomData("AttackOrderSpeedModifier", speedMod);

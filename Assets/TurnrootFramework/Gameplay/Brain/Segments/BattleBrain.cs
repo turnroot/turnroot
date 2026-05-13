@@ -30,7 +30,7 @@ namespace Turnroot.Gameplay.Brain
         public PlayerTurnFlow playerTurnFlow;
 
         private BattleContextAIHelper _aiHelper;
-        private BattleStartSkillExecutor _skillExecutor;
+        private SkillTriggerRouter _skillExecutor;
         #endregion
 
         #region State
@@ -83,7 +83,7 @@ namespace Turnroot.Gameplay.Brain
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
 
-            _skillExecutor = new BattleStartSkillExecutor(this);
+            _skillExecutor = new SkillTriggerRouter(this);
             _skillExecutor.SubscribeToEvents();
 
             Brain.OnPrecomputeCompleted += HandlePrecomputeCompleted;

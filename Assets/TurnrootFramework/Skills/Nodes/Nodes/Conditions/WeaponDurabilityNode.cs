@@ -36,6 +36,16 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
+            if (skillGraph == null || !Application.isPlaying)
+            {
+                return port.fieldName switch
+                {
+                    "CurrentUses" or "MaxUses" or "UsesRemaining" or "PercentRemaining" =>
+                        new FloatValue { value = 0f },
+                    _ => new BoolValue { value = false },
+                };
+            }
+
             var context = GetContextFromGraph(skillGraph);
             if (context == null || context.Unit.UnitInstance == null)
             {

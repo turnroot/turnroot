@@ -3,10 +3,12 @@
 namespace Turnroot.Skills.Nodes.Flow
 {
     /// <summary>
-    /// Entry point node that triggers when a unit performs an attack.
+    /// Entry point that fires when this unit completes an attack.
+    /// <c>context.Participants.Targets</c> is already set to the combat target(s) —
+    /// no ForEachEnemyNode is needed for single-target checks.
     /// </summary>
     [CreateNodeMenu("Flow/Start/Unit Attacks")]
-    [NodeLabel("Runs when this unit attacks")]
+    [NodeLabel("Runs when this unit attacks (combat; target enemy is already set)")]
     public class UnitAttacksNode : SkillNode
     {
         [Output(ShowBackingValue.Never, ConnectionType.Multiple)]

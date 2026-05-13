@@ -1,5 +1,6 @@
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
+using UnityEngine;
 using XNode;
 
 namespace Turnroot.Skills.Nodes.Conditions
@@ -29,6 +30,15 @@ namespace Turnroot.Skills.Nodes.Conditions
         public override object GetValue(NodePort port)
         {
             var skillGraph = graph as SkillGraph;
+            if (skillGraph == null || !Application.isPlaying)
+            {
+                return port.fieldName switch
+                {
+                    "ClassName" => new StringValue { value = "" },
+                    _ => new BoolValue { value = false },
+                };
+            }
+
             var context = GetContextFromGraph(skillGraph);
             var enemy = ConditionHelpers.GetCharacterFromContext(
                 context,
