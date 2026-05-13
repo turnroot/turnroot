@@ -31,6 +31,7 @@ namespace Turnroot.Characters.Editor
             base.OnEnable();
             _personalGrowthRates = serializedObject.FindProperty("PersonalGrowthRates");
             PopulateExperienceRanksIfEmpty();
+            EnsureGrowthRatesHaveAllStats();
         }
 
         private void PopulateExperienceRanksIfEmpty()
@@ -69,6 +70,84 @@ namespace Turnroot.Characters.Editor
                     }
                     serializedObject.ApplyModifiedProperties();
                 }
+            }
+        }
+
+        private void EnsureGrowthRatesHaveAllStats()
+        {
+            var grProp =
+                serializedObject.FindProperty("PersonalGrowthRates")
+                ?? serializedObject.FindProperty("<PersonalGrowthRates>k__BackingField");
+            if (grProp == null || !grProp.isArray)
+            {
+                return;
+            }
+
+            // collect keys already present so we don't duplicate
+            var existingKeys = new HashSet<string>();
+            for (int i = 0; i < grProp.arraySize; i++)
+            {
+                var el = grProp.GetArrayElementAtIndex(i);
+                if (el == null)
+                {
+                    continue;
+                }
+
+                var isB = el.FindPropertyRelative("isBounded");
+                var unb = el.FindPropertyRelative("unboundedStatType");
+                var bnd = el.FindPropertyRelative("boundedStatType");
+                if (isB == null || unb == null || bnd == null)
+                {
+                    continue;
+                }
+
+                string key = isB.boolValue ? "B" + bnd.enumValueIndex : "U" + unb.enumValueIndex;
+                existingKeys.Add(key);
+            }
+
+            bool modified = false;
+
+            // add entries for every unbounded stat type except Movement (movement growth rate is always 0)
+            foreach (UnboundedStatType statType in System.Enum.GetValues(typeof(UnboundedStatType)))
+            {
+                if (statType == UnboundedStatType.Movement)
+                {
+                    continue;
+                }
+
+                string key = "U" + (int)statType;
+                if (existingKeys.Contains(key))
+                {
+                    continue;
+                }
+
+                grProp.InsertArrayElementAtIndex(grProp.arraySize);
+                var el = grProp.GetArrayElementAtIndex(grProp.arraySize - 1);
+                el.FindPropertyRelative("isBounded").boolValue = false;
+                el.FindPropertyRelative("unboundedStatType").enumValueIndex = (int)statType;
+                el.FindPropertyRelative("boundedStatType").enumValueIndex = 0;
+                el.FindPropertyRelative("value").floatValue = 0f;
+                existingKeys.Add(key);
+                modified = true;
+            }
+
+            // ensure Health (bounded) has an entry
+            string healthKey = "B" + (int)BoundedStatType.Health;
+            if (!existingKeys.Contains(healthKey))
+            {
+                grProp.InsertArrayElementAtIndex(grProp.arraySize);
+                var el = grProp.GetArrayElementAtIndex(grProp.arraySize - 1);
+                el.FindPropertyRelative("isBounded").boolValue = true;
+                el.FindPropertyRelative("boundedStatType").enumValueIndex = (int)
+                    BoundedStatType.Health;
+                el.FindPropertyRelative("unboundedStatType").enumValueIndex = 0;
+                el.FindPropertyRelative("value").floatValue = 0f;
+                modified = true;
+            }
+
+            if (modified)
+            {
+                serializedObject.ApplyModifiedProperties();
             }
         }
 
@@ -426,7 +505,7 @@ namespace Turnroot.Characters.Editor
                 return;
             }
 
-            // first pass: remove malformed entries (missing fields/null) and movement
+            // first pass: remove malformed entries (missing fields/null)
             for (int i = _personalGrowthRates.arraySize - 1; i >= 0; i--)
             {
                 var el = _personalGrowthRates.GetArrayElementAtIndex(i);
@@ -445,7 +524,7 @@ namespace Turnroot.Characters.Editor
                     continue;
                 }
 
-                // automatically drop movement entries; they are managed by GameplayGeneralSettings
+                // movement growth rate is always 0 and not per-character; remove any stale entries
                 if (!isBProp.boolValue)
                 {
                     var stat = (UnboundedStatType)unbProp.enumValueIndex;
