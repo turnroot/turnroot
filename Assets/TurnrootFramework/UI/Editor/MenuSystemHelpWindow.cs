@@ -245,7 +245,7 @@ namespace Turnroot.UI.Editor
             EditorGUILayout.LabelField("  • Child items: RadialMenuItem components", _bodyStyle);
             EditorGUILayout.LabelField("  • Navigation: Directional input or mouse", _bodyStyle);
             EditorGUILayout.LabelField(
-                "  • Best for: Quick access, radial selection (Fire Emblem style)",
+                "  • Best for: Quick access, radial selection",
                 _bodyStyle
             );
             GUILayout.Space(4);

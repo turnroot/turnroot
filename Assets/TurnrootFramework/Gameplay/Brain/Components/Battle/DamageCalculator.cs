@@ -46,13 +46,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             float defense = CalculateDefense(target, weapon);
             float finalDamage = Mathf.Max(0, baseDamage - defense);
 
-            // Apply critical hit if applicable
+            // Apply critical hit if applicable; consume the flag so only one attack crits
             if (
                 context?.Flags.ActiveUnitFlags.WillCriticalHit == true
                 && context.Flags.ActiveUnitFlags.Unit == attacker
             )
             {
                 finalDamage *= settings?.GetCriticalHitMultiplier() ?? 3f;
+                context.Flags.ActiveUnitFlags.WillCriticalHit = false;
             }
 
             return Mathf.RoundToInt(finalDamage);
@@ -95,6 +96,19 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 var supportBonus = CalculateSupportBonuses(context, attacker, target);
                 attackerHit += supportBonus.attackerHit;
                 targetAvoid += supportBonus.targetAvoid;
+
+                // NegateTerrainEffectsNode: attacker ignores defender's terrain avoid bonus
+                if (
+                    context.GetCustomData<bool>($"NegateTerrainEffects_{attacker.Id}")
+                    && context.MapGrid != null
+                )
+                {
+                    var targetPoint = target.UnitPositionToMapGridPoint(
+                        target.MapGridPosition,
+                        context.MapGrid
+                    );
+                    targetAvoid -= CalculateTerrainAvoidBonus(target, targetPoint, settings);
+                }
             }
 
             float triangleHitBonus = CalculateTriangleHitBonus(
@@ -106,7 +120,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             // average weapon and stat contributions before subtracting avoid
             float combinedHit = (baseHit + attackerHit) * 0.5f;
-            float finalHit = combinedHit - targetAvoid + triangleHitBonus;
+
+            // Apply combat-scoped bonuses set by CombatStartsNode skills (e.g. Swordbreaker)
+            float finalHit =
+                combinedHit
+                - targetAvoid
+                + triangleHitBonus
+                + attacker.CombatHitBonus
+                - target.CombatAvoidBonus;
 
             return Mathf.Clamp(finalHit, 0f, 100f);
         }

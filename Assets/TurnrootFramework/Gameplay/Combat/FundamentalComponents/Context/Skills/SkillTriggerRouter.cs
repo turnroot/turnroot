@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Brain.Events;
-using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Skills;
 using Turnroot.Utilities;
@@ -39,6 +37,12 @@ namespace Turnroot.Gameplay.Brain
         // EnemyDefeated — fired for the KILLER; Targets set to [defeated unit] during execution
         private readonly Dictionary<CharacterInstance, List<Skill>> _enemyDefeatedSkills = new();
 
+        // CombatStarts — fired before the first strike of a combat exchange, for both attacker and defender
+        private readonly Dictionary<CharacterInstance, List<Skill>> _combatStartSkills = new();
+
+        // PostCombat — fired after all strikes in a combat exchange resolve, for both attacker and defender
+        private readonly Dictionary<CharacterInstance, List<Skill>> _postCombatSkills = new();
+
         #region Event Subscriptions
         public void SubscribeToEvents()
         {
@@ -48,18 +52,13 @@ namespace Turnroot.Gameplay.Brain
             }
 
             Brain.OnBattleStarted += HandleBattleStartSkills;
-            Brain.OnPrecomputeCompleted += EvaluateBattleStartSkills;
-            Brain.OnTurnBegin += EvaluateBattleStartSkills;
-            Brain.OnPlayerTurnStarted += OnPlayerTurnStartedHandler;
-            Brain.OnEnemyTurnStarted += EvaluateBattleStartSkills;
-            Brain.OnThirdPartyTurnStarted += EvaluateBattleStartSkills;
             Brain.OnUnitTurnEnded += OnUnitTurnEndedHandler;
             Brain.OnUnitTurnStarted += OnUnitTurnStartedHandler;
             Brain.OnUnitMoved += OnUnitMovedHandler;
-            Brain.OnPlayerTurnStateChanged += OnPlayerTurnStateChangedHandler;
-            Brain.OnCharacterClassChanged += OnCharacterClassChangedHandler;
             Brain.OnAttackLogicCompleted += OnUnitAttacksHandler;
             Brain.OnLastAttackerSet += OnLastAttackerSetHandler;
+            Brain.OnCombatStarted += OnCombatStartedHandler;
+            Brain.OnCombatEnded += OnCombatEndedHandler;
             Brain.Subscribe<UnitDefeatedEvent>(OnUnitDefeatedHandler, EventPriority.Normal);
         }
 
@@ -71,18 +70,13 @@ namespace Turnroot.Gameplay.Brain
             }
 
             Brain.OnBattleStarted -= HandleBattleStartSkills;
-            Brain.OnPrecomputeCompleted -= EvaluateBattleStartSkills;
-            Brain.OnTurnBegin -= EvaluateBattleStartSkills;
-            Brain.OnPlayerTurnStarted -= OnPlayerTurnStartedHandler;
-            Brain.OnEnemyTurnStarted -= EvaluateBattleStartSkills;
-            Brain.OnThirdPartyTurnStarted -= EvaluateBattleStartSkills;
             Brain.OnUnitTurnEnded -= OnUnitTurnEndedHandler;
             Brain.OnUnitTurnStarted -= OnUnitTurnStartedHandler;
             Brain.OnUnitMoved -= OnUnitMovedHandler;
-            Brain.OnPlayerTurnStateChanged -= OnPlayerTurnStateChangedHandler;
-            Brain.OnCharacterClassChanged -= OnCharacterClassChangedHandler;
             Brain.OnAttackLogicCompleted -= OnUnitAttacksHandler;
             Brain.OnLastAttackerSet -= OnLastAttackerSetHandler;
+            Brain.OnCombatStarted -= OnCombatStartedHandler;
+            Brain.OnCombatEnded -= OnCombatEndedHandler;
             Brain.Unsubscribe<UnitDefeatedEvent>(OnUnitDefeatedHandler);
         }
         #endregion
@@ -97,6 +91,8 @@ namespace Turnroot.Gameplay.Brain
             _unitAttacksSkills.Clear();
             _enemyAttacksSkills.Clear();
             _enemyDefeatedSkills.Clear();
+            _combatStartSkills.Clear();
+            _postCombatSkills.Clear();
 
             var context = BattleObject?.Context;
             if (context == null)
@@ -195,7 +191,32 @@ namespace Turnroot.Gameplay.Brain
                         skill,
                         "Enemy-defeated"
                     );
+                    CollectTriggerSkill(
+                        skill.HasCombatStartsNode(),
+                        _combatStartSkills,
+                        unit,
+                        skill,
+                        "Combat-starts"
+                    );
+                    CollectTriggerSkill(
+                        skill.HasPostCombatNode(),
+                        _postCombatSkills,
+                        unit,
+                        skill,
+                        "Post-combat"
+                    );
                 }
+            }
+
+            // Execute BattleStart skills exactly once now that all units are collected
+            foreach (var unit in allUnits)
+            {
+                if (unit == null)
+                {
+                    continue;
+                }
+                context.Unit.UnitInstance = unit;
+                ExecuteTriggerSkills(unit, _battleStartSkills, "BattleStarts");
             }
         }
 
@@ -237,39 +258,11 @@ namespace Turnroot.Gameplay.Brain
 
         #region Evaluation Helpers
 
-        // Re-evaluates passive BattleStarts auras. Does NOT fire one-shot triggers.
-        private void OnPlayerTurnStartedHandler(CharacterInstance unit) =>
-            EvaluateBattleStartSkills();
-
-        private void OnCharacterClassChangedHandler(CharacterInstance character)
-        {
-            // only re-evaluate if this unit has battle-start skills registered
-            if (character != null && _battleStartSkills.ContainsKey(character))
-            {
-                EvaluateBattleStartSkills();
-            }
-        }
-
-        private void OnPlayerTurnStateChangedHandler(PlayerTurnStates newState)
-        {
-            // trigger when entering executing phases
-            if (newState is PlayerTurnStates.ExecutingMove or PlayerTurnStates.ExecutingAction)
-            {
-                EvaluateBattleStartSkills();
-            }
-        }
-
-        private void OnUnitTurnEndedHandler(CharacterInstance unit)
-        {
-            EvaluateBattleStartSkills();
+        private void OnUnitTurnEndedHandler(CharacterInstance unit) =>
             ExecuteTriggerSkills(unit, _turnEndsSkills, "TurnEnds");
-        }
 
-        private void OnUnitMovedHandler(CharacterInstance unit, Vector2Int pos)
-        {
-            EvaluateBattleStartSkills();
+        private void OnUnitMovedHandler(CharacterInstance unit, Vector2Int pos) =>
             ExecuteTriggerSkills(unit, _unitMovesSkills, "UnitMoves");
-        }
 
         /// <summary>
         /// Fires when any unit completes an attack. Executes that unit's UnitAttacksNode skills.
@@ -277,6 +270,13 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         private void OnUnitAttacksHandler(CharacterInstance attacker)
         {
+            var context = BattleObject?.Context;
+            if (context != null)
+            {
+                // Set IsInitiatingCombat so skill nodes can check whether this unit started combat
+                string initiatorId = context.GetCustomData("CombatInitiatorId", string.Empty);
+                context.SetCustomData("IsInitiatingCombat", attacker.Id == initiatorId);
+            }
             ExecuteTriggerSkills(attacker, _unitAttacksSkills, "UnitAttacks");
         }
 
@@ -349,44 +349,87 @@ namespace Turnroot.Gameplay.Brain
             context.Participants.Targets = originalTargets;
         }
 
-        private void EvaluateBattleStartSkills() => EvaluateBattleStartSkillsExecuteGraph();
-
-        private void EvaluateBattleStartSkillsExecuteGraph()
+        /// <summary>
+        /// Fires before the first strike of a combat exchange. Clears combat bonuses first,
+        /// then fires CombatStartsNode skills for both the attacker and defender.
+        /// </summary>
+        private void OnCombatStartedHandler(CharacterInstance attacker, CharacterInstance defender)
         {
             var context = BattleObject?.Context;
-            if (context == null || context.Participants == null)
+            if (context == null)
             {
                 return;
             }
 
-            foreach (var unit in context.Participants.GetAllUnits())
+            // Reset combat-scoped bonuses and stale damage-reduction data for both participants.
+            // CombatStartsNode skills will write fresh values immediately below.
+            attacker?.ClearCombatBonuses();
+            defender?.ClearCombatBonuses();
+            if (attacker != null)
+                context.CustomData.Remove($"DamageReduction_{attacker.Id}");
+            if (defender != null)
+                context.CustomData.Remove($"DamageReduction_{defender.Id}");
+
+            // Fire CombatStarts skills for attacker (target = defender, is initiating = true)
+            if (attacker != null)
             {
-                if (unit == null || !_battleStartSkills.TryGetValue(unit, out var skills))
-                {
-                    continue;
-                }
+                context.SetCustomData("IsInitiatingCombat", true);
+                var originalTargets = context.Participants.Targets;
+                context.Participants.Targets =
+                    new System.Collections.Generic.List<CharacterInstance> { defender };
+                ExecuteTriggerSkills(attacker, _combatStartSkills, "CombatStarts");
+                context.Participants.Targets = originalTargets;
+            }
 
-                context.Unit.UnitInstance = unit;
-
-                foreach (var skill in skills)
-                {
-                    skill.ExecuteSkill(context);
-                    unit.AddActivePassiveSkill(skill);
-
-                    if (SkillDebug.VerboseExecutionLogs)
-                    {
-                        $"SkillTriggerRouter: re-evaluated BattleStart skill '{skill.SkillName}' for unit {unit.Id}".LogInfo();
-                    }
-                }
+            // Fire CombatStarts skills for defender (target = attacker, is initiating = false)
+            if (defender != null)
+            {
+                context.SetCustomData("IsInitiatingCombat", false);
+                var originalTargets = context.Participants.Targets;
+                context.Participants.Targets =
+                    new System.Collections.Generic.List<CharacterInstance> { attacker };
+                ExecuteTriggerSkills(defender, _combatStartSkills, "CombatStarts");
+                context.Participants.Targets = originalTargets;
             }
         }
 
         /// <summary>
-        /// Executes all skills in <paramref name="skillDict"/> belonging to <paramref name="unit"/>.
-        /// Sets <c>context.Unit.UnitInstance</c> to the unit before execution.
-        /// For non-combat triggers, <c>context.Participants.Targets</c> retains the full enemy
-        /// list so a ForEachEnemyNode inside the graph can iterate them individually.
+        /// Fires after all strikes in a combat exchange resolve. Fires PostCombatNode
+        /// skills for both participants, then clears combat-scoped bonuses.
         /// </summary>
+        private void OnCombatEndedHandler(CharacterInstance attacker, CharacterInstance defender)
+        {
+            var context = BattleObject?.Context;
+            if (context == null)
+            {
+                return;
+            }
+
+            // Fire PostCombat skills for attacker (target = defender)
+            if (attacker != null)
+            {
+                var originalTargets = context.Participants.Targets;
+                context.Participants.Targets =
+                    new System.Collections.Generic.List<CharacterInstance> { defender };
+                ExecuteTriggerSkills(attacker, _postCombatSkills, "PostCombat");
+                context.Participants.Targets = originalTargets;
+            }
+
+            // Fire PostCombat skills for defender (target = attacker)
+            if (defender != null)
+            {
+                var originalTargets = context.Participants.Targets;
+                context.Participants.Targets =
+                    new System.Collections.Generic.List<CharacterInstance> { attacker };
+                ExecuteTriggerSkills(defender, _postCombatSkills, "PostCombat");
+                context.Participants.Targets = originalTargets;
+            }
+
+            // Clear combat-scoped bonuses after post-combat skills have fired
+            attacker?.ClearCombatBonuses();
+            defender?.ClearCombatBonuses();
+        }
+
         private void ExecuteTriggerSkills(
             CharacterInstance unit,
             Dictionary<CharacterInstance, List<Skill>> skillDict,

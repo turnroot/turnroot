@@ -64,10 +64,32 @@ namespace Turnroot.Gameplay.Brain
 
             if (ValidateTargetSelection(targetUnit))
             {
+                _pendingTarget = targetUnit;
                 _playerTurnFlow.SelectTargetOrDestination(
                     PlayerTurnStates.AttackActionChosenTargetSelected
                 );
             }
+        }
+
+        private void ExecuteConfirmedAttack()
+        {
+            if (_pendingTarget == null)
+            {
+                "ExecuteConfirmedAttack: no pending target".LogWarning();
+                return;
+            }
+
+            var attacker = BattleContext.Unit.UnitInstance;
+            var defender = _pendingTarget;
+            _pendingTarget = null;
+
+            // Set context target so skill graphs (CombatStarts, PostCombat) see the defender
+            BattleContext.Participants.Targets =
+                new System.Collections.Generic.List<CharacterInstance> { defender };
+
+            _playerTurnFlow.ExecuteConfirmedAction();
+            BattleContext.ExecuteCombatExchange(attacker, defender);
+            _playerTurnFlow.EndTurn();
         }
 
         public void ChangeSelectedUnit(CharacterInstance unit)

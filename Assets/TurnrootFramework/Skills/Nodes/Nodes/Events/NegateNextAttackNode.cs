@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Tooltip(
             "If true, negates all attacks this combat turn; if false, only next single attack"
         )]
@@ -31,9 +34,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             if (allAttacksThisTurn)
             {
-
-                "NegateNextAttack: All attacks this turn will be negated for unit"
-            .LogInfo();
+                "NegateNextAttack: All attacks this turn will be negated for unit".LogInfo();
             }
             else
             {
@@ -42,4 +43,3 @@ namespace Turnroot.Skills.Nodes.Events
         }
     }
 }
-

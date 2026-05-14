@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         public FloatValue changeHit;
 
@@ -48,26 +51,21 @@ namespace Turnroot.Skills.Nodes.Events
             {
                 var changeHitAmount = GetInputFloat("changeHit", 0f);
                 var inst = context.Unit.UnitInstance;
-                inst?.AddHit(changeHitAmount);
+                inst?.AddCombatHitBonus(changeHitAmount);
                 if (SkillDebug.VerboseExecutionLogs)
                 {
-                    $"AffectUnitHitAvoid: stored hit now {inst?.CurrentHit}".LogInfo();
+                    $"AffectUnitHitAvoid: combat hit bonus now {inst?.CurrentHit}".LogInfo();
                 }
             }
 
-            var avoidPort2 = GetInputPort("changeAvoid");
-            if (avoidPort2 != null && avoidPort2.IsConnected)
+            if (avoidPort != null && avoidPort.IsConnected)
             {
                 var changeAvoidAmount = GetInputFloat("changeAvoid", 0f);
+                var inst = context.Unit.UnitInstance;
+                inst?.AddCombatAvoidBonus(changeAvoidAmount);
                 if (SkillDebug.VerboseExecutionLogs)
                 {
-                    $"AffectUnitHitAvoid: affected unit {context.Unit.UnitInstance.Id} avoid by {changeAvoidAmount}".LogInfo();
-                }
-                var inst2 = context.Unit.UnitInstance;
-                inst2?.AddAvoid(changeAvoidAmount);
-                if (SkillDebug.VerboseExecutionLogs)
-                {
-                    $"AffectUnitHitAvoid: stored avoid now {inst2?.CurrentAvoid}".LogInfo();
+                    $"AffectUnitHitAvoid: affected unit {inst?.Id} avoid by {changeAvoidAmount}, bonus now {inst?.CurrentAvoid}".LogInfo();
                 }
             }
         }

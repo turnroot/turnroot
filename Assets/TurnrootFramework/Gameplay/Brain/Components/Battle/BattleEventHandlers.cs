@@ -92,7 +92,8 @@ namespace Turnroot.Gameplay.Brain
             // Invalidate per-unit tile cache when a unit moves
             BattleObject.Context.InvalidateUnitTileCache(unit);
 
-        private void HandleUnitDefeated(CharacterInstance unit) => BattleObject.Context.InvalidateUnitTileCache(unit);
+        private void HandleUnitDefeated(CharacterInstance unit) =>
+            BattleObject.Context.InvalidateUnitTileCache(unit);
 
         private OperationResult HandleUnitTakesAnotherTurnLogic(CharacterInstance unit)
         {
@@ -174,18 +175,24 @@ namespace Turnroot.Gameplay.Brain
 
             if (usesChange > 0)
             {
-                equippedWeapon.Repair(usesChange);
+                // ReplenishUses is the combat-safe restore path (no gold/item cost)
+                equippedWeapon.ReplenishUses(usesChange);
 
                 $"BattleBrain: Restored {usesChange} uses to {unit.CharacterTemplate.DisplayName}'s weapon".LogInfo();
             }
             else if (usesChange < 0)
             {
-                for (int i = 0; i < Mathf.Abs(usesChange); i++)
-                {
-                    equippedWeapon.Use();
-                }
+                // Directly clamp CurrentUses rather than calling Use() in a loop to avoid
+                // firing OnItemUsed multiple times and triggering unintended side effects
+                int reduction = Mathf.Abs(usesChange);
+                int maxUses = equippedWeapon.Template?.MaxUses ?? 0;
+                equippedWeapon.CurrentUses = Mathf.Clamp(
+                    equippedWeapon.CurrentUses + reduction,
+                    0,
+                    maxUses
+                );
 
-                $"BattleBrain: Reduced {Mathf.Abs(usesChange)} uses from {unit.CharacterTemplate.DisplayName}'s weapon".LogInfo();
+                $"BattleBrain: Reduced {reduction} uses from {unit.CharacterTemplate.DisplayName}'s weapon".LogInfo();
             }
 
             return OperationResult.Successful();

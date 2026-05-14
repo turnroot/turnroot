@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Utilities;
@@ -6,14 +7,26 @@ using UnityEngine;
 namespace Turnroot.Skills.Nodes.Events
 {
     /// <summary>
-    /// Moves an adjacent ally to a different tile relative to the caster's position.
+    /// Moves an adjacent ally to the tile directly behind the caster
+    /// (i.e. the tile on the opposite side of where the ally stands), or swaps positions
+    /// with the ally via the command system.
+    /// All movements fire brain events so animation/SFX listeners can react.
     /// </summary>
     [CreateNodeMenu("Events/Neutral/Reposition")]
-    [NodeLabel("Move ally to adjacent tile")]
+    [NodeLabel("Reposition: move ally behind caster, or swap")]
     public class RepositionNode : SkillNode
     {
         [Input]
         public ExecutionFlow executionIn;
+
+        [Output]
+        public ExecutionFlow OutFlow;
+
+        [Tooltip(
+            "Behind: ally vaults to the tile on the far side of the caster.\n"
+                + "Swap: caster and ally exchange positions via SwapCommand."
+        )]
+        public RepositionDirection moveDirection = RepositionDirection.Behind;
 
         public override void Execute(BattleContext context)
         {
@@ -22,22 +35,19 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            // Get the direction from custom data (set by player during gameplay)
-            Direction allyDirection = context.GetCustomData("SelectedDirection", Direction.Center);
+            var caster = context.Unit.UnitInstance;
+            if (!ValidationHelper.ValidateNotNull(caster, nameof(caster)))
+            {
+                return;
+            }
 
-            // Get the move direction from custom data (set by player during gameplay)
-            RepositionDirection moveDirection = context.GetCustomData(
-                "SelectedMoveDirection",
-                RepositionDirection.Behind
-            );
-
-            // Get the unit in the specified direction
             if (context.Participants.AdjacentUnits == null)
             {
                 "Reposition: No adjacent units data".LogWarning();
                 return;
             }
 
+            Direction allyDirection = context.GetCustomData("SelectedDirection", Direction.Center);
             var ally = context.Participants.AdjacentUnits.GetUnit(allyDirection);
             if (ally == null)
             {
@@ -45,29 +55,30 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            // Store reposition command in CustomData
-            var repositionData = new
+            var casterPos = caster.MapGridPosition;
+            var allyPos = ally.MapGridPosition;
+
+            switch (moveDirection)
             {
-                AllyId = ally.Id,
-                MoveDirection = moveDirection,
-                CasterId = context.Unit.UnitInstance.Id,
-            };
+                case RepositionDirection.Behind:
+                    // targetPos = caster + (caster - ally) = 2*caster - ally
+                    context.MoveUnitToPointInt(ally, 2 * casterPos - allyPos);
+                    break;
 
-            context.SetCustomData("Reposition", repositionData);
+                case RepositionDirection.Swap:
+                    // Swap caster and ally using the command system (fires swap events for animation/SFX)
+                    var turn = context.Brain?.battleBrain?.CurrentTurnNumber ?? 0;
+                    context.Brain.ExecuteCommand(new SwapCommand(caster.Id, ally.Id, turn));
+                    break;
+            }
 
-            $"Reposition: Will move ally from {allyDirection} to {moveDirection} relative to caster".LogInfo();
+            $"Reposition: Moved ally from {allyDirection} ({allyPos}) via {moveDirection}".LogInfo();
         }
     }
 
-    /// <summary>
-    /// Defines the relative position where an ally will be moved during repositioning.
-    /// </summary>
     public enum RepositionDirection
     {
-        Behind, // Move ally to tile behind caster
-        InFront, // Move ally to tile in front of caster
-        Left, // Move ally to left of caster
-        Right, // Move ally to right of caster
-        Swap, // Swap positions with ally
+        Behind, // Ally vaults to the tile on the far side of the caster
+        Swap, // Caster and ally exchange positions
     }
 }

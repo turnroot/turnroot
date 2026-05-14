@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         public override void Execute(BattleContext context)
         {
             if (!ValidateContext(context))
@@ -21,8 +24,20 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            context.SetCustomData("NegateTerrainEffects", true);
-            "NegateTerrainEffects: flagged unit to ignore terrain penalties (consumed by movement system)".LogInfo();
+            var unit = context.Unit.UnitInstance;
+            if (!ValidationHelper.ValidateNotNull(unit, nameof(unit)))
+            {
+                return;
+            }
+
+            // Per-unit key: attacker having this flag causes the defender's terrain avoid bonus
+            // to be ignored when calculating hit chance for this attacker's attacks.
+            // Key is read in DamageCalculator.CalculateHitChance.
+            // TODO: the movement-cost side (e.g. marsh penalties) is handled by the
+            // pathfinding system and should be wired to this flag there too.
+            context.SetCustomData($"NegateTerrainEffects_{unit.Id}", true);
+
+            $"NegateTerrainEffects: {unit.CharacterTemplate.DisplayName} will ignore target terrain avoid this exchange".LogInfo();
         }
     }
 }

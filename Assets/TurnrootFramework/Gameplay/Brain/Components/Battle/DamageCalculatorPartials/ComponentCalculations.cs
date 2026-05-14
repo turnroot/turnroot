@@ -79,13 +79,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             int advantage = settings.GetWeaponTriangleAdvantage();
             int disadvantage = settings.GetWeaponTriangleDisadvantage();
 
+            // AdjustAdvantagePercentsNode can add to the attacker's weapon-triangle modifiers
+            // for this exchange. Positive = stronger advantage or weaker disadvantage.
+            float advBonus = attacker.CombatWeaponAdvantageBonus;
+
             if (attackerTriangle.WinsAgainst(targetTriangle))
             {
-                return 1f + (advantage / 100f);
+                return 1f + ((advantage + advBonus) / 100f);
             }
             else if (attackerTriangle.LosesTo(targetTriangle))
             {
-                return 1f + (disadvantage / 100f);
+                return 1f + ((disadvantage + advBonus) / 100f);
             }
 
             return 1.0f;

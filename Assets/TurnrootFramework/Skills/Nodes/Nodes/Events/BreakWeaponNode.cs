@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("If true, breaks all targeted enemies' weapons; if false, only first target")]
         public BoolValue affectAllTargets;
@@ -33,16 +36,12 @@ namespace Turnroot.Skills.Nodes.Events
                 int broken = 0;
                 foreach (var target in context.Participants.Targets)
                 {
-                    if (target == null)
+                    if (target != null && BreakEquippedWeapon(target, context))
                     {
-                        continue;
+                        broken++;
                     }
-                    // Store break weapon command in CustomData
-                    context.SetCustomData($"BreakWeapon_{target.Id}", true);
-                    broken++;
                 }
-
-                $"BreakWeapon: Would break weapon for {broken} targets".LogInfo();
+                $"BreakWeapon: Broke weapon for {broken} target(s)".LogInfo();
             }
             else
             {
@@ -52,10 +51,32 @@ namespace Turnroot.Skills.Nodes.Events
                     "BreakWeapon: First target is null".LogWarning();
                     return;
                 }
-                // Store break weapon command in CustomData
-                context.SetCustomData($"BreakWeapon_{target.Id}", true);
-                "BreakWeapon: Would break weapon for first target".LogInfo();
+                if (BreakEquippedWeapon(target, context))
+                {
+                    $"BreakWeapon: Broke {target.CharacterTemplate.DisplayName}'s weapon".LogInfo();
+                }
             }
+        }
+
+        private static bool BreakEquippedWeapon(CharacterInstance target, BattleContext context)
+        {
+            var weapon = target.GetEquippedWeapon();
+            if (weapon == null)
+            {
+                $"BreakWeapon: {target.CharacterTemplate.DisplayName} has no equipped weapon".LogWarning();
+                return false;
+            }
+
+            if (weapon.Template?.Durability != true)
+            {
+                $"BreakWeapon: {target.CharacterTemplate.DisplayName}'s weapon has infinite durability".LogInfo();
+                return false;
+            }
+
+            // Set CurrentUses to MaxUses so RemainingUses == 0 (weapon is depleted/broken)
+            weapon.CurrentUses = weapon.Template.MaxUses;
+            context.Brain.PublishWeaponUsesChanged(target, 0);
+            return true;
         }
     }
 }

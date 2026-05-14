@@ -12,7 +12,7 @@ namespace Turnroot.Skills.Nodes.Flow
     public class UnitAttacksNode : SkillNode
     {
         [Output(ShowBackingValue.Never, ConnectionType.Multiple)]
-        public ExecutionFlow execOut;
+        public ExecutionFlow flow;
 
         public override object GetValue(NodePort port) => null;
     }

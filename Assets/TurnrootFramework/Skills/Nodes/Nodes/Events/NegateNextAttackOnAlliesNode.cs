@@ -15,6 +15,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("If true, affects adjacent allies; if false, only caster")]
         public BoolValue affectAdjacentAllies;

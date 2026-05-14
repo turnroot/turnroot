@@ -18,7 +18,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    context.AttackTarget(
+                    context.ExecuteCombatExchange(
                         _context.Unit.UnitInstance,
                         goal.Target,
                         goal.ChosenWeapon
@@ -49,7 +49,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.Unit.UnitInstance,
                         goal.Destination.CoordinatesInt
                     );
-                    context.AttackTarget(
+                    context.ExecuteCombatExchange(
                         _context.Unit.UnitInstance,
                         goal.Target,
                         goal.ChosenWeapon

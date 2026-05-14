@@ -16,6 +16,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip(
             "If true, cures allies adjacent to the caster; if false, cures context.Unit.UnitInstance (caster in standalone flows, current ally inside ForEachAlly)"

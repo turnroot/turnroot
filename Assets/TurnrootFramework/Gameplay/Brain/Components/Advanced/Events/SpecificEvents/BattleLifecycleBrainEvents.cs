@@ -49,6 +49,34 @@ namespace Turnroot.Gameplay.Brain
         public void PublishBattlePrepObjectInitialized(BattlePreparationObject prep) =>
             OnBattlePrepObjectInitialized?.Invoke(prep);
 
+        /// <summary>
+        /// Fires once at the start of a combat exchange (before the first strike).
+        /// Both attacker and defender are provided so both sides can fire their CombatStartsNode skills.
+        /// </summary>
+        public event Action<
+            Characters.CharacterInstance,
+            Characters.CharacterInstance
+        > OnCombatStarted;
+
+        /// <summary>
+        /// Fires once after all strikes in a combat exchange have resolved.
+        /// Both attacker and defender are provided so both sides can fire their PostCombatNode skills.
+        /// </summary>
+        public event Action<
+            Characters.CharacterInstance,
+            Characters.CharacterInstance
+        > OnCombatEnded;
+
+        public void PublishCombatStarted(
+            Characters.CharacterInstance attacker,
+            Characters.CharacterInstance defender
+        ) => OnCombatStarted?.Invoke(attacker, defender);
+
+        public void PublishCombatEnded(
+            Characters.CharacterInstance attacker,
+            Characters.CharacterInstance defender
+        ) => OnCombatEnded?.Invoke(attacker, defender);
+
         #endregion
     }
 }

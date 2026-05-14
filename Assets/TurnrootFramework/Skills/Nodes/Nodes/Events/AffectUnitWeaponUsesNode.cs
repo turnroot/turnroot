@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("The amount to change weapon uses by (positive to restore, negative to reduce)")]
         public FloatValue usesChange;
@@ -50,10 +53,26 @@ namespace Turnroot.Skills.Nodes.Events
             }
             int change = (int)GetInputFloat("usesChange", 0f);
 
-            context.Brain.PublishWeaponUsesChanged(targetCharacter, change);
-            string target = applyToUnit ? "unit" : "target";
+            var weapon = targetCharacter.GetEquippedWeapon();
+            if (weapon == null)
+            {
+                $"AffectUnitWeaponUses: {targetCharacter.CharacterTemplate.DisplayName} has no equipped weapon".LogWarning();
+                return;
+            }
 
-            $"AffectUnitWeaponUses: Changed {target} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses by {change}".LogInfo();
+            if (weapon.Template?.Durability != true)
+            {
+                $"AffectUnitWeaponUses: weapon has no durability tracking, ignoring".LogInfo();
+                return;
+            }
+
+            // State change is performed by HandleWeaponUsesChangedLogic in BattleEventHandlers:
+            //   positive change → ReplenishUses (restores remaining uses)
+            //   negative change → reduces CurrentUses
+            context.Brain.PublishWeaponUsesChanged(targetCharacter, change);
+
+            string targetLabel = applyToUnit ? "unit" : "target";
+            $"AffectUnitWeaponUses: {targetLabel} ({targetCharacter.CharacterTemplate.DisplayName}) weapon uses changed by {change}, remaining: {weapon.RemainingUses}/{weapon.Template.MaxUses}".LogInfo();
         }
     }
 }

@@ -154,16 +154,24 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             );
         }
 
-        public void ConfirmAction()
+        /// <summary>
+        /// Transitions from a *TargetSelected state to ConfirmAction (show forecast/preview).
+        /// Called when the player first presses A on a target.
+        /// </summary>
+        public void ConfirmAction() => TransitionAndPublish(PlayerTurnStates.ConfirmAction);
+
+        /// <summary>
+        /// Transitions from ConfirmAction to ExecutingAction and fires the appropriate action event.
+        /// Called when the player presses A a second time to confirm the forecast.
+        /// </summary>
+        public void ExecuteConfirmedAction()
         {
-            // Store previous state before transitioning
             var prev = _currentState.PreviousState;
 
             TransitionAndPublish(
-                PlayerTurnStates.ConfirmAction,
+                PlayerTurnStates.ExecutingAction,
                 () =>
                 {
-                    // Notify systems that an action is about to start using typed events
                     switch (prev)
                     {
                         case PlayerTurnStates.AttackActionChosenTargetSelected:
@@ -173,13 +181,10 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                             _battleBrain.Brain.PublishHealStarted(_activePlayerUnit);
                             break;
                         case PlayerTurnStates.UseItemActionChosenItemSelected:
-                            // TODO: pass item; this flow currently doesn't track item in flow - keep generic publish for now
+                            // TODO: pass item; this flow currently doesn't track item in flow
                             _battleBrain.Brain.PublishUseItemStarted(_activePlayerUnit, null);
                             break;
                         case PlayerTurnStates.WaitActionChosen:
-                            // If player has AutoEndTurn enabled, immediately end the turn; otherwise request UI confirmation
-                            // TODO: When AutoEndTurn is disabled, show a confirmation menu with ListMenuItem "End" button
-                            // to confirm turn end before actually ending the turn. Menu should call WaitAndEndTurn() when confirmed.
                             var playerSettings = _battleBrain
                                 ?.Brain
                                 ?.gamewideContextBrain

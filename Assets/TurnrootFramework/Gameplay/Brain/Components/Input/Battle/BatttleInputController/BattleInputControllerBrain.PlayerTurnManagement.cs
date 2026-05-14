@@ -11,6 +11,7 @@ namespace Turnroot.Gameplay.Brain
         #region Player Turn Management
 
         private MapGridPoint _pendingDestination;
+        private CharacterInstance _pendingTarget;
 
         private void HandlePlayerUnitActivated(CharacterInstance unit) => ComputeValidTiles(unit);
 
@@ -40,6 +41,10 @@ namespace Turnroot.Gameplay.Brain
 
                 case PlayerTurnStates.DestinationSelected:
                     HandleDestinationSelectedState();
+                    break;
+
+                case PlayerTurnStates.AttackActionChosenTargetSelected:
+                    // TODO: Show combat forecast UI (damage preview)
                     break;
 
                 case PlayerTurnStates.TurnEnded:
