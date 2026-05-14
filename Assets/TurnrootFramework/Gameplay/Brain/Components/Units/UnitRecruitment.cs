@@ -6,38 +6,37 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
-    private struct NullSafeAvatar()
-    {
-        public CharacterInstance? Avatar { get; } =
-            _gamewideContextBrain?.GetOrCreateAvatarInstance();
-        public bool IsValid => Avatar != null;
-    }
-
     [RequireComponent(typeof(LongTermMemory))]
     public partial class CharactersBrain : BrainComponent
     {
+        private struct NullSafeAvatar
+        {
+            public CharacterInstance? Avatar { get; }
+            public bool IsValid => Avatar != null;
+
+            public NullSafeAvatar(CharacterInstance? avatar)
+            {
+                Avatar = avatar;
+            }
+        }
+
         private NullSafeAvatar avatar;
 
         private bool AvatarHasMinExperienceLevels(CharacterData characterData)
         {
-            if (characterData.AvatarMustHaveMinimumExperienceLevelsToRecruit)
-            {
-                var status = true;
-                // check avatar experience ranks against characterData.AvatarMinimumExperienceRanksToRecruit
+            if (!characterData.AvatarMustHaveMinimumExperienceLevelsToRecruit)
+                return true;
 
-                foreach (var required in characterData.AvatarMinimumExperienceRanksToRecruit)
-                {
-                    var avatarRank = avatar.Avatar.ExperienceRanks.Find(r =>
-                        r.ExperienceTypeId == required.ExperienceTypeId
-                    );
-                    if (avatarRank == null || required.Rank.CompareTo(avatarRank.Rank.Value) > 0)
-                    {
-                        status = false;
-                        break;
-                    }
-                }
+            // check avatar experience ranks against characterData.AvatarMinimumExperienceRanksToRecruit
+            foreach (var required in characterData.AvatarMinimumExperienceRanksToRecruit)
+            {
+                var avatarRank = avatar.Avatar.ExperienceRanks.Find(r =>
+                    r.ExperienceTypeId == required.ExperienceTypeId
+                );
+                if (avatarRank == null || required.Rank.CompareTo(avatarRank.Rank.Value) > 0)
+                    return false;
             }
-            return status;
+            return true;
         }
 
         private bool CheckMinExperienceOverride(CharacterData characterData)
@@ -51,7 +50,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 if (characterData.SupportCanCompensateForMissingExperienceLevels)
                 { // failed the experience check but support relationship can compensate
-                    var supportRel = avatar.GetSupportRelationship(characterData);
+                    var supportRel = avatar.Avatar?.GetSupportRelationship(characterData);
                     if (
                         supportRel == null
                         || characterData.RecruitCompensationSupportLevel.CompareTo(
@@ -74,7 +73,7 @@ namespace Turnroot.Gameplay.Brain
 
         public bool CanRecruit(CharacterInstance character)
         {
-            avatar = new NullSafeAvatar();
+            avatar = new NullSafeAvatar(_gamewideContextBrain?.GetOrCreateAvatarInstance());
             if (!avatar.IsValid)
                 return false;
 
