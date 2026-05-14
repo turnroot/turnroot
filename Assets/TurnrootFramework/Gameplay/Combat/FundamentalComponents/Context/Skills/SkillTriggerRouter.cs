@@ -24,9 +24,14 @@ namespace Turnroot.Gameplay.Brain
         private readonly Dictionary<CharacterInstance, List<Skill>> _battleStartSkills = new();
 
         // One-shot trigger skills, keyed by the unit that owns the skill
-        // TurnEnds / TurnStarts / UnitMoves — non-combat, full enemy list in Targets
+        // TurnEnds / UnitMoves - non-combat, full enemy list in Targets
         private readonly Dictionary<CharacterInstance, List<Skill>> _turnEndsSkills = new();
-        private readonly Dictionary<CharacterInstance, List<Skill>> _turnStartsSkills = new();
+
+        // AnyTurnStarts - fires for ALL skill owners when any unit's turn starts
+        private readonly Dictionary<CharacterInstance, List<Skill>> _anyTurnStartsSkills = new();
+
+        // UnitTurnStarts - fires only for the unit whose turn it is
+        private readonly Dictionary<CharacterInstance, List<Skill>> _unitTurnStartsSkills = new();
         private readonly Dictionary<CharacterInstance, List<Skill>> _unitMovesSkills = new();
 
         // UnitAttacks — combat, Targets already contains the combat target(s)
@@ -87,7 +92,8 @@ namespace Turnroot.Gameplay.Brain
         {
             _battleStartSkills.Clear();
             _turnEndsSkills.Clear();
-            _turnStartsSkills.Clear();
+            _anyTurnStartsSkills.Clear();
+            _unitTurnStartsSkills.Clear();
             _unitMovesSkills.Clear();
             _unitAttacksSkills.Clear();
             _enemyAttacksSkills.Clear();
@@ -158,11 +164,18 @@ namespace Turnroot.Gameplay.Brain
                         "Turn-ends"
                     );
                     CollectTriggerSkill(
-                        skill.HasTurnStartsNode(),
-                        _turnStartsSkills,
+                        skill.HasAnyTurnStartsNode(),
+                        _anyTurnStartsSkills,
                         unit,
                         skill,
-                        "Turn-starts"
+                        "Any-turn-starts"
+                    );
+                    CollectTriggerSkill(
+                        skill.HasUnitTurnStartsNode(),
+                        _unitTurnStartsSkills,
+                        unit,
+                        skill,
+                        "Unit-turn-starts"
                     );
                     CollectTriggerSkill(
                         skill.HasUnitMovesNode(),
@@ -282,12 +295,20 @@ namespace Turnroot.Gameplay.Brain
         }
 
         /// <summary>
-        /// Fires for every unit (player, enemy, third-party) at the start of its turn.
-        /// Executes that unit's TurnStartsNode skills with the full enemy list in Targets.
+        /// Fires when any unit's turn starts.
+        /// - AnyTurnStartsNode: executes for ALL skill owners (e.g. passive auras, poison ticks).
+        /// - UnitTurnStartsNode: executes only for the unit whose turn it is.
         /// </summary>
         private void OnUnitTurnStartedHandler(CharacterInstance unit)
         {
-            ExecuteTriggerSkills(unit, _turnStartsSkills, "TurnStarts");
+            // AnyTurnStarts — fire every skill owner's graph, not just the current unit's
+            foreach (var skillOwner in _anyTurnStartsSkills.Keys)
+            {
+                ExecuteTriggerSkills(skillOwner, _anyTurnStartsSkills, "AnyTurnStarts");
+            }
+
+            // UnitTurnStarts — fire only the skill graph belonging to the unit whose turn it is
+            ExecuteTriggerSkills(unit, _unitTurnStartsSkills, "UnitTurnStarts");
         }
 
         /// <summary>

@@ -75,8 +75,11 @@ namespace Turnroot.Skills
         /// <summary>True when the graph contains a <see cref="TurnEndsNode"/>.</summary>
         public bool HasTurnEndsNode() => HasNodeOfType<TurnEndsNode>();
 
-        /// <summary>True when the graph contains a <see cref="TurnStartsNode"/>.</summary>
-        public bool HasTurnStartsNode() => HasNodeOfType<TurnStartsNode>();
+        /// <summary>True when the graph contains an <see cref="AnyTurnStartsNode"/>.</summary>
+        public bool HasAnyTurnStartsNode() => HasNodeOfType<AnyTurnStartsNode>();
+
+        /// <summary>True when the graph contains a <see cref="UnitTurnStartsNode"/>.</summary>
+        public bool HasUnitTurnStartsNode() => HasNodeOfType<UnitTurnStartsNode>();
 
         /// <summary>True when the graph contains a <see cref="UnitMovesNode"/>.</summary>
         public bool HasUnitMovesNode() => HasNodeOfType<UnitMovesNode>();

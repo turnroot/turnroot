@@ -1150,6 +1150,16 @@ namespace Turnroot.Characters.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Recruitment", EditorStyles.boldLabel);
 
+            EditorGUILayout.HelpBox(
+                "Recruitment checks run in this order:\n"
+                    + "1. If 'Will Join If Ally Is Already Recruited' is set, the character joins immediately when that ally is recruited — all other checks are bypassed.\n"
+                    + "2. If 'Avatar Must Have Minimum Experience Levels To Recruit', the avatar's proficiency ranks are verified. If this check fails and 'Support Can Compensate For Missing Experience Levels' is enabled, a sufficiently high support rank with this character can substitute for the missing experience.\n"
+                    + "3. Independently, if 'Recruit Requires Min Support Level', the avatar must have at least the specified support rank with this character.",
+                MessageType.Info
+            );
+
+            ValidateRecruitmentSection();
+
             DrawAutoPropertyField("RecruitRequiresMinSupportLevel");
 
             var requiresMinSupportProp = FindAutoProperty("RecruitRequiresMinSupportLevel");
@@ -1172,6 +1182,47 @@ namespace Turnroot.Characters.Editor
                 EditorGUI.indentLevel--;
             }
 
+            DrawAutoPropertyField("SupportCanCompensateForMissingExperienceLevels");
+
+            var compensateProp = serializedObject.FindProperty(
+                "SupportCanCompensateForMissingExperienceLevels"
+            );
+            if (compensateProp != null && compensateProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                DrawAutoPropertyField("RecruitCompensationSupportLevel");
+                EditorGUI.indentLevel--;
+
+                // Validate: compensation level must be strictly higher than the base min support level
+                var reqMinSupportProp = FindAutoProperty("RecruitRequiresMinSupportLevel");
+                if (reqMinSupportProp != null && reqMinSupportProp.boolValue)
+                {
+                    var minRankProp = FindAutoProperty("RecruitSupportRelationshipMinRank");
+                    var compLevelProp = FindAutoProperty("RecruitCompensationSupportLevel");
+                    if (minRankProp != null && compLevelProp != null)
+                    {
+                        var minValueProp = minRankProp.FindPropertyRelative("_value");
+                        var compValueProp = compLevelProp.FindPropertyRelative("_value");
+                        if (minValueProp != null && compValueProp != null)
+                        {
+                            int minRank = GetRankNumericValue(minValueProp.stringValue);
+                            int compRank = GetRankNumericValue(compValueProp.stringValue);
+                            if (compRank <= minRank)
+                            {
+                                EditorGUILayout.HelpBox(
+                                    "Compensation Support Level ("
+                                        + compValueProp.stringValue
+                                        + ") must be strictly higher than the Minimum Recruit Support Level ("
+                                        + minValueProp.stringValue
+                                        + "). Otherwise the avatar will already meet the base requirement before reaching the compensation threshold.",
+                                    MessageType.Warning
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
             DrawAutoPropertyField("WillJoinIfAllyIsAlreadyRecruited");
 
             var willJoinProp = serializedObject.FindProperty("WillJoinIfAllyIsAlreadyRecruited");
@@ -1180,6 +1231,57 @@ namespace Turnroot.Characters.Editor
                 EditorGUI.indentLevel++;
                 DrawAutoPropertyField("SpecificAllyRequiredForRecruitment");
                 EditorGUI.indentLevel--;
+            }
+        }
+
+        private static int GetRankNumericValue(string rankLetter) =>
+            rankLetter switch
+            {
+                "S" => 5,
+                "A" => 4,
+                "B" => 3,
+                "C" => 2,
+                "D" => 1,
+                _ => 0,
+            };
+
+        private void ValidateRecruitmentSection()
+        {
+            var compensateProp = serializedObject.FindProperty(
+                "SupportCanCompensateForMissingExperienceLevels"
+            );
+            var avatarMinLevelsProp = serializedObject.FindProperty(
+                "AvatarMustHaveMinimumExperienceLevelsToRecruit"
+            );
+            var willJoinProp = serializedObject.FindProperty("WillJoinIfAllyIsAlreadyRecruited");
+            var specificAllyProp = serializedObject.FindProperty(
+                "SpecificAllyRequiredForRecruitment"
+            );
+
+            if (
+                compensateProp != null
+                && compensateProp.boolValue
+                && avatarMinLevelsProp != null
+                && !avatarMinLevelsProp.boolValue
+            )
+            {
+                EditorGUILayout.HelpBox(
+                    "'Support Can Compensate For Missing Experience Levels' is enabled, but 'Avatar Must Have Minimum Experience Levels To Recruit' is not set. The compensation will have no effect since there is nothing to compensate for.",
+                    MessageType.Warning
+                );
+            }
+
+            if (
+                willJoinProp != null
+                && willJoinProp.boolValue
+                && specificAllyProp != null
+                && specificAllyProp.objectReferenceValue == null
+            )
+            {
+                EditorGUILayout.HelpBox(
+                    "'Will Join If Ally Is Already Recruited' is enabled, but no Specific Ally Required For Recruitment is assigned. This may cause a null reference at runtime.",
+                    MessageType.Error
+                );
             }
         }
 

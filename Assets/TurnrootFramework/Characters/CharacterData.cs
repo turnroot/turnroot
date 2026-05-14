@@ -101,6 +101,13 @@ namespace Turnroot.Characters
         public List<ExperienceRank> AvatarMinimumExperienceRanksToRecruit = new();
 
         [HideInInspector]
+        public bool SupportCanCompensateForMissingExperienceLevels;
+
+        [field: SerializeField, HideInInspector]
+        public LeveledLetteredField RecruitCompensationSupportLevel { get; private set; } =
+            new LeveledLetteredField(LeveledLetteredField.E);
+
+        [HideInInspector]
         public bool WillJoinIfAllyIsAlreadyRecruited;
 
         [HideInInspector]
