@@ -29,7 +29,9 @@ namespace Turnroot.Characters.Editor
         protected override void OnEnable()
         {
             base.OnEnable();
-            _personalGrowthRates = serializedObject.FindProperty("PersonalGrowthRates");
+            _personalGrowthRates =
+                serializedObject.FindProperty("PersonalGrowthRates")
+                ?? serializedObject.FindProperty("<PersonalGrowthRates>k__BackingField");
             PopulateExperienceRanksIfEmpty();
             EnsureGrowthRatesHaveAllStats();
         }
@@ -179,8 +181,19 @@ namespace Turnroot.Characters.Editor
             SanitizeNullStats(serializedObject);
 
             // refresh before validation/drawing since sanitize may modify array
-            _personalGrowthRates = serializedObject.FindProperty("PersonalGrowthRates");
+            _personalGrowthRates =
+                serializedObject.FindProperty("PersonalGrowthRates")
+                ?? serializedObject.FindProperty("<PersonalGrowthRates>k__BackingField");
             ValidateGrowthProperty();
+
+            // Apply sanitize/validate changes NOW before base.OnInspectorGUI(), which calls
+            // serializedObject.Update() internally and would discard any uncommitted changes.
+            if (serializedObject.hasModifiedProperties)
+            {
+                serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(target);
+                AssetDatabase.SaveAssets();
+            }
 
             // When the character is an NPC, only show identity + demographics fields.
             var whichProp = FindAutoProperty("Which");
@@ -452,7 +465,9 @@ namespace Turnroot.Characters.Editor
             }
 
             // sanitize growth rates entries (struct migrations can leave invalid elements)
-            var gr = so.FindProperty("PersonalGrowthRates");
+            var gr =
+                so.FindProperty("PersonalGrowthRates")
+                ?? so.FindProperty("<PersonalGrowthRates>k__BackingField");
             if (gr != null && gr.isArray)
             {
                 // rebuild into temp list to ensure each element has all fields
@@ -762,15 +777,12 @@ namespace Turnroot.Characters.Editor
             EditorGUI.DrawRect(sepRect, new Color(1f, 0.4f, 0.4f));
             EditorGUILayout.Space();
 
-            // make sure serialized data is current before grabbing the property
-            serializedObject.Update();
-            _personalGrowthRates = serializedObject.FindProperty("PersonalGrowthRates");
+            // ensure property reference is current (OnInspectorGUI already called Update())
             if (_personalGrowthRates == null)
             {
-                // sometimes auto-property serialisation uses the backing field name
-                _personalGrowthRates = serializedObject.FindProperty(
-                    "<PersonalGrowthRates>k__BackingField"
-                );
+                _personalGrowthRates =
+                    serializedObject.FindProperty("PersonalGrowthRates")
+                    ?? serializedObject.FindProperty("<PersonalGrowthRates>k__BackingField");
             }
             if (_personalGrowthRates == null || !_personalGrowthRates.isArray)
             {
