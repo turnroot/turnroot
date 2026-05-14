@@ -6,20 +6,81 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    private struct NullSafeAvatar()
+    {
+        public CharacterInstance? Avatar { get; } =
+            _gamewideContextBrain?.GetOrCreateAvatarInstance();
+        public bool IsValid => Avatar != null;
+    }
+
     [RequireComponent(typeof(LongTermMemory))]
     public partial class CharactersBrain : BrainComponent
     {
+        private NullSafeAvatar avatar;
+
+        private bool AvatarHasMinExperienceLevels(CharacterData characterData)
+        {
+            if (characterData.AvatarMustHaveMinimumExperienceLevelsToRecruit)
+            {
+                var status = true;
+                // check avatar experience ranks against characterData.AvatarMinimumExperienceRanksToRecruit
+
+                foreach (var required in characterData.AvatarMinimumExperienceRanksToRecruit)
+                {
+                    var avatarRank = avatar.Avatar.ExperienceRanks.Find(r =>
+                        r.ExperienceTypeId == required.ExperienceTypeId
+                    );
+                    if (avatarRank == null || required.Rank.CompareTo(avatarRank.Rank.Value) > 0)
+                    {
+                        status = false;
+                        break;
+                    }
+                }
+            }
+            return status;
+        }
+
+        private bool CheckMinExperienceOverride(CharacterData characterData)
+        {
+            var status = AvatarHasMinExperienceLevels(characterData);
+            if (status)
+            {
+                return true;
+            }
+            else
+            {
+                if (characterData.SupportCanCompensateForMissingExperienceLevels)
+                { // failed the experience check but support relationship can compensate
+                    var supportRel = avatar.GetSupportRelationship(characterData);
+                    if (
+                        supportRel == null
+                        || characterData.RecruitCompensationSupportLevel.CompareTo(
+                            supportRel.CurrentLevel
+                        ) > 0
+                    )
+                    {
+                        status = false;
+                    }
+                }
+                else
+                {
+                    // failed and can't compensate
+                    status = false;
+                }
+            }
+
+            return status;
+        }
+
         public bool CanRecruit(CharacterInstance character)
         {
+            avatar = new NullSafeAvatar();
+            if (!avatar.IsValid)
+                return false;
+
             var status = false;
+
             var characterData = character.CharacterTemplate;
-            if (characterData == null)
-            {
-                "CharactersBrain.CanRecruit: Character instance has no template, cannot determine recruitability.".LogWarning(
-                    "CharactersBrain"
-                );
-                status = false;
-            }
 
             if (characterData.WillJoinIfAllyIsAlreadyRecruited)
             {
@@ -31,57 +92,23 @@ namespace Turnroot.Gameplay.Brain
                     // Check if the required ally is in the roster
                     var rosterInstance = _gamewideContextBrain?.GetOrCreatePlayerTeamRoster(roster);
                     return rosterInstance?.GetInstanceFor(requiredAlly) != null;
-                    ; // If true,  return early, the character is recruitable regardless of other conditions
+                    ; // If true the character is recruitable regardless of other conditions
                 }
             }
 
-            if (characterData.AvatarMustHaveMinimumExperienceLevelsToRecruit)
-            {
-                // check avatar experience ranks against characterData.AvatarMinimumExperienceRanksToRecruit
-                var avatar = _gamewideContextBrain?.GetOrCreateAvatarInstance();
-                if (avatar == null)
-                {
-                    status = false;
-                }
-                else
-                {
-                    foreach (var required in characterData.AvatarMinimumExperienceRanksToRecruit)
-                    {
-                        var avatarRank = avatar.ExperienceRanks.Find(r =>
-                            r.ExperienceTypeId == required.ExperienceTypeId
-                        );
-                        if (
-                            avatarRank == null
-                            || required.Rank.CompareTo(avatarRank.Rank.Value) > 0
-                        )
-                        {
-                            status = false;
-                            break;
-                        }
-                    }
-                }
-            }
+            CheckMinExperienceOverride(characterData); // check experience next since it can be overridden by support relationship
 
             if (characterData.RecruitRequiresMinSupportLevel)
             {
-                // check avatar support relationship with character against characterData.RecruitSupportRelationshipMinRank
-                var avatar = _gamewideContextBrain?.GetOrCreateAvatarInstance();
-                if (avatar == null)
+                var supportRel = avatar.Avatar.GetSupportRelationship(characterData);
+                if (
+                    supportRel == null
+                    || characterData.RecruitSupportRelationshipMinRank.CompareTo(
+                        supportRel.CurrentLevel
+                    ) > 0
+                )
                 {
                     status = false;
-                }
-                else
-                {
-                    var supportRel = avatar.GetSupportRelationship(characterData);
-                    if (
-                        supportRel == null
-                        || characterData.RecruitSupportRelationshipMinRank.CompareTo(
-                            supportRel.CurrentLevel
-                        ) > 0
-                    )
-                    {
-                        status = false;
-                    }
                 }
             }
             return status;
