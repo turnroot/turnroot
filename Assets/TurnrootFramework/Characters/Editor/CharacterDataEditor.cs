@@ -110,9 +110,9 @@ namespace Turnroot.Characters.Editor
 
             bool modified = false;
 
-            // Use GetDefaultUnboundedStatTypes() so that optional stats (Authority, Luck,
-            // CriticalAvoidance) are only added when enabled in GameplayGeneralSettings.
-            // Movement is in that list but growth rate for movement is always 0 — skip it.
+            // Use GetDefaultUnboundedStatTypes() so that optional stats (Authority, Luck)
+            // are only added when enabled in GameplayGeneralSettings.
+            // Movement and CriticalAvoidance are calculated, not set directly — skip them.
             var gs = GameSettings.GameplayGeneralSettings.Instance;
             UnboundedStatType[] statTypes;
             if (gs != null)
@@ -126,7 +126,10 @@ namespace Turnroot.Characters.Editor
 
             foreach (UnboundedStatType statType in statTypes)
             {
-                if (statType == UnboundedStatType.Movement)
+                if (
+                    statType == UnboundedStatType.Movement
+                    || statType == UnboundedStatType.CriticalAvoidance
+                )
                 {
                     continue;
                 }
@@ -551,11 +554,14 @@ namespace Turnroot.Characters.Editor
                     continue;
                 }
 
-                // movement growth rate is always 0 and not per-character; remove any stale entries
+                // movement and critical avoidance are calculated, not per-character; remove any stale entries
                 if (!isBProp.boolValue)
                 {
                     var stat = (UnboundedStatType)unbProp.intValue;
-                    if (stat == UnboundedStatType.Movement)
+                    if (
+                        stat == UnboundedStatType.Movement
+                        || stat == UnboundedStatType.CriticalAvoidance
+                    )
                     {
                         _personalGrowthRates.DeleteArrayElementAtIndex(i);
                         continue;
@@ -742,6 +748,16 @@ namespace Turnroot.Characters.Editor
                         }
 
                         var typeProp = elem.FindPropertyRelative("_statType");
+                        if (typeProp != null)
+                        {
+                            var statType = (UnboundedStatType)typeProp.intValue;
+                            // CriticalAvoidance is calculated, not set directly
+                            if (statType == UnboundedStatType.CriticalAvoidance)
+                            {
+                                continue;
+                            }
+                        }
+
                         var curProp = elem.FindPropertyRelative("_current");
                         string label =
                             typeProp != null
