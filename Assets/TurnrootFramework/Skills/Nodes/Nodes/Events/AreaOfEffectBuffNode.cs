@@ -15,6 +15,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("The intensity multiplier for the buff (1.0 = normal strength)")]
         public FloatValue intensity;
@@ -50,12 +53,10 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             var intensityPort = GetInputPort("intensity");
-            if (intensityPort == null || !intensityPort.IsConnected)
-            {
-                "AreaOfEffectBuffNode: 'intensity' input not provided".LogWarning();
-                return;
-            }
-            float intensityValue = GetInputFloat("intensity", 1f);
+            float intensityValue =
+                intensityPort != null && intensityPort.IsConnected
+                    ? GetInputFloat("intensity", 1f)
+                    : 1f;
             int duration = durationOverride >= 0 ? durationOverride : buffType.DefaultDuration;
 
             // Apply buff to allies within radius

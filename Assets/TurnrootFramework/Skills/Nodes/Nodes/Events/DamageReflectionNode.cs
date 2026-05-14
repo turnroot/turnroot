@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("Percentage of damage to reflect (0-100)")]
         public FloatValue reflectionPercent;
@@ -38,10 +41,20 @@ namespace Turnroot.Skills.Nodes.Events
 
             // Store in CustomData for combat system to check when taking damage
             // Key format: "ReflectDamage_{CharacterInstanceId}"
-            var reflectionData = new { Percent = reflectPercent };
+            var reflectionData = new DamageReflectionData { Percent = reflectPercent };
 
             context.SetCustomData($"ReflectDamage_{context.Unit.UnitInstance.Id}", reflectionData);
             $"DamageReflection: Will reflect {reflectPercent}% of damage".LogInfo();
         }
+    }
+
+    /// <summary>
+    /// Data written into CustomData under the key <c>ReflectDamage_{CharacterId}</c>.
+    /// Read by the combat system when the unit takes damage.
+    /// </summary>
+    public struct DamageReflectionData
+    {
+        /// <summary>Percentage of received damage to reflect back to the attacker (0-100).</summary>
+        public float Percent;
     }
 }

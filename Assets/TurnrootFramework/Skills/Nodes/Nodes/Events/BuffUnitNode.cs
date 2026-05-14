@@ -15,6 +15,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Tooltip("The buff type to apply")]
         public StatusEffectType buffType;
 

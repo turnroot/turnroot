@@ -247,8 +247,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 );
             }
 
-            // Update unit statistics
-            activeUnit.IncrementCombatCount();
+            // Update unit statistics (combat count is incremented per-exchange in ExecuteCombatExchange)
             activeUnit.IncrementTurnsAlive();
 
             // Update battle context to reflect the new active unit

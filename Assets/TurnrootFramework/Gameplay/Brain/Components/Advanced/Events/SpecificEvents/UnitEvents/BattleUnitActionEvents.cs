@@ -117,6 +117,21 @@ namespace Turnroot.Gameplay.Brain
             ObjectItemInstance item
         ) => OnUseItemAnimationCompleted?.Invoke(unit, item);
 
+        public event Action<CharacterInstance, CharacterInstance> OnSwapStarted; // logic start
+        public event Action<CharacterInstance, CharacterInstance> OnSwapLogicCompleted; // backend logic done
+        public event Action<CharacterInstance, CharacterInstance> OnSwapAnimationCompleted; // animation done
+
+        public void PublishSwapStarted(CharacterInstance unit, CharacterInstance target) =>
+            OnSwapStarted?.Invoke(unit, target);
+
+        public void PublishSwapLogicCompleted(CharacterInstance unit, CharacterInstance target) =>
+            OnSwapLogicCompleted?.Invoke(unit, target);
+
+        public void PublishSwapAnimationCompleted(
+            CharacterInstance unit,
+            CharacterInstance target
+        ) => OnSwapAnimationCompleted?.Invoke(unit, target);
+
         public void PublishEndTurnCompleted(CharacterInstance unit) =>
             OnEndTurnCompleted?.Invoke(unit);
 

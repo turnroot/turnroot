@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow input;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         public override void Execute(BattleContext context)
         {
             if (!ValidateContext(context))
@@ -26,10 +29,7 @@ namespace Turnroot.Skills.Nodes.Events
             // FirstStrike means this unit initiates combat before enemy can counterattack
             context.SetCustomData($"FirstStrike_{context.Unit.UnitInstance.Id}", true);
 
-
-            "FirstStrike: Unit will attack first, preventing enemy counterattack"
-        .LogInfo();
+            "FirstStrike: Unit will attack first, preventing enemy counterattack".LogInfo();
         }
     }
 }
-

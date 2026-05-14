@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Tooltip("Type of item to steal (weapon, item, etc.)")]
         public string itemType = "Item";
 
@@ -45,11 +48,14 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
+            // TODO: Actually transfer the item before publishing the event.
+            // Need an inventory transfer API, e.g.:
+            //   var stolen = target.InventoryInstance.TakeItem(itemType);
+            //   if (stolen != null) context.Unit.UnitInstance.InventoryInstance.AddItem(stolen);
+            // PublishItemStolen should only fire after the transfer succeeds.
             context.Brain.PublishItemStolen(context.Unit.UnitInstance, target);
 
-            $"Steal: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}"
-        .LogInfo();
+            $"Steal: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}".LogInfo();
         }
     }
 }
-

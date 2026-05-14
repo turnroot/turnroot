@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         public override void Execute(BattleContext context)
         {
             if (
@@ -28,9 +31,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             context.Brain.PublishUnitTakesAnotherTurn(context.Unit.UnitInstance);
 
-            $"TakeAnotherTurn: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} will take another turn"
-        .LogInfo();
+            $"TakeAnotherTurn: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} will take another turn".LogInfo();
         }
     }
 }
-

@@ -29,6 +29,13 @@ namespace Turnroot.Gameplay.Brain.Commands
             var oldPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, context.MapGrid);
             UndoState[UndoStateKeys.From] = unit.MapGridPosition;
 
+            // TODO: Fire PublishCharacterMoveStarted(unit, newPoint) HERE (before the data move)
+            // so that UnitAppearanceBrain.HandleCharacterMoveStarted can start the spline animation
+            // coroutine for skill-triggered and AI-triggered moves (WarpNode, RepositionNode,
+            // MoveUnitNode, AI ExecuteGoal). Currently only the player input controller fires
+            // OnCharacterMoveStarted, so those moves teleport the model instead of animating.
+            // After firing, the command should await OnMoveAnimationCompleted before returning true
+            // (or use a callback pattern) so callers block until the visual is done.
             var result = unit.MoveToPosition(Target, context.MapGrid);
             if (!result.Success)
             {

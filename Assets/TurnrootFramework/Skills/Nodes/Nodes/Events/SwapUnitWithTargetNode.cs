@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -5,7 +6,8 @@ using UnityEngine;
 namespace Turnroot.Skills.Nodes.Events
 {
     /// <summary>
-    /// Swaps the battlefield positions of the caster and the target unit.
+    /// Swaps the battlefield positions of the caster and the target unit
+    /// via the command system, so it is undoable and triggers animation events.
     /// </summary>
     [CreateNodeMenu("Events/Neutral/Swap Unit With Target")]
     [NodeLabel("Swaps the position of the unit with the target")]
@@ -13,6 +15,9 @@ namespace Turnroot.Skills.Nodes.Events
     {
         [Input]
         public ExecutionFlow executionIn;
+
+        [Output]
+        public ExecutionFlow OutFlow;
 
         public override void Execute(BattleContext context)
         {
@@ -42,10 +47,12 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            // Store swap command in CustomData
-            var swapData = new { UnitId = context.Unit.UnitInstance.Id, TargetId = target.Id };
-            context.SetCustomData("SwapPositions", swapData);
-            "SwapUnitWithTarget: Will swap positions with target".LogInfo();
+            var unit = context.Unit.UnitInstance;
+            var turn = context.Brain?.battleBrain?.CurrentTurnNumber ?? 0;
+            var command = new SwapCommand(unit.Id, target.Id, turn);
+            context.Brain.ExecuteCommand(command);
+
+            $"SwapUnitWithTarget: Swapping {unit.Id} <-> {target.Id}".LogInfo();
         }
     }
 }

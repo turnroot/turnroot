@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("Speed threshold modifier for follow-up attacks (positive = easier to double)")]
         public FloatValue speedModifier;
@@ -31,22 +34,70 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            var speedPort = GetInputPort("speedModifier");
-            if (speedPort == null || !speedPort.IsConnected)
+            var unit = context.Unit.UnitInstance;
+            if (!ValidationHelper.ValidateNotNull(unit, nameof(unit)))
             {
-                "ChangeBattleOrderNode: 'speedModifier' input not provided".LogWarning();
                 return;
             }
-            float speedMod = GetInputFloat("speedModifier", 0f);
 
-            // Store in CustomData for combat system to use during attack resolution
-            context.SetCustomData("AttackOrderSpeedModifier", speedMod);
-            context.SetCustomData("AttackOrderApplyToUnit", applyToUnit);
-            context.SetCustomData("AttackOrderEffectType", effectType);
+            // Determine which character the effect applies to
+            string targetId;
+            if (applyToUnit)
+            {
+                targetId = unit.Id;
+            }
+            else
+            {
+                if (
+                    !ValidationHelper.ValidateNotNullOrEmpty(
+                        context.Participants.Targets,
+                        "Targets"
+                    )
+                )
+                {
+                    return;
+                }
+                targetId = context.Participants.Targets[0].Id;
+            }
 
-            string target = applyToUnit ? "unit" : "target";
+            float speedMod = 0f;
+            if (effectType == OrderEffectType.ModifySpeedThreshold)
+            {
+                var speedPort = GetInputPort("speedModifier");
+                if (speedPort == null || !speedPort.IsConnected)
+                {
+                    "ChangeBattleOrderNode: 'speedModifier' input not provided for ModifySpeedThreshold".LogWarning();
+                    return;
+                }
+                speedMod = GetInputFloat("speedModifier", 0f);
+            }
 
-            $"ChangeBattleOrder: Applied {effectType} to {target} (speed mod: {speedMod})".LogInfo();
+            // Write to the same CustomData keys that ExecuteCombatExchange / CanFollowUp read
+            switch (effectType)
+            {
+                case OrderEffectType.AttackFirst:
+                    // Shared key with FirstStrikeNode — attacker strikes twice before defender responds
+                    context.SetCustomData($"FirstStrike_{targetId}", true);
+                    break;
+                case OrderEffectType.PreventFollowup:
+                    // Shared key with DisableEnemyFollowupNode; prevents counter and follow-up
+                    context.SetCustomData($"DisableFollowup_{targetId}", true);
+                    break;
+                case OrderEffectType.GuaranteeFollowup:
+                    context.SetCustomData($"GuaranteeFollowup_{targetId}", true);
+                    break;
+                case OrderEffectType.ModifySpeedThreshold:
+                    context.SetCustomData($"SpeedThresholdMod_{targetId}", speedMod);
+                    break;
+                case OrderEffectType.CounterFirst:
+                    // Vantage: the targeted unit counterattacks before the attacker's first strike.
+                    // Only meaningful when applied to the defender (applyToUnit = false).
+                    context.SetCustomData($"Vantage_{targetId}", true);
+                    break;
+            }
+
+            string targetLabel = applyToUnit ? "unit" : "target";
+            $"ChangeBattleOrder: Applied {effectType} to {targetLabel} ({targetId})".LogInfo();
         }
     }
 
@@ -56,8 +107,9 @@ namespace Turnroot.Skills.Nodes.Events
     public enum OrderEffectType
     {
         GuaranteeFollowup, // Unit/target will always perform a follow-up attack
-        PreventFollowup, // Prevents follow-up attacks
+        PreventFollowup, // Prevents counter-attack and follow-up attacks this exchange
         ModifySpeedThreshold, // Adjusts the speed threshold for follow-ups
-        AttackFirst, // Always attack first regardless of normal turn order
+        AttackFirst, // Always attack first (both strikes) before defender can respond — Desperation
+        CounterFirst, // Unit/target counterattacks before the initiator's first strike — Vantage
     }
 }

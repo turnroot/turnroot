@@ -3,7 +3,8 @@ using XNode;
 namespace Turnroot.Skills.Nodes.Math
 {
     /// <summary>
-    /// Provides constant boolean values (True or False) as outputs.
+    /// Provides constant boolean values as outputs.
+    /// The <c>True</c> port always outputs <c>true</c>; the <c>False</c> port always outputs <c>false</c>.
     /// </summary>
     [CreateNodeMenu("Math/Conditional Input")]
     [NodeLabel("Outputs True or False")]
@@ -19,11 +20,11 @@ namespace Turnroot.Skills.Nodes.Math
         {
             if (port.fieldName == nameof(True))
             {
-                return new BoolValue { value = True.value };
+                return new BoolValue { value = true };
             }
             else if (port.fieldName == nameof(False))
             {
-                return new BoolValue { value = False.value };
+                return new BoolValue { value = false };
             }
             return null;
         }

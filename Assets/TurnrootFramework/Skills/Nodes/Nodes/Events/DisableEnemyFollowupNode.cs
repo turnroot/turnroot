@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip(
             "If true, disables followup for all targeted enemies; if false, only first target"
@@ -30,7 +33,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+            bool shouldAffectAll = GetInputValue("affectAllTargets", affectAllTargets).value;
 
             int count = ExecuteOnTargets(
                 context,

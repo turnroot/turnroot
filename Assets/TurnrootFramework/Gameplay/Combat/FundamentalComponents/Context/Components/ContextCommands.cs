@@ -1,8 +1,10 @@
 using Turnroot.Characters;
+using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Brain.Commands;
 using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
+using Turnroot.Skills.Nodes.Events;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -97,17 +99,247 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return OperationResult.Failure("No weapon to attack with");
             }
 
-            var success = DealDamage(
-                attacker,
-                target,
-                DamageCalculator.CalculatePotentialDamage(attacker, target, weaponItem, this)
-            );
-            if (success)
+            // Update Targets so skills that fire during this strike see the correct opponent
+            var originalTargets = Participants.Targets;
+            Participants.Targets = new System.Collections.Generic.List<CharacterInstance>
             {
-                Brain?.PublishAttackLogicCompleted(attacker);
-                return OperationResult.Successful();
+                target,
+            };
+
+            bool hit;
+            int damage = 0;
+            if (weaponItem != null)
+            {
+                float hitChance = DamageCalculator.CalculateHitChance(
+                    attacker,
+                    target,
+                    weaponItem,
+                    this
+                );
+                hit = UnityEngine.Random.Range(0f, 100f) <= hitChance;
             }
-            return OperationResult.Failure("Attack command failed to execute");
+            else
+            {
+                hit = true;
+            }
+
+            OperationResult result = OperationResult.Successful();
+            if (hit)
+            {
+                // Check if this attack is negated by a skill (NegateNextAttackNode, etc.).
+                // Value: -1 = all attacks this turn negated; positive = remaining shield count.
+                var negateKey = $"NegateAttacks_{target.Id}";
+                int negateCount = GetCustomData<int>(negateKey, 0);
+                if (negateCount != 0)
+                {
+                    if (negateCount > 0)
+                        SetCustomData(negateKey, negateCount - 1);
+                    // Skip the rest of damage processing for this strike
+                    Brain?.PublishAttackLogicCompleted(attacker);
+                    Participants.Targets = originalTargets;
+                    return OperationResult.Successful();
+                }
+
+                // If CriticalHitNode hasn't already forced a crit this strike,
+                // roll against the attacker's crit chance stat. Applied before damage calculation
+                // so CalculatePotentialDamage can read and consume the WillCriticalHit flag.
+                if (weaponItem != null && !Flags.ActiveUnitFlags.WillCriticalHit)
+                {
+                    float critChance = DamageCalculator.CalculateCriticalChance(
+                        attacker,
+                        target,
+                        weaponItem,
+                        this
+                    );
+                    if (UnityEngine.Random.Range(0f, 100f) < critChance)
+                    {
+                        Flags.ActiveUnitFlags.WillCriticalHit = true;
+                        Flags.ActiveUnitFlags.Unit = attacker;
+                        Brain?.PublishCriticalHit(attacker);
+                    }
+                }
+
+                damage = DamageCalculator.CalculatePotentialDamage(
+                    attacker,
+                    target,
+                    weaponItem,
+                    this
+                );
+
+                // Apply any damage reduction written by ReduceDamageNode (Aegis, Pavise, etc.).
+                // The key persists for the whole exchange so every strike is reduced; it is
+                // cleared at the start of the next exchange by OnCombatStartedHandler.
+                var reductionKey = $"DamageReduction_{target.Id}";
+                var reduction = GetCustomData<DamageReductionData>(reductionKey);
+                if (reduction.Amount > 0f)
+                {
+                    damage = reduction.IsPercentage
+                        ? Mathf.RoundToInt(damage * (1f - reduction.Amount / 100f))
+                        : Mathf.Max(0, damage - Mathf.RoundToInt(reduction.Amount));
+                }
+
+                bool success = DealDamage(attacker, target, damage);
+                if (!success)
+                {
+                    result = OperationResult.Failure("DealDamage command failed to execute");
+                    damage = 0;
+                }
+
+                // Reflect damage back to the attacker if DamageReflectionNode is active on target
+                if (damage > 0)
+                {
+                    var reflectData = GetCustomData<DamageReflectionData>(
+                        $"ReflectDamage_{target.Id}"
+                    );
+                    if (reflectData.Percent > 0f)
+                    {
+                        int reflected = Mathf.Max(
+                            1,
+                            Mathf.RoundToInt(damage * reflectData.Percent / 100f)
+                        );
+                        DealDamage(target, attacker, reflected);
+                    }
+                }
+            }
+
+            SetCustomData($"LastDamageDealt_{attacker.Id}", (float)damage);
+
+            // Fire skill trigger whether hit or miss — UnitAttacksNode fires on attempt
+            Brain?.PublishAttackLogicCompleted(attacker);
+
+            // Restore original target list so callers see the same state as before this strike
+            Participants.Targets = originalTargets;
+
+            return result;
+        }
+
+        public OperationResult ExecuteCombatExchange(
+            CharacterInstance attacker,
+            CharacterInstance defender,
+            ObjectItemInstance attackerWeapon = null
+        )
+        {
+            if (attacker == null || defender == null)
+            {
+                return OperationResult.Failure(
+                    "ExecuteCombatExchange: attacker or defender is null"
+                );
+            }
+
+            // Store who initiated so IsInitiatingCombatNode and OnUnitAttacks can read it
+            SetCustomData("CombatInitiatorId", attacker.Id);
+
+            Brain?.PublishCombatStarted(attacker, defender);
+
+            bool attackerFirstStrike = GetCustomData<bool>($"FirstStrike_{attacker.Id}");
+            // Vantage: defender counterattacks before the attacker's first strike
+            bool defenderVantage = GetCustomData<bool>($"Vantage_{defender.Id}");
+
+            // Attacker's strike
+            OperationResult result;
+            if (defenderVantage && !attackerFirstStrike)
+            {
+                // Vantage order: defender counter first, then normal exchange without a second counter
+                AttackTarget(defender, attacker);
+                if (!attacker.IsDefeatedInCurrentBattle)
+                {
+                    result = AttackTarget(attacker, defender, attackerWeapon);
+
+                    // Attacker follow-up (Vantage counter already spent)
+                    if (!attacker.IsDefeatedInCurrentBattle && CanFollowUp(attacker, defender))
+                        AttackTarget(attacker, defender, attackerWeapon);
+
+                    // Defender follow-up if fast enough (Vantage counter was their first attack,
+                    // so check follow-up speed threshold for a potential second strike)
+                    bool defenderDisabledVantage = GetCustomData<bool>(
+                        $"DisableFollowup_{defender.Id}"
+                    );
+                    if (
+                        !defender.IsDefeatedInCurrentBattle
+                        && !defenderDisabledVantage
+                        && CanFollowUp(defender, attacker)
+                    )
+                        AttackTarget(defender, attacker);
+                }
+                else
+                {
+                    result = OperationResult.Successful();
+                }
+            }
+            else if (attackerFirstStrike)
+            {
+                // First-strike: attacker hits twice before defender can respond
+                result = AttackTarget(attacker, defender, attackerWeapon);
+                if (!attacker.IsDefeatedInCurrentBattle && CanFollowUp(attacker, defender))
+                    AttackTarget(attacker, defender, attackerWeapon);
+            }
+            else
+            {
+                result = AttackTarget(attacker, defender, attackerWeapon);
+
+                // Defender counter-attack (if still alive and not blocked by DisableFollowup on defender)
+                bool defenderDisabled = GetCustomData<bool>($"DisableFollowup_{defender.Id}");
+                if (!defender.IsDefeatedInCurrentBattle && !defenderDisabled)
+                    AttackTarget(defender, attacker);
+
+                // Attacker follow-up (SPD diff >= 4, and defender hasn't disabled it)
+                if (!attacker.IsDefeatedInCurrentBattle && CanFollowUp(attacker, defender))
+                    AttackTarget(attacker, defender, attackerWeapon);
+
+                // Defender follow-up (if defender is fast enough and not disabled)
+                if (
+                    !defender.IsDefeatedInCurrentBattle
+                    && !defenderDisabled
+                    && CanFollowUp(defender, attacker)
+                )
+                    AttackTarget(defender, attacker);
+            }
+
+            // Track combat count for IsFirstCombatOfTurnNode
+            attacker.IncrementCombatCount();
+            defender.IncrementCombatCount();
+
+            // Clear all combat-scoped flags for both participants
+            CustomData.Remove($"FirstStrike_{attacker.Id}");
+            CustomData.Remove($"FirstStrike_{defender.Id}");
+            CustomData.Remove($"Vantage_{attacker.Id}");
+            CustomData.Remove($"Vantage_{defender.Id}");
+            CustomData.Remove($"DisableFollowup_{attacker.Id}");
+            CustomData.Remove($"DisableFollowup_{defender.Id}");
+            CustomData.Remove($"GuaranteeFollowup_{attacker.Id}");
+            CustomData.Remove($"GuaranteeFollowup_{defender.Id}");
+            CustomData.Remove($"SpeedThresholdMod_{attacker.Id}");
+            CustomData.Remove($"SpeedThresholdMod_{defender.Id}");
+            CustomData.Remove($"NegateTerrainEffects_{attacker.Id}");
+            CustomData.Remove($"NegateTerrainEffects_{defender.Id}");
+            CustomData.Remove("CombatInitiatorId");
+
+            Brain?.PublishCombatEnded(attacker, defender);
+            return result;
+        }
+
+        /// <summary>
+        /// Returns true when <paramref name="attacker"/> is fast enough to follow up
+        /// (attack twice in one exchange).  Uses SPD difference ≥ 4,
+        /// modified by GuaranteeFollowup / DisableFollowup / SpeedThresholdMod CustomData
+        /// keys set by skill nodes (ChangeBattleOrderNode, etc.).
+        /// </summary>
+        private bool CanFollowUp(CharacterInstance attacker, CharacterInstance defender)
+        {
+            // Skill explicitly guarantees a follow-up (e.g. Brash Assault)
+            if (GetCustomData<bool>($"GuaranteeFollowup_{attacker.Id}"))
+                return true;
+
+            // Skill explicitly prevents attacker from following up
+            if (GetCustomData<bool>($"DisableFollowup_{attacker.Id}"))
+                return false;
+
+            var atkSpd = attacker.GetUnboundedStat(UnboundedStatType.Speed)?.Current ?? 0f;
+            var defSpd = defender.GetUnboundedStat(UnboundedStatType.Speed)?.Current ?? 0f;
+
+            // SpeedThresholdMod adjusts the 4-SPD gap required (negative = easier, positive = harder)
+            float threshold = 4f + GetCustomData<float>($"SpeedThresholdMod_{attacker.Id}");
+            return (atkSpd - defSpd) >= threshold;
         }
 
         /// <summary>

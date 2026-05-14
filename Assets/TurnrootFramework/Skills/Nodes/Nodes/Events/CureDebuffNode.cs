@@ -16,8 +16,13 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
-        [Tooltip("If true, cures adjacent allies; if false, only caster or first target")]
+        [Tooltip(
+            "If true, cures allies adjacent to the caster; if false, cures context.Unit.UnitInstance (caster in standalone flows, current ally inside ForEachAlly)"
+        )]
         public BoolValue affectAdjacentAllies;
 
         [Tooltip("Cure all debuffs or specific type?")]
@@ -36,7 +41,12 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
+            // Use XNode's GetInputValue so the serialized backing field is respected
+            // when the port is not connected (same pattern as FlowIfNode).
+            bool shouldAffectAdjacent = GetInputValue(
+                "affectAdjacentAllies",
+                affectAdjacentAllies
+            ).value;
 
             if (shouldAffectAdjacent)
             {
@@ -78,15 +88,18 @@ namespace Turnroot.Skills.Nodes.Events
             }
             else
             {
-                // Cure caster or first target
-                var target =
-                    context.Participants.Targets != null && context.Participants.Targets.Count > 0
-                        ? context.Participants.Targets[0]
-                        : context.Unit.UnitInstance;
+                // Cure context.Unit.UnitInstance — this is the caster in standalone flows
+                // and automatically becomes the current ally when inside a ForEachAlly loop.
+                var target = context.Unit.UnitInstance;
+                if (target == null)
+                {
+                    "CureDebuff: No unit instance in context".LogWarning();
+                    return;
+                }
 
                 int removed = CureDebuffsFromCharacter(context, target);
                 string cureText = GetCureDescription();
-                $"CureDebuff: Cured {cureText} from target ({removed} effects removed)".LogInfo();
+                $"CureDebuff: Cured {cureText} from {target.CharacterTemplate?.DisplayName ?? "unit"} ({removed} effects removed)".LogInfo();
             }
         }
 

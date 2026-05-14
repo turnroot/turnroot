@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow In;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Tooltip("The percent to increase advantage by")]
         [Range(0, 100)]
         public float AddAdvantagePercent;
@@ -25,12 +28,18 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            // Store in CustomData for combat system to use during advantage calculation
-            context.SetCustomData("AdvantagePercentModifier", AddAdvantagePercent);
+            var unit = context.Unit.UnitInstance;
+            if (!ValidationHelper.ValidateNotNull(unit, nameof(unit)))
+            {
+                return;
+            }
 
-            $"AdjustAdvantagePercents: Adjusted advantage percents by {AddAdvantagePercent}%"
-        .LogInfo();
+            // Stored on CharacterBattleStats so the static DamageCalculator can read it without
+            // needing BattleContext threaded through the full call chain. Cleared by
+            // ClearCombatBonuses() at the start of each new combat exchange.
+            unit.AddCombatWeaponAdvantageBonus(AddAdvantagePercent);
+
+            $"AdjustAdvantagePercents: Added {AddAdvantagePercent}% weapon-triangle bonus for {unit.CharacterTemplate.DisplayName}".LogInfo();
         }
     }
 }
-

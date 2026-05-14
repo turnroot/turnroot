@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip(
             "If true, kills all targeted enemies in Targets list; if false, only kills first target"
@@ -27,7 +30,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldKillAll = GetInputBool("affectAllTargets", false);
+            bool shouldKillAll = GetInputValue("affectAllTargets", affectAllTargets).value;
             int killedCount = ExecuteOnTargets(
                 context,
                 shouldKillAll,

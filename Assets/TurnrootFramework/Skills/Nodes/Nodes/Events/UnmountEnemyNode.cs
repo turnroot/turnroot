@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("If true, unmounts all targeted enemies; if false, only first target")]
         public BoolValue affectAllTargets;
@@ -26,7 +29,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+            bool shouldAffectAll = GetInputValue("affectAllTargets", affectAllTargets).value;
 
             // Unmount all targeted enemies or just the first one
             if (shouldAffectAll)
@@ -35,6 +38,11 @@ namespace Turnroot.Skills.Nodes.Events
                 {
                     if (target != null)
                     {
+                        // TODO: Replace SetCustomData stub once CharacterInstance has a mount/dismount
+                        // system (e.g. IsMounted flag + MovementType enum swap on dismount).
+                        // Suggested API: target.ForceUnmount();
+                        // AttackTarget in ContextCommands should consume "ForceUnmount_{target.Id}"
+                        // after a hit connects and call the same API, then remove the key.
                         context.SetCustomData($"ForceUnmount_{target.Id}", true);
                     }
                 }
@@ -48,6 +56,7 @@ namespace Turnroot.Skills.Nodes.Events
                     "UnmountEnemy: Target is null".LogWarning();
                     return;
                 }
+                // TODO: same as above — call target.ForceUnmount() once implemented.
                 context.SetCustomData($"ForceUnmount_{target.Id}", true);
                 "UnmountEnemy: Forced target to dismount".LogInfo();
             }

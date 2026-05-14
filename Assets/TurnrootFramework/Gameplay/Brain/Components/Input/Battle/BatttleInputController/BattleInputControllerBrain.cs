@@ -371,8 +371,13 @@ namespace Turnroot.Gameplay.Brain
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     ConfirmTileSelection();
                     break;
-                case PlayerTurnStates.ConfirmAction:
+                case PlayerTurnStates.AttackActionChosenTargetSelected:
+                    // First confirm press: show forecast, transition to ConfirmAction
                     _playerTurnFlow.ConfirmAction();
+                    break;
+                case PlayerTurnStates.ConfirmAction:
+                    // Second confirm press: execute the action
+                    ExecuteConfirmedAttack();
                     break;
             }
         }
@@ -402,6 +407,13 @@ namespace Turnroot.Gameplay.Brain
                 case PlayerTurnStates.AttackActionChosenChoosingTarget:
                     _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
                     Brain.cursorBrain.ClearAllowedPositions();
+                    break;
+                case PlayerTurnStates.AttackActionChosenTargetSelected:
+                    // Cancel forecast preview, go back to choosing a target
+                    _pendingTarget = null;
+                    _playerTurnFlow.CancelTargetOrDestinationChoice(
+                        PlayerTurnStates.AttackActionChosenChoosingTarget
+                    );
                     break;
                 case PlayerTurnStates.ConfirmAction:
                     RequestUndo();

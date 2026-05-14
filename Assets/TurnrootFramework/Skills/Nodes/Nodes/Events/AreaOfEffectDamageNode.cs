@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("The amount of damage to deal to each target")]
         public FloatValue damageAmount;
@@ -36,20 +39,37 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
             float damage = GetInputFloat("damageAmount", 0f);
-            var radPort = GetInputPort("aoeRadius");
-            if (radPort == null || !radPort.IsConnected)
+
+            // radius defaults to 1 if the port is not connected
+            float radius = GetInputFloat("aoeRadius", 1f);
+
+            if (context.Unit.UnitInstance == null)
             {
-                "AreaOfEffectDamageNode: 'aoeRadius' input not provided".LogWarning();
+                "AreaOfEffectDamageNode: No caster unit in context".LogWarning();
                 return;
             }
-            float radius = GetInputFloat("aoeRadius", 0f);
 
-            int affectedCount = ExecuteOnAllTargets(
-                context,
-                target => DealDamage(context, target, damage)
-            );
+            var casterPos = context.Unit.UnitInstance.MapGridPosition;
 
-            $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies in {radius} tile radius".LogInfo();
+            int affectedCount = 0;
+            foreach (var target in context.Participants.Targets)
+            {
+                if (target == null)
+                {
+                    continue;
+                }
+
+                var targetPos = target.MapGridPosition;
+                int distance =
+                    Mathf.Abs(casterPos.x - targetPos.x) + Mathf.Abs(casterPos.y - targetPos.y);
+                if (distance <= radius)
+                {
+                    DealDamage(context, target, damage);
+                    affectedCount++;
+                }
+            }
+
+            $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies within {radius} tile radius".LogInfo();
         }
     }
 }

@@ -88,8 +88,22 @@ namespace Turnroot.Characters
         [NonSerialized]
         private float _currentCritical;
 
-        public float CurrentHit => _currentHit;
-        public float CurrentAvoid => _currentAvoid;
+        // Combat-scoped skill bonuses — cleared at the start of each combat exchange.
+        // Skills using CombatStartsNode write here; the values are added on top of
+        // the recalculated base when reading CurrentHit / CurrentAvoid.
+        [NonSerialized]
+        private float _combatHitBonus;
+
+        [NonSerialized]
+        private float _combatAvoidBonus;
+
+        // Adjusts the weapon-triangle advantage/disadvantage percentage for this unit's
+        // attacks this exchange (written by AdjustAdvantagePercentsNode).
+        [NonSerialized]
+        private float _combatWeaponAdvantageBonus;
+
+        public float CurrentHit => _currentHit + _combatHitBonus;
+        public float CurrentAvoid => _currentAvoid + _combatAvoidBonus;
 
         public float CurrentCritical => _currentCritical;
 
@@ -98,6 +112,29 @@ namespace Turnroot.Characters
         public void AddAvoid(float delta) => _currentAvoid += delta;
 
         public void AddCritical(float delta) => _currentCritical += delta;
+
+        public float CombatHitBonus => _combatHitBonus;
+        public float CombatAvoidBonus => _combatAvoidBonus;
+        public float CombatWeaponAdvantageBonus => _combatWeaponAdvantageBonus;
+
+        /// <summary>Adds a combat-scoped hit bonus that is cleared after the combat exchange ends.</summary>
+        public void AddCombatHitBonus(float delta) => _combatHitBonus += delta;
+
+        /// <summary>Adds a combat-scoped avoid bonus that is cleared after the combat exchange ends.</summary>
+        public void AddCombatAvoidBonus(float delta) => _combatAvoidBonus += delta;
+
+        /// <summary>Adds to the weapon-triangle advantage/disadvantage modifier for this unit's
+        /// attacks this exchange (positive = more advantage or less disadvantage).</summary>
+        public void AddCombatWeaponAdvantageBonus(float delta) =>
+            _combatWeaponAdvantageBonus += delta;
+
+        /// <summary>Resets all combat-scoped bonuses. Called at the start of each combat exchange.</summary>
+        public void ClearCombatBonuses()
+        {
+            _combatHitBonus = 0f;
+            _combatAvoidBonus = 0f;
+            _combatWeaponAdvantageBonus = 0f;
+        }
 
         public void RecalculateCombatRates()
         {

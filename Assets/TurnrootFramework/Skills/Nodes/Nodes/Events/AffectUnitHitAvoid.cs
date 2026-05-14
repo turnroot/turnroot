@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         public FloatValue changeHit;
 
@@ -33,30 +36,36 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             var hitPort = GetInputPort("changeHit");
+            var avoidPort = GetInputPort("changeAvoid");
+
+            if (
+                (hitPort == null || !hitPort.IsConnected)
+                && (avoidPort == null || !avoidPort.IsConnected)
+            )
+            {
+                "AffectUnitHitAvoid: Neither 'changeHit' nor 'changeAvoid' is connected — no effect applied".LogWarning();
+                return;
+            }
+
             if (hitPort != null && hitPort.IsConnected)
             {
                 var changeHitAmount = GetInputFloat("changeHit", 0f);
                 var inst = context.Unit.UnitInstance;
-                inst?.AddHit(changeHitAmount);
+                inst?.AddCombatHitBonus(changeHitAmount);
                 if (SkillDebug.VerboseExecutionLogs)
                 {
-                    $"AffectUnitHitAvoid: stored hit now {inst?.CurrentHit}".LogInfo();
+                    $"AffectUnitHitAvoid: combat hit bonus now {inst?.CurrentHit}".LogInfo();
                 }
             }
 
-            var avoidPort = GetInputPort("changeAvoid");
             if (avoidPort != null && avoidPort.IsConnected)
             {
                 var changeAvoidAmount = GetInputFloat("changeAvoid", 0f);
+                var inst = context.Unit.UnitInstance;
+                inst?.AddCombatAvoidBonus(changeAvoidAmount);
                 if (SkillDebug.VerboseExecutionLogs)
                 {
-                    $"AffectUnitHitAvoid: affected unit {context.Unit.UnitInstance.Id} avoid by {changeAvoidAmount}".LogInfo();
-                }
-                var inst2 = context.Unit.UnitInstance;
-                inst2?.AddAvoid(changeAvoidAmount);
-                if (SkillDebug.VerboseExecutionLogs)
-                {
-                    $"AffectUnitHitAvoid: stored avoid now {inst2?.CurrentAvoid}".LogInfo();
+                    $"AffectUnitHitAvoid: affected unit {inst?.Id} avoid by {changeAvoidAmount}, bonus now {inst?.CurrentAvoid}".LogInfo();
                 }
             }
         }

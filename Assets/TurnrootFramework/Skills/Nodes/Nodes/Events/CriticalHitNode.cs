@@ -14,6 +14,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         public override void Execute(BattleContext context)
         {
             if (
@@ -28,9 +31,7 @@ namespace Turnroot.Skills.Nodes.Events
 
             context.Brain.PublishCriticalHit(context.Unit.UnitInstance);
 
-            $"CriticalHit: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit"
-        .LogInfo();
+            $"CriticalHit: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} triggered a critical hit".LogInfo();
         }
     }
 }
-

@@ -18,6 +18,9 @@ namespace Turnroot.Skills.Nodes.Events
         [Input]
         public ExecutionFlow executionIn;
 
+        [Output]
+        public ExecutionFlow OutFlow;
+
         [Input]
         [Tooltip("The amount to change the stat by (positive or negative)")]
         public FloatValue change;
@@ -37,7 +40,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
             float changeAmount = GetInputFloat("change", 0f);
-            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+            bool shouldAffectAll = GetInputValue("affectAllTargets", affectAllTargets).value;
 
             int affected = ExecuteOnTargets(
                 context,
