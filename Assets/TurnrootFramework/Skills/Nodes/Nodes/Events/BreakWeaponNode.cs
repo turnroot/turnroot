@@ -26,21 +26,32 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+            bool shouldAffectAll = GetInputValue("affectAllTargets", affectAllTargets).value;
 
             if (shouldAffectAll)
             {
+                int broken = 0;
                 foreach (var target in context.Participants.Targets)
                 {
+                    if (target == null)
+                    {
+                        continue;
+                    }
                     // Store break weapon command in CustomData
                     context.SetCustomData($"BreakWeapon_{target.Id}", true);
+                    broken++;
                 }
 
-                $"BreakWeapon: Would break weapon for {context.Participants.Targets.Count} targets".LogInfo();
+                $"BreakWeapon: Would break weapon for {broken} targets".LogInfo();
             }
             else
             {
                 var target = context.Participants.Targets[0];
+                if (target == null)
+                {
+                    "BreakWeapon: First target is null".LogWarning();
+                    return;
+                }
                 // Store break weapon command in CustomData
                 context.SetCustomData($"BreakWeapon_{target.Id}", true);
                 "BreakWeapon: Would break weapon for first target".LogInfo();

@@ -33,6 +33,17 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             var hitPort = GetInputPort("changeHit");
+            var avoidPort = GetInputPort("changeAvoid");
+
+            if (
+                (hitPort == null || !hitPort.IsConnected)
+                && (avoidPort == null || !avoidPort.IsConnected)
+            )
+            {
+                "AffectUnitHitAvoid: Neither 'changeHit' nor 'changeAvoid' is connected — no effect applied".LogWarning();
+                return;
+            }
+
             if (hitPort != null && hitPort.IsConnected)
             {
                 var changeHitAmount = GetInputFloat("changeHit", 0f);
@@ -44,8 +55,8 @@ namespace Turnroot.Skills.Nodes.Events
                 }
             }
 
-            var avoidPort = GetInputPort("changeAvoid");
-            if (avoidPort != null && avoidPort.IsConnected)
+            var avoidPort2 = GetInputPort("changeAvoid");
+            if (avoidPort2 != null && avoidPort2.IsConnected)
             {
                 var changeAvoidAmount = GetInputFloat("changeAvoid", 0f);
                 if (SkillDebug.VerboseExecutionLogs)

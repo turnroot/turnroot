@@ -26,13 +26,14 @@ namespace Turnroot.Skills.Nodes.Events
             }
 
             var goldPort = GetInputPort("goldAmount");
-            if (goldPort == null || !goldPort.IsConnected)
+            int gold =
+                goldPort != null && goldPort.IsConnected ? (int)GetInputFloat("goldAmount", 0f) : 0;
+
+            if (gold <= 0)
             {
-                "GainGoldNode: 'goldAmount' input not provided".LogWarning();
+                "GainGoldNode: goldAmount is 0 or unconnected — no gold awarded".LogInfo();
                 return;
             }
-
-            int gold = (int)GetInputFloat("goldAmount", 0f);
 
             context.Brain.PublishGoldGained(gold);
 

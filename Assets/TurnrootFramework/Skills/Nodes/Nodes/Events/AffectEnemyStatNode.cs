@@ -37,7 +37,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
             float changeAmount = GetInputFloat("change", 0f);
-            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+            bool shouldAffectAll = GetInputValue("affectAllTargets", affectAllTargets).value;
 
             int affected = ExecuteOnTargets(
                 context,

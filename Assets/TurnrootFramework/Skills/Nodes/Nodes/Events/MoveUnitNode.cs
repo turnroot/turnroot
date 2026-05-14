@@ -44,15 +44,17 @@ namespace Turnroot.Skills.Nodes.Events
 
             // Get target position from input port (requires connection)
             var port = GetInputPort("targetPosition");
-            Vector2Int newPosition = Vector2Int.zero;
-
-            if (port != null && port.IsConnected)
+            if (port == null || !port.IsConnected)
             {
-                var inputValue = port.GetInputValue();
-                if (inputValue is Vector2Int vec2Int)
-                {
-                    newPosition = vec2Int;
-                }
+                "MoveUnitNode: 'targetPosition' input not connected — skipping move".LogWarning();
+                return;
+            }
+
+            Vector2Int newPosition = Vector2Int.zero;
+            var inputValue = port.GetInputValue();
+            if (inputValue is Vector2Int vec2Int)
+            {
+                newPosition = vec2Int;
             }
 
             // Execute move through BattleContext (always uses commands)

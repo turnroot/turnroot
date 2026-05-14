@@ -31,7 +31,10 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
+            bool shouldAffectAdjacent = GetInputValue(
+                "affectAdjacentAllies",
+                affectAdjacentAllies
+            ).value;
 
             // Determine number of attacks to negate: 1 for single attack, -1 for all this turn
             int attacksToNegate = allAttacksThisTurn ? -1 : 1;
@@ -93,10 +96,7 @@ namespace Turnroot.Skills.Nodes.Events
                 }
                 else
                 {
-#if UNITY_EDITOR
-
                     "NegateNextAttackOnAllies: Next attack will be negated for caster".LogInfo();
-#endif
                 }
             }
         }

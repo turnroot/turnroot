@@ -27,7 +27,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldKillAll = GetInputBool("affectAllTargets", false);
+            bool shouldKillAll = GetInputValue("affectAllTargets", affectAllTargets).value;
             int killedCount = ExecuteOnTargets(
                 context,
                 shouldKillAll,

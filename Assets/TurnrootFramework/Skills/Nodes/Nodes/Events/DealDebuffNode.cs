@@ -36,7 +36,7 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            bool shouldAffectAll = GetInputBool("affectAllTargets", false);
+            bool shouldAffectAll = GetInputValue("affectAllTargets", affectAllTargets).value;
             int duration = durationOverride >= 0 ? durationOverride : debuffType.DefaultDuration;
 
             int affected = ExecuteOnTargets(

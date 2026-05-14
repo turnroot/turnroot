@@ -40,11 +40,18 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
             float reduction = GetInputFloat("reductionAmount", 0f);
-            bool shouldAffectAdjacent = GetInputBool("affectAdjacentAllies", false);
+            bool shouldAffectAdjacent = GetInputValue(
+                "affectAdjacentAllies",
+                affectAdjacentAllies
+            ).value;
 
             // Store in CustomData for combat system to apply during damage calculation
             // Key format: "DamageReduction_{CharacterInstanceId}"
-            var reductionData = new { Amount = reduction, IsPercentage = isPercentage };
+            var reductionData = new DamageReductionData
+            {
+                Amount = reduction,
+                IsPercentage = isPercentage,
+            };
 
             if (shouldAffectAdjacent)
             {
@@ -93,5 +100,18 @@ namespace Turnroot.Skills.Nodes.Events
                 $"ReduceDamage: Will take {reduction} {reductionType} less damage".LogInfo();
             }
         }
+    }
+
+    /// <summary>
+    /// Data written into CustomData under the key <c>DamageReduction_{CharacterId}</c>.
+    /// Read by the combat system during incoming damage calculation.
+    /// </summary>
+    public struct DamageReductionData
+    {
+        /// <summary>Amount of damage to reduce.</summary>
+        public float Amount;
+
+        /// <summary>If true, Amount is a percentage (0-100); if false, a flat value.</summary>
+        public bool IsPercentage;
     }
 }

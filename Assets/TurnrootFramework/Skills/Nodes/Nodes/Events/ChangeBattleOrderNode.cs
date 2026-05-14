@@ -31,13 +31,18 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            var speedPort = GetInputPort("speedModifier");
-            if (speedPort == null || !speedPort.IsConnected)
+            // speedModifier is only relevant for ModifySpeedThreshold; other effect types don't use it.
+            float speedMod = 0f;
+            if (effectType == OrderEffectType.ModifySpeedThreshold)
             {
-                "ChangeBattleOrderNode: 'speedModifier' input not provided".LogWarning();
-                return;
+                var speedPort = GetInputPort("speedModifier");
+                if (speedPort == null || !speedPort.IsConnected)
+                {
+                    "ChangeBattleOrderNode: 'speedModifier' input not provided for ModifySpeedThreshold".LogWarning();
+                    return;
+                }
+                speedMod = GetInputFloat("speedModifier", 0f);
             }
-            float speedMod = GetInputFloat("speedModifier", 0f);
 
             // Store in CustomData for combat system to use during attack resolution
             context.SetCustomData("AttackOrderSpeedModifier", speedMod);
