@@ -113,7 +113,14 @@ namespace Turnroot.Characters.CharacterClass
             }
             else if (unboundedCount != defaultList.Count)
             {
-                $"{name}: {listName} count ({unboundedCount}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.".LogWarning();
+                // Add any missing stat types (preserves existing values)
+                foreach (var statType in defaultList)
+                {
+                    if (!list.Exists(m => !m.isBounded && m.unboundedStatType == statType))
+                    {
+                        list.Add(creator(statType));
+                    }
+                }
             }
 
             // after validation, ensure HP growth entry exists regardless of count
