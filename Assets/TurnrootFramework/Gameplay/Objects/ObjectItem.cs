@@ -1,9 +1,9 @@
 using NaughtyAttributes;
 using Turnroot.Characters;
-using Turnroot.Characters.Stats;
-using Turnroot.Gameplay.Objects.Components;
 using Turnroot.Characters.CharacterClass;
+using Turnroot.Characters.Stats;
 using Turnroot.Characters.StatusEffects;
+using Turnroot.Gameplay.Objects.Components;
 using Turnroot.GameSettings;
 using Turnroot.Skills;
 using Turnroot.Utilities.AbstractScripts;
@@ -164,7 +164,7 @@ namespace Turnroot.Gameplay.Objects
         [field:
             Foldout("Durability"),
             HideInInspector,
-            ShowIf(nameof(IsWeaponOrMagicSubtype)),
+            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsDurabilityOrIsConsumableWithEffect)),
             HorizontalLine(color: EColor.Pink)
         ]
         [HideInInspector]
@@ -173,7 +173,7 @@ namespace Turnroot.Gameplay.Objects
         [field:
             Foldout("Durability"),
             SerializeField,
-            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsDurability))
+            ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsDurabilityOrIsConsumableWithEffect))
         ]
         public int MaxUses { get; set; } = 100;
 
@@ -350,7 +350,8 @@ namespace Turnroot.Gameplay.Objects
             SerializeField,
             ShowIf(nameof(IsConsumableWithEffect))
         ]
-        public UnboundedStatModifier[] StatModifiersAdded { get; set; } = new UnboundedStatModifier[0];
+        public UnboundedStatModifier[] StatModifiersAdded { get; set; } =
+            new UnboundedStatModifier[0];
 
         /* --------------- Helper methods for NaughtyAttributes ShowIf -------------- */
         private bool IsEquipableSubtype() => Subtype == ObjectSubtype.Equipable;
@@ -400,5 +401,8 @@ namespace Turnroot.Gameplay.Objects
 
         private bool IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItemsAndOneRepairItemDoesNotCoverFullRepair() =>
             IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems() && !OneRepairItemCoversFullRepair;
+
+        private bool IsWeaponOrMagicSubtypeAndIsDurabilityOrIsConsumableWithEffect() =>
+            (IsWeaponOrMagicSubtype() && Durability) || IsConsumableWithEffect;
     }
 }

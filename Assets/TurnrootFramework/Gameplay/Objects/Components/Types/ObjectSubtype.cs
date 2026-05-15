@@ -90,7 +90,7 @@ namespace Turnroot.Gameplay.Objects.Components
                 Ingredient,
                 ForgeRepair,
                 Bait,
-                ConsumableWithEffect
+                ConsumableWithEffect,
             };
 
             var settings = GameplayGeneralSettings.Instance;
