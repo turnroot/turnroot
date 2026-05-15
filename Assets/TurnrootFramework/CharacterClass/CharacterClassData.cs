@@ -250,23 +250,7 @@ namespace Turnroot.Characters.CharacterClass
     }
 
     /// <summary>
-    /// Represents a modifier value applied to a bounded character stat.
-    /// </summary>
-    [Serializable]
-    public struct StatModifier
-    {
-        public BoundedStatType boundedStatType;
-        public float value;
-
-        public StatModifier(BoundedStatType type, float val)
-        {
-            boundedStatType = type;
-            value = val;
-        }
-    }
-
-    /// <summary>
-    /// Represents a modifier value applied to an unbounded character stat.
+    /// Represents a modifier value applied to a character stat (bounded or unbounded).
     /// </summary>
     [Serializable]
     public struct UnboundedStatModifier

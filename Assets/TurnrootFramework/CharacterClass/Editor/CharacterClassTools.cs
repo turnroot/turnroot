@@ -63,7 +63,6 @@ namespace Turnroot.CharacterClass.Editor
             int totalAdded = 0;
             int totalRemoved = 0;
 
-            var boundedDefaults = gs.GetDefaultBoundedStatTypes();
             var unboundedDefaults = gs.GetDefaultUnboundedStatTypes();
 
             try
@@ -80,13 +79,7 @@ namespace Turnroot.CharacterClass.Editor
 
                     int added,
                         removed;
-                    RepairClassStats(
-                        cc,
-                        boundedDefaults,
-                        unboundedDefaults,
-                        out added,
-                        out removed
-                    );
+                    RepairClassStats(cc, unboundedDefaults, out added, out removed);
 
                     if (added > 0 || removed > 0)
                     {
@@ -115,7 +108,6 @@ namespace Turnroot.CharacterClass.Editor
 
         private static void RepairClassStats(
             CharacterClassData cc,
-            BoundedStatType[] boundedDefaults,
             UnboundedStatType[] unboundedDefaults,
             out int added,
             out int removed
@@ -127,47 +119,7 @@ namespace Turnroot.CharacterClass.Editor
 
             var stats = cc.Stats ?? new ClassStats();
 
-            // Helper: rebuild bounded list of StatModifier preserving existing values where possible
-            System.Func<List<StatModifier>, StatModifier[]> rebuildBounded = (existing) =>
-            {
-                var map = new Dictionary<BoundedStatType, StatModifier>();
-                if (existing != null)
-                {
-                    foreach (var e in existing)
-                    {
-                        if (!map.ContainsKey(e.boundedStatType))
-                        {
-                            map[e.boundedStatType] = e;
-                        }
-                    }
-                }
-
-                var result = new List<StatModifier>();
-                foreach (var t in boundedDefaults)
-                {
-                    if (map.TryGetValue(t, out var found))
-                    {
-                        result.Add(found);
-                    }
-                    else
-                    {
-                        result.Add(new StatModifier(t, 0f));
-                        addedLocal++;
-                    }
-                }
-
-                // count removed = entries present in existing but not in defaults
-                if (existing != null)
-                {
-                    removedLocal += existing.Count(e =>
-                        !boundedDefaults.Contains(e.boundedStatType)
-                    );
-                }
-
-                return result.ToArray();
-            };
-
-            // Helper: rebuild unbounded list
+            // Helper: rebuild a unified UnboundedStatModifier list preserving existing values where possible
             System.Func<List<UnboundedStatModifier>, UnboundedStatModifier[]> rebuildUnbounded = (
                 existing
             ) =>
@@ -177,7 +129,7 @@ namespace Turnroot.CharacterClass.Editor
                 {
                     foreach (var e in existing)
                     {
-                        if (!map.ContainsKey(e.unboundedStatType))
+                        if (!e.isBounded && !map.ContainsKey(e.unboundedStatType))
                         {
                             map[e.unboundedStatType] = e;
                         }
@@ -201,29 +153,32 @@ namespace Turnroot.CharacterClass.Editor
                 if (existing != null)
                 {
                     removedLocal += existing.Count(e =>
-                        !unboundedDefaults.Contains(e.unboundedStatType)
+                        !e.isBounded && !unboundedDefaults.Contains(e.unboundedStatType)
                     );
+                }
+
+                // preserve any bounded entries (HP etc.) that were in the existing list
+                if (existing != null)
+                {
+                    foreach (var e in existing)
+                    {
+                        if (e.isBounded)
+                        {
+                            result.Add(e);
+                        }
+                    }
                 }
 
                 return result.ToArray();
             };
 
-            // Rebuild all relevant lists
-            stats.StatMinimums = new List<StatModifier>(rebuildBounded(stats.StatMinimums));
-            stats.StatCaps = new List<StatModifier>(rebuildBounded(stats.StatCaps));
-            stats.StatBonuses = new List<StatModifier>(rebuildBounded(stats.StatBonuses));
-            stats.ClassChangeBonuses = new List<StatModifier>(
-                rebuildBounded(stats.ClassChangeBonuses)
+            // Rebuild all lists using the unified helper
+            stats.StatMinimums = new List<UnboundedStatModifier>(
+                rebuildUnbounded(stats.StatMinimums)
             );
-
-            stats.UnboundedStatMinimums = new List<UnboundedStatModifier>(
-                rebuildUnbounded(stats.UnboundedStatMinimums)
-            );
-            stats.UnboundedStatCaps = new List<UnboundedStatModifier>(
-                rebuildUnbounded(stats.UnboundedStatCaps)
-            );
-            stats.UnboundedStatBonuses = new List<UnboundedStatModifier>(
-                rebuildUnbounded(stats.UnboundedStatBonuses)
+            stats.StatCaps = new List<UnboundedStatModifier>(rebuildUnbounded(stats.StatCaps));
+            stats.StatBonuses = new List<UnboundedStatModifier>(
+                rebuildUnbounded(stats.StatBonuses)
             );
             stats.GrowthRateModifiers = new List<UnboundedStatModifier>(
                 rebuildUnbounded(stats.GrowthRateModifiers)
@@ -240,8 +195,8 @@ namespace Turnroot.CharacterClass.Editor
                 );
                 addedLocal++;
             }
-            stats.UnboundedClassChangeBonuses = new List<UnboundedStatModifier>(
-                rebuildUnbounded(stats.UnboundedClassChangeBonuses)
+            stats.ClassChangeBonuses = new List<UnboundedStatModifier>(
+                rebuildUnbounded(stats.ClassChangeBonuses)
             );
 
             // Assign back (in case Stats was null)

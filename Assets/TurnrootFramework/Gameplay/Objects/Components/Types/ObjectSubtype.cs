@@ -27,6 +27,8 @@ namespace Turnroot.Gameplay.Objects.Components
         public const string Gift = "Gift";
         public const string LostItem = "LostItem";
 
+        public const string ConsumableWithEffect = "ConsumableWithEffect";
+
         [SerializeField]
         private string _value = Weapon;
 
@@ -69,6 +71,8 @@ namespace Turnroot.Gameplay.Objects.Components
         public bool IsForgeRepair => _value == ForgeRepair;
         public bool IsBait => _value == Bait;
 
+        public bool IsConsumableWithEffect => _value == ConsumableWithEffect;
+
         /// <summary>
         /// Gets all valid ObjectSubtype values based on current GameplayGeneralSettings.
         /// </summary>
@@ -86,6 +90,7 @@ namespace Turnroot.Gameplay.Objects.Components
                 Ingredient,
                 ForgeRepair,
                 Bait,
+                ConsumableWithEffect
             };
 
             var settings = GameplayGeneralSettings.Instance;
@@ -126,7 +131,8 @@ namespace Turnroot.Gameplay.Objects.Components
                     or KeyItem
                     or Ingredient
                     or ForgeRepair
-                    or Bait;
+                    or Bait
+                    or ConsumableWithEffect;
 
         /// <summary>
         /// Checks if a value is enabled based on GameplayGeneralSettings.
@@ -144,6 +150,7 @@ namespace Turnroot.Gameplay.Objects.Components
                     or Ingredient
                     or ForgeRepair
                     or Bait
+                    or ConsumableWithEffect
             )
             {
                 return true;

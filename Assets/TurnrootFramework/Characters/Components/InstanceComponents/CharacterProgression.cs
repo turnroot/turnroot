@@ -71,8 +71,7 @@ namespace Turnroot.Characters
             var growthRates = GetEffectiveGrowthRates();
 
             var caps =
-                _currentClass?.ClassData.Stats?.UnboundedStatCaps
-                ?? new List<UnboundedStatModifier>();
+                _currentClass?.ClassData.Stats?.StatCaps ?? new List<UnboundedStatModifier>();
 
             var increasedStats = StatApplicationHelper.ApplyStatGrowths(
                 growthRates,

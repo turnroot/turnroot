@@ -783,58 +783,7 @@ namespace Turnroot.EditorTools
                     data =>
                     {
                         var r = new CharacterCheckResult();
-                        var gs = GameSettings.GameplayGeneralSettings.Instance;
-                        var defBounded =
-                            gs != null
-                                ? gs.CreateDefaultBoundedStats()
-                                : new List<BoundedCharacterStat>();
-                        var defUnbounded =
-                            gs != null
-                                ? gs.CreateDefaultUnboundedStats()
-                                : new List<CharacterStat>();
-                        bool boundedMatch = true;
-                        bool unboundedMatch = true;
-                        if (defBounded.Count != data.BoundedStats.Count)
-                        {
-                            boundedMatch = false;
-                        }
-                        else
-                        {
-                            foreach (var d in defBounded)
-                            {
-                                var found = data.BoundedStats.Find(s => s.StatType == d.StatType);
-                                if (
-                                    found == null
-                                    || found.CurrentInt != d.CurrentInt
-                                    || found.MaxInt != d.MaxInt
-                                )
-                                {
-                                    boundedMatch = false;
-                                    break;
-                                }
-                            }
-                        }
-                        if (defUnbounded.Count != data.UnboundedStats.Count)
-                        {
-                            unboundedMatch = false;
-                        }
-                        else
-                        {
-                            foreach (var d in defUnbounded)
-                            {
-                                var found = data.UnboundedStats.Find(s => s.StatType == d.StatType);
-                                if (
-                                    found == null
-                                    || Mathf.RoundToInt(found.Current)
-                                        != Mathf.RoundToInt(d.Current)
-                                )
-                                {
-                                    unboundedMatch = false;
-                                    break;
-                                }
-                            }
-                        }
-                        if (boundedMatch && unboundedMatch)
+                        if (StatsMatchDefaults(data))
                         {
                             r.Color = yellow;
                             r.Note = "Stats equal defaults";
@@ -1185,61 +1134,9 @@ namespace Turnroot.EditorTools
             }
 
             // Stats: compare against defaults (yellow if they match default exactly)
-            bool statsAreDefault = false;
-            var gs = GameSettings.GameplayGeneralSettings.Instance;
-            if (gs != null)
+            if (StatsMatchDefaults(data))
             {
-                var defBounded = gs.CreateDefaultBoundedStats();
-                var defUnbounded = gs.CreateDefaultUnboundedStats();
-                bool boundedMatch = true;
-                bool unboundedMatch = true;
-
-                if (defBounded.Count != data.BoundedStats.Count)
-                {
-                    boundedMatch = false;
-                }
-                else
-                {
-                    foreach (var d in defBounded)
-                    {
-                        var found = data.BoundedStats.Find(s => s.StatType == d.StatType);
-                        if (
-                            found == null
-                            || found.CurrentInt != d.CurrentInt
-                            || found.MaxInt != d.MaxInt
-                        )
-                        {
-                            boundedMatch = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (defUnbounded.Count != data.UnboundedStats.Count)
-                {
-                    unboundedMatch = false;
-                }
-                else
-                {
-                    foreach (var d in defUnbounded)
-                    {
-                        var found = data.UnboundedStats.Find(s => s.StatType == d.StatType);
-                        if (
-                            found == null
-                            || Mathf.RoundToInt(found.Current) != Mathf.RoundToInt(d.Current)
-                        )
-                        {
-                            unboundedMatch = false;
-                            break;
-                        }
-                    }
-                }
-
-                statsAreDefault = boundedMatch && unboundedMatch;
-                if (statsAreDefault)
-                {
-                    yellowNotes.Add("Stats match project defaults (consider customizing)");
-                }
+                yellowNotes.Add("Stats match project defaults (consider customizing)");
             }
 
             // Personal growth rates shouldn't all be zero (yellow)
@@ -1358,6 +1255,35 @@ namespace Turnroot.EditorTools
             public List<string> Notes = new List<string>();
             public bool IsCritical = false;
             public List<Object> MissingPrefabs = new List<Object>();
+        }
+
+        private bool StatsMatchDefaults(CharacterData data)
+        {
+            var gs = GameSettings.GameplayGeneralSettings.Instance;
+            if (gs == null)
+                return false;
+
+            var defBounded = gs.CreateDefaultBoundedStats();
+            if (defBounded.Count != data.BoundedStats.Count)
+                return false;
+            foreach (var d in defBounded)
+            {
+                var found = data.BoundedStats.Find(s => s.StatType == d.StatType);
+                if (found == null || found.CurrentInt != d.CurrentInt || found.MaxInt != d.MaxInt)
+                    return false;
+            }
+
+            var defUnbounded = gs.CreateDefaultUnboundedStats();
+            if (defUnbounded.Count != data.UnboundedStats.Count)
+                return false;
+            foreach (var d in defUnbounded)
+            {
+                var found = data.UnboundedStats.Find(s => s.StatType == d.StatType);
+                if (found == null || Mathf.RoundToInt(found.Current) != Mathf.RoundToInt(d.Current))
+                    return false;
+            }
+
+            return true;
         }
 
         private void BuildRosterIndices()

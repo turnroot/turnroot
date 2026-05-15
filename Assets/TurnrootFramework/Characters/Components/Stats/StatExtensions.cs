@@ -65,67 +65,13 @@ namespace Turnroot.Characters.Stats
         }
 
         /// <summary>
-        /// Apply bounded stat modifiers to a character's stats.
+        /// Apply stat modifiers to a character's stats. Handles both bounded (HP, via isBounded) and unbounded stats.
         /// </summary>
-        public static void ApplyBoundedModifiers(
-            this IHasStats stats,
-            IEnumerable<CharacterClass.StatModifier> modifiers,
-            Func<BoundedCharacterStat, float, float> modifier
-        )
-        {
-            if (stats == null || modifiers == null || modifier == null)
-            {
-                return;
-            }
-
-            foreach (var mod in modifiers)
-            {
-                if (mod.value != 0)
-                {
-                    var stat = stats.GetBoundedStat(mod.boundedStatType);
-                    if (stat != null)
-                    {
-                        float newValue = modifier(stat, mod.value);
-                        stat.SetCurrent(newValue);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Apply unbounded stat modifiers to a character's stats.
-        /// </summary>
-        public static void ApplyUnboundedModifiers(
+        public static void ApplyStatModifiers(
             this IHasStats stats,
             IEnumerable<CharacterClass.UnboundedStatModifier> modifiers,
-            Func<CharacterStat, float, float> modifier
-        )
-        {
-            if (stats == null || modifiers == null || modifier == null)
-            {
-                return;
-            }
-
-            foreach (var mod in modifiers)
-            {
-                if (mod.value != 0)
-                {
-                    var stat = stats.GetUnboundedStat(mod.unboundedStatType);
-                    if (stat != null)
-                    {
-                        float newValue = modifier(stat, mod.value);
-                        stat.SetCurrent(newValue);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Apply a value change to all bounded stats using bonus field.
-        /// </summary>
-        public static void ApplyBoundedBonuses(
-            this IHasStats stats,
-            IEnumerable<CharacterClass.StatModifier> modifiers
+            Func<BoundedCharacterStat, float, float> boundedModifier,
+            Func<CharacterStat, float, float> unboundedModifier
         )
         {
             if (stats == null || modifiers == null)
@@ -137,19 +83,43 @@ namespace Turnroot.Characters.Stats
             {
                 if (mod.value != 0)
                 {
-                    var stat = stats.GetBoundedStat(mod.boundedStatType);
-                    if (stat != null)
+                    if (mod.isBounded)
                     {
-                        stat.SetBonus(stat.Bonus + mod.value);
+                        if (boundedModifier == null)
+                        {
+                            continue;
+                        }
+
+                        var stat = stats.GetBoundedStat(mod.boundedStatType);
+                        if (stat != null)
+                        {
+                            float newValue = boundedModifier(stat, mod.value);
+                            stat.SetCurrent(newValue);
+                        }
+                    }
+                    else
+                    {
+                        if (unboundedModifier == null)
+                        {
+                            continue;
+                        }
+
+                        var stat = stats.GetUnboundedStat(mod.unboundedStatType);
+                        if (stat != null)
+                        {
+                            float newValue = unboundedModifier(stat, mod.value);
+                            stat.SetCurrent(newValue);
+                        }
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Apply a value change to all unbounded stats using bonus field.
+        /// Apply a value change to all stats using the bonus field.
+        /// Handles both bounded (HP, via isBounded) and unbounded stats.
         /// </summary>
-        public static void ApplyUnboundedBonuses(
+        public static void ApplyStatBonuses(
             this IHasStats stats,
             IEnumerable<CharacterClass.UnboundedStatModifier> modifiers
         )
@@ -163,45 +133,31 @@ namespace Turnroot.Characters.Stats
             {
                 if (mod.value != 0)
                 {
-                    var stat = stats.GetUnboundedStat(mod.unboundedStatType);
-                    if (stat != null)
+                    if (mod.isBounded)
                     {
-                        stat.SetBonus(stat.Bonus + mod.value);
+                        var stat = stats.GetBoundedStat(mod.boundedStatType);
+                        if (stat != null)
+                        {
+                            stat.SetBonus(stat.Bonus + mod.value);
+                        }
+                    }
+                    else
+                    {
+                        var stat = stats.GetUnboundedStat(mod.unboundedStatType);
+                        if (stat != null)
+                        {
+                            stat.SetBonus(stat.Bonus + mod.value);
+                        }
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Remove a value change from all bounded stats using bonus field.
+        /// Remove a value change from all stats using the bonus field.
+        /// Handles both bounded (HP, via isBounded) and unbounded stats.
         /// </summary>
-        public static void RemoveBoundedBonuses(
-            this IHasStats stats,
-            IEnumerable<CharacterClass.StatModifier> modifiers
-        )
-        {
-            if (stats == null || modifiers == null)
-            {
-                return;
-            }
-
-            foreach (var mod in modifiers)
-            {
-                if (mod.value != 0)
-                {
-                    var stat = stats.GetBoundedStat(mod.boundedStatType);
-                    if (stat != null)
-                    {
-                        stat.SetBonus(stat.Bonus - mod.value);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Remove a value change from all unbounded stats using bonus field.
-        /// </summary>
-        public static void RemoveUnboundedBonuses(
+        public static void RemoveStatBonuses(
             this IHasStats stats,
             IEnumerable<CharacterClass.UnboundedStatModifier> modifiers
         )
@@ -215,10 +171,21 @@ namespace Turnroot.Characters.Stats
             {
                 if (mod.value != 0)
                 {
-                    var stat = stats.GetUnboundedStat(mod.unboundedStatType);
-                    if (stat != null)
+                    if (mod.isBounded)
                     {
-                        stat.SetBonus(stat.Bonus - mod.value);
+                        var stat = stats.GetBoundedStat(mod.boundedStatType);
+                        if (stat != null)
+                        {
+                            stat.SetBonus(stat.Bonus - mod.value);
+                        }
+                    }
+                    else
+                    {
+                        var stat = stats.GetUnboundedStat(mod.unboundedStatType);
+                        if (stat != null)
+                        {
+                            stat.SetBonus(stat.Bonus - mod.value);
+                        }
                     }
                 }
             }

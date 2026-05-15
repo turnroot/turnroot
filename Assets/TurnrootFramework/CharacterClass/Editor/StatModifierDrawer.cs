@@ -4,36 +4,14 @@ using UnityEngine;
 namespace Turnroot.Characters.CharacterClass
 {
     /// <summary>
-    /// Custom property drawer for StatModifier that displays the stat type name as the label.
-    /// </summary>
-    [CustomPropertyDrawer(typeof(StatModifier))]
-    public class StatModifierDrawer : PropertyDrawer
-    {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            EditorGUI.BeginProperty(position, label, property);
-
-            var statTypeProp = property.FindPropertyRelative("boundedStatType");
-            var valueProp = property.FindPropertyRelative("value");
-
-            // Draw stat type name as label and value field
-            var statName = statTypeProp.enumDisplayNames[statTypeProp.enumValueIndex];
-            EditorGUI.PropertyField(position, valueProp, new GUIContent(statName));
-
-            EditorGUI.EndProperty();
-        }
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) =>
-            EditorGUIUtility.singleLineHeight;
-    }
-
-    /// <summary>
     /// Custom property drawer for UnboundedStatModifier that displays the stat type name as the label.
     /// Supports both unbounded and bounded (HP) entries.
     /// </summary>
     [CustomPropertyDrawer(typeof(UnboundedStatModifier))]
     public class UnboundedStatModifierDrawer : PropertyDrawer
     {
+        private const float Spacing = 2f;
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
@@ -43,22 +21,41 @@ namespace Turnroot.Characters.CharacterClass
             var boundedProp = property.FindPropertyRelative("boundedStatType");
             var valueProp = property.FindPropertyRelative("value");
 
-            string statName;
-            if (isBoundedProp != null && isBoundedProp.boolValue)
-            {
-                statName = boundedProp.enumDisplayNames[boundedProp.enumValueIndex];
-            }
-            else
-            {
-                statName = unboundedProp.enumDisplayNames[unboundedProp.enumValueIndex];
-            }
+            float lineH = EditorGUIUtility.singleLineHeight;
 
-            EditorGUI.PropertyField(position, valueProp, new GUIContent(statName));
+            // Row 1: isBounded toggle + stat type enum
+            var row1 = new Rect(position.x, position.y, position.width, lineH);
+            float toggleWidth = 16f;
+            float labelWidth = 70f;
+
+            var toggleRect = new Rect(row1.x, row1.y, toggleWidth, lineH);
+            var toggleLabelRect = new Rect(row1.x + toggleWidth + 2f, row1.y, labelWidth, lineH);
+            var enumRect = new Rect(
+                row1.x + toggleWidth + 2f + labelWidth + 2f,
+                row1.y,
+                row1.width - toggleWidth - 2f - labelWidth - 2f,
+                lineH
+            );
+
+            EditorGUI.PropertyField(toggleRect, isBoundedProp, GUIContent.none);
+            EditorGUI.LabelField(
+                toggleLabelRect,
+                isBoundedProp.boolValue ? "Bounded" : "Unbounded"
+            );
+
+            if (isBoundedProp.boolValue)
+                EditorGUI.PropertyField(enumRect, boundedProp, GUIContent.none);
+            else
+                EditorGUI.PropertyField(enumRect, unboundedProp, GUIContent.none);
+
+            // Row 2: value
+            var row2 = new Rect(position.x, position.y + lineH + Spacing, position.width, lineH);
+            EditorGUI.PropertyField(row2, valueProp, new GUIContent("Value"));
 
             EditorGUI.EndProperty();
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) =>
-            EditorGUIUtility.singleLineHeight;
+            EditorGUIUtility.singleLineHeight * 2 + Spacing;
     }
 }

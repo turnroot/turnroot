@@ -43,11 +43,7 @@ namespace Turnroot.Characters.CharacterClass
                 return validation;
             }
 
-            StatApplicationHelper.ApplyBoundedBonuses(classData.Stats.StatBonuses, character);
-            StatApplicationHelper.ApplyUnboundedBonuses(
-                classData.Stats.UnboundedStatBonuses,
-                character
-            );
+            StatApplicationHelper.ApplyStatBonuses(classData.Stats.StatBonuses, character);
 
             if (classData?.Mastery?.InnateSkills != null && character.SkillInstances != null)
             {
@@ -88,11 +84,7 @@ namespace Turnroot.Characters.CharacterClass
                 return validation;
             }
 
-            StatApplicationHelper.RemoveBoundedBonuses(classData.Stats.StatBonuses, character);
-            StatApplicationHelper.RemoveUnboundedBonuses(
-                classData.Stats.UnboundedStatBonuses,
-                character
-            );
+            StatApplicationHelper.RemoveStatBonuses(classData.Stats.StatBonuses, character);
 
             if (classData?.Mastery?.InnateSkills != null && character.SkillInstances != null)
             {
@@ -137,13 +129,8 @@ namespace Turnroot.Characters.CharacterClass
                 return validation;
             }
 
-            StatApplicationHelper.ApplyBoundedPermanentBonuses(
+            StatApplicationHelper.ApplyPermanentBonuses(
                 classData.Stats.ClassChangeBonuses,
-                character,
-                logChanges: true
-            );
-            StatApplicationHelper.ApplyUnboundedPermanentBonuses(
-                classData.Stats.UnboundedClassChangeBonuses,
                 character,
                 logChanges: true
             );
@@ -164,13 +151,8 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            StatApplicationHelper.EnforceBoundedMinimums(
+            StatApplicationHelper.EnforceStatMinimums(
                 classData.Stats.StatMinimums,
-                character,
-                logChanges: true
-            );
-            StatApplicationHelper.EnforceUnboundedMinimums(
-                classData.Stats.UnboundedStatMinimums,
                 character,
                 logChanges: true
             );
@@ -188,17 +170,14 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            StatApplicationHelper.ApplyBoundedCaps(classData.Stats.StatCaps, character);
+            StatApplicationHelper.ApplyStatCaps(classData.Stats.StatCaps, character);
         }
 
         public bool IsAboveCaps(CharacterInstance character, CharacterClassData classData)
         {
             var validation = StatApplicationHelper.ValidateReferences(character, classData, "");
             return validation.Success
-                && StatApplicationHelper.IsAboveUnboundedCaps(
-                    classData.Stats.UnboundedStatCaps,
-                    character
-                );
+                && StatApplicationHelper.IsAboveStatCaps(classData.Stats.StatCaps, character);
         }
     }
 }
