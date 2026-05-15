@@ -56,7 +56,8 @@ namespace Turnroot.Skills.Nodes.Math
                 case NumberOperationType.Divide:
                     if (Mathf.Approximately(bValue.value, 0f))
                     {
-                        "NumberOperationsNode: Division by zero".LogWarning();
+                        if (Application.isPlaying)
+                            "NumberOperationsNode: Division by zero".LogWarning();
                         resultValue.value = 0f;
                     }
                     else
