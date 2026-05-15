@@ -2,6 +2,8 @@ using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.Characters.CharacterClass;
+using Turnroot.Characters.StatusEffects;
 using Turnroot.GameSettings;
 using Turnroot.Skills;
 using Turnroot.Utilities.AbstractScripts;
@@ -308,8 +310,57 @@ namespace Turnroot.Gameplay.Objects
         [field: Foldout("Type"), SerializeField, ShowIf(nameof(IsEquipableSubtype))]
         public EquipableObjectType EquipableType { get; set; }
 
+        [field:
+            Foldout("Consumable Effects"),
+            SerializeField,
+            ShowIf(nameof(IsConsumableWithEffect))
+        ]
+        public bool StatEffectIsPermanent { get; set; } = false;
+
+        [field:
+            Foldout("Consumable Effects"),
+            SerializeField,
+            ShowIf(nameof(IsConsumableWithEffect))
+        ]
+        public bool RemovesDebuff { get; set; } = false;
+
+        [field:
+            Foldout("Consumable Effects"),
+            SerializeField,
+            ShowIf(nameof(IsConsumableWithEffectAndAffectsDebuffs))
+        ]
+        public StatusEffectType DebuffTypeRemoved;
+
+        [field:
+            Foldout("Consumable Effects"),
+            SerializeField,
+            ShowIf(nameof(IsConsumableWithEffect))
+        ]
+        public bool AddsBuff { get; set; } = false;
+
+        [field:
+            Foldout("Consumable Effects"),
+            SerializeField,
+            ShowIf(nameof(IsConsumableWithEffectAndAffectsBuffs))
+        ]
+        public StatusEffectType BuffTypeAdded;
+
+        [field:
+            Foldout("Consumable Effects"),
+            SerializeField,
+            ShowIf(nameof(IsConsumableWithEffect))
+        ]
+        public UnboundedStatModifier[] StatModifiersAdded { get; set; } = new UnboundedStatModifier[0];
+
         /* --------------- Helper methods for NaughtyAttributes ShowIf -------------- */
         private bool IsEquipableSubtype() => Subtype == ObjectSubtype.Equipable;
+
+        private bool IsConsumableWithEffectAndAffectsDebuffs() =>
+            IsConsumableWithEffect && RemovesDebuff;
+
+        private bool IsConsumableWithEffectAndAffectsBuffs() => IsConsumableWithEffect && AddsBuff;
+
+        private bool IsConsumableWithEffect => Subtype != null && Subtype.IsConsumableWithEffect;
 
         public bool IsWeaponOrMagicSubtype() =>
             Subtype != null && (Subtype.IsWeapon || Subtype.IsMagic);

@@ -53,41 +53,18 @@ namespace Turnroot.Characters.CharacterClass
 #endif
             }
 
-            // Define all bounded stat lists to validate in one place
-            var boundedStatLists = new[]
+            // Define all stat lists to validate
+            var statLists = new[]
             {
                 (list: Stats.StatMinimums, name: nameof(Stats.StatMinimums)),
                 (list: Stats.StatCaps, name: nameof(Stats.StatCaps)),
                 (list: Stats.StatBonuses, name: nameof(Stats.StatBonuses)),
+                (list: Stats.GrowthRateModifiers, name: nameof(Stats.GrowthRateModifiers)),
                 (list: Stats.ClassChangeBonuses, name: nameof(Stats.ClassChangeBonuses)),
             };
 
-            // Validate all bounded lists with single loop
-            foreach (var (list, name) in boundedStatLists)
-            {
-                ValidateBoundedStatList(
-                    list,
-                    gs.GetDefaultBoundedStatTypes(),
-                    name,
-                    (statType) => new StatModifier(statType, 0)
-                );
-            }
-
-            // Define all unbounded stat lists
-            var unboundedStatLists = new[]
-            {
-                (list: Stats.UnboundedStatMinimums, name: nameof(Stats.UnboundedStatMinimums)),
-                (list: Stats.UnboundedStatCaps, name: nameof(Stats.UnboundedStatCaps)),
-                (list: Stats.UnboundedStatBonuses, name: nameof(Stats.UnboundedStatBonuses)),
-                (list: Stats.GrowthRateModifiers, name: nameof(Stats.GrowthRateModifiers)),
-                (
-                    list: Stats.UnboundedClassChangeBonuses,
-                    name: nameof(Stats.UnboundedClassChangeBonuses)
-                ),
-            };
-
-            // Validate all unbounded lists
-            foreach (var (list, name) in unboundedStatLists)
+            // Validate all lists
+            foreach (var (list, name) in statLists)
             {
                 ValidateUnboundedStatList(
                     list,
@@ -110,30 +87,6 @@ namespace Turnroot.Characters.CharacterClass
             }
 
             return OperationResult.Successful();
-        }
-
-        private void ValidateBoundedStatList(
-            List<StatModifier> list,
-            IEnumerable<BoundedStatType> defaults,
-            string listName,
-            Func<BoundedStatType, StatModifier> creator
-        )
-        {
-            var defaultList = defaults is ICollection<BoundedStatType> c
-                ? c
-                : new List<BoundedStatType>(defaults);
-
-            if (list.Count == 0)
-            {
-                foreach (var statType in defaultList)
-                {
-                    list.Add(creator(statType));
-                }
-            }
-            else if (list.Count != defaultList.Count)
-            {
-                $"{name}: {listName} count ({list.Count}) doesn't match project default stat count ({defaultList.Count}). This may cause issues.".LogWarning();
-            }
         }
 
         private void ValidateUnboundedStatList(
