@@ -35,11 +35,20 @@ namespace Turnroot.Utilities.SceneFlows
             }
 
             // Check conditions if transition exists
-            if (transition != null && !transition.AreConditionsMet(_conditionEvaluator))
+            if (transition != null)
             {
-                $"SceneFlowBrain: Transition conditions not met for '{targetSceneId}'.".LogWarning();
-                Brain.PublishSceneTransitionBlocked(targetSceneId, "Conditions not met");
-                return;
+                bool isReverse =
+                    transition.isBidirectional && transition.toSceneId == _currentScene?.id;
+                bool conditionsMet = isReverse
+                    ? transition.AreReverseConditionsMet(_conditionEvaluator)
+                    : transition.AreConditionsMet(_conditionEvaluator);
+
+                if (!conditionsMet)
+                {
+                    $"SceneFlowBrain: Transition conditions not met for '{targetSceneId}'.".LogWarning();
+                    Brain.PublishSceneTransitionBlocked(targetSceneId, "Conditions not met");
+                    return;
+                }
             }
 
             // Add current scene to history (if not null and not already on top)
@@ -130,7 +139,7 @@ namespace Turnroot.Utilities.SceneFlows
                 return new List<SceneOption>();
             }
 
-            var transitions = sceneFlowGraph.GetTransitionsFrom(_currentScene.id);
+            var transitions = sceneFlowGraph.transitions;
             $"SceneFlowBrain: Current scene '{_currentScene.id}', transitions: {transitions?.Count ?? 0}".LogInfo();
 
             var available = new List<SceneOption>();
@@ -182,14 +191,31 @@ namespace Turnroot.Utilities.SceneFlows
 
         public bool IsSceneAvailable(string targetSceneId)
         {
-            var transitions = sceneFlowGraph?.GetTransitionsFrom(_currentScene?.id);
+            var transitions = sceneFlowGraph?.transitions;
             if (transitions == null)
             {
                 return false;
             }
 
-            var transition = transitions.Find(t => t.toSceneId == targetSceneId);
-            return transition != null && transition.AreConditionsMet(_conditionEvaluator);
+            var transition = transitions.Find(t =>
+                t.fromSceneId == _currentScene?.id && t.toSceneId == targetSceneId
+                || (
+                    t.isBidirectional
+                    && t.toSceneId == _currentScene?.id
+                    && t.fromSceneId == targetSceneId
+                )
+            );
+
+            if (transition == null)
+            {
+                return false;
+            }
+
+            bool isReverse =
+                transition.isBidirectional && transition.toSceneId == _currentScene?.id;
+            return isReverse
+                ? transition.AreReverseConditionsMet(_conditionEvaluator)
+                : transition.AreConditionsMet(_conditionEvaluator);
         }
 
         #endregion
@@ -216,6 +242,7 @@ namespace Turnroot.Utilities.SceneFlows
 
         public bool GetCustomFlag(string key) =>
             _customFlags.TryGetValue(key, out bool value) && value;
+
         public int GetCustomIntValue(string key) =>
             _customIntValues.TryGetValue(key, out int value) ? value : 0;
 

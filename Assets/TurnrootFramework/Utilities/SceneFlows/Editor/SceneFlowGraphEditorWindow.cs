@@ -1457,6 +1457,12 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             return keys.ToArray();
         }
 
+        private static bool ShouldUseCustomConditionKey(SceneCondition condition)
+        {
+            return string.IsNullOrEmpty(condition.conditionKey)
+                || System.Array.IndexOf(_conditionKeyOptions, condition.conditionKey) < 0;
+        }
+
         private void DrawTransitionInspector()
         {
             EditorGUILayout.LabelField("Scene Transition", EditorStyles.boldLabel);
@@ -1607,17 +1613,24 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             {
                 EditorGUILayout.BeginVertical("box");
                 var condition = _selectedTransition.conditions[i];
+                bool removeCondition = false;
 
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField($"Condition {i + 1}", EditorStyles.boldLabel);
                 if (GUILayout.Button("Remove", GUILayout.Width(60)))
                 {
+                    removeCondition = true;
+                }
+                EditorGUILayout.EndHorizontal();
+
+                if (removeCondition)
+                {
+                    EditorGUILayout.EndVertical();
                     _selectedTransition.conditions.RemoveAt(i);
                     EditorUtility.SetDirty(_graph);
                     AssetDatabase.SaveAssetIfDirty(_graph);
                     break;
                 }
-                EditorGUILayout.EndHorizontal();
 
                 condition.conditionType = (SceneConditionType)
                     EditorGUILayout.EnumPopup("Type", condition.conditionType);
@@ -1630,8 +1643,9 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                         || condition.conditionType == SceneConditionType.CustomFlag
                     )
                     {
+                        bool useCustomKey = ShouldUseCustomConditionKey(condition);
                         int selectedIndex = 0;
-                        if (!string.IsNullOrEmpty(condition.conditionKey))
+                        if (!useCustomKey)
                         {
                             int found = System.Array.IndexOf(
                                 _conditionKeyOptions,
@@ -1652,9 +1666,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                         {
                             condition.conditionKey =
                                 newIndex == 0 ? string.Empty : _conditionKeyOptions[newIndex];
+                            useCustomKey = newIndex == 0;
                         }
 
-                        if (string.IsNullOrEmpty(condition.conditionKey))
+                        if (useCustomKey)
                         {
                             condition.conditionKey = EditorGUILayout.TextField(
                                 "Custom Key",
@@ -1737,6 +1752,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 {
                     EditorGUILayout.BeginVertical("box");
                     var condition = _selectedTransition.reverseConditions[i];
+                    bool removeCondition = false;
 
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(
@@ -1745,12 +1761,18 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     );
                     if (GUILayout.Button("Remove", GUILayout.Width(60)))
                     {
+                        removeCondition = true;
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    if (removeCondition)
+                    {
+                        EditorGUILayout.EndVertical();
                         _selectedTransition.reverseConditions.RemoveAt(i);
                         EditorUtility.SetDirty(_graph);
                         AssetDatabase.SaveAssetIfDirty(_graph);
                         break;
                     }
-                    EditorGUILayout.EndHorizontal();
 
                     condition.conditionType = (SceneConditionType)
                         EditorGUILayout.EnumPopup("Type", condition.conditionType);
@@ -1763,8 +1785,9 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                             || condition.conditionType == SceneConditionType.CustomFlag
                         )
                         {
+                            bool useCustomKey = ShouldUseCustomConditionKey(condition);
                             int selectedIndex = 0;
-                            if (!string.IsNullOrEmpty(condition.conditionKey))
+                            if (!useCustomKey)
                             {
                                 int found = System.Array.IndexOf(
                                     _conditionKeyOptions,
@@ -1785,9 +1808,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                             {
                                 condition.conditionKey =
                                     newIndex == 0 ? string.Empty : _conditionKeyOptions[newIndex];
+                                useCustomKey = newIndex == 0;
                             }
 
-                            if (string.IsNullOrEmpty(condition.conditionKey))
+                            if (useCustomKey)
                             {
                                 condition.conditionKey = EditorGUILayout.TextField(
                                     "Custom Key",

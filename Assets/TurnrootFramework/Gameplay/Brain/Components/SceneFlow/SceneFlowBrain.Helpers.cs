@@ -17,8 +17,10 @@ namespace Turnroot.Utilities.SceneFlows
                 return null;
             }
 
-            var transitions = sceneFlowGraph.GetTransitionsFrom(fromSceneId);
-            return transitions.Find(t => t.toSceneId == toSceneId);
+            return sceneFlowGraph.transitions.Find(t =>
+                t.fromSceneId == fromSceneId && t.toSceneId == toSceneId
+                || (t.isBidirectional && t.toSceneId == fromSceneId && t.fromSceneId == toSceneId)
+            );
         }
 
         private IEnumerator LoadSceneAsync(
