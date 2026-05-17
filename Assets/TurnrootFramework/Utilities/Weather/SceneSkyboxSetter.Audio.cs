@@ -6,7 +6,8 @@ namespace Turnroot.Utilities.Weather
     {
         #region Audio
 
-        private AudioClip PickRandomClip(AudioClip[] clips) => clips == null || clips.Length == 0 ? null : clips[Random.Range(0, clips.Length)];
+        private AudioClip PickRandomClip(AudioClip[] clips) =>
+            clips == null || clips.Length == 0 ? null : clips[Random.Range(0, clips.Length)];
 
         private void UpdateAmbientAudio()
         {
@@ -57,6 +58,51 @@ namespace Turnroot.Utilities.Weather
             AmbientAudioSource.clip = clip;
             AmbientAudioSource.loop = true;
             AmbientAudioSource.Play();
+        }
+
+        private void UpdateNightAmbientAudio()
+        {
+            // _appliedNightFactor is -1 when uninitialized — treat as 0 (full day).
+            float night = _appliedNightFactor < 0f ? 0f : Mathf.Clamp01(_appliedNightFactor);
+            float day = 1f - night;
+
+            // Fade weather ambient out during night.
+            if (AmbientAudioSource != null)
+            {
+                AmbientAudioSource.volume = day;
+            }
+
+            if (NightAmbientAudioSource == null)
+            {
+                return;
+            }
+
+            NightAmbientAudioSource.volume = night * NightAmbientMaxVolume;
+
+            if (night > 0.001f)
+            {
+                if (!NightAmbientAudioSource.isPlaying)
+                {
+                    if (NightAmbientAudioSource.clip == null)
+                    {
+                        var clip = PickRandomClip(NightAmbientClips);
+                        if (clip == null)
+                        {
+                            return;
+                        }
+
+                        NightAmbientAudioSource.clip = clip;
+                    }
+
+                    NightAmbientAudioSource.loop = true;
+                    NightAmbientAudioSource.Play();
+                }
+            }
+            else if (NightAmbientAudioSource.isPlaying)
+            {
+                NightAmbientAudioSource.Stop();
+                NightAmbientAudioSource.clip = null;
+            }
         }
 
         private void ResetEventTimers()

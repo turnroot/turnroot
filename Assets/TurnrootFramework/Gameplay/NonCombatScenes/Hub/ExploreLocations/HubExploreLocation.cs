@@ -32,14 +32,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 var hubManager = FindFirstObjectByType<HubManager>();
                 GameDate date = hubManager != null ? hubManager.gameDate : GameDate.Default;
 
+                int chapterNumber = _brain?.saveFileBrain?.ActiveSaveFile.ChapterNumber ?? -1;
+                $"[HubDiag] IsLocked({LocationName}): _brain={((_brain == null) ? "NULL" : "set")} chapter={chapterNumber} date={date.year}/{date.month}/{date.day} conditions={UnlockConditions.Length}".LogInfo(
+                    "HubExploreLocation.IsLocked"
+                );
+
                 foreach (var condition in UnlockConditions)
                 {
                     if (!condition.IsUnlocked(_brain, date))
                     {
+                        $"[HubDiag] IsLocked({LocationName}): LOCKED by condition type={condition.Type} UnlockAfterChapter={condition.UnlockAfterChapter} UnlockDate={condition.UnlockDate.year}/{condition.UnlockDate.month}/{condition.UnlockDate.day}".LogInfo(
+                            "HubExploreLocation.IsLocked"
+                        );
                         return true;
                     }
                 }
 
+                $"[HubDiag] IsLocked({LocationName}): UNLOCKED (all conditions passed)".LogInfo(
+                    "HubExploreLocation.IsLocked"
+                );
                 return false;
             }
         }

@@ -213,6 +213,7 @@ namespace Turnroot.Utilities.Weather
 
             // Update audio / event-driven effects (lightning, volcanic rumble, etc.)
             UpdateAmbientAudio();
+            UpdateNightAmbientAudio();
             UpdateEventAudio();
         }
 
