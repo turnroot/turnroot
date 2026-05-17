@@ -98,32 +98,7 @@ namespace Turnroot.Utilities.Weather
 
         public void SetSkybox(WeatherType weatherType, int? forcedIndex)
         {
-            Material[] selectedSkyboxes = null;
-
-            switch (weatherType)
-            {
-                case WeatherType.Sunny:
-                    selectedSkyboxes = SunnySkyboxes;
-                    break;
-                case WeatherType.Cloudy:
-                    selectedSkyboxes = CloudySkyboxes;
-                    break;
-                case WeatherType.Rainy:
-                    selectedSkyboxes = RainySkyboxes;
-                    break;
-                case WeatherType.Snowy:
-                    selectedSkyboxes = SnowySkyboxes;
-                    break;
-                case WeatherType.Stormy:
-                    selectedSkyboxes = StormySkyboxes;
-                    break;
-                case WeatherType.Volcanic:
-                    selectedSkyboxes = VolcanicSkyboxes;
-                    break;
-                default:
-                    RenderSettings.skybox = DefaultSkybox;
-                    return;
-            }
+            Material[] selectedSkyboxes = SelectSkyboxes(weatherType);
 
             if (_instantiatedSkyboxMaterial != null)
             {
@@ -131,31 +106,31 @@ namespace Turnroot.Utilities.Weather
                 _instantiatedSkyboxMaterial = null;
             }
 
+            AssignSkybox(selectedSkyboxes, forcedIndex);
+
+            UpdateAmbientAudio();
+            ResetEventTimers();
+        }
+
+        private Material[] SelectSkyboxes(WeatherType weatherType)
+        {
+            return weatherType switch
+            {
+                WeatherType.Sunny => SunnySkyboxes,
+                WeatherType.Cloudy => CloudySkyboxes,
+                WeatherType.Rainy => RainySkyboxes,
+                WeatherType.Snowy => SnowySkyboxes,
+                WeatherType.Stormy => StormySkyboxes,
+                WeatherType.Volcanic => VolcanicSkyboxes,
+                _ => null,
+            };
+        }
+
+        private void AssignSkybox(Material[] selectedSkyboxes, int? forcedIndex)
+        {
             if (selectedSkyboxes != null && selectedSkyboxes.Length > 0)
             {
-                int chosenIndex = -1;
-
-                // Prefer a forced index (from saved state) if valid
-                if (
-                    forcedIndex != null
-                    && forcedIndex >= 0
-                    && forcedIndex < selectedSkyboxes.Length
-                )
-                {
-                    chosenIndex = forcedIndex.Value;
-                }
-                else
-                {
-                    chosenIndex = HubDayRandom.Range(0, selectedSkyboxes.Length);
-
-                    // Persist the chosen skybox index so it stays consistent across exits
-                    var brain = FindFirstObjectByType<Brain>();
-                    if (brain != null)
-                    {
-                        HubDayStateStore.SetSkyboxIndex(brain, chosenIndex);
-                    }
-                }
-
+                int chosenIndex = forcedIndex ?? HubDayRandom.Range(0, selectedSkyboxes.Length);
                 _instantiatedSkyboxMaterial = Instantiate(selectedSkyboxes[chosenIndex]);
                 currentSkybox = _instantiatedSkyboxMaterial;
                 RenderSettings.skybox = currentSkybox;
@@ -165,10 +140,6 @@ namespace Turnroot.Utilities.Weather
                 currentSkybox = DefaultSkybox;
                 RenderSettings.skybox = currentSkybox;
             }
-
-            // Refresh audio / event timing when skybox changes
-            UpdateAmbientAudio();
-            ResetEventTimers();
         }
 
         public void Update()
@@ -219,12 +190,20 @@ namespace Turnroot.Utilities.Weather
 
         public void SetActiveParticles(int month)
         {
-            // Ensure only the current weather's particle systems are active.
+            DeactivateAllParticles();
+            ActivateWeatherSpecificParticles(month);
+        }
+
+        private void DeactivateAllParticles()
+        {
             SetParticlesActive(HeavyRainParticles, false);
             SetParticlesActive(DrizzleParticles, false);
             SetParticlesActive(SnowParticles, false);
             SetParticlesActive(VolcanicAshParticles, false);
+        }
 
+        private void ActivateWeatherSpecificParticles(int month)
+        {
             if (CurrentWeatherType == WeatherType.Rainy)
             {
                 SetParticlesActive(HeavyRainParticles, true);
@@ -256,115 +235,130 @@ namespace Turnroot.Utilities.Weather
 
         public void Awake()
         {
+            InitializeTimeOfDay();
+            SetupDirectionalLight();
+            SetupWaterMaterial();
+            SetupAudioSources();
+            CacheCelMaterials();
+
+            _brain = FindFirstObjectByType<Brain>();
+            if (_brain != null)
+            {
+                _brain.OnSceneChanged += HandleSceneChanged;
+            }
+        }
+
+        private void InitializeTimeOfDay()
+        {
             if (RandomizeStartTimeOfDay)
             {
                 float min = Mathf.Clamp(StartTimeOfDayMin, 0f, 24f);
                 float max = Mathf.Clamp(StartTimeOfDayMax, 0f, 24f);
                 if (max < min)
                 {
-                    // Prevent inverted ranges
-                    float temp = min;
-                    min = max;
-                    max = temp;
+                    (min, max) = (max, min);
                 }
 
                 TimeOfDay = HubDayRandom.Range(min, max);
             }
+        }
 
+        private void SetupDirectionalLight()
+        {
             if (DirectionalLight != null)
             {
                 DirectionalLight.transform.rotation = Quaternion.Euler(
                     ConvertTimeOfDayAndYearToDirectionalLightRotation(TimeOfDay, TimeOfYear)
                 );
             }
+        }
 
+        private void SetupWaterMaterial()
+        {
             if (WaterMaterial != null)
             {
-                // Instantiate the material so runtime tinting does not persist to the source asset.
                 _waterMaterialSource = WaterMaterial;
                 _waterMaterialInstance = Instantiate(_waterMaterialSource);
-
-                baseShallowColor = _waterMaterialInstance.GetColor("_ShallowColor");
-                baseDeepColor = _waterMaterialInstance.GetColor("_DeepColor");
-                baseSpecColor = _waterMaterialInstance.GetColor("_SpecularColor");
-                baseFresnelColor = _waterMaterialInstance.GetColor("_FresnelColor");
             }
+        }
 
-            // Configure audio sources for ambience and 3D event sounds
-            _audioListenerTransform =
-                FindFirstObjectByType<AudioListener>()?.transform ?? Camera.main?.transform;
+        private void SetupAudioSources()
+        {
             if (EventAudioSource != null)
             {
                 EventAudioSource.spatialBlend = 1f;
-                EventAudioSource.rolloffMode = AudioRolloffMode.Logarithmic;
-
-                // Use a min/max distance so thunder can sound both close and distant.
-                float minDist = EventSoundMinDistance;
-                float maxDist = EventSoundMaxDistance;
-
-                minDist = Mathf.Max(0.01f, minDist);
-                maxDist = Mathf.Max(minDist, maxDist);
-
-                EventAudioSource.minDistance = minDist;
-                EventAudioSource.maxDistance = maxDist;
             }
 
             if (AmbientAudioSource != null)
             {
                 AmbientAudioSource.loop = true;
             }
+        }
 
-            // Ensure audio starts correctly
-            UpdateAmbientAudio();
-            ResetEventTimers();
+        private void CacheCelMaterials()
+        {
+            if (CelMaterials != null && CelMaterials.Length > 0)
+            {
+                InstantiateCelMaterialsForRenderers();
+            }
+        }
 
-            // set TimeOfYear based on game date
+        private void SetupForScene(string sceneName)
+        {
+            ClearParticles();
+            InitializeWeather(sceneName);
+            SetupDirectionalLight();
+            ActivateSceneParticles(sceneName);
+            CacheCelMaterials();
+        }
+
+        private void ClearParticles()
+        {
+            SetParticlesActive(HeavyRainParticles, false);
+            SetParticlesActive(DrizzleParticles, false);
+            SetParticlesActive(SnowParticles, false);
+            SetParticlesActive(VolcanicAshParticles, false);
+        }
+
+        private void InitializeWeather(string sceneName)
+        {
+            if (sceneName != _lastSceneName)
+            {
+                _lastSceneName = sceneName;
+                CurrentWeatherType =
+                    PossibleWeatherTypes.Length > 0
+                        ? PossibleWeatherTypes[HubDayRandom.Range(0, PossibleWeatherTypes.Length)]
+                        : WeatherType.Sunny;
+            }
+        }
+
+        private void ActivateSceneParticles(string sceneName)
+        {
             var ltm = FindFirstObjectByType<LongTermMemory>();
             if (ltm != null)
             {
                 var gd = ltm.GetGameDate();
-                float mfrac = (gd.month - 1) / 12f;
-                float dfrac = (gd.day - 1) / (30f * 12f);
-                TimeOfYear = Mathf.Clamp01(mfrac + dfrac);
-            }
-
-            // cache cel shader base light & base-tint colours
-            if (CelMaterials != null && CelMaterials.Length > 0)
-            {
-                int len = CelMaterials.Length;
-                baseCelLight = new Color[len];
-                baseCelBaseTint = new Color[len];
-                for (int i = 0; i < len; i++)
-                {
-                    var m = CelMaterials[i];
-                    if (m != null)
-                    {
-                        baseCelLight[i] = m.HasProperty("_light")
-                            ? m.GetColor("_light")
-                            : Color.white;
-                        baseCelBaseTint[i] = m.HasProperty("_BaseTint")
-                            ? m.GetColor("_BaseTint")
-                            : Color.white;
-                    }
-                    else
-                    {
-                        baseCelLight[i] = Color.white;
-                        baseCelBaseTint[i] = Color.white;
-                    }
-                }
-
-                // Ensure we modify runtime instances rather than the shared assets.
-                InstantiateCelMaterialsForRenderers();
-            }
-
-            _brain = FindFirstObjectByType<Brain>();
-            if (_brain != null)
-            {
-                // only the generic change event is needed; it fires after the new
-                // scene has been fully established and avoids double-randomisation.
-                _brain.OnSceneChanged += HandleSceneChanged;
+                SetActiveParticles(gd.month);
             }
         }
+
+        private void HandleSceneChanged(string sceneName, string displayName)
+        {
+            if (_handledSceneChange)
+            {
+                return;
+            }
+
+            _handledSceneChange = true;
+            // unsubscribe since we don't want to run again
+            if (_brain != null)
+            {
+                _brain.OnSceneChanged -= HandleSceneChanged;
+            }
+            SetupForScene(sceneName);
+        }
+
+        public void SetupForScenePublic(string sceneName) => SetupForScene(sceneName);
 
         public void OnDestroy()
         {
@@ -398,114 +392,6 @@ namespace Turnroot.Utilities.Weather
             SetParticlesActive(DrizzleParticles, false);
             SetParticlesActive(SnowParticles, false);
             SetParticlesActive(VolcanicAshParticles, false);
-        }
-
-        private void HandleSceneChanged(string sceneName, string displayName)
-        {
-            if (_handledSceneChange)
-            {
-                return;
-            }
-
-            _handledSceneChange = true;
-            // unsubscribe since we don't want to run again
-            if (_brain != null)
-            {
-                _brain.OnSceneChanged -= HandleSceneChanged;
-            }
-            SetupForScene(sceneName);
-        }
-
-        public void SetupForScenePublic(string sceneName) => SetupForScene(sceneName);
-
-        private void SetupForScene(string sceneName)
-        {
-            // clear any leftover particles before applying the new weather
-            SetParticlesActive(HeavyRainParticles, false);
-            SetParticlesActive(DrizzleParticles, false);
-            SetParticlesActive(SnowParticles, false);
-            SetParticlesActive(VolcanicAshParticles, false);
-
-            // if we already processed this scene once we don't reseed the weather
-            bool newScene = sceneName != _lastSceneName;
-            if (newScene)
-            {
-                _lastSceneName = sceneName;
-
-                // Prefer persisted weather for this date (so it's the same across play sessions).
-                var brain = FindFirstObjectByType<Brain>();
-                if (brain != null && HubDayStateStore.HasWeather)
-                {
-                    CurrentWeatherType = HubDayStateStore.Weather;
-                }
-                else if (PossibleWeatherTypes.Length > 0)
-                {
-                    int index = HubDayRandom.Range(0, PossibleWeatherTypes.Length);
-                    CurrentWeatherType = PossibleWeatherTypes[index];
-
-                    if (brain != null)
-                    {
-                        HubDayStateStore.SetWeather(brain, CurrentWeatherType);
-                    }
-                }
-            }
-
-            // orientation may not be correct until light exists but set anyway
-            if (DirectionalLight != null)
-            {
-                DirectionalLight.transform.rotation = Quaternion.Euler(
-                    ConvertTimeOfDayAndYearToDirectionalLightRotation(TimeOfDay, TimeOfYear)
-                );
-            }
-
-            SetSkybox(CurrentWeatherType);
-
-            // always refresh particles after scene change
-            var ltm2 = FindFirstObjectByType<LongTermMemory>();
-            if (ltm2 != null)
-            {
-                var gd2 = ltm2.GetGameDate();
-                SetActiveParticles(gd2.month);
-            }
-
-            // cache base water colors so we don't drift when blending
-            var mat = GetActiveWaterMaterial();
-            if (mat != null)
-            {
-                baseShallowColor = mat.GetColor("_ShallowColor");
-                baseDeepColor = mat.GetColor("_DeepColor");
-                baseSpecColor = mat.GetColor("_SpecularColor");
-                baseFresnelColor = mat.GetColor("_FresnelColor");
-            }
-
-            // cache cel shader base light & base-tint colours
-            if (CelMaterials != null && CelMaterials.Length > 0)
-            {
-                int len = CelMaterials.Length;
-                baseCelLight = new Color[len];
-                baseCelBaseTint = new Color[len];
-                for (int i = 0; i < len; i++)
-                {
-                    var m = CelMaterials[i];
-                    if (m != null)
-                    {
-                        baseCelLight[i] = m.HasProperty("_light")
-                            ? m.GetColor("_light")
-                            : Color.white;
-                        baseCelBaseTint[i] = m.HasProperty("_BaseTint")
-                            ? m.GetColor("_BaseTint")
-                            : Color.white;
-                    }
-                    else
-                    {
-                        baseCelLight[i] = Color.white;
-                        baseCelBaseTint[i] = Color.white;
-                    }
-                }
-
-                // Ensure we modify runtime instances rather than the shared assets.
-                InstantiateCelMaterialsForRenderers();
-            }
         }
     }
 }

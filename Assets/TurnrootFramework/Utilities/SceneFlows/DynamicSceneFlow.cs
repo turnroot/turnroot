@@ -89,15 +89,42 @@ namespace Turnroot.Utilities.AbstractScripts
 
         private int _lastInvokedIndex = -1;
         private bool _sceneStartTriggersApplied;
+        private bool _brainEventsSubscribed;
 
         protected virtual void Awake()
         {
-            if (brain == null)
+            BrainReadyEvents.Subscribe(HandleBrainReady);
+            TryBindBrain(FindFirstObjectByType<Brain>());
+        }
+
+        protected virtual void OnEnable()
+        {
+            TryBindBrain(brain ?? FindFirstObjectByType<Brain>());
+        }
+
+        protected virtual void OnDisable()
+        {
+            UnsubscribeFromBrainEvents();
+            UnsubscribeFromLoadingController();
+        }
+
+        protected virtual void OnDestroy()
+        {
+            BrainReadyEvents.Unsubscribe(HandleBrainReady);
+            UnsubscribeFromBrainEvents();
+            UnsubscribeFromLoadingController();
+        }
+
+        private void TryBindBrain(Brain candidateBrain)
+        {
+            if (candidateBrain == null || ReferenceEquals(candidateBrain, brain))
             {
-                brain = FindFirstObjectByType<Brain>();
+                return;
             }
 
-            loadingController = brain?.GetComponent<LoadingController>();
+            brain = candidateBrain;
+            loadingController = brain.GetComponent<LoadingController>();
+
             SubscribeToBrainEvents();
             SubscribeToLoadingController();
 
@@ -117,19 +144,14 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected void Start()
         {
+            ApplySceneStartTriggersIfNeeded();
             _ = StartCoroutine(RunNextFrame(StartScene));
-        }
-
-        protected void OnDestroy()
-        {
-            UnsubscribeFromBrainEvents();
-            UnsubscribeFromLoadingController();
         }
 
         #region Event Subscriptions
         protected virtual void SubscribeToBrainEvents()
         {
-            if (brain != null)
+            if (brain != null && !_brainEventsSubscribed)
             {
                 brain.OnStateChanged += HandleStateChanged;
                 brain.OnSceneLoadProgress += HandleSceneLoadProgress;
@@ -138,12 +160,13 @@ namespace Turnroot.Utilities.AbstractScripts
                 brain.OnBattleCompleted += HandleBattleCompleted;
                 brain.OnHubCharacterRecruitCompleted += HandleHubCharacterRecruitCompleted;
                 brain.OnSupportLevelIncreased += HandleSupportLevelIncreased;
+                _brainEventsSubscribed = true;
             }
         }
 
         protected virtual void UnsubscribeFromBrainEvents()
         {
-            if (brain != null)
+            if (brain != null && _brainEventsSubscribed)
             {
                 brain.OnStateChanged -= HandleStateChanged;
                 brain.OnSceneLoadProgress -= HandleSceneLoadProgress;
@@ -152,6 +175,7 @@ namespace Turnroot.Utilities.AbstractScripts
                 brain.OnBattleCompleted -= HandleBattleCompleted;
                 brain.OnHubCharacterRecruitCompleted -= HandleHubCharacterRecruitCompleted;
                 brain.OnSupportLevelIncreased -= HandleSupportLevelIncreased;
+                _brainEventsSubscribed = false;
             }
         }
 
@@ -232,9 +256,17 @@ namespace Turnroot.Utilities.AbstractScripts
                 return;
             }
 
+            var flowBrain = brain?.sceneFlowBrain;
+            if (flowBrain == null)
+            {
+                return;
+            }
+
             _sceneStartTriggersApplied = true;
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneStart);
         }
+
+        private void HandleBrainReady(Brain readyBrain) => TryBindBrain(readyBrain);
 
         public void ReportLoadingProgress(float percentage)
         {

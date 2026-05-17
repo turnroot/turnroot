@@ -51,6 +51,8 @@ namespace Turnroot.Gameplay.Brain
                     }
                 }
                 _awake = true;
+
+                PublishBrainReady(this);
             }
         }
 
