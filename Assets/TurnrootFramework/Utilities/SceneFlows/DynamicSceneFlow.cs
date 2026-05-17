@@ -88,6 +88,21 @@ namespace Turnroot.Utilities.AbstractScripts
         public UnityEvent StartPreLoading = new();
 
         private int _lastInvokedIndex = -1;
+        private bool _sceneStartTriggersApplied;
+
+        protected virtual void Awake()
+        {
+            if (brain == null)
+            {
+                brain = FindFirstObjectByType<Brain>();
+            }
+
+            loadingController = brain?.GetComponent<LoadingController>();
+            SubscribeToBrainEvents();
+            SubscribeToLoadingController();
+
+            ApplySceneStartTriggersIfNeeded();
+        }
 
         protected int Index
         {
@@ -102,19 +117,6 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected void Start()
         {
-            // Find brain if not already set (happens when scene loads additively)
-            if (brain == null)
-            {
-                brain = FindFirstObjectByType<Brain>();
-                if (brain == null)
-                {
-                    "DynamicSceneFlow: No Brain found in scene!".LogError("DynamicSceneFlow.Start");
-                }
-            }
-
-            loadingController = brain?.GetComponent<LoadingController>();
-            SubscribeToBrainEvents();
-            SubscribeToLoadingController();
             _ = StartCoroutine(RunNextFrame(StartScene));
         }
 
@@ -175,7 +177,7 @@ namespace Turnroot.Utilities.AbstractScripts
         protected void HandleSceneLoadProgress(float progress) => ReportLoadingProgress(progress);
 
         protected void HandleSceneChanged(string sceneName, string displayName) =>
-            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneStart);
+            ApplySceneStartTriggersIfNeeded();
 
         protected void HandleSceneTransitionStarted(string sceneName, string displayName) =>
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneEnd);
@@ -223,6 +225,17 @@ namespace Turnroot.Utilities.AbstractScripts
             }
         }
 
+        protected void ApplySceneStartTriggersIfNeeded()
+        {
+            if (_sceneStartTriggersApplied)
+            {
+                return;
+            }
+
+            _sceneStartTriggersApplied = true;
+            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneStart);
+        }
+
         public void ReportLoadingProgress(float percentage)
         {
             OnLoadedAmountChanged?.Invoke(percentage);
@@ -264,6 +277,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected void StartScene()
         {
+            ApplySceneStartTriggersIfNeeded();
             Index = 0;
 
             if (CurrentSegment != null && !string.IsNullOrEmpty(CurrentSegment.stateId))
