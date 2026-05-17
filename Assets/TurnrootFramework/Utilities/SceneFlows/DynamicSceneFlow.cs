@@ -93,7 +93,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected virtual void Awake()
         {
-            BrainReadyEvents.Subscribe(HandleBrainReady);
+            Brain.OnBrainReady += HandleBrainReady;
             TryBindBrain(FindFirstObjectByType<Brain>());
         }
 
@@ -110,7 +110,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected virtual void OnDestroy()
         {
-            BrainReadyEvents.Unsubscribe(HandleBrainReady);
+            Brain.OnBrainReady -= HandleBrainReady;
             UnsubscribeFromBrainEvents();
             UnsubscribeFromLoadingController();
         }
