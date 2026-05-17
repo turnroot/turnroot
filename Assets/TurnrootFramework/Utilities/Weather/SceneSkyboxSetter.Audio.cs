@@ -64,13 +64,6 @@ namespace Turnroot.Utilities.Weather
         {
             // _appliedNightFactor is -1 when uninitialized — treat as 0 (full day).
             float night = _appliedNightFactor < 0f ? 0f : Mathf.Clamp01(_appliedNightFactor);
-            float day = 1f - night;
-
-            // Fade weather ambient out during night.
-            if (AmbientAudioSource != null)
-            {
-                AmbientAudioSource.volume = day;
-            }
 
             if (NightAmbientAudioSource == null)
             {
