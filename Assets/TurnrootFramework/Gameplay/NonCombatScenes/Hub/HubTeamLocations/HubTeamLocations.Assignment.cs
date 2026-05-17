@@ -20,6 +20,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             int currentChapter = _brain.saveFileBrain.ActiveSaveFile.ChapterNumber;
+            $"[HubDiag] FindHubCharacterLocationForChapter({character.name}): ActiveSaveFile chapter={currentChapter} ActiveSaveFileSubfolderPath={_brain.saveFileBrain.ActiveSaveFileSubfolderPath}".LogInfo(
+                "HubTeamLocations"
+            );
             HubCharacterLocation fallback = default;
 
             foreach (var entry in HubCharacterLocations)
@@ -31,6 +34,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 if (entry.Chapter == currentChapter)
                 {
+                    $"[HubDiag] FindHubCharacterLocationForChapter({character.name}): Exact chapter match ch={entry.Chapter} Location={entry.Location} IsRandom={entry.IsRandomForThisChapter}".LogInfo(
+                        "HubTeamLocations"
+                    );
                     return entry;
                 }
 
@@ -38,6 +44,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     fallback = entry;
                 }
+            }
+
+            if (fallback.Character != null)
+            {
+                $"[HubDiag] FindHubCharacterLocationForChapter({character.name}): Using fallback (ch=0) Location={fallback.Location} IsRandom={fallback.IsRandomForThisChapter}".LogInfo(
+                    "HubTeamLocations"
+                );
+            }
+            else
+            {
+                $"[HubDiag] FindHubCharacterLocationForChapter({character.name}): No matching entry found for chapter={currentChapter}".LogInfo(
+                    "HubTeamLocations"
+                );
             }
 
             return fallback;

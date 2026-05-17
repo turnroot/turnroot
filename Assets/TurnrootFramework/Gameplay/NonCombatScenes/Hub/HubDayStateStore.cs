@@ -301,12 +301,29 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     if (loaded != null)
                     {
                         _currentState = loaded;
+                        int teamCount = _currentState.TeamPlacements?.Count ?? 0;
+                        int nonRosterCount = _currentState.NonRosterPlacements?.Count ?? 0;
+                        $"[HubDiag] HubDayStateStore.Initialize: Loaded existing state for key={key} | Weather={_currentState.Weather} HasWeather={_currentState.HasWeather} HasProcessedDailyUpdates={_currentState.HasProcessedDailyUpdates} TeamPlacements={teamCount} NonRosterPlacements={nonRosterCount} Seed={_currentState.Seed}".LogInfo(
+                            "HubDayStateStore.Initialize"
+                        );
+                    }
+                    else
+                    {
+                        $"[HubDiag] HubDayStateStore.Initialize: JSON deserialized to null for key={key}".LogWarning(
+                            "HubDayStateStore.Initialize"
+                        );
                     }
                 }
                 catch (Exception e)
                 {
                     $"HubDayStateStore: Failed to parse saved hub state for {key}: {e.Message}".LogWarning();
                 }
+            }
+            else
+            {
+                $"[HubDiag] HubDayStateStore.Initialize: No saved JSON found in LTM for key={key}".LogInfo(
+                    "HubDayStateStore.Initialize"
+                );
             }
 
             if (_currentState == null)
@@ -320,6 +337,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     Seed = seed,
                 };
 
+                $"[HubDiag] HubDayStateStore.Initialize: Created FRESH state for key={key} Seed={seed}".LogInfo(
+                    "HubDayStateStore.Initialize"
+                );
                 string outJson = brain.EncodeString(JsonUtility.ToJson(_currentState));
                 brain.ltm.Remember(key, outJson);
             }

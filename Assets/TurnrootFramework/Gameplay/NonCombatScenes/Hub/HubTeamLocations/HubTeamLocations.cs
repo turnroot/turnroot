@@ -209,11 +209,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (placementMap == null)
             {
+                $"[HubDiag] SetNonRosterUnitsInHub: No saved placement map found — will generate fresh placements".LogInfo(
+                    "HubTeamLocations"
+                );
                 placementMap = new System.Collections.Generic.Dictionary<
                     string,
                     HubSublocationName
                 >();
                 changed = true;
+            }
+            else
+            {
+                $"[HubDiag] SetNonRosterUnitsInHub: Loaded saved placement map with {placementMap.Count} entries".LogInfo(
+                    "HubTeamLocations"
+                );
             }
 
             // Iterate distinct characters, picking the best entry per chapter.
@@ -250,12 +259,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         : info.Location;
                     placementMap[characterKey] = desiredLocation;
                     changed = true;
+                    $"[HubDiag] SetNonRosterUnitsInHub({characterKey}): Not in saved map — assigned to {desiredLocation} (isRandom={info.IsRandomForThisChapter})".LogInfo(
+                        "HubTeamLocations"
+                    );
                 }
                 else if (!info.IsRandomForThisChapter && desiredLocation != info.Location)
                 {
+                    $"[HubDiag] SetNonRosterUnitsInHub({characterKey}): OVERRIDING saved location {desiredLocation} with inspector location {info.Location} (isRandom=false)".LogWarning(
+                        "HubTeamLocations"
+                    );
                     desiredLocation = info.Location;
                     placementMap[characterKey] = desiredLocation;
                     changed = true;
+                }
+                else
+                {
+                    $"[HubDiag] SetNonRosterUnitsInHub({characterKey}): Using saved location {desiredLocation}".LogInfo(
+                        "HubTeamLocations"
+                    );
                 }
 
                 HubSubLocation location = subLocations.FirstOrDefault(s =>

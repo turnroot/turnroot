@@ -206,6 +206,25 @@ namespace Turnroot.Utilities.Weather
         [Tooltip("Looping ambient clips for volcanic weather.")]
         public AudioClip[] VolcanicAmbientClips;
 
+        [HorizontalLine(2, EColor.Blue)]
+        [Header("Night Ambient Audio")]
+        [BoxGroup("Night Ambient Audio")]
+        [Tooltip(
+            "Audio source used exclusively for night ambient sounds. Assign a separate AudioSource component."
+        )]
+        public AudioSource NightAmbientAudioSource;
+
+        [BoxGroup("Night Ambient Audio")]
+        [Tooltip("Looping ambient clips for nighttime (crickets, owls, wind, etc.).")]
+        public AudioClip[] NightAmbientClips;
+
+        [BoxGroup("Night Ambient Audio")]
+        [Range(0, 1)]
+        [Tooltip(
+            "Maximum volume for night ambient audio when fully night. Weather ambient fades to (1 - nightFactor) simultaneously."
+        )]
+        public float NightAmbientMaxVolume = 1f;
+
         [HorizontalLine(2, EColor.Pink)]
         [Header("Event Audio Clips")]
         [BoxGroup("Event Audio Clips")]
