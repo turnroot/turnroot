@@ -57,48 +57,66 @@ namespace Turnroot.Characters
         /// <summary>
         /// Remove a specific status effect instance.
         /// </summary>
-        public bool RemoveStatusEffect(StatusEffectInstance effect) =>
-            _activeStatusEffects.Remove(effect);
+        public bool RemoveStatusEffect(StatusEffectInstance effect)
+        {
+            return _activeStatusEffects.Remove(effect);
+        }
 
         /// <summary>
         /// Remove all status effects of a specific type.
         /// </summary>
-        public int RemoveStatusEffectsByType(StatusEffectType effectType) =>
-            _activeStatusEffects.RemoveAll(e => e.EffectType == effectType);
+        public int RemoveStatusEffectsByType(StatusEffectType effectType)
+        {
+            return _activeStatusEffects.RemoveAll(e => e.EffectType == effectType);
+        }
 
         /// <summary>
         /// Remove all buffs from this character.
         /// </summary>
-        public int RemoveAllBuffs() =>
-            _activeStatusEffects.RemoveAll(e => e.EffectType?.IsBuff == true);
+        public int RemoveAllBuffs()
+        {
+            return _activeStatusEffects.RemoveAll(e => e.EffectType?.IsBuff == true);
+        }
 
         /// <summary>
         /// Remove all debuffs from this character.
         /// </summary>
-        public int RemoveAllDebuffs() =>
-            _activeStatusEffects.RemoveAll(e => e.EffectType?.IsDebuff == true);
+        public int RemoveAllDebuffs()
+        {
+            return _activeStatusEffects.RemoveAll(e => e.EffectType?.IsDebuff == true);
+        }
 
         /// <summary>
         /// Remove all status effects from this character.
         /// </summary>
-        public void ClearAllStatusEffects() => _activeStatusEffects.Clear();
+        public void ClearAllStatusEffects()
+        {
+            _activeStatusEffects.Clear();
+        }
 
         /// <summary>
         /// Check if this character has a specific status effect type.
         /// </summary>
-        public bool HasStatusEffect(StatusEffectType effectType) =>
-            _activeStatusEffects.Exists(e => e.EffectType == effectType);
+        public bool HasStatusEffect(StatusEffectType effectType)
+        {
+            return _activeStatusEffects.Exists(e => e.EffectType == effectType);
+        }
 
         /// <summary>
         /// Check if this character has any buff.
         /// </summary>
-        public bool HasAnyBuff() => _activeStatusEffects.Exists(e => e.EffectType?.IsBuff == true);
+        public bool HasAnyBuff()
+        {
+            return _activeStatusEffects.Exists(e => e.EffectType?.IsBuff == true);
+        }
 
         /// <summary>
         /// Check if this character has any debuff.
         /// </summary>
-        public bool HasAnyDebuff() =>
-            _activeStatusEffects.Exists(e => e.EffectType?.IsDebuff == true);
+        public bool HasAnyDebuff()
+        {
+            return _activeStatusEffects.Exists(e => e.EffectType?.IsDebuff == true);
+        }
 
         /// <summary>
         /// Check if this character has a status effect matching a name (by DisplayName, Id, or asset name).
@@ -167,26 +185,34 @@ namespace Turnroot.Characters
         /// <summary>
         /// Return a copy of active status effects for external consumers.
         /// </summary>
-        public List<StatusEffectInstance> GetActiveStatusEffects() =>
-            new(_activeStatusEffects);
+        public List<StatusEffectInstance> GetActiveStatusEffects()
+        {
+            return new(_activeStatusEffects);
+        }
 
         /// <summary>
         /// Check if movement is prevented by any status effect.
         /// </summary>
-        public bool IsMovementPrevented() =>
-            _activeStatusEffects.Exists(e => e.EffectType?.PreventsMovement == true);
+        public bool IsMovementPrevented()
+        {
+            return _activeStatusEffects.Exists(e => e.EffectType?.PreventsMovement == true);
+        }
 
         /// <summary>
         /// Check if attack is prevented by any status effect.
         /// </summary>
-        public bool IsAttackPrevented() =>
-            _activeStatusEffects.Exists(e => e.EffectType?.PreventsAttack == true);
+        public bool IsAttackPrevented()
+        {
+            return _activeStatusEffects.Exists(e => e.EffectType?.PreventsAttack == true);
+        }
 
         /// <summary>
         /// Check if item use is prevented by any status effect.
         /// </summary>
-        public bool IsItemUsePrevented() =>
-            _activeStatusEffects.Exists(e => e.EffectType?.PreventsItemUse == true);
+        public bool IsItemUsePrevented()
+        {
+            return _activeStatusEffects.Exists(e => e.EffectType?.PreventsItemUse == true);
+        }
 
         /// <summary>
         /// Get total health change per turn from all active effects.

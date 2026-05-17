@@ -14,5 +14,9 @@ namespace Turnroot.Utilities.SceneFlows
         /// Flag used to trigger an end-of-day transition from the hub.
         /// </summary>
         public const string EndHubDay = "EndHubDay";
+
+        public const string TutorialBattlePlayed = "TutorialBattlePlayed";
+
+        public const string IntroCutscenePlayed = "IntroCutscenePlayed";
     }
 }
