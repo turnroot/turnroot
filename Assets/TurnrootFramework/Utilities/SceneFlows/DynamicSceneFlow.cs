@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Turnroot.Characters;
+using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities.SceneFlows;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -18,12 +21,54 @@ namespace Turnroot.Utilities.AbstractScripts
         public UnityEvent onSegmentReached;
     }
 
+    public enum SceneFlowFlagTriggerTiming
+    {
+        SceneStart,
+        SceneEnd,
+        BattleCompleted,
+        UnitRecruited,
+        SupportLevelChanged,
+    }
+
+    public enum SceneFlowFlagKeySource
+    {
+        Existing,
+        Custom,
+    }
+
+    [Serializable]
+    public struct SceneFlowFlagTrigger
+    {
+        public SceneFlowFlagTriggerTiming timing;
+        public SceneFlowFlagKeySource keySource;
+        public string existingKey;
+        public string customKey;
+        public bool value;
+
+        public string ResolveKey()
+        {
+            if (keySource == SceneFlowFlagKeySource.Custom)
+            {
+                return customKey;
+            }
+
+            return existingKey;
+        }
+    }
+
     /// <summary>
     /// Manages sequential scene flow progression through defined state segments.
     /// </summary>
     public class DynamicSceneFlow : MonoBehaviour
     {
         public List<FlowSegment> segments = new();
+
+        [Header("Scene Flow Flags")]
+        [Tooltip(
+            "Flag updates to apply to SceneFlowBrain when the selected runtime timing event occurs."
+        )]
+        public List<SceneFlowFlagTrigger> sceneFlowFlagTriggers = new();
+
         protected int _index = 0;
         public FlowSegment CurrentSegment => segments.Count > _index ? segments[_index] : null;
 
@@ -86,6 +131,11 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 brain.OnStateChanged += HandleStateChanged;
                 brain.OnSceneLoadProgress += HandleSceneLoadProgress;
+                brain.OnSceneChanged += HandleSceneChanged;
+                brain.OnSceneTransitionStarted += HandleSceneTransitionStarted;
+                brain.OnBattleCompleted += HandleBattleCompleted;
+                brain.OnHubCharacterRecruitCompleted += HandleHubCharacterRecruitCompleted;
+                brain.OnSupportLevelIncreased += HandleSupportLevelIncreased;
             }
         }
 
@@ -95,6 +145,11 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 brain.OnStateChanged -= HandleStateChanged;
                 brain.OnSceneLoadProgress -= HandleSceneLoadProgress;
+                brain.OnSceneChanged -= HandleSceneChanged;
+                brain.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
+                brain.OnBattleCompleted -= HandleBattleCompleted;
+                brain.OnHubCharacterRecruitCompleted -= HandleHubCharacterRecruitCompleted;
+                brain.OnSupportLevelIncreased -= HandleSupportLevelIncreased;
             }
         }
 
@@ -118,7 +173,55 @@ namespace Turnroot.Utilities.AbstractScripts
             ReportLoadingProgress(percentage);
 
         protected void HandleSceneLoadProgress(float progress) => ReportLoadingProgress(progress);
+
+        protected void HandleSceneChanged(string sceneName, string displayName) =>
+            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneStart);
+
+        protected void HandleSceneTransitionStarted(string sceneName, string displayName) =>
+            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneEnd);
+
+        protected void HandleBattleCompleted(Turnroot.Gameplay.Combat.BattleExitType exitType) =>
+            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.BattleCompleted);
+
+        protected void HandleHubCharacterRecruitCompleted(CharacterInstance character) =>
+            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.UnitRecruited);
+
+        protected void HandleSupportLevelIncreased(
+            CharacterInstance source,
+            SupportRelationshipInstance relationship
+        ) => ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SupportLevelChanged);
         #endregion
+
+        protected virtual void ApplyFlagTriggers(SceneFlowFlagTriggerTiming timing)
+        {
+            if (sceneFlowFlagTriggers == null || sceneFlowFlagTriggers.Count == 0)
+            {
+                return;
+            }
+
+            var flowBrain = brain?.sceneFlowBrain;
+            if (flowBrain == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < sceneFlowFlagTriggers.Count; i++)
+            {
+                var trigger = sceneFlowFlagTriggers[i];
+                if (trigger.timing != timing)
+                {
+                    continue;
+                }
+
+                string key = trigger.ResolveKey();
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    continue;
+                }
+
+                flowBrain.SetCustomFlag(key, trigger.value);
+            }
+        }
 
         public void ReportLoadingProgress(float percentage)
         {
