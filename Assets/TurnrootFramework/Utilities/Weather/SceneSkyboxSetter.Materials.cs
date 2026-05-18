@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Turnroot.Utilities.Weather
@@ -14,14 +13,9 @@ namespace Turnroot.Utilities.Weather
                 return;
             }
 
-            var celSet = new HashSet<Material>(CelMaterials);
+            var celSet = new System.Collections.Generic.HashSet<Material>(CelMaterials);
 
-            InstantiateMaterials(celSet);
-            ProcessRenderers(celSet);
-        }
-
-        private void InstantiateMaterials(HashSet<Material> celSet)
-        {
+            // Ensure we have a runtime instance for each referenced cel material.
             foreach (var mat in CelMaterials)
             {
                 if (mat == null)
@@ -36,10 +30,7 @@ namespace Turnroot.Utilities.Weather
                     _celMaterialInstances[mat] = inst;
                 }
             }
-        }
 
-        private void ProcessRenderers(HashSet<Material> celSet)
-        {
             foreach (
                 var renderer in FindObjectsByType<Renderer>(
                     FindObjectsInactive.Include,
