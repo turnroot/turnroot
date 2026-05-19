@@ -224,14 +224,10 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            // Special case: when in the hub state and only the root settings menu is open,
-            // pressing back should close that settings menu and restore hub UI.
+            // Special case: when only the root settings menu is open,
+            // pressing back should close that settings menu.
             var currentMenu = _menuTracker?.CurrentMenu;
-            if (
-                IsInHubState()
-                && _menuTracker?.CurrentDepth == 1
-                && currentMenu == uiSettings?.GetGameSettingsMenu()
-            )
+            if (_menuTracker?.CurrentDepth == 1 && currentMenu == uiSettings?.GetGameSettingsMenu())
             {
                 CloseCurrentMenu(currentMenu);
                 _menuTracker.Clear();
@@ -309,6 +305,12 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void HandleRootLevelBack()
         {
+            // If we reached root back while settings is still active, close it.
+            if (TryCloseActiveRootSettingsMenu())
+            {
+                return;
+            }
+
             var currentState = Brain?.stateBrain.CurrentState?.Name;
 
             // TODO: Implement root level back behavior based on state
@@ -326,6 +328,32 @@ namespace Turnroot.Gameplay.Brain.Segments
                 default:
                     break;
             }
+        }
+
+        private bool TryCloseActiveRootSettingsMenu()
+        {
+            var settingsMenu = uiSettings?.GetGameSettingsMenu();
+            if (settingsMenu == null)
+            {
+                return false;
+            }
+
+            var trackedMenu = _menuTracker?.CurrentMenu;
+            if (trackedMenu == settingsMenu)
+            {
+                CloseCurrentMenu(trackedMenu);
+                _menuTracker?.Clear();
+                return true;
+            }
+
+            if (settingsMenu.activeInstance != null)
+            {
+                CloseCurrentMenu(settingsMenu);
+                _menuTracker?.Clear();
+                return true;
+            }
+
+            return false;
         }
     }
 }

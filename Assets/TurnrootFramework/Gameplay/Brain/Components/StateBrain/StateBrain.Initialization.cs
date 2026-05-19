@@ -87,11 +87,8 @@ namespace Turnroot.Gameplay.Brain
                 new(BrainStateNames.Briefing),
                 new(BrainStateNames.Deployment),
                 new(BrainStateNames.Configuration),
+                new(BrainStateNames.Hub),
             };
-
-#if TURNROOT_CAMP_MODULE
-            states.Add(new BrainState(BrainStateNames.Hub));
-#endif
 
             states.AddRange(
                 new[]
