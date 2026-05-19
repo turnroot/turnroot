@@ -251,7 +251,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (entry.Location.IsLocked)
+            if (!entry.Location.CanBeVisitedToday())
             {
                 UiFx?.PlayOneShot(SelectLockedClip);
                 return;
@@ -459,10 +459,29 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             for (int i = 0; i < Entries.Length; i++)
             {
                 var entry = Entries[i];
+                bool locked = entry.Location != null && entry.Location.IsLocked;
+
                 if (entry.LockedOverlay != null)
                 {
-                    bool locked = entry.Location != null && entry.Location.IsLocked;
                     entry.LockedOverlay.SetActive(locked);
+                }
+
+                if (entry.Visual != null)
+                {
+                    if (entry.Visual.TryGetComponent<Button>(out var button))
+                    {
+                        button.interactable = !locked;
+                    }
+
+                    if (entry.Visual.TryGetComponent<Collider>(out var collider3D))
+                    {
+                        collider3D.enabled = !locked;
+                    }
+
+                    if (entry.Visual.TryGetComponent<Collider2D>(out var collider2D))
+                    {
+                        collider2D.enabled = !locked;
+                    }
                 }
             }
 

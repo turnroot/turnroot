@@ -54,6 +54,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void PlayerVisit()
         {
+            if (!CanBeVisitedToday())
+            {
+                $"HubSubLocation: Blocking visit to {LocationName} because CanBeVisitedToday() returned false.".LogWarning();
+                return;
+            }
+
             if (!HasBeenVisitedEver)
             {
                 HasBeenVisitedEver = true;

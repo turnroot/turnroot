@@ -189,6 +189,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void SetCurrentSubLocation(HubSubLocation subLocation)
         {
+            if (
+                subLocation is HubExploreLocation exploreLocation
+                && !exploreLocation.CanBeVisitedToday()
+            )
+            {
+                $"HubManager: Blocking SetCurrentSubLocation for locked explore location {exploreLocation.LocationName}.".LogWarning();
+                return;
+            }
+
             CurrentSubLocation = subLocation;
 
             if (subLocations != null)
