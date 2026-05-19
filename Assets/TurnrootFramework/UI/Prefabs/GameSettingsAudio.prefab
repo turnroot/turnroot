@@ -1170,7 +1170,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 250, y: 50}
+  m_SizeDelta: {x: 280, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5993179333714518339
 CanvasRenderer:
@@ -1200,7 +1200,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SFX Volume
+  m_text: Effects Volume
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 71a0ae7cf728ba74c838a34665d5ce6c, type: 2}
   m_sharedMaterial: {fileID: 4834584414444189782, guid: 71a0ae7cf728ba74c838a34665d5ce6c, type: 2}
@@ -1721,211 +1721,6 @@ MonoBehaviour:
   - {fileID: 6616795697484019217}
   - {fileID: 2332911509587359019}
   currentRowIndex: 0
-  navigateUpAction:
-    m_Name: Navigate Up
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 3dedb487-4716-4286-a31b-161c9d797860
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 4ef9bb77-4bc0-4970-af5b-ae5566d09be5
-      m_Path: <Gamepad>/dpad/up
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Up
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 9f640bde-f59c-421b-9c8b-ee77efb6c317
-      m_Path: <Gamepad>/leftStick/up
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Up
-      m_Flags: 0
-    - m_Name: 
-      m_Id: bb5d7f37-8b8c-4d9f-b4a6-2dc70e66c2d2
-      m_Path: <Keyboard>/w
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Up
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 53c79882-515a-4895-af52-7f8b792de05d
-      m_Path: <Keyboard>/upArrow
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Up
-      m_Flags: 0
-    m_Flags: 0
-  navigateDownAction:
-    m_Name: Navigate Down
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 64ba5b22-bf2d-49ab-8ed0-2c1c28bff1da
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 39b39e3c-2771-4bad-bc1b-cf3389201ce5
-      m_Path: <Keyboard>/s
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Down
-      m_Flags: 0
-    - m_Name: 
-      m_Id: fa50ab4a-9599-4c9b-938d-a5376f55a83c
-      m_Path: <Gamepad>/leftStick/down
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Down
-      m_Flags: 0
-    - m_Name: 
-      m_Id: e0a03a4f-ba74-4f2f-81b1-42bf314ce8c5
-      m_Path: <Gamepad>/dpad/down
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Down
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 8c0a450e-8793-481e-b070-10707e9605c3
-      m_Path: <Keyboard>/downArrow
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Down
-      m_Flags: 0
-    m_Flags: 0
-  navigateLeftAction:
-    m_Name: Navigate Left
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: d24237ca-4550-4cc1-99ad-580ba9330b50
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 1a6ee32a-c4ec-4db3-b802-fe0315ebe825
-      m_Path: <Gamepad>/dpad/left
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Left
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 0361ac96-4106-4195-aa44-b155961c3ba6
-      m_Path: <Gamepad>/leftStick/left
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Left
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 0141ed8f-496b-42a9-8cb7-bba082e404a5
-      m_Path: <Keyboard>/a
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Left
-      m_Flags: 0
-    - m_Name: 
-      m_Id: e8086174-c85d-4971-9775-2db3b597b06c
-      m_Path: <Keyboard>/leftArrow
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Left
-      m_Flags: 0
-    m_Flags: 0
-  navigateRightAction:
-    m_Name: Navigate Right
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: cb974141-c250-46eb-ac75-ddf939192c19
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: c524b352-414b-4011-9ac8-6d2c7092e295
-      m_Path: <Gamepad>/dpad/right
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Right
-      m_Flags: 0
-    - m_Name: 
-      m_Id: e7fcc5df-d8b9-498c-8c95-6d4930e14c72
-      m_Path: <Gamepad>/leftStick/right
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Right
-      m_Flags: 0
-    - m_Name: 
-      m_Id: cc67ad80-f9da-4048-8270-f66b21ff3ac2
-      m_Path: <Keyboard>/d
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Right
-      m_Flags: 0
-    - m_Name: 
-      m_Id: eea44a51-c6a3-4aad-92f7-4c89465b52b3
-      m_Path: <Keyboard>/rightArrow
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Navigate Right
-      m_Flags: 0
-    m_Flags: 0
-  selectAction:
-    m_Name: Select
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: f751ac3d-081f-498a-840a-edd8b8b6ee9b
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 95fa7513-b48a-4c11-9514-c5e00e12f63d
-      m_Path: <Gamepad>/buttonEast
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Select
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 59ceca4d-e89e-4dc9-bfe9-946e2eef84ec
-      m_Path: <Keyboard>/space
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Select
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 07b2a577-2946-4ee6-a9e9-3b4a8ae87f84
-      m_Path: <Keyboard>/enter
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Select
-      m_Flags: 0
-    - m_Name: 
-      m_Id: d6fa770e-0ca5-4496-9754-e9ecf51d996e
-      m_Path: <Mouse>/leftButton
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Select
-      m_Flags: 0
-    m_Flags: 0
 --- !u!1 &6016762497759609939
 GameObject:
   m_ObjectHideFlags: 0
@@ -2347,7 +2142,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 650, y: 20}
+  m_SizeDelta: {x: 620, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7336596163753469768
 MonoBehaviour:
