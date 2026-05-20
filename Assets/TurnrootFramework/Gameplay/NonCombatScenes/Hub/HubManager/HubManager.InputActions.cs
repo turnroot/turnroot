@@ -131,6 +131,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             UpdateChoiceSelection();
         }
 
+        public void OpenBattleChoice()
+        {
+            if (BattleChoiceUi == null)
+            {
+                "HubManager: BattleChoiceUi is not assigned.".LogWarning();
+                return;
+            }
+
+            HubActionsFade?.Hide();
+            SetInputMode(HubInputMode.Battlefields);
+            BattleChoiceUi.Open(this);
+        }
+
+        public void BackFromBattleChoice()
+        {
+            BattleChoiceUi?.Close();
+            SetInputMode(HubInputMode.Location);
+            HubActionsFade?.Show();
+            UpdateChoiceSelection();
+        }
+
         public void EnterExploreLocation(HubExploreLocation location)
         {
             if (location == null)
@@ -144,7 +165,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 $"HubManager: {location.LocationName} is locked and cannot be visited.".LogWarning();
                 return;
             }
-            
+
             if (location.Indoors)
             {
                 foreach (var effect in OutdoorEffects)

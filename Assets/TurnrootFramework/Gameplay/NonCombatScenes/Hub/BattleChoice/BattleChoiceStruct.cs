@@ -33,8 +33,5 @@ namespace Turnroot.Gameplay
 
         [InfoBox("Otherwise, just put a map image in here")]
         public Sprite MapSprite;
-
-        [HideInInspector]
-        public bool IsAvailable;
     }
 }
