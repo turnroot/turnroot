@@ -1,4 +1,3 @@
-using System;
 using Turnroot.Characters;
 using Turnroot.Components.UI;
 using Turnroot.Utilities;

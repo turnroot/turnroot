@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using NaughtyAttributes;
 using TMPro;
-using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;

@@ -1,6 +1,7 @@
 using System;
 using NaughtyAttributes;
 using TMPro;
+using Turnroot.Gameplay;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.UI;
@@ -57,6 +58,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [BoxGroup("Core")]
         public AudioClip HubBackgroundMusic;
+
+        [BoxGroup("Battles")]
+        [InfoBox(
+            "All possible battles in the entire game go in this list. The Scene Flow Editor allows you to determine which of these are available when"
+        )]
+        public BattleChoiceStruct[] AllGameBattleChoices;
 
         private GameObject _menuCanvasInstance;
         private bool _settingsMenuOpen;
