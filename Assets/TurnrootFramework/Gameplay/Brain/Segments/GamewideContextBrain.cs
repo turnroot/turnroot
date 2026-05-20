@@ -36,7 +36,7 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public PlayerTeamRoster GamewidePersistentPlayerRoster { get; set; }
-        public List<GamewideContextBrainHelpers.ExploredPartial> MapExplorationStatuses
+        public List<GamewideContextBrainHelpers.ExploredStatus> MapExplorationStatuses
         {
             get;
             private set;
@@ -75,7 +75,7 @@ namespace Turnroot.Gameplay.Brain
                 this
             );
 
-            MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredPartial>();
+            MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredStatus>();
         }
 
         private void Start() => _ltm = GetComponent<LongTermMemory>();

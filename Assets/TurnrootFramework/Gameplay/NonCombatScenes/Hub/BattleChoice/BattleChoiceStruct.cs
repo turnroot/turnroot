@@ -1,6 +1,7 @@
 using System;
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -19,6 +20,8 @@ namespace Turnroot.Gameplay
         public int BattleDifficulty;
         public ObjectItem[] rewards;
         public int GoldReward;
+
+        [Range(0, 100)]
         public int ExtraExperienceReward;
         public bool RequiredStoryBattle;
         public bool Repeateable;
@@ -26,10 +29,7 @@ namespace Turnroot.Gameplay
 
         [ShowIf(nameof(ParalogueBattle))]
         public CharacterData ParalogueCharacter;
-
-        [HideInInspector]
-        public ExploredPartial MapExplorationStatus;
-        public Sprite BattleMapPreview;
+        public GamewideContextBrainHelpers.ExploreStatusSprites MapExplorationSprites;
 
         [HideInInspector]
         public bool IsAvailable;
