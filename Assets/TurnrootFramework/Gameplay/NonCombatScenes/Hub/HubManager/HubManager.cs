@@ -65,6 +65,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )]
         public BattleChoiceStruct[] AllGameBattleChoices;
 
+        [BoxGroup("Battles")]
+        [Tooltip("The BattleChoiceUI component used to display and navigate available battles.")]
+        public BattleChoiceUI BattleChoiceUi;
+
         private GameObject _menuCanvasInstance;
         private bool _settingsMenuOpen;
         private Action _menuDepthChangedHandler;
