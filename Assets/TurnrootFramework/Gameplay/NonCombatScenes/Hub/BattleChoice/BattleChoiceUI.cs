@@ -185,11 +185,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var graph = _brain.sceneFlowBrain.sceneFlowGraph;
             if (graph == null)
             {
-                // No graph — treat every available scene as potentially a battle.
-                foreach (var opt in available)
-                {
-                    result.Add(opt.sceneName);
-                }
+                "No scene flow graph found in Brain while building battle choice list.".LogError();
                 return result;
             }
 
