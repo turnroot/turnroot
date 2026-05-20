@@ -5,8 +5,10 @@ using TMPro;
 using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.UI;
+using static Turnroot.Gameplay.Brain.GamewideContextBrainHelpers;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -21,6 +23,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #region Inspector Fields
 
         [BoxGroup("References")]
+        [Tooltip("Fade for the entire BattleChoiceUI panel.")]
+        public UIFade PanelFade;
+
+        [BoxGroup("References")]
         [Tooltip("Prefab containing a UiChoice component used for each battle list entry.")]
         public GameObject BattleUiChoicePrefab;
 
@@ -32,46 +38,71 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip("Input provider shared with the hub. Subscribed to while this menu is open.")]
         public UiInputProvider InputProvider;
 
-        [BoxGroup("Detail Panel – Text")]
+        [BoxGroup("Confirm Popup")]
+        [Tooltip("Fade for the confirm/cancel popup shown when a battle is selected.")]
+        public UIFade ConfirmPopupFade;
+
+        [BoxGroup("Confirm Popup")]
+        [Tooltip("The Confirm UiChoice inside the popup.")]
+        public UiChoice ConfirmChoice;
+
+        [BoxGroup("Confirm Popup")]
+        [Tooltip("The Cancel UiChoice inside the popup.")]
+        public UiChoice CancelChoice;
+
+        [BoxGroup("Audio")]
+        public AudioSource SfxAudio;
+
+        [BoxGroup("Audio")]
+        public AudioClip NavigateClip;
+
+        [BoxGroup("Audio")]
+        public AudioClip SelectClip;
+
+        [BoxGroup("Detail Panel - Text")]
         public TextMeshProUGUI BattleName;
 
-        [BoxGroup("Detail Panel – Text")]
+        [BoxGroup("Detail Panel - Text")]
         public TextMeshProUGUI BattleDescription;
 
-        [BoxGroup("Detail Panel – Difficulty")]
+        [BoxGroup("Detail Panel - Difficulty")]
         [Tooltip("Exactly 3 images that represent the difficulty pips (first = pip 1, etc.).")]
         public Image[] DifficultyImages;
 
-        [BoxGroup("Detail Panel – Difficulty")]
+        [BoxGroup("Detail Panel - Difficulty")]
         public Sprite DifficultyActiveSprite;
 
-        [BoxGroup("Detail Panel – Difficulty")]
+        [BoxGroup("Detail Panel - Difficulty")]
         public Sprite DifficultyInactiveSprite;
 
-        [BoxGroup("Detail Panel – Flags")]
+        [BoxGroup("Detail Panel - Flags")]
         [Tooltip("GameObjects to activate when the battle is a Required Story battle.")]
         public GameObject[] RequiredObjects;
 
-        [BoxGroup("Detail Panel – Flags")]
+        [BoxGroup("Detail Panel - Flags")]
         [Tooltip("GameObjects to activate when the battle is a Paralogue battle.")]
         public GameObject[] ParalogueObjects;
 
-        [BoxGroup("Detail Panel – Background")]
+        [BoxGroup("Detail Panel - Background")]
         public Color NormalBackgroundColor = Color.white;
 
-        [BoxGroup("Detail Panel – Background")]
+        [BoxGroup("Detail Panel - Background")]
         public Color RequiredBackgroundColor = Color.red;
 
-        [BoxGroup("Detail Panel – Background")]
+        [BoxGroup("Detail Panel - Background")]
         public Color ParalogueBackgroundColor = Color.blue;
 
-        [BoxGroup("Detail Panel – Background")]
+        [BoxGroup("Detail Panel - Background")]
         [Tooltip("Images that receive the background colour based on battle type.")]
         public Image[] BackgroundImages;
 
-        [BoxGroup("Detail Panel – Map")]
-        [Tooltip("Images that display the map sprite for the highlighted battle.")]
+        [BoxGroup("Detail Panel - Map")]
+        [Tooltip("Images shown when UnexploredMaps is off — display the plain MapSprite.")]
         public Image[] MapImages;
+
+        [BoxGroup("Detail Panel - Map")]
+        [Tooltip("Component that renders the 4-quadrant smoky map when UnexploredMaps is on.")]
+        public MapQuadrantBlendImage MapQuadrantDisplay;
 
         #endregion
 
@@ -85,13 +116,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private int _currentIndex;
 
+        private bool _confirmPopupActive;
+        private int _confirmPopupIndex; // 0 = Confirm, 1 = Cancel
         #endregion
 
         #region Public API
 
-        /// <summary>
-        /// Called by HubManager when the player enters the Battlefields submenu.
-        /// </summary>
+        /// <summary>Called by HubManager when the player enters the Battlefields submenu.</summary>
         public void Open(HubManager hubManager)
         {
             _hubManager = hubManager;
@@ -103,19 +134,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 InputProvider.OnInput += HandleInput;
             }
+
+            PanelFade?.Show();
         }
 
-        /// <summary>
-        /// Called by HubManager when the player leaves the Battlefields submenu.
-        /// </summary>
+        /// <summary>Called by HubManager when the player leaves the Battlefields submenu.</summary>
         public void Close()
         {
+            CloseConfirmPopup(silent: true);
+
             if (InputProvider != null)
             {
                 InputProvider.OnInput -= HandleInput;
             }
 
             ClearChoiceList();
+            PanelFade?.Hide();
         }
 
         #endregion
@@ -131,7 +165,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            // Determine available battle scene names via SceneFlowBrain.
             var availableSceneNames = GetAvailableBattleSceneNames();
 
             foreach (var battle in _hubManager.AllGameBattleChoices)
@@ -151,7 +184,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 var instance = Instantiate(BattleUiChoicePrefab, ChoiceContainer);
                 var choice = instance.GetComponent<UiChoice>();
 
-                // Set the choice label to the battle name.
                 var label = instance.GetComponentInChildren<TextMeshProUGUI>();
                 if (label != null)
                 {
@@ -174,18 +206,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return result;
             }
 
-            // All scenes reachable from the current scene.
             var available = _brain.sceneFlowBrain.GetAvailableScenes();
             if (available == null)
             {
                 return result;
             }
 
-            // Collect scene names that are flagged as battles in the graph.
             var graph = _brain.sceneFlowBrain.sceneFlowGraph;
             if (graph == null)
             {
-                "No scene flow graph found in Brain while building battle choice list.".LogError();
+                "BattleChoiceUI: No scene flow graph found in Brain.".LogError();
                 return result;
             }
 
@@ -225,8 +255,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleInput(string action)
         {
+            if (_confirmPopupActive)
+            {
+                HandleConfirmPopupInput(action);
+                return;
+            }
+
             if (_battleChoices.Count == 0)
             {
+                return;
+            }
+
+            if (action == InputActionConstants.Cancel)
+            {
+                _hubManager?.BackFromBattleChoice();
                 return;
             }
 
@@ -237,7 +279,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     _battleChoices.ToArray(),
                     ref _currentIndex,
                     _battleChoices.Count,
-                    OnSelectPressed
+                    ShowConfirmPopup
                 );
             }
             else
@@ -247,28 +289,90 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     _battleChoices.ToArray(),
                     ref _currentIndex,
                     _battleChoices.Count,
-                    OnSelectPressed
+                    ShowConfirmPopup
                 );
             }
 
-            if (action is InputActionConstants.Cancel or InputActionConstants.NavigateLeft)
+            if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
             {
-                _hubManager?.BackFromBattleChoice();
-                return;
+                SfxAudio?.PlayOneShot(NavigateClip);
             }
 
             UpdateChoiceSelection();
         }
 
-        private void OnSelectPressed()
+        private void ShowConfirmPopup()
         {
             if (_currentIndex < 0 || _currentIndex >= _availableBattles.Count)
             {
                 return;
             }
 
-            var battle = _availableBattles[_currentIndex];
-            StartBattle(battle);
+            SfxAudio?.PlayOneShot(SelectClip);
+            _confirmPopupActive = true;
+            _confirmPopupIndex = 0;
+            ConfirmPopupFade?.Show();
+            UpdateConfirmPopupSelection();
+        }
+
+        private void HandleConfirmPopupInput(string action)
+        {
+            if (action == InputActionConstants.Cancel)
+            {
+                CloseConfirmPopup();
+                return;
+            }
+
+            var choices = new[] { ConfirmChoice, CancelChoice };
+
+            UiChoiceHandler.HandleNavigation(
+                action,
+                choices,
+                ref _confirmPopupIndex,
+                choices.Length,
+                OnConfirmPopupSelect
+            );
+
+            UpdateConfirmPopupSelection();
+        }
+
+        private void OnConfirmPopupSelect()
+        {
+            if (_confirmPopupIndex == 0)
+            {
+                SfxAudio?.PlayOneShot(SelectClip);
+                StartBattle(_availableBattles[_currentIndex]);
+            }
+            else
+            {
+                CloseConfirmPopup();
+            }
+        }
+
+        private void CloseConfirmPopup(bool silent = false)
+        {
+            if (!_confirmPopupActive && !silent)
+            {
+                return;
+            }
+
+            _confirmPopupActive = false;
+            ConfirmPopupFade?.Hide();
+            UpdateChoiceSelection();
+        }
+
+        private void UpdateConfirmPopupSelection()
+        {
+            if (_confirmPopupIndex == 0)
+            {
+                ConfirmChoice?.Select();
+                CancelChoice?.Deselect();
+            }
+            else
+            {
+                ConfirmChoice?.Deselect();
+                CancelChoice?.Select();
+            }
         }
 
         #endregion
@@ -302,7 +406,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void UpdateDetailPanel(BattleChoiceStruct battle)
         {
-            // Text fields.
             if (BattleName != null)
             {
                 BattleName.text = battle.BattleName;
@@ -313,7 +416,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 BattleDescription.text = battle.BattleDescription;
             }
 
-            // Difficulty pips.
             if (DifficultyImages != null)
             {
                 for (int i = 0; i < DifficultyImages.Length; i++)
@@ -323,22 +425,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         continue;
                     }
 
-                    DifficultyImages[i].sprite =
-                        i < battle.BattleDifficulty
-                            ? DifficultyActiveSprite
-                            : DifficultyInactiveSprite;
+                    if (i < battle.BattleDifficulty)
+                    {
+                        DifficultyImages[i].sprite = DifficultyActiveSprite;
+                    }
+                    else
+                    {
+                        DifficultyImages[i].sprite = DifficultyInactiveSprite;
+                    }
                 }
             }
 
-            // Required / paralogue flags.
             SetObjectsActive(RequiredObjects, battle.RequiredStoryBattle);
             SetObjectsActive(ParalogueObjects, battle.ParalogueBattle);
 
-            // Background colour.
-            Color bgColor =
-                battle.RequiredStoryBattle ? RequiredBackgroundColor
-                : battle.ParalogueBattle ? ParalogueBackgroundColor
-                : NormalBackgroundColor;
+            Color bgColor;
+            if (battle.RequiredStoryBattle)
+            {
+                bgColor = RequiredBackgroundColor;
+            }
+            else if (battle.ParalogueBattle)
+            {
+                bgColor = ParalogueBackgroundColor;
+            }
+            else
+            {
+                bgColor = NormalBackgroundColor;
+            }
 
             if (BackgroundImages != null)
             {
@@ -351,33 +464,76 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
-            // Map sprite.
             UpdateMapImages(battle);
         }
 
         private void UpdateMapImages(BattleChoiceStruct battle)
         {
-            if (MapImages == null || MapImages.Length == 0)
-            {
-                return;
-            }
-
             bool useUnexplored =
                 GameplayGeneralSettings.Instance != null
                 && GameplayGeneralSettings.Instance.UnexploredMaps;
 
             if (!useUnexplored)
             {
-                // Simple case: just show the plain map sprite.
+                if (MapImages != null)
+                {
+                    foreach (var img in MapImages)
+                    {
+                        if (img != null)
+                        {
+                            img.gameObject.SetActive(true);
+                            img.sprite = battle.MapSprite;
+                        }
+                    }
+                }
+
+                if (MapQuadrantDisplay != null)
+                {
+                    MapQuadrantDisplay.gameObject.SetActive(false);
+                }
+
+                return;
+            }
+
+            // Unexplored maps: hide flat images, show quadrant blend display.
+            if (MapImages != null)
+            {
                 foreach (var img in MapImages)
                 {
                     if (img != null)
                     {
-                        img.sprite = battle.MapSprite;
+                        img.gameObject.SetActive(false);
                     }
                 }
             }
-            // TODO: unexplored-maps logic (quadrant sprites from MapExplorationSprites)
+
+            if (MapQuadrantDisplay == null)
+            {
+                return;
+            }
+
+            MapQuadrantDisplay.gameObject.SetActive(true);
+
+            var explorationStatus = GetExplorationStatus(battle);
+            MapQuadrantDisplay.SetFromExplorationStatus(
+                battle.MapExplorationSprites,
+                explorationStatus
+            );
+        }
+
+        private ExploredStatus GetExplorationStatus(BattleChoiceStruct battle)
+        {
+            if (
+                _brain?.gamewideContextBrain?.MapExplorationStatuses == null
+                || battle.MapForExploration == null
+            )
+            {
+                return default;
+            }
+
+            return _brain.gamewideContextBrain.MapExplorationStatuses.Find(s =>
+                s.map != null && s.map == battle.MapForExploration
+            );
         }
 
         #endregion
@@ -393,7 +549,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _hubManager?.LoadingScreen?.Show();
-
             _brain.sceneFlowBrain.TransitionToSceneByName(battle.BattleScene.SceneName);
         }
 

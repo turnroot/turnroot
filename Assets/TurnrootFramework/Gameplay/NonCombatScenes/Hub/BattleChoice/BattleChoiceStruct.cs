@@ -1,6 +1,7 @@
 using System;
 using NaughtyAttributes;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -28,8 +29,12 @@ namespace Turnroot.Gameplay
 
         [ShowIf(nameof(ParalogueBattle))]
         public CharacterData ParalogueCharacter;
+
         [InfoBox("If you are using Map Exploration features, fill these fields")]
         public ExploreStatusSprites MapExplorationSprites;
+
+        [Tooltip("The MapGrid asset for this battle, used to look up quadrant exploration status.")]
+        public MapGrid MapForExploration;
 
         [InfoBox("Otherwise, just put a map image in here")]
         public Sprite MapSprite;
