@@ -2,6 +2,7 @@ using System;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Objects;
+using Turnroot.Utilities;
 using UnityEngine;
 using static Turnroot.Gameplay.Brain.GamewideContextBrainHelpers;
 
@@ -10,7 +11,7 @@ namespace Turnroot.Gameplay
     [Serializable]
     public struct BattleChoiceStruct
     {
-        public UnityEngine.SceneManagement.Scene BattleScene;
+        public SceneReference BattleScene;
         public string BattleName;
         public string BattleDescription;
 
