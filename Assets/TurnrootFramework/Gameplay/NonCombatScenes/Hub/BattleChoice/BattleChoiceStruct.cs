@@ -1,7 +1,6 @@
 using System;
 using NaughtyAttributes;
 using Turnroot.Characters;
-using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -29,7 +28,11 @@ namespace Turnroot.Gameplay
 
         [ShowIf(nameof(ParalogueBattle))]
         public CharacterData ParalogueCharacter;
-        public GamewideContextBrainHelpers.ExploreStatusSprites MapExplorationSprites;
+        [InfoBox("If you are using Map Exploration features, fill these fields")]
+        public ExploreStatusSprites MapExplorationSprites;
+
+        [InfoBox("Otherwise, just put a map image in here")]
+        public Sprite MapSprite;
 
         [HideInInspector]
         public bool IsAvailable;
