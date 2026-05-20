@@ -11,29 +11,27 @@ namespace Turnroot.Gameplay.Brain
     public partial class GamewideContextBrain
     {
         #region Map Exploration Management
-        public void RegisterMapExplorationPartial(
-            GamewideContextBrainHelpers.ExploredPartial partial
-        )
+        public void RegisterMapExplorationStatus(GamewideContextBrainHelpers.ExploredStatus status)
         {
-            if (partial.map == null || string.IsNullOrEmpty(partial.map.MapName))
+            if (status.map == null || string.IsNullOrEmpty(status.map.MapName))
             {
-                "RegisterMapExplorationPartial: partial must have a valid map and MapName".LogWarning();
+                "RegisterMapExplorationStatus: status must have a valid map and MapName".LogWarning();
                 return;
             }
 
-            MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredPartial>();
+            MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredStatus>();
 
-            var existingIndex = MapExplorationStatuses.FindIndex(p =>
-                p.map != null && p.map.MapName == partial.map.MapName
+            var existingIndex = MapExplorationStatuses.FindIndex(s =>
+                s.map != null && s.map.MapName == status.map.MapName
             );
 
             if (existingIndex >= 0)
             {
-                MapExplorationStatuses[existingIndex] = partial;
+                MapExplorationStatuses[existingIndex] = status;
             }
             else
             {
-                MapExplorationStatuses.Add(partial);
+                MapExplorationStatuses.Add(status);
             }
         }
 
@@ -45,22 +43,22 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        public void SaveMapExplorationStatus(GamewideContextBrainHelpers.ExploredPartial partial)
+        public void SaveMapExplorationStatus(GamewideContextBrainHelpers.ExploredStatus status)
         {
-            if (partial.map == null || string.IsNullOrEmpty(partial.map.MapName))
+            if (status.map == null || string.IsNullOrEmpty(status.map.MapName))
             {
-                "SaveMapExplorationStatus: partial must have a valid map with MapName".LogWarning();
+                "SaveMapExplorationStatus: status must have a valid map with MapName".LogWarning();
                 return;
             }
 
-            var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, partial);
+            var encode = GamewideContextBrainHelpers.EncodeInstanceToString(this, status);
             if (!encode.Success)
             {
-                $"Failed to encode exploration partial for map {partial.map.MapName}: {encode.Error}".LogError();
+                $"Failed to encode exploration status for map {status.map.MapName}: {encode.Error}".LogError();
                 return;
             }
 
-            var key = BuildExplorationPartialKey(partial.map.MapName);
+            var key = BuildExplorationStatusKey(status.map.MapName);
             _ltm.Remember(key, encode.Value);
         }
 
@@ -72,7 +70,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredPartial>();
+            MapExplorationStatuses ??= new List<GamewideContextBrainHelpers.ExploredStatus>();
 
             foreach (var key in keys)
             {
@@ -81,7 +79,7 @@ namespace Turnroot.Gameplay.Brain
                 if (!string.IsNullOrEmpty(encoded))
                 {
                     var decoded =
-                        GamewideContextBrainHelpers.DecodeInstanceFromString<GamewideContextBrainHelpers.ExploredPartial>(
+                        GamewideContextBrainHelpers.DecodeInstanceFromString<GamewideContextBrainHelpers.ExploredStatus>(
                             this,
                             encoded
                         );
@@ -98,23 +96,17 @@ namespace Turnroot.Gameplay.Brain
                         ? key.Substring(LtmKeys.ExploredPartial.Length + 1)
                         : string.Empty;
 
-                var fallbackPartial = new GamewideContextBrainHelpers.ExploredPartial
+                var fallbackStatus = new GamewideContextBrainHelpers.ExploredStatus
                 {
-                    statuses =
-                        new Dictionary<
-                            GamewideContextBrainHelpers.ExploredQuadrant,
-                            GamewideContextBrainHelpers.ExploredState
-                        >(),
                     map = string.IsNullOrEmpty(suffix) ? null : Resources.Load<MapGrid>(suffix),
                 };
 
-                MapExplorationStatuses.Add(fallbackPartial);
+                MapExplorationStatuses.Add(fallbackStatus);
             }
         }
 
-        private string BuildExplorationPartialKey(string mapId) =>
+        private string BuildExplorationStatusKey(string mapId) =>
             $"{LtmKeys.ExploredPartial}.{mapId}";
         #endregion
     }
 }
-

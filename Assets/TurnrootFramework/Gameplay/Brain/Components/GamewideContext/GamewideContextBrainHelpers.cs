@@ -3,32 +3,39 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Maps;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
     public static partial class GamewideContextBrainHelpers
     {
-        public enum ExploredState
+        public enum QuadrantExploredState
         {
             NotExplored,
             PartiallyExplored,
             FullyExplored,
         }
 
-        public enum ExploredQuadrant
+        [Serializable]
+        public struct ExploreStatusSprites
         {
-            LeftHalf,
-            RightHalf,
-            TopLeft,
-            BottomLeft,
-            TopRight,
-            BottomRight,
+            public Sprite TopLeftExploredSprite;
+            public Sprite TopLeftUnexploredSprite;
+            public Sprite BottomLeftExploredSprite;
+            public Sprite BottomLeftUnexploredSprite;
+            public Sprite TopRightExploredSprite;
+            public Sprite TopRightUnexploredSprite;
+            public Sprite BottomRightExploredSprite;
+            public Sprite BottomRightUnexploredSprite;
         }
 
         [Serializable]
-        public struct ExploredPartial
+        public struct ExploredStatus
         {
-            public Dictionary<ExploredQuadrant, ExploredState> statuses;
+            public QuadrantExploredState TopLeft;
+            public QuadrantExploredState BottomLeft;
+            public QuadrantExploredState TopRight;
+            public QuadrantExploredState BottomRight;
             public MapGrid map;
         }
 

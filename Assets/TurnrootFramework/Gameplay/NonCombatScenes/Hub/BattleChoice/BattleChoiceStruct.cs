@@ -19,6 +19,8 @@ namespace Turnroot.Gameplay
         public int BattleDifficulty;
         public ObjectItem[] rewards;
         public int GoldReward;
+
+        [Range(0, 100)]
         public int ExtraExperienceReward;
         public bool RequiredStoryBattle;
         public bool Repeateable;
@@ -26,10 +28,11 @@ namespace Turnroot.Gameplay
 
         [ShowIf(nameof(ParalogueBattle))]
         public CharacterData ParalogueCharacter;
+        [InfoBox("If you are using Map Exploration features, fill these fields")]
+        public ExploreStatusSprites MapExplorationSprites;
 
-        [HideInInspector]
-        public ExploredPartial MapExplorationStatus;
-        public Sprite BattleMapPreview;
+        [InfoBox("Otherwise, just put a map image in here")]
+        public Sprite MapSprite;
 
         [HideInInspector]
         public bool IsAvailable;
