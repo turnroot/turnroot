@@ -1,6 +1,5 @@
 using System;
 using NaughtyAttributes;
-using Turnroot.Characters;
 using Turnroot.GameSettings;
 using UnityEngine;
 
