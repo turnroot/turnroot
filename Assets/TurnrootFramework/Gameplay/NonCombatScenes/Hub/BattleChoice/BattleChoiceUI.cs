@@ -25,31 +25,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #region Inspector Fields
 
         [BoxGroup("References")]
-        [Tooltip("Fade for the entire BattleChoiceUI panel.")]
+        [InfoBox("Fade for the entire BattleChoiceUI panel.")]
         public UIFade PanelFade;
 
         [BoxGroup("References")]
-        [Tooltip("Prefab containing a UiChoice component used for each battle list entry.")]
+        [InfoBox("Prefab containing a UiChoice component used for each battle list entry.")]
         public GameObject BattleUiChoicePrefab;
 
         [BoxGroup("References")]
-        [Tooltip("Parent container in the canvas where battle choice entries are instantiated.")]
+        [InfoBox("Parent container in the canvas where battle choice entries are instantiated.")]
         public Transform ChoiceContainer;
 
         [BoxGroup("References")]
-        [Tooltip("Input provider shared with the hub. Subscribed to while this menu is open.")]
+        [InfoBox("Input provider shared with the hub. Subscribed to while this menu is open.")]
         public UiInputProvider InputProvider;
 
         [BoxGroup("Confirm Popup")]
-        [Tooltip("Fade for the confirm/cancel popup shown when a battle is selected.")]
+        [InfoBox("Fade for the confirm/cancel popup shown when a battle is selected.")]
         public UIFade ConfirmPopupFade;
 
         [BoxGroup("Confirm Popup")]
-        [Tooltip("The Confirm UiChoice inside the popup.")]
+        [InfoBox("The Confirm UiChoice inside the popup.")]
         public UiChoice ConfirmChoice;
 
         [BoxGroup("Confirm Popup")]
-        [Tooltip("The Cancel UiChoice inside the popup.")]
+        [InfoBox("The Cancel UiChoice inside the popup.")]
         public UiChoice CancelChoice;
 
         [BoxGroup("Audio")]
@@ -78,11 +78,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Sprite DifficultyInactiveSprite;
 
         [BoxGroup("Detail Panel - Flags")]
-        [Tooltip("GameObjects to activate when the battle is a Required Story battle.")]
+        [InfoBox("GameObjects to activate when the battle is a Required Story battle.")]
         public GameObject[] RequiredObjects;
 
         [BoxGroup("Detail Panel - Flags")]
-        [Tooltip("GameObjects to activate when the battle is a Paralogue battle.")]
+        [InfoBox("GameObjects to activate when the battle is a Paralogue battle.")]
         public GameObject[] ParalogueObjects;
 
         [BoxGroup("Detail Panel - Background")]
@@ -95,15 +95,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Color ParalogueBackgroundColor = Color.blue;
 
         [BoxGroup("Detail Panel - Background")]
-        [Tooltip("Images that receive the background colour based on battle type.")]
+        [InfoBox("Images that receive the background colour based on battle type.")]
         public Image[] BackgroundImages;
 
         [BoxGroup("Detail Panel - Map")]
-        [Tooltip("Images shown when UnexploredMaps is off — display the plain MapSprite.")]
-        public Image[] MapImages;
+        [InfoBox("Images shown when UnexploredMaps is off — display the plain MapSprite.")]
+        public Image MapImage;
 
         [BoxGroup("Detail Panel - Map")]
-        [Tooltip("Component that renders the 4-quadrant smoky map when UnexploredMaps is on.")]
+        [InfoBox("Component that renders the 4-quadrant smoky map when UnexploredMaps is on.")]
         public MapQuadrantBlendImage MapQuadrantDisplay;
 
         #endregion
@@ -464,16 +464,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!useUnexplored)
             {
-                if (MapImages != null)
+                if (MapImage != null)
                 {
-                    foreach (var img in MapImages)
-                    {
-                        if (img != null)
-                        {
-                            img.gameObject.SetActive(true);
-                            img.sprite = battle.MapSprite;
-                        }
-                    }
+                    MapImage.gameObject.SetActive(true);
+                    MapImage.sprite = battle.MapSprite;
                 }
 
                 if (MapQuadrantDisplay != null)
@@ -485,15 +479,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             // Unexplored maps: hide flat images, show quadrant blend display.
-            if (MapImages != null)
+
+            if (MapImage != null)
             {
-                foreach (var img in MapImages)
-                {
-                    if (img != null)
-                    {
-                        img.gameObject.SetActive(false);
-                    }
-                }
+                MapImage.gameObject.SetActive(false);
             }
 
             if (MapQuadrantDisplay == null)
