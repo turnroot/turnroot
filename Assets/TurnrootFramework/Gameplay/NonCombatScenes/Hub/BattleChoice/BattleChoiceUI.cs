@@ -24,12 +24,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Inspector Fields
 
-        [BoxGroup("Battles")]
-        [InfoBox(
-            "All possible battles in the entire game go in this list. The Scene Flow Editor allows you to determine which of these are available when"
-        )]
-        public BattleChoiceStruct[] AllGameBattleChoices;
-
         [BoxGroup("References")]
         [Tooltip("Fade for the entire BattleChoiceUI panel.")]
         public UIFade PanelFade;
@@ -120,7 +114,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Brain.Brain _brain;
 
         private readonly List<UiChoice> _battleChoices = new();
-        private readonly List<BattleChoiceStruct> _availableBattles = new();
+        private readonly List<AllGameBattlesTable.BattleEntry> _availableBattles = new();
 
         private int _currentIndex;
 
@@ -168,14 +162,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             ClearChoiceList();
 
-            if (AllGameBattleChoices == null)
+            if (AllGameBattlesTable.Instance == null)
             {
+                "BattleChoiceUI: AllGameBattlesTable not found. Create one in a Resources folder.".LogWarning();
                 return;
             }
 
             var availableSceneNames = GetAvailableBattleSceneNames();
 
-            foreach (var battle in AllGameBattleChoices)
+            foreach (var battle in AllGameBattlesTable.Instance.Battles)
             {
                 if (battle.BattleScene == null || battle.BattleScene.IsEmpty)
                 {
@@ -412,7 +407,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void UpdateDetailPanel(BattleChoiceStruct battle)
+        private void UpdateDetailPanel(AllGameBattlesTable.BattleEntry battle)
         {
             if (BattleName != null)
             {
@@ -461,7 +456,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             UpdateMapImages(battle);
         }
 
-        private void UpdateMapImages(BattleChoiceStruct battle)
+        private void UpdateMapImages(AllGameBattlesTable.BattleEntry battle)
         {
             bool useUnexplored =
                 GameplayGeneralSettings.Instance != null
@@ -515,23 +510,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             );
         }
 
-        private ExploredStatus GetExplorationStatus(BattleChoiceStruct battle)
+        private ExploredStatus GetExplorationStatus(AllGameBattlesTable.BattleEntry battle)
         {
-            if (MapExplorationTable.Instance == null)
+            if (AllGameBattlesTable.Instance == null)
             {
-                "BattleChoiceUI: MapExplorationTable not found. Create one in a Resources folder.".LogWarning();
+                "BattleChoiceUI: AllGameBattlesTable not found. Create one in a Resources folder.".LogWarning();
                 return default;
             }
 
             var ltm = _brain?.GetComponent<LongTermMemory>();
-            return MapExplorationTable.Instance.Initialize(battle.BattleScene?.SceneName, ltm);
+            return AllGameBattlesTable.Instance.Initialize(battle.BattleScene?.SceneName, ltm);
         }
 
         #endregion
 
         #region Battle Launch
 
-        private void StartBattle(BattleChoiceStruct battle)
+        private void StartBattle(AllGameBattlesTable.BattleEntry battle)
         {
             if (_brain?.sceneFlowBrain == null)
             {

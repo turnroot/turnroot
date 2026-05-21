@@ -145,7 +145,7 @@ namespace Turnroot.EditorTools
             CheckGamePackageSettings();
             CheckPersistentPlayerRoster();
             CheckSupportRelationshipTable();
-            CheckMapExplorationTable();
+            CheckAllGameBattlesTable();
 
             int critical = 0,
                 warn = 0,
@@ -458,31 +458,30 @@ namespace Turnroot.EditorTools
             );
         }
 
-        private void CheckMapExplorationTable()
+        private void CheckAllGameBattlesTable()
         {
-            var asset = FindSingleton<MapExplorationTable>("MapExplorationTable");
+            var asset = FindSingleton<AllGameBattlesTable>("AllGameBattlesTable");
             if (asset == null)
             {
                 _results.Add(
                     new CheckResult
                     {
-                        Label = "MapExplorationTable",
+                        Label = "AllGameBattlesTable",
                         Note =
-                            "Asset not found in Resources. Required when GameplayGeneralSettings.UnexploredMaps is enabled — "
-                            + "defines initial quadrant exploration states for all battle scenes and seeds LongTermMemory on first play.",
-                        Color = new Color(1f, 0.6f, 0f), // orange — missing but not always critical
+                            "Asset not found in Resources. Required — defines all battles in the game and seeds LongTermMemory exploration state on first play.",
+                        Color = Color.red,
                     }
                 );
                 return;
             }
 
-            int entryCount = asset.Entries?.Count ?? 0;
+            int entryCount = asset.Battles?.Count ?? 0;
             _results.Add(
                 new CheckResult
                 {
-                    Label = "MapExplorationTable",
+                    Label = "AllGameBattlesTable",
                     Note =
-                        $"Found: {AssetDatabase.GetAssetPath(asset)} ({entryCount} battle entr{(entryCount == 1 ? "y" : "ies")})",
+                        $"Found: {AssetDatabase.GetAssetPath(asset)} ({entryCount} battle{(entryCount == 1 ? "" : "s")})",
                     Color = Color.green,
                     Asset = asset,
                 }

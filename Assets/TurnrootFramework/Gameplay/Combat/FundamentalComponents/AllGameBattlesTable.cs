@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
+using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
@@ -11,44 +13,75 @@ using static Turnroot.Gameplay.Brain.GamewideContextBrainHelpers;
 namespace Turnroot.Gameplay.Combat
 {
     [CreateAssetMenu(
-        fileName = "MapExplorationTable",
-        menuName = "Turnroot/Gameplay/Map Exploration Table"
+        fileName = "AllGameBattlesTable",
+        menuName = "Turnroot/Gameplay/All Game Battles Table"
     )]
-    public class MapExplorationTable : SingletonScriptableObject<MapExplorationTable>
+    public partial class AllGameBattlesTable : SingletonScriptableObject<AllGameBattlesTable>
     {
+        // ── Inner type ───────────────────────────────────────────────────────
+
         [Serializable]
-        public struct BattleExplorationEntry
+        public struct BattleEntry
         {
             [HorizontalLine(color: EColor.Gray)]
             [Tooltip("The battle scene. Drag the scene asset here — name matching is automatic.")]
             public SceneReference BattleScene;
 
-            [Tooltip("Starting exploration state for the top-left quadrant of the map.")]
+            public string BattleName;
+            public string BattleDescription;
+
+            [Range(1, 3)]
+            public int BattleDifficulty;
+
+            public ObjectItem[] Rewards;
+            public int GoldReward;
+
+            [Range(0, 100)]
+            public int ExtraExperienceReward;
+
+            public bool RequiredStoryBattle;
+            public bool Repeateable;
+            public bool ParalogueBattle;
+
+            [ShowIf(nameof(ParalogueBattle))]
+            public CharacterData ParalogueCharacter;
+
+            [HorizontalLine(color: EColor.White)]
+            [InfoBox("Fill these fields to use the quadrant-based Map Exploration display.")]
+            public ExploreStatusSprites MapExplorationSprites;
+
+            [Tooltip("Initial exploration state for the top-left quadrant.")]
             public QuadrantExploredState InitialTopLeft;
 
-            [Tooltip("Starting exploration state for the top-right quadrant of the map.")]
+            [Tooltip("Initial exploration state for the top-right quadrant.")]
             public QuadrantExploredState InitialTopRight;
 
-            [Tooltip("Starting exploration state for the bottom-left quadrant of the map.")]
+            [Tooltip("Initial exploration state for the bottom-left quadrant.")]
             public QuadrantExploredState InitialBottomLeft;
 
-            [Tooltip("Starting exploration state for the bottom-right quadrant of the map.")]
+            [Tooltip("Initial exploration state for the bottom-right quadrant.")]
             public QuadrantExploredState InitialBottomRight;
+
+            [HorizontalLine(color: EColor.White)]
+            [InfoBox("If not using Map Exploration, put the flat map image here instead.")]
+            public Sprite MapSprite;
         }
 
+        // ── Inspector fields ─────────────────────────────────────────────────
+
         [InfoBox(
-            "Add one entry per battle that uses the quadrant exploration map display. "
-                + "Drag the scene asset into BattleScene — names are matched automatically."
+            "One entry per battle in the game. Drag the scene asset into BattleScene — "
+                + "name matching is automatic. The Scene Flow Editor controls which entries are available to the player."
         )]
         [ReorderableList]
-        public List<BattleExplorationEntry> Entries = new();
+        public List<BattleEntry> Battles = new();
 
         // ── Public API ───────────────────────────────────────────────────────
 
         /// <summary>
         /// Returns the <see cref="ExploredStatus"/> for <paramref name="battleSceneName"/>.
-        /// Reads from LTM if a saved value exists; otherwise seeds LTM from this table's
-        /// initial values and returns those.  If <paramref name="ltm"/> is null, returns
+        /// Reads from LTM if a saved value exists; otherwise seeds LTM from this entry's
+        /// initial values and returns those. If <paramref name="ltm"/> is null, returns
         /// the initial values without persisting anything.
         /// </summary>
         public ExploredStatus Initialize(string battleSceneName, LongTermMemory ltm)
@@ -58,7 +91,6 @@ namespace Turnroot.Gameplay.Combat
                 return default;
             }
 
-            // Try loading from LTM first.
             if (ltm != null)
             {
                 var saved = ltm.Recall(LtmKeys.MapExplorationKey(battleSceneName));
@@ -68,7 +100,6 @@ namespace Turnroot.Gameplay.Combat
                 }
             }
 
-            // LTM miss — fall back to the table's initial values.
             var initial = GetInitialStatus(battleSceneName);
 
             if (ltm != null)
@@ -87,7 +118,7 @@ namespace Turnroot.Gameplay.Combat
         /// </summary>
         public ExploredStatus GetInitialStatus(string battleSceneName)
         {
-            if (TryGetEntry(battleSceneName, out var entry))
+            if (TryGetBattle(battleSceneName, out var entry))
             {
                 return new ExploredStatus
                 {
@@ -102,66 +133,14 @@ namespace Turnroot.Gameplay.Combat
         }
 
         /// <summary>
-        /// Updates a single quadrant's exploration state, saves it back to LTM, and returns
-        /// the full updated <see cref="ExploredStatus"/>.
-        /// Call this from battle code whenever a quadrant is explored at runtime.
+        /// Tries to find the entry whose <see cref="BattleEntry.BattleScene"/> name matches
+        /// <paramref name="battleSceneName"/> (case-sensitive).
         /// </summary>
-        public ExploredStatus SetQuadrantState(
-            string battleSceneName,
-            MapQuadrant quadrant,
-            QuadrantExploredState newState,
-            LongTermMemory ltm
-        )
+        public bool TryGetBattle(string battleSceneName, out BattleEntry entry)
         {
-            var status = Initialize(battleSceneName, ltm);
-
-            switch (quadrant)
+            if (Battles != null)
             {
-                case MapQuadrant.TopLeft:
-                    status.TopLeft = newState;
-                    break;
-                case MapQuadrant.TopRight:
-                    status.TopRight = newState;
-                    break;
-                case MapQuadrant.BottomLeft:
-                    status.BottomLeft = newState;
-                    break;
-                case MapQuadrant.BottomRight:
-                    status.BottomRight = newState;
-                    break;
-            }
-
-            SaveStatusToLtm(battleSceneName, status, ltm);
-            return status;
-        }
-
-        /// <summary>
-        /// Writes an updated <see cref="ExploredStatus"/> for <paramref name="battleSceneName"/>
-        /// back to LTM so exploration progress is preserved across sessions.
-        /// </summary>
-        public void SaveStatusToLtm(
-            string battleSceneName,
-            ExploredStatus status,
-            LongTermMemory ltm
-        )
-        {
-            if (string.IsNullOrEmpty(battleSceneName) || ltm == null)
-            {
-                return;
-            }
-
-            ltm.Remember(LtmKeys.MapExplorationKey(battleSceneName), EncodeStatus(status));
-        }
-
-        /// <summary>
-        /// Tries to find the entry whose <see cref="BattleExplorationEntry.BattleSceneName"/>
-        /// matches <paramref name="battleSceneName"/> (case-sensitive).
-        /// </summary>
-        public bool TryGetEntry(string battleSceneName, out BattleExplorationEntry entry)
-        {
-            if (Entries != null)
-            {
-                foreach (var e in Entries)
+                foreach (var e in Battles)
                 {
                     if (e.BattleScene != null && e.BattleScene.SceneName == battleSceneName)
                     {
