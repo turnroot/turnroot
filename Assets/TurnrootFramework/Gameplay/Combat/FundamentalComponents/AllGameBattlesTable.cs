@@ -18,8 +18,6 @@ namespace Turnroot.Gameplay.Combat
     )]
     public partial class AllGameBattlesTable : SingletonScriptableObject<AllGameBattlesTable>
     {
-        // ── Inner type ───────────────────────────────────────────────────────
-
         [Serializable]
         public struct BattleEntry
         {
