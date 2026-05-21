@@ -72,18 +72,7 @@ namespace Turnroot.Graphics2D
             if (background != null)
             {
                 // Highlight takes priority, then hover, then normal
-                if (isHighlighted)
-                {
-                    background.color = highlightColor;
-                }
-                else if (isMouseHover)
-                {
-                    background.color = Color.Lerp(normalColor, highlightColor, 0.4f);
-                }
-                else
-                {
-                    background.color = normalColor;
-                }
+                background.color = isHighlighted ? highlightColor : isMouseHover ? Color.Lerp(normalColor, highlightColor, 0.4f) : normalColor;
             }
         }
 

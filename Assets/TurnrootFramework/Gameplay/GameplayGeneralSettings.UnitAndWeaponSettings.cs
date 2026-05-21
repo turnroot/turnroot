@@ -131,12 +131,7 @@ namespace Turnroot.GameSettings
                 return TrianglePositionEnum.NotOnTriangle;
             }
 
-            if (weapon.TrianglePosition != null)
-            {
-                return weapon.TrianglePosition.Position;
-            }
-
-            return TrianglePositionEnum.NotOnTriangle;
+            return weapon.TrianglePosition != null ? weapon.TrianglePosition.Position : TrianglePositionEnum.NotOnTriangle;
         }
 
         [BoxGroup("Characters"), InfoBox("Put all of the species types your game uses here")]

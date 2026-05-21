@@ -60,12 +60,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public AudioClip HubBackgroundMusic;
 
         [BoxGroup("Battles")]
-        [InfoBox(
-            "All possible battles in the entire game go in this list. The Scene Flow Editor allows you to determine which of these are available when"
-        )]
-        public BattleChoiceStruct[] AllGameBattleChoices;
-
-        [BoxGroup("Battles")]
         [Tooltip("The BattleChoiceUI component used to display and navigate available battles.")]
         public BattleChoiceUI BattleChoiceUi;
 

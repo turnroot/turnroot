@@ -392,12 +392,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return mat.color.a;
             }
 
-            if (mat.HasProperty("_FaceColor"))
-            {
-                return mat.GetColor("_FaceColor").a;
-            }
-
-            return mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor").a : 1f;
+            return mat.HasProperty("_FaceColor")
+                ? mat.GetColor("_FaceColor").a
+                : mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor").a : 1f;
         }
 
         private IEnumerator FadeRoutine(float from, float to)

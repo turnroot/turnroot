@@ -28,16 +28,9 @@ namespace Turnroot.Utilities
                 return true;
             }
 
-            if (
-                !string.IsNullOrEmpty(a.name)
+            return !string.IsNullOrEmpty(a.name)
                 && !string.IsNullOrEmpty(b.name)
-                && string.Equals(a.name, b.name, StringComparison.Ordinal)
-            )
-            {
-                return true;
-            }
-
-            return false;
+                && string.Equals(a.name, b.name, StringComparison.Ordinal);
         }
 
         public static bool Matches(this CharacterData a, CharacterData b) =>

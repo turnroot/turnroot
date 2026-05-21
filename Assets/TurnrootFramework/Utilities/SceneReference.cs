@@ -45,10 +45,10 @@ namespace Turnroot.Utilities
         public void OnBeforeSerialize()
         {
 #if UNITY_EDITOR
-            if (_sceneAsset != null)
-                _scenePath = UnityEditor.AssetDatabase.GetAssetPath(_sceneAsset);
-            else
-                _scenePath = string.Empty;
+            _scenePath =
+                _sceneAsset != null
+                    ? UnityEditor.AssetDatabase.GetAssetPath(_sceneAsset)
+                    : string.Empty;
 #endif
         }
 

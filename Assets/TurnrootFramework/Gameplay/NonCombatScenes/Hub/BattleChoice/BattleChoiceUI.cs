@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using NaughtyAttributes;
 using TMPro;
+using Turnroot.Gameplay.Brain.Components;
+using Turnroot.Gameplay.Combat;
 using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.Utilities;
@@ -21,6 +23,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     public class BattleChoiceUI : MonoBehaviour
     {
         #region Inspector Fields
+
+        [BoxGroup("Battles")]
+        [InfoBox(
+            "All possible battles in the entire game go in this list. The Scene Flow Editor allows you to determine which of these are available when"
+        )]
+        public BattleChoiceStruct[] AllGameBattleChoices;
 
         [BoxGroup("References")]
         [Tooltip("Fade for the entire BattleChoiceUI panel.")]
@@ -160,14 +168,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             ClearChoiceList();
 
-            if (_hubManager == null || _hubManager.AllGameBattleChoices == null)
+            if (AllGameBattleChoices == null)
             {
                 return;
             }
 
             var availableSceneNames = GetAvailableBattleSceneNames();
 
-            foreach (var battle in _hubManager.AllGameBattleChoices)
+            foreach (var battle in AllGameBattleChoices)
             {
                 if (battle.BattleScene == null || battle.BattleScene.IsEmpty)
                 {
@@ -425,34 +433,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         continue;
                     }
 
-                    if (i < battle.BattleDifficulty)
-                    {
-                        DifficultyImages[i].sprite = DifficultyActiveSprite;
-                    }
-                    else
-                    {
-                        DifficultyImages[i].sprite = DifficultyInactiveSprite;
-                    }
+                    DifficultyImages[i].sprite =
+                        i < battle.BattleDifficulty
+                            ? DifficultyActiveSprite
+                            : DifficultyInactiveSprite;
                 }
             }
 
             SetObjectsActive(RequiredObjects, battle.RequiredStoryBattle);
             SetObjectsActive(ParalogueObjects, battle.ParalogueBattle);
 
-            Color bgColor;
-            if (battle.RequiredStoryBattle)
-            {
-                bgColor = RequiredBackgroundColor;
-            }
-            else if (battle.ParalogueBattle)
-            {
-                bgColor = ParalogueBackgroundColor;
-            }
-            else
-            {
-                bgColor = NormalBackgroundColor;
-            }
-
+            var bgColor =
+                battle.RequiredStoryBattle ? RequiredBackgroundColor
+                : battle.ParalogueBattle ? ParalogueBackgroundColor
+                : NormalBackgroundColor;
             if (BackgroundImages != null)
             {
                 foreach (var img in BackgroundImages)
@@ -523,17 +517,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private ExploredStatus GetExplorationStatus(BattleChoiceStruct battle)
         {
-            if (
-                _brain?.gamewideContextBrain?.MapExplorationStatuses == null
-                || battle.MapForExploration == null
-            )
+            if (MapExplorationTable.Instance == null)
             {
+                "BattleChoiceUI: MapExplorationTable not found. Create one in a Resources folder.".LogWarning();
                 return default;
             }
 
-            return _brain.gamewideContextBrain.MapExplorationStatuses.Find(s =>
-                s.map != null && s.map == battle.MapForExploration
-            );
+            var ltm = _brain?.GetComponent<LongTermMemory>();
+            return MapExplorationTable.Instance.Initialize(battle.BattleScene?.SceneName, ltm);
         }
 
         #endregion

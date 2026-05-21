@@ -35,12 +35,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         /// </summary>
         public GameObject GetModelForUnit(string unitId)
         {
-            if (string.IsNullOrEmpty(unitId))
-            {
-                return null;
-            }
-
-            return _unitIdToPosition.TryGetValue(unitId, out var position) ? GetModelAtPosition(position) : null;
+            return string.IsNullOrEmpty(unitId) ? null
+                : _unitIdToPosition.TryGetValue(unitId, out var position)
+                    ? GetModelAtPosition(position)
+                : null;
         }
 
         /// <summary>
@@ -54,10 +52,8 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         /// </summary>
         public Vector2Int? GetPositionForUnit(string unitId)
         {
-            return string.IsNullOrEmpty(unitId)
-                ? null
-                : _unitIdToPosition.TryGetValue(unitId, out var position)
-                ? position
+            return string.IsNullOrEmpty(unitId) ? null
+                : _unitIdToPosition.TryGetValue(unitId, out var position) ? position
                 : (Vector2Int?)null;
         }
 

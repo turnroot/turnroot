@@ -180,12 +180,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             HubSublocationName
         > GetTeamPlacements()
         {
-            if (!HasTeamPlacements())
-            {
-                return null;
-            }
-
-            return _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
+            return !HasTeamPlacements() ? null : _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
         }
 
         public static void SaveTeamPlacements(
@@ -217,12 +212,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             HubSublocationName
         > GetNonRosterPlacements()
         {
-            if (!HasNonRosterPlacements())
-            {
-                return null;
-            }
-
-            return _currentState.NonRosterPlacements.ToDictionary(
+            return !HasNonRosterPlacements()
+                ? null
+                : _currentState.NonRosterPlacements.ToDictionary(
                 e => e.CharacterKey,
                 e => e.Location
             );

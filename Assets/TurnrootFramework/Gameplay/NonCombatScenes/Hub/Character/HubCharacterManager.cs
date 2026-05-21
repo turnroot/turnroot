@@ -102,12 +102,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                     )
                     .ToArray();
 
-                if (unplayed.Length == 0)
-                {
-                    return null;
-                }
-
-                return unplayed[Random.Range(0, unplayed.Length)];
+                return unplayed.Length == 0 ? null : unplayed[Random.Range(0, unplayed.Length)];
             }
 
             return null;
@@ -196,12 +191,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             }
 
             var oneShots = _audioBrain.ConvertToOneShots(dialogues, characterData.DisplayName);
-            if (oneShots == null || oneShots.Length == 0)
-            {
-                return default;
-            }
-
-            return oneShots[HubDayRandom.Range(0, oneShots.Length)];
+            return oneShots == null || oneShots.Length == 0 ? default : oneShots[HubDayRandom.Range(0, oneShots.Length)];
         }
 
         /// <summary>Returns a random <see cref="HubCharacterOneShotType.StartInteraction"/> one-shot.</summary>

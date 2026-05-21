@@ -125,14 +125,7 @@ namespace Turnroot.Skills.Nodes.Events
             {
                 // Try to remove by name
                 var effect = character.GetStatusEffectByName(debuffName);
-                if (effect != null)
-                {
-                    removed = battleBrain?.RemoveStatusEffect(character, effect) == true ? 1 : 0;
-                }
-                else
-                {
-                    removed = 0;
-                }
+                removed = effect != null ? battleBrain?.RemoveStatusEffect(character, effect) == true ? 1 : 0 : 0;
             }
             else
             {

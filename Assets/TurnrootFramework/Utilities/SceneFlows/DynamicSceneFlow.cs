@@ -46,12 +46,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public string ResolveKey()
         {
-            if (keySource == SceneFlowFlagKeySource.Custom)
-            {
-                return customKey;
-            }
-
-            return existingKey;
+            return keySource == SceneFlowFlagKeySource.Custom ? customKey : existingKey;
         }
     }
 

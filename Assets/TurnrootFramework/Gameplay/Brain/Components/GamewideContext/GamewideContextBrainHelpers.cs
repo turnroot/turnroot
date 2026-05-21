@@ -16,6 +16,14 @@ namespace Turnroot.Gameplay.Brain
             FullyExplored,
         }
 
+        public enum MapQuadrant
+        {
+            TopLeft,
+            TopRight,
+            BottomLeft,
+            BottomRight,
+        }
+
         [Serializable]
         public struct ExploreStatusSprites
         {

@@ -131,9 +131,7 @@ namespace Turnroot.Gameplay.Maps
                     return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(p);
                 fallbackPath ??= p;
             }
-            if (fallbackPath != null)
-                return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(fallbackPath);
-            return null;
+            return fallbackPath != null ? UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(fallbackPath) : null;
 #else
             // At runtime, check a well-known override path first so the project can shadow the
             // package default by placing a TerrainTypes asset at:

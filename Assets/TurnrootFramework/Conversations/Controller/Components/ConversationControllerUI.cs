@@ -57,12 +57,9 @@ namespace Turnroot.Conversations
 
         private string GetSpeakerName(ConversationLayer.SpeakerSlot slot)
         {
-            if (slot == null)
-            {
-                return "???";
-            }
-
-            return !string.IsNullOrWhiteSpace(slot.DisplayName) ? slot.DisplayName
+            return slot == null
+                ? "???"
+                : !string.IsNullOrWhiteSpace(slot.DisplayName) ? slot.DisplayName
                 : slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName)
                     ? slot.Speaker.DisplayName
                 : "???";

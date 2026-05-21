@@ -47,12 +47,9 @@ namespace Turnroot.UI.Components.SimpleButton
 
         private InputAction GetEffectiveSelectAction()
         {
-            if (SelectAction != null)
-            {
-                return SelectAction;
-            }
-
-            return Role switch
+            return SelectAction != null
+                ? SelectAction
+                : Role switch
             {
                 SimpleButtonRole.Back => UIInputActionDefaults.Back,
                 SimpleButtonRole.Details => UIInputActionDefaults.ToggleDetails,

@@ -271,18 +271,11 @@ namespace Turnroot.UI.Components
 
             var key = prefix + unit.CharacterData.name;
             var prep = _brain.battleBrain.PreparationObject;
-            var isSelected = false;
-            if (gridMenuItem.CharacterInstanceData != null)
-            {
-                isSelected =
-                    prep != null
+            var isSelected = gridMenuItem.CharacterInstanceData != null
+                ? prep != null
                         ? prep.IsBattleSelected(gridMenuItem.CharacterInstanceData)
-                        : gridMenuItem.CharacterInstanceData.IsSelectedForBattle;
-            }
-            else
-            {
-                isSelected = ltm.RecallBool(key);
-            }
+                        : gridMenuItem.CharacterInstanceData.IsSelectedForBattle
+                : ltm.RecallBool(key);
 
             // If the unit is required for this battle, enable them but don't save it to LTM
             var requiredUnits =

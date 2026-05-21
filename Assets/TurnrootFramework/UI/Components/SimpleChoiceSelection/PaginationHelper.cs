@@ -177,20 +177,9 @@ namespace Turnroot.UI
                 return;
             }
 
-            int targetPage;
-            if (page == null)
-            {
-                targetPage = CurrentPage;
-            }
-            else if (page == -1)
-            {
-                targetPage = Mathf.Max(0, totalPages - 1);
-            }
-            else
-            {
-                targetPage = Mathf.Clamp(page.Value, 0, Mathf.Max(0, totalPages - 1));
-            }
-
+            var targetPage = page == null
+                ? CurrentPage
+                : page == -1 ? Mathf.Max(0, totalPages - 1) : Mathf.Clamp(page.Value, 0, Mathf.Max(0, totalPages - 1));
             CurrentPage = targetPage;
             CurrentSelectionIndex = Mathf.Clamp(
                 CurrentPage * ItemsPerPage,
