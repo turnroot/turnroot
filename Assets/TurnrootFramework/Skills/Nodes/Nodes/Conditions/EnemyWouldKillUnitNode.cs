@@ -71,11 +71,9 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return 0f;
             }
             var weapon = attacker.GetEquippedWeapon();
-            if (weapon == null)
-            {
-                return 0f;
-            }
-            return DamageCalculator.CalculatePotentialDamage(
+            return weapon == null
+                ? 0f
+                : DamageCalculator.CalculatePotentialDamage(
                 attacker,
                 context.Unit.UnitInstance,
                 weapon,

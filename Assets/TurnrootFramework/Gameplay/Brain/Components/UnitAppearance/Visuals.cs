@@ -126,22 +126,15 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            Material material;
-            if (baseMat != null)
-            {
-                material = new Material(baseMat)
+            var material = baseMat != null
+                ? new Material(baseMat)
                 {
                     name = $"{unit.CharacterTemplate.DisplayName}_{className}_Outfit",
-                };
-            }
-            else
-            {
-                material = new Material(_settings.UnitOutfitMaterialTemplate)
+                }
+                : new Material(_settings.UnitOutfitMaterialTemplate)
                 {
                     name = $"{unit.CharacterTemplate.DisplayName}_{className}_OutfitMaterial",
                 };
-            }
-
             unit.classNameToOutfitMaterials[className] = material;
 
             return material;

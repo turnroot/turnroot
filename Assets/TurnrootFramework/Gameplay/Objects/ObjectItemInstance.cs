@@ -344,14 +344,7 @@ namespace Turnroot.Gameplay.Objects
             }
             else
             {
-                if (_template.OneRepairItemCoversFullRepair)
-                {
-                    repairItemCost = 1;
-                }
-                else
-                {
-                    repairItemCost = _template.RepairItemAmountPerUse * repairUses;
-                }
+                repairItemCost = _template.OneRepairItemCoversFullRepair ? 1 : _template.RepairItemAmountPerUse * repairUses;
             }
             InventoryBrain?.RepairItem(this, repairUses);
             StorehouseBrain?.SpendGold(_template.RepairPricePerUse * repairUses);
@@ -415,12 +408,7 @@ namespace Turnroot.Gameplay.Objects
             }
 
             int maxUses = _template.MaxUses;
-            if (maxUses <= 0)
-            {
-                return false;
-            }
-
-            return RemainingUses < maxUses;
+            return maxUses <= 0 ? false : RemainingUses < maxUses;
         }
 
         public bool IsForgeableWeaponOrMagic()
@@ -441,12 +429,7 @@ namespace Turnroot.Gameplay.Objects
 
         public float GetDurabilityPercentage()
         {
-            if (_template == null || !_template.Durability || _template.MaxUses <= 0)
-            {
-                return 1f;
-            }
-
-            return (float)RemainingUses / _template.MaxUses;
+            return _template == null || !_template.Durability || _template.MaxUses <= 0 ? 1f : (float)RemainingUses / _template.MaxUses;
         }
     }
 }

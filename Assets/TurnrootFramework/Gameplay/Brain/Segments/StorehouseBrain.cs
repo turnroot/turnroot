@@ -132,12 +132,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var decoded = _brain.DecodeString(recalled);
-            if (!int.TryParse(decoded, out var parsedGold) || parsedGold < 0)
-            {
-                return int.MinValue;
-            }
-
-            return parsedGold;
+            return !int.TryParse(decoded, out var parsedGold) || parsedGold < 0 ? int.MinValue : parsedGold;
         }
         #endregion
 

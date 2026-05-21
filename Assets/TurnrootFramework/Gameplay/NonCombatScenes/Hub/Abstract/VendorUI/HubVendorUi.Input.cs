@@ -58,16 +58,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         public int GetSelectedVendorIndex()
         {
-            if (
-                itemChoiceToVendorIndex != null
+            return itemChoiceToVendorIndex != null
                 && CurrentSelectionIndex >= 0
                 && CurrentSelectionIndex < itemChoiceToVendorIndex.Count
-            )
-            {
-                return itemChoiceToVendorIndex[CurrentSelectionIndex];
-            }
-
-            return CurrentSelectionIndex;
+                ? itemChoiceToVendorIndex[CurrentSelectionIndex]
+                : CurrentSelectionIndex;
         }
 
         public void HandleQuantityChangeInput(string action)

@@ -115,12 +115,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool IsChapterUnlocked(Brain.Brain brain)
         {
-            if (brain?.saveFileBrain?.ActiveSaveFile == null)
-            {
-                return false;
-            }
-
-            return brain.saveFileBrain.ActiveSaveFile.ChapterNumber >= UnlockAfterChapter;
+            return brain?.saveFileBrain?.ActiveSaveFile == null ? false : brain.saveFileBrain.ActiveSaveFile.ChapterNumber >= UnlockAfterChapter;
         }
 
         private bool IsCharacterSupportUnlocked(Brain.Brain brain)
@@ -169,12 +164,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             var rel = avatar.GetSupportRelationship(entry.Character);
-            if (rel == null)
-            {
-                return false;
-            }
-
-            return new SupportLevels { Value = rel.CurrentLevel }.CompareTo(
+            return rel == null
+                ? false
+                : new SupportLevels { Value = rel.CurrentLevel }.CompareTo(
                     entry.MinimumLevel.Value
                 ) >= 0;
         }

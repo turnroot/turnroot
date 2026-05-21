@@ -34,14 +34,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 OptionStringToEnumValue[value.ToString()] = value;
             }
 
-            if (currentValue != null)
-            {
-                CurrentIndex = System.Array.IndexOf(enumValues, currentValue);
-            }
-            else
-            {
-                CurrentIndex = 0;
-            }
+            CurrentIndex = currentValue != null ? System.Array.IndexOf(enumValues, currentValue) : 0;
 
             UpdateDisplay();
         }

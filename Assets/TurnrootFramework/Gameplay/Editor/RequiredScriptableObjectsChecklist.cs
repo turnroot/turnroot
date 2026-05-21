@@ -8,6 +8,7 @@ using Turnroot.Utilities.AbstractScripts;
 using UnityEditor;
 using UnityEngine;
 using Turnroot.AbstractScripts.Graphics2D;
+using Turnroot.Gameplay.Combat;
 using Turnroot.Gameplay.PlayerSettings;
 
 namespace Turnroot.EditorTools
@@ -144,6 +145,7 @@ namespace Turnroot.EditorTools
             CheckGamePackageSettings();
             CheckPersistentPlayerRoster();
             CheckSupportRelationshipTable();
+            CheckMapExplorationTable();
 
             int critical = 0,
                 warn = 0,
@@ -450,6 +452,37 @@ namespace Turnroot.EditorTools
                 {
                     Label = "SupportRelationshipTable",
                     Note = $"Found: {AssetDatabase.GetAssetPath(asset)}",
+                    Color = Color.green,
+                    Asset = asset,
+                }
+            );
+        }
+
+        private void CheckMapExplorationTable()
+        {
+            var asset = FindSingleton<MapExplorationTable>("MapExplorationTable");
+            if (asset == null)
+            {
+                _results.Add(
+                    new CheckResult
+                    {
+                        Label = "MapExplorationTable",
+                        Note =
+                            "Asset not found in Resources. Required when GameplayGeneralSettings.UnexploredMaps is enabled — "
+                            + "defines initial quadrant exploration states for all battle scenes and seeds LongTermMemory on first play.",
+                        Color = new Color(1f, 0.6f, 0f), // orange — missing but not always critical
+                    }
+                );
+                return;
+            }
+
+            int entryCount = asset.Entries?.Count ?? 0;
+            _results.Add(
+                new CheckResult
+                {
+                    Label = "MapExplorationTable",
+                    Note =
+                        $"Found: {AssetDatabase.GetAssetPath(asset)} ({entryCount} battle entr{(entryCount == 1 ? "y" : "ies")})",
                     Color = Color.green,
                     Asset = asset,
                 }

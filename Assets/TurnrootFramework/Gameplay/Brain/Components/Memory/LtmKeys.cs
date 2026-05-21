@@ -73,6 +73,15 @@ namespace Turnroot.Gameplay.Brain
 
         #endregion
 
+        #region MapExploration Keys
+        public const string MapExploration = "MapExploration";
+
+        /// <summary>Build the LTM key for a battle's quadrant exploration status.</summary>
+        public static string MapExplorationKey(string battleSceneName) =>
+            $"{MapExploration}.{battleSceneName}";
+
+        #endregion
+
         #region BattleBrain Keys
         public const string UnitSelectedForBattlePrefix = "BattleBrain.UnitSelectedForBattle.";
         public const string UnitSelectionsAutoFilled = "BattleBrain.UnitSelectionsAutoFilled";

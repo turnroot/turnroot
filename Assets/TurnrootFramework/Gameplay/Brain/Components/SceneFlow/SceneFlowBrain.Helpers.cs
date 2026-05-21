@@ -12,12 +12,9 @@ namespace Turnroot.Utilities.SceneFlows
 
         private SceneTransition FindTransition(string fromSceneId, string toSceneId)
         {
-            if (string.IsNullOrEmpty(fromSceneId) || sceneFlowGraph == null)
-            {
-                return null;
-            }
-
-            return sceneFlowGraph.transitions.Find(t =>
+            return string.IsNullOrEmpty(fromSceneId) || sceneFlowGraph == null
+                ? null
+                : sceneFlowGraph.transitions.Find(t =>
                 t.fromSceneId == fromSceneId && t.toSceneId == toSceneId
                 || (t.isBidirectional && t.toSceneId == fromSceneId && t.fromSceneId == toSceneId)
             );

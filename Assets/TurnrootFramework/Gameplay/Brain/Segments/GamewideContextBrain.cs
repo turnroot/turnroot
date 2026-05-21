@@ -36,11 +36,6 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public PlayerTeamRoster GamewidePersistentPlayerRoster { get; set; }
-        public List<GamewideContextBrainHelpers.ExploredStatus> MapExplorationStatuses
-        {
-            get;
-            private set;
-        }
 
         [HideInInspector]
         public GameplayPlayerSettings PlayerSettings => _playerSettingsPersistence?.PlayerSettings;
@@ -74,8 +69,6 @@ namespace Turnroot.Gameplay.Brain
                 GetComponent<LongTermMemory>(),
                 this
             );
-
-            MapExplorationStatuses = new List<GamewideContextBrainHelpers.ExploredStatus>();
         }
 
         private void Start() => _ltm = GetComponent<LongTermMemory>();
@@ -86,7 +79,6 @@ namespace Turnroot.Gameplay.Brain
             TryLoadAndRecallPersistentPlayerRoster();
             RestoreAvatarProfileFromLtm();
             _brain.volumeBrain?.ApplySettingsToVolumes(PlayerSettings);
-            PopulateMapExplorationStatusesFromLtm();
         }
 
         private void RestoreAvatarProfileFromLtm()

@@ -249,11 +249,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
         private int GetRepairCost(BlacksmithRepairItem itemData)
         {
-            if (itemData.ItemToRepair == null)
-            {
-                return 0;
-            }
-            return itemData.ItemToRepair.Template.RepairPricePerUse;
+            return itemData.ItemToRepair == null ? 0 : itemData.ItemToRepair.Template.RepairPricePerUse;
         }
 
         private int GetStorehouseRepairLimit(ObjectItemInstance item)
@@ -269,32 +265,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 return 0;
             }
 
-            int goldLimit;
-            if (template.RepairPricePerUse > 0)
-            {
-                goldLimit = brain.storehouseBrain.PlayerGold / template.RepairPricePerUse;
-            }
-            else
-            {
-                goldLimit = int.MaxValue;
-            }
-
+            var goldLimit = template.RepairPricePerUse > 0 ? brain.storehouseBrain.PlayerGold / template.RepairPricePerUse : int.MaxValue;
             int materialLimit = int.MaxValue;
             if (template.RepairNeedsItems && template.RepairItem != null)
             {
                 int materialCount = brain.storehouseBrain.GetMaterialCount(template.RepairItem);
-                if (template.OneRepairItemCoversFullRepair)
-                {
-                    materialLimit = materialCount > 0 ? 1 : 0;
-                }
-                else if (template.RepairItemAmountPerUse > 0)
-                {
-                    materialLimit = materialCount / template.RepairItemAmountPerUse;
-                }
-                else
-                {
-                    materialLimit = 0;
-                }
+                materialLimit = template.OneRepairItemCoversFullRepair
+                    ? materialCount > 0 ? 1 : 0
+                    : template.RepairItemAmountPerUse > 0 ? materialCount / template.RepairItemAmountPerUse : 0;
             }
 
             return Mathf.Max(0, Mathf.Min(goldLimit, materialLimit));
