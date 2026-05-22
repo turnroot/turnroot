@@ -275,14 +275,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (_battleChoices.Count == 0)
-            {
-                return;
-            }
-
             if (action is InputActionConstants.Cancel or InputActionConstants.Back)
             {
                 _hubManager?.BackFromBattleChoice();
+                return;
+            }
+
+            if (_battleChoices.Count == 0)
+            {
                 return;
             }
 
