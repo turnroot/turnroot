@@ -22,12 +22,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 case HubInputMode.MarketChoice:
                 case HubInputMode.Docks:
                 case HubInputMode.Training:
-                case HubInputMode.Battlefields:
                 case HubInputMode.ExploreMisc:
                     if (CurrentSubLocation == null || CurrentSubLocation.AcceptingInput)
                     {
                         SublocationInput.HandleSubLocationInput(action);
                     }
+                    break;
+                case HubInputMode.Battlefields:
+                    // BattleChoiceUI handles its own input via its InputProvider subscription.
                     break;
                 case HubInputMode.ExploreMenu:
                     HandleExploreMenuInput(action);
@@ -52,7 +54,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 HubInputMode.Location => false,
                 HubInputMode.MarketChoice => true,
-                HubInputMode.Battlefields => true,
+                HubInputMode.Battlefields => false,
                 HubInputMode.Docks => true,
                 HubInputMode.Training => true,
                 HubInputMode.ExploreMisc => true,

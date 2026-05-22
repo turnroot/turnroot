@@ -178,6 +178,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            if (BattleUiChoicePrefab == null)
+            {
+                "BattleChoiceUI: BattleUiChoicePrefab is not assigned.".LogWarning();
+                return;
+            }
+
+            if (ChoiceContainer == null)
+            {
+                "BattleChoiceUI: ChoiceContainer is not assigned.".LogWarning();
+                return;
+            }
+
             var availableSceneNames = GetAvailableBattleSceneNames();
 
             foreach (var battle in AllGameBattlesTable.Instance.Battles)
