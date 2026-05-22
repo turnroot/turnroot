@@ -29,7 +29,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     }
                     break;
                 case HubInputMode.Battlefields:
-                    // BattleChoiceUI handles its own input via its InputProvider subscription.
+                    BattleChoiceUi?.ForwardInput(action);
                     break;
                 case HubInputMode.ExploreMenu:
                     HandleExploreMenuInput(action);

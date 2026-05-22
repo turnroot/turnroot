@@ -36,10 +36,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [InfoBox("Parent container in the canvas where battle choice entries are instantiated.")]
         public VerticalLayoutGroup ChoiceContainer;
 
-        [BoxGroup("References")]
-        [InfoBox("Input provider shared with the hub. Subscribed to while this menu is open.")]
-        public UiInputProvider InputProvider;
-
         [BoxGroup("Confirm Popup")]
         [InfoBox("Fade for the confirm/cancel popup shown when a battle is selected.")]
         public UIFade ConfirmPopupFade;
@@ -141,12 +137,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _brain = hubManager._brain;
 
             BuildChoiceList();
-
-            if (InputProvider != null)
-            {
-                InputProvider.OnInput += HandleInput;
-            }
-
             PanelFade?.Show();
         }
 
@@ -154,15 +144,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void Close()
         {
             CloseConfirmPopup(silent: true);
-
-            if (InputProvider != null)
-            {
-                InputProvider.OnInput -= HandleInput;
-            }
-
             ClearChoiceList();
             PanelFade?.Hide();
         }
+
+        /// <summary>Called by HubManager to forward input while in Battlefields mode.</summary>
+        public void ForwardInput(string action) => HandleInput(action);
 
         #endregion
 
@@ -298,26 +285,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (InputProvider != null)
-            {
-                InputProvider.Navigate(
-                    action,
-                    _battleChoices.ToArray(),
-                    ref _currentIndex,
-                    _battleChoices.Count,
-                    ShowConfirmPopup
-                );
-            }
-            else
-            {
-                UiChoiceHandler.HandleNavigation(
-                    action,
-                    _battleChoices.ToArray(),
-                    ref _currentIndex,
-                    _battleChoices.Count,
-                    ShowConfirmPopup
-                );
-            }
+            UiChoiceHandler.HandleNavigation(
+                action,
+                _battleChoices.ToArray(),
+                ref _currentIndex,
+                _battleChoices.Count,
+                ShowConfirmPopup
+            );
 
             if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateDown)
             {
