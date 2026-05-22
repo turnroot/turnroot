@@ -140,8 +140,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // Initialize sublocations and explore locations BEFORE HubTeamLocations.Initialize,
             // so that CanBeVisitedToday() / IsLocked can safely access _brain.
 
-            // Count how many LocationChoices slots are reserved for ExploreChoice (0 or 1).
-            // ExploreChoice may be embedded inside LocationChoices; if so, the remaining slots
+            // Count how many LocationChoices slots are reserved for special choices (ExploreChoice, BattlefieldsChoice).
+            // These may be embedded inside LocationChoices; if so, the remaining slots
             // map 1:1 with subLocations.
             int embeddedExploreCount =
                 ExploreChoice != null
@@ -150,13 +150,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     ? 1
                     : 0;
 
-            int expectedChoiceCount = subLocations.Length + embeddedExploreCount;
+            int embeddedBattlefieldsCount =
+                BattlefieldsChoice != null
+                && LocationChoices != null
+                && System.Array.IndexOf(LocationChoices, BattlefieldsChoice) >= 0
+                    ? 1
+                    : 0;
+
+            int expectedChoiceCount =
+                subLocations.Length + embeddedExploreCount + embeddedBattlefieldsCount;
             if (LocationChoices == null || LocationChoices.Length != expectedChoiceCount)
             {
-                $"LocationChoices has {LocationChoices?.Length ?? 0} entries but subLocations has {subLocations.Length} (plus {embeddedExploreCount} embedded ExploreChoice). Expected {expectedChoiceCount} total. Check the HubManager inspector.".LogWarning();
+                $"LocationChoices has {LocationChoices?.Length ?? 0} entries but subLocations has {subLocations.Length} (plus {embeddedExploreCount} embedded ExploreChoice, {embeddedBattlefieldsCount} embedded BattlefieldsChoice). Expected {expectedChoiceCount} total. Check the HubManager inspector.".LogWarning();
             }
 
-            // Walk LocationChoices in order; skip the ExploreChoice slot and map the rest to subLocations.
+            // Walk LocationChoices in order; skip the ExploreChoice and BattlefieldsChoice slots and map the rest to subLocations.
             int subIndex = 0;
             for (int i = 0; i < subLocations.Length; i++)
             {
@@ -168,9 +176,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 subIndex = 0;
                 for (int i = 0; i < LocationChoices.Length; i++)
                 {
-                    if (LocationChoices[i] == ExploreChoice)
+                    if (
+                        LocationChoices[i] == ExploreChoice
+                        || LocationChoices[i] == BattlefieldsChoice
+                    )
                     {
-                        // This slot is the explore button — no subLocation to map to.
+                        // This slot is a special button — no subLocation to map to.
                         continue;
                     }
 
@@ -211,6 +222,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 ExploreChoice.CanBeSelected =
                     ExploreLocations != null && ExploreLocations.Length > 0;
+            }
+
+            if (BattlefieldsChoice != null)
+            {
+                BattlefieldsChoice.CanBeSelected = BattleChoiceUi != null;
             }
 
             if (EndDay != null)

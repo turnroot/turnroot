@@ -61,16 +61,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            // BattlefieldsChoice may be embedded inside LocationChoices or appended after —
+            // handle it first regardless of position.
+            if (BattlefieldsChoice != null && choice == BattlefieldsChoice)
+            {
+                OpenBattleChoice();
+                return;
+            }
+
             var locationCount = LocationChoices?.Length ?? 0;
 
-            // Choices inside LocationChoices: map to subLocations, skipping ExploreChoice slots.
+            // Choices inside LocationChoices: map to subLocations, skipping ExploreChoice and BattlefieldsChoice slots.
             if (currentIndex < locationCount)
             {
-                // Count how many non-Explore choices precede currentIndex.
+                // Count how many non-special choices precede currentIndex.
                 int subIndex = 0;
                 for (int i = 0; i < currentIndex; i++)
                 {
-                    if (LocationChoices[i] != ExploreChoice)
+                    if (
+                        LocationChoices[i] != ExploreChoice
+                        && LocationChoices[i] != BattlefieldsChoice
+                    )
                     {
                         subIndex++;
                     }
@@ -94,6 +105,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 && LocationChoices != null
                 && System.Array.IndexOf(LocationChoices, ExploreChoice) >= 0;
 
+            bool battlefieldsEmbedded =
+                BattlefieldsChoice != null
+                && LocationChoices != null
+                && System.Array.IndexOf(LocationChoices, BattlefieldsChoice) >= 0;
+
             int remaining = currentIndex - locationCount;
 
             if (ExploreChoice != null && !exploreEmbedded)
@@ -101,6 +117,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (remaining == 0)
                 {
                     OpenExploreMenu();
+                    return;
+                }
+                remaining--;
+            }
+
+            if (BattlefieldsChoice != null && !battlefieldsEmbedded)
+            {
+                if (remaining == 0)
+                {
+                    OpenBattleChoice();
                     return;
                 }
                 remaining--;

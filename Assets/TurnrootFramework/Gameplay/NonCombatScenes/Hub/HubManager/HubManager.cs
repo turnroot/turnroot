@@ -137,6 +137,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UiChoice ExploreChoice;
 
         [BoxGroup("Hub Content")]
+        [InfoBox("UiChoice for the Battlefields entry in the main hub menu.")]
+        public UiChoice BattlefieldsChoice;
+
+        [BoxGroup("Hub Content")]
         [Tooltip(
             "The carousel UI that drives the Explore submenu. Receives all input while the submenu is open."
         )]

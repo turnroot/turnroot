@@ -87,6 +87,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 list.Add(ExploreChoice);
             }
 
+            // Only append BattlefieldsChoice separately if it is NOT already embedded inside LocationChoices.
+            bool battlefieldsEmbedded =
+                BattlefieldsChoice != null
+                && LocationChoices != null
+                && System.Array.IndexOf(LocationChoices, BattlefieldsChoice) >= 0;
+
+            if (BattlefieldsChoice != null && !battlefieldsEmbedded)
+            {
+                list.Add(BattlefieldsChoice);
+            }
+
             if (EndDay != null)
             {
                 list.Add(EndDay);
