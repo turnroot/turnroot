@@ -268,6 +268,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleInput(string action)
         {
+            "$BattleChoiceUI: Received input '{action}'".LogInfo();
             if (_confirmPopupActive)
             {
                 HandleConfirmPopupInput(action);
