@@ -71,7 +71,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 Advance();
             }
-            else if (action is "Back" or InputActionConstants.Cancel)
+            else if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
                 GoBack();
             }

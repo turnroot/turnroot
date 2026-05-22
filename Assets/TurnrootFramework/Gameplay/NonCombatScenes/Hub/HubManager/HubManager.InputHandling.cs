@@ -78,7 +78,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             // Fallback (no carousel assigned): at least handle back.
-            if (action is InputActionConstants.Cancel or "Back")
+            if (action is InputActionConstants.Cancel or InputActionConstants.Back)
             {
                 BackFromExploreMenu();
             }

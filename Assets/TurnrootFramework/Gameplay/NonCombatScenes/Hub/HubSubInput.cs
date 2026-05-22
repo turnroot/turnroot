@@ -81,7 +81,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
-            if (action is "Back" or InputActionConstants.Cancel)
+            if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
                 hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
             }

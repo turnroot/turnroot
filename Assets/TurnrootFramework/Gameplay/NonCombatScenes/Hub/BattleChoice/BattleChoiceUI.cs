@@ -268,7 +268,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleInput(string action)
         {
-            "$BattleChoiceUI: Received input '{action}'".LogInfo();
             if (_confirmPopupActive)
             {
                 HandleConfirmPopupInput(action);
@@ -280,7 +279,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (action == InputActionConstants.Cancel)
+            if (action is InputActionConstants.Cancel or InputActionConstants.Back)
             {
                 _hubManager?.BackFromBattleChoice();
                 return;

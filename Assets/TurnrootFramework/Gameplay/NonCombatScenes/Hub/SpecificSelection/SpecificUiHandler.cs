@@ -157,7 +157,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (
                     action
                     is InputActionConstants.Cancel
-                        or "Back"
+                        or InputActionConstants.Back
                         or InputActionConstants.Submit
                         or InputActionConstants.Select
                 )
@@ -167,7 +167,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (action is "Back" or InputActionConstants.Cancel)
+            if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
                 if (_currentType == HubPoiType.MarketPOI)
                 {
@@ -296,4 +296,3 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
     }
 }
-

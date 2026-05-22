@@ -192,7 +192,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (action is InputActionConstants.Cancel or "Back")
+            if (action is InputActionConstants.Cancel or InputActionConstants.Back)
             {
                 Close();
                 _hubManager?.BackFromExploreMenu();

@@ -181,7 +181,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
-            if (action is "Back" or InputActionConstants.Cancel)
+            if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
                 CharacterManager.NotifyCharacterExited();
                 return;
