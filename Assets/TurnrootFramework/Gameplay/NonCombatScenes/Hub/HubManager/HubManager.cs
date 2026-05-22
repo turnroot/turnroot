@@ -30,27 +30,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Brain.Brain _brain;
 
         [BoxGroup("Core")]
-        [Tooltip("Text element used to display the current hub date (day/month/year).")]
-        public TextMeshProUGUI dateText;
-
-        [BoxGroup("Core")]
-        [InfoBox("Selectable UI elements corresponding to each hub location")]
-        public UiChoice[] LocationChoices;
-
-        [BoxGroup("Core")]
-        public UiChoice EndDay;
-
-        [BoxGroup("Core")]
-        public UiChoice Settings;
-
-        [BoxGroup("Core")]
-        [InfoBox("Loading screen controller used during scene transitions")]
-        public LoadingScreenController LoadingScreen;
-        private UiChoice[] _navigableChoices;
-
-        [BoxGroup("Core")]
         [InfoBox("Input provider used for navigating hub choices.")]
         public UiInputProvider InputProvider;
+
+        [BoxGroup("Core")]
+        [InfoBox("Loading screen controller used during scene transitions.")]
+        public LoadingScreenController LoadingScreen;
 
         [BoxGroup("Core")]
         [InfoBox("Prefab containing the menu canvas used while settings is open.")]
@@ -59,56 +44,129 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Core")]
         public AudioClip HubBackgroundMusic;
 
+        [BoxGroup("Core")]
+        [InfoBox("Text element used to display the current hub date (day/month/year).")]
+        public TextMeshProUGUI dateText;
+
+        [HorizontalLine(color: EColor.Red)]
+        [BoxGroup("Navigation Choices")]
+        [InfoBox(
+            "Selectable UI elements corresponding to each hub location. Order must match subLocations (excluding special choices like ExploreChoice and BattlefieldsChoice)."
+        )]
+        public UiChoice[] LocationChoices;
+
+        [BoxGroup("Navigation Choices")]
+        public UiChoice EndDay;
+
+        [BoxGroup("Navigation Choices")]
+        public UiChoice Settings;
+
+        [BoxGroup("Navigation Choices")]
+        [InfoBox(
+            "UiChoice for the Explore entry in the main hub menu. Can be embedded in LocationChoices or left standalone."
+        )]
+        public UiChoice ExploreChoice;
+
+        [BoxGroup("Navigation Choices")]
+        [InfoBox(
+            "UiChoice for the Battlefields entry in the main hub menu. Can be embedded in LocationChoices or left standalone."
+        )]
+        public UiChoice BattlefieldsChoice;
+
+        [HorizontalLine(color: EColor.Orange)]
         [BoxGroup("Battles")]
-        [Tooltip("The BattleChoiceUI component used to display and navigate available battles.")]
+        [InfoBox("The BattleChoiceUI component used to display and navigate available battles.")]
         public BattleChoiceUI BattleChoiceUi;
 
         private GameObject _menuCanvasInstance;
         private bool _settingsMenuOpen;
         private Action _menuDepthChangedHandler;
 
-        [HorizontalLine()]
-        [BoxGroup("Camera & Fade")]
-        [Tooltip("Fade used when returning from a sublocation back to the hub.")]
+        [HorizontalLine(color: EColor.Yellow)]
+        [BoxGroup("Sublocations")]
+        [InfoBox(
+            "All sublocation areas that can be visited from the hub. Do NOT include entries for ExploreChoice or BattlefieldsChoice here — those are special choices handled separately."
+        )]
+        public HubSubLocation[] subLocations;
+
+        [BoxGroup("Sublocations")]
+        [InfoBox(
+            "All explore locations available in this scene. Locked ones show as unavailable in the Explore submenu."
+        )]
+        public HubExploreLocation[] ExploreLocations;
+
+        [BoxGroup("Sublocations")]
+        [InfoBox(
+            "The carousel UI that drives the Explore submenu. Receives all input while the submenu is open."
+        )]
+        public ExploreMenuCarousel ExploreCarousel;
+
+        [BoxGroup("Sublocations")]
+        public ShopsManager shopsManager;
+
+        [BoxGroup("Sublocations")]
+        public Dock dock;
+
+        [HorizontalLine(color: EColor.Green)]
+        [BoxGroup("Chapter Display")]
+        [InfoBox("UI text used to show the current chapter number and name.")]
+        public TextMeshProUGUI ChapterNumberAndNameText;
+
+        [BoxGroup("Chapter Display")]
+        [InfoBox("Format string for chapter display. {0} = chapter number, {1} = chapter name.")]
+        public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
+
+        [HideInInspector]
+        public GameDate gameDate;
+
+        [HorizontalLine(color: EColor.Blue)]
+        [BoxGroup("Camera & Fades")]
+        [InfoBox("Fade used when returning from a sublocation back to the hub.")]
         public UIFade HubFadeToBlack;
 
-        [BoxGroup("Camera & Fade")]
-        [Tooltip(
+        [BoxGroup("Camera & Fades")]
+        [InfoBox(
             "The main overlay/HUD to hide when opening any vendor UI and restore when closing it."
         )]
         public UIFade MainOverlayUiFade;
 
-        [BoxGroup("Camera & Fade")]
-        [Tooltip("Fade used to show/hide the hub action UI.")]
+        [BoxGroup("Camera & Fades")]
+        [InfoBox("Fade used to show/hide the hub action UI.")]
         public UIFade HubActionsFade;
 
-        [BoxGroup("Camera & Fade")]
-        [Tooltip("Fade used to show/hide the back button UI.")]
+        [BoxGroup("Camera & Fades")]
+        [InfoBox("Fade used to show/hide the back button UI.")]
         public UIFade BackButtonFade;
 
-        [BoxGroup("Camera & Fade")]
-        [Tooltip("Field of view used for the hub camera when not in a sublocation.")]
+        [BoxGroup("Camera & Fades")]
+        [InfoBox("Field of view used for the hub camera when not in a sublocation.")]
         public float HubMainFov;
 
-        [BoxGroup("Camera & Fade")]
+        [BoxGroup("Camera & Fades")]
         [InfoBox(
-            "If an explore location is Indoors, these effects will be disabled when visiting it and re-enabled when returning to the hub"
+            "If an explore location is Indoors, these effects will be disabled when visiting it and re-enabled when returning to the hub."
         )]
         public GameObject[] OutdoorEffects;
 
-        [Header("Spawn Point Sampling")]
-        [Tooltip("Collider used to sample terrain height for unit spawn points.")]
+        [BoxGroup("Camera & Fades")]
+        [InfoBox("Possible camera positions for randomising the hub camera on load.")]
+        public Transform[] cameraPoints;
+
+        [BoxGroup("Camera & Fades")]
+        public Camera GeneralCamera;
+
+        [HorizontalLine(color: EColor.Indigo)]
+        [BoxGroup("Spawn Points")]
+        [InfoBox("Collider used to sample terrain height for unit spawn points.")]
         public MeshCollider SpawnGroundCollider;
 
-        [Tooltip("Raycast distance used when sampling spawn-point height.")]
+        [BoxGroup("Spawn Points")]
+        [InfoBox("Raycast distance used when sampling spawn-point height.")]
         public float SpawnPointRaycastDistance = 20f;
 
-        [HorizontalLine]
+        [HorizontalLine(color: EColor.Violet)]
         [BoxGroup("Notifications")]
         public NotificationsHelper notifications;
-
-        [BoxGroup("Notifications")]
-        public Dock dock;
 
         private DockShipStatus[] pastShipDockedStatuses;
 
@@ -120,57 +178,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public DockShipStatus[] statuses;
         }
 
-        [HorizontalLine]
-        [BoxGroup("Hub Content")]
-        [Tooltip("All sublocation areas that can be visited from the hub.")]
-        public HubSubLocation[] subLocations;
-
-        [BoxGroup("Hub Content")]
-        [Tooltip(
-            "All explore locations available in this scene. "
-                + "Set by you in the inspector; locked ones show as unavailable in the Explore submenu."
-        )]
-        public HubExploreLocation[] ExploreLocations;
-
-        [BoxGroup("Hub Content")]
-        [InfoBox("UiChoice for the Explore entry in the main hub menu.")]
-        public UiChoice ExploreChoice;
-
-        [BoxGroup("Hub Content")]
-        [InfoBox("UiChoice for the Battlefields entry in the main hub menu.")]
-        public UiChoice BattlefieldsChoice;
-
-        [BoxGroup("Hub Content")]
-        [Tooltip(
-            "The carousel UI that drives the Explore submenu. Receives all input while the submenu is open."
-        )]
-        public ExploreMenuCarousel ExploreCarousel;
-
-        [BoxGroup("Hub Content")]
-        public ShopsManager shopsManager;
-
-        [BoxGroup("Hub Content")]
-        [Tooltip("UI text used to show the current chapter number and name.")]
-        public TextMeshProUGUI ChapterNumberAndNameText;
-
-        [BoxGroup("Hub Content")]
-        [Tooltip("Format string used for chapter number/name display.")]
-        public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
-
         [HideInInspector]
-        public GameDate gameDate;
-
-        [BoxGroup("Camera & Fade")]
-        [Tooltip("Possible camera positions for randomizing the hub camera on load.")]
-        public Transform[] cameraPoints;
-
-        [BoxGroup("Camera & Fade")]
-        public Camera GeneralCamera;
-
-        [HorizontalLine]
-        [BoxGroup("Input")]
-        [Tooltip("Current input mode for the hub (location selection, sublocation choice, etc.).")]
         public HubInputMode CurrentInputMode = HubInputMode.None;
+
+        private UiChoice[] _navigableChoices;
 
         public HubInputMode PreviousInputMode { get; private set; } = HubInputMode.None;
 
