@@ -34,7 +34,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [BoxGroup("References")]
         [InfoBox("Parent container in the canvas where battle choice entries are instantiated.")]
-        public Transform ChoiceContainer;
+        public VerticalLayoutGroup ChoiceContainer;
 
         [BoxGroup("References")]
         [InfoBox("Input provider shared with the hub. Subscribed to while this menu is open.")]
@@ -110,7 +110,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public TextMeshProUGUI GoldRewardText;
 
         [BoxGroup("Detail Panel - Rewards")]
-        public Transform ItemsRewardContainer;
+        public VerticalLayoutGroup ItemsRewardContainer;
 
         [BoxGroup("Detail Panel - Rewards")]
         public TextMeshProUGUI ItemRewardLabelPrefab;
@@ -194,7 +194,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 _availableBattles.Add(battle);
 
-                var instance = Instantiate(BattleUiChoicePrefab, ChoiceContainer);
+                var instance = Instantiate(BattleUiChoicePrefab, ChoiceContainer.transform);
                 var choice = instance.GetComponent<UiChoice>();
 
                 var label = instance.GetComponentInChildren<TextMeshProUGUI>();
@@ -592,7 +592,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                var label = Instantiate(ItemRewardLabelPrefab, ItemsRewardContainer);
+                var label = Instantiate(ItemRewardLabelPrefab, ItemsRewardContainer.transform);
                 label.text = item.Name;
 
                 _rewardItemLabels.Add(label.gameObject);
