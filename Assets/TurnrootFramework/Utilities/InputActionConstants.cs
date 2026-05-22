@@ -13,5 +13,6 @@ namespace Turnroot.Utilities
         public const string Start = "Start";
         public const string Confirm = "Confirm";
         public const string Cancel = "Cancel";
+        public const string Back = "Back";
     }
 }
