@@ -112,6 +112,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Detail Panel - Rewards")]
         public Transform ItemsRewardContainer;
 
+        [BoxGroup("Detail Panel - Rewards")]
+        public TextMeshProUGUI ItemRewardLabelPrefab;
+
         #endregion
 
         #region Private State
@@ -573,7 +576,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             ClearRewardItems();
 
-            if (ItemsRewardContainer == null || battle.Rewards == null)
+            if (
+                ItemsRewardContainer == null
+                || ItemRewardLabelPrefab == null
+                || battle.Rewards == null
+            )
             {
                 return;
             }
@@ -585,12 +592,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                var go = new GameObject(item.Name, typeof(TextMeshProUGUI));
-                go.transform.SetParent(ItemsRewardContainer, worldPositionStays: false);
+                var label = Instantiate(ItemRewardLabelPrefab, ItemsRewardContainer);
+                label.text = item.Name;
 
-                go.GetComponent<TextMeshProUGUI>().text = item.Name;
-
-                _rewardItemLabels.Add(go);
+                _rewardItemLabels.Add(label.gameObject);
             }
         }
 
