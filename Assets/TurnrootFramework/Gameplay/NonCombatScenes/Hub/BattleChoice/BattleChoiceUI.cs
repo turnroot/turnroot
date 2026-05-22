@@ -106,6 +106,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [InfoBox("Component that renders the 4-quadrant smoky map when UnexploredMaps is on.")]
         public MapQuadrantBlendImage MapQuadrantDisplay;
 
+        [BoxGroup("Detail Panel - Rewards")]
+        public TextMeshProUGUI GoldRewardText;
+
+        [BoxGroup("Detail Panel - Rewards")]
+        public Transform ItemsRewardContainer;
+
         #endregion
 
         #region Private State
@@ -115,6 +121,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private readonly List<UiChoice> _battleChoices = new();
         private readonly List<AllGameBattlesTable.BattleEntry> _availableBattles = new();
+        private readonly List<GameObject> _rewardItemLabels = new();
 
         private int _currentIndex;
 
@@ -250,6 +257,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _battleChoices.Clear();
             _availableBattles.Clear();
             _currentIndex = 0;
+            ClearRewardItems();
         }
 
         #endregion
@@ -454,6 +462,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             UpdateMapImages(battle);
+            UpdateRewardItems(battle);
         }
 
         private void UpdateMapImages(AllGameBattlesTable.BattleEntry battle)
@@ -544,6 +553,44 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     obj.SetActive(active);
                 }
+            }
+        }
+
+        private void ClearRewardItems()
+        {
+            foreach (var label in _rewardItemLabels)
+            {
+                if (label != null)
+                {
+                    Destroy(label);
+                }
+            }
+
+            _rewardItemLabels.Clear();
+        }
+
+        private void UpdateRewardItems(AllGameBattlesTable.BattleEntry battle)
+        {
+            ClearRewardItems();
+
+            if (ItemsRewardContainer == null || battle.Rewards == null)
+            {
+                return;
+            }
+
+            foreach (var item in battle.Rewards)
+            {
+                if (item == null)
+                {
+                    continue;
+                }
+
+                var go = new GameObject(item.Name, typeof(TextMeshProUGUI));
+                go.transform.SetParent(ItemsRewardContainer, worldPositionStays: false);
+
+                go.GetComponent<TextMeshProUGUI>().text = item.Name;
+
+                _rewardItemLabels.Add(go);
             }
         }
 
