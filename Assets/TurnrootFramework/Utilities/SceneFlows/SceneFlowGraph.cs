@@ -137,6 +137,11 @@ namespace Turnroot.Utilities.SceneFlows
         [Tooltip("Is this a battle scene?")]
         public bool isBattle = false;
 
+        [Tooltip(
+            "Is this an End Of Hub Day scene? Groups with a Hub scene to form a Complete Hub Day block."
+        )]
+        public bool isEndOfHubDay = false;
+
         [Tooltip("Should this scene stay loaded in the background when leaving?")]
         public bool persistWhenLeaving = false;
 

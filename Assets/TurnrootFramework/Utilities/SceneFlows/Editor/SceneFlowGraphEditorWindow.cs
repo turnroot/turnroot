@@ -59,6 +59,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private GUIStyle _badgeLabelStyle;
         private GUIStyle _chapterBadgeLabelStyle;
         private GUIStyle _nodeIdStyle;
+        private GUIStyle _groupHeaderLabelStyle;
         private bool _stylesInitialized;
         private const int STATUS_BAR_HEIGHT = 22;
 
@@ -317,6 +318,13 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             _nodeIdStyle = new GUIStyle(_labelStyle) { fontSize = idFontSize };
             _nodeIdStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
 
+            _groupHeaderLabelStyle = new GUIStyle(_labelStyle)
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+            };
+
             _stylesInitialized = true;
         }
 
@@ -478,6 +486,9 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Now apply matrix for nodes and transitions
             GUI.matrix = Matrix4x4.TRS(_panOffset, Quaternion.identity, Vector3.one * _zoom);
 
+            // Draw complete hub day group outlines (behind everything else)
+            DrawCompleteHubDayGroups();
+
             // Draw transitions first (so they appear behind nodes)
             DrawAllTransitions(graphRect);
 
@@ -599,6 +610,18 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 _clickedEmptySpace = true;
             }
 
+            // Ctrl+H: add a Complete Hub Day block
+            if (
+                e.type == EventType.KeyDown
+                && e.keyCode == KeyCode.H
+                && (e.control || e.command)
+                && _graph != null
+            )
+            {
+                AddCompleteHubDayBlock();
+                e.Use();
+            }
+
             // Delete selected with Delete key
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Delete)
             {
@@ -647,14 +670,14 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             {
                 style =
                     node.isBattle ? _battleNodeSelectedStyle
-                    : node.isHub ? _hubNodeSelectedStyle
+                    : (node.isHub || node.isEndOfHubDay) ? _hubNodeSelectedStyle
                     : _nodeSelectedStyle;
             }
             else
             {
                 style =
                     node.isBattle ? _battleNodeStyle
-                    : node.isHub ? _hubNodeStyle
+                    : (node.isHub || node.isEndOfHubDay) ? _hubNodeStyle
                     : _nodeStyle;
             }
 
@@ -706,6 +729,14 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 var hubRect = new Rect(rect.x + 5, rect.y + 5, 15, 15);
                 EditorGUI.DrawRect(hubRect, new Color(1f, 0.8f, 0f, 0.5f));
                 GUI.Label(hubRect, "H", _badgeLabelStyle);
+            }
+
+            // End Of Hub Day indicator (top-left, same color as hub)
+            if (node.isEndOfHubDay)
+            {
+                var eodRect = new Rect(rect.x + 5, rect.y + 5, 15, 15);
+                EditorGUI.DrawRect(eodRect, new Color(1f, 0.8f, 0f, 0.5f));
+                GUI.Label(eodRect, "E", _badgeLabelStyle);
             }
 
             // Battle indicator (bottom-left)
@@ -1174,7 +1205,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox(
-                "Click a node to select it.\nCtrl+Click or Shift+Click to multi-select nodes.\nShift+Drag from one node to another to create a transition.\nRight-click a node for more options.\nDelete key removes the selected node/transition.",
+                "Click a node to select it.\nCtrl+Click or Shift+Click to multi-select nodes.\nShift+Drag from one node to another to create a transition.\nRight-click a node for more options.\nDelete key removes the selected node/transition.\nCtrl+H adds a duplicate Complete Hub Day block (requires an existing Hub and End Of Hub Day scene).",
                 MessageType.Info
             );
         }
@@ -1308,6 +1339,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
 
             EditorGUILayout.Space();
             _selectedNode.isHub = EditorGUILayout.Toggle("Is Hub Scene", _selectedNode.isHub);
+            _selectedNode.isEndOfHubDay = EditorGUILayout.Toggle(
+                "Is End Of Hub Day",
+                _selectedNode.isEndOfHubDay
+            );
             _selectedNode.persistWhenLeaving = EditorGUILayout.Toggle(
                 "Persist When Leaving",
                 _selectedNode.persistWhenLeaving
@@ -2022,6 +2057,18 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     Repaint();
                 }
             );
+            menu.AddItem(
+                new GUIContent("Toggle End Of Hub Day"),
+                false,
+                () =>
+                {
+                    Undo.RecordObject(_graph, "Toggle End Of Hub Day");
+                    node.isEndOfHubDay = !node.isEndOfHubDay;
+                    EditorUtility.SetDirty(_graph);
+                    AssetDatabase.SaveAssetIfDirty(_graph);
+                    Repaint();
+                }
+            );
             menu.AddSeparator("");
             menu.AddItem(new GUIContent("Delete Node"), false, () => DeleteNode(node));
             menu.ShowAsContext();
@@ -2201,6 +2248,177 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 EditorUtility.FocusProjectWindow();
                 Selection.activeObject = newGraph;
             }
+        }
+
+        private void DrawCompleteHubDayGroups()
+        {
+            if (_graph?.transitions == null || _graph.scenes == null)
+                return;
+
+            const float padding = 20f;
+            const float labelHeight = 18f;
+            var groupOutlineColor = new Color(1f, 0.78f, 0.1f, 0.75f);
+            var groupFillColor = new Color(1f, 0.78f, 0.1f, 0.06f);
+            var groupLabelBgColor = new Color(0.12f, 0.10f, 0.0f, 0.9f);
+
+            foreach (var transition in _graph.transitions)
+            {
+                var fromNode = _graph.GetScene(transition.fromSceneId);
+                var toNode = _graph.GetScene(transition.toSceneId);
+
+                if (fromNode == null || toNode == null)
+                    continue;
+                if (!fromNode.isHub || !toNode.isEndOfHubDay)
+                    continue;
+
+                var fromRect = GetNodeRect(fromNode);
+                var toRect = GetNodeRect(toNode);
+
+                float left = Mathf.Min(fromRect.xMin, toRect.xMin) - padding;
+                float top = Mathf.Min(fromRect.yMin, toRect.yMin) - padding;
+                float right = Mathf.Max(fromRect.xMax, toRect.xMax) + padding;
+                float bottom = Mathf.Max(fromRect.yMax, toRect.yMax) + padding;
+
+                var fillRect = new Rect(left, top, right - left, bottom - top);
+                var groupRect = new Rect(
+                    left,
+                    top - labelHeight,
+                    right - left,
+                    bottom - top + labelHeight
+                );
+
+                // Semi-transparent fill
+                EditorGUI.DrawRect(fillRect, groupFillColor);
+
+                // Outline
+                Handles.BeginGUI();
+                Handles.color = groupOutlineColor;
+                Handles.DrawAAPolyLine(
+                    2f,
+                    new Vector3(groupRect.xMin, groupRect.yMin),
+                    new Vector3(groupRect.xMax, groupRect.yMin),
+                    new Vector3(groupRect.xMax, groupRect.yMax),
+                    new Vector3(groupRect.xMin, groupRect.yMax),
+                    new Vector3(groupRect.xMin, groupRect.yMin)
+                );
+                Handles.EndGUI();
+
+                // Label background + text
+                var labelRect = new Rect(
+                    groupRect.xMin,
+                    groupRect.yMin,
+                    groupRect.width,
+                    labelHeight
+                );
+                EditorGUI.DrawRect(labelRect, groupLabelBgColor);
+                GUI.Label(labelRect, "Complete Hub Day", _groupHeaderLabelStyle);
+            }
+        }
+
+        private void AddCompleteHubDayBlock()
+        {
+            if (_graph == null)
+                return;
+
+            var existingHub = _graph.scenes.Find(s => s.isHub);
+            var existingEOHD = _graph.scenes.Find(s => s.isEndOfHubDay);
+
+            if (existingHub == null || existingEOHD == null)
+            {
+                string missing =
+                    existingHub == null && existingEOHD == null
+                        ? "a Hub scene and an End Of Hub Day scene"
+                    : existingHub == null ? "a Hub scene"
+                    : "an End Of Hub Day scene";
+
+                EditorUtility.DisplayDialog(
+                    "Cannot Add Complete Hub Day Block",
+                    $"The graph needs {missing} before you can duplicate a Complete Hub Day block. "
+                        + "Create and mark scenes appropriately first.",
+                    "OK"
+                );
+                return;
+            }
+
+            // Use the last Hub→EOHD transition as position/data template
+            SceneNode templateHub = existingHub;
+            SceneNode templateEOHD = existingEOHD;
+            foreach (var t in _graph.transitions)
+            {
+                var from = _graph.GetScene(t.fromSceneId);
+                var to = _graph.GetScene(t.toSceneId);
+                if (from != null && to != null && from.isHub && to.isEndOfHubDay)
+                {
+                    templateHub = from;
+                    templateEOHD = to;
+                }
+            }
+
+            Vector2 eohdOffset = templateEOHD.editorPosition - templateHub.editorPosition;
+            if (eohdOffset.sqrMagnitude < 1f)
+                eohdOffset = new Vector2(NODE_WIDTH + 40f, 0f);
+
+            Vector2 newHubPos = templateHub.editorPosition + new Vector2(0f, NODE_HEIGHT + 80f);
+
+            Undo.RecordObject(_graph, "Add Complete Hub Day Block");
+
+            string hubId = "hub_" + System.Guid.NewGuid().ToString("N").Substring(0, 8);
+            var newHub = new SceneNode
+            {
+                id = hubId,
+                displayName = templateHub.displayName,
+                sceneName = templateHub.sceneName,
+                sceneAsset = templateHub.sceneAsset,
+                isHub = true,
+                persistWhenLeaving = templateHub.persistWhenLeaving,
+                TimePasses = templateHub.TimePasses,
+                IncrementDate = templateHub.IncrementDate,
+                IncrementDays = templateHub.IncrementDays,
+                MonthForThisScene = templateHub.MonthForThisScene,
+                DayForThisScene = templateHub.DayForThisScene,
+                HasYear = templateHub.HasYear,
+                YearForThisScene = templateHub.YearForThisScene,
+                editorPosition = newHubPos,
+            };
+
+            string eohdId = "eohd_" + System.Guid.NewGuid().ToString("N").Substring(0, 8);
+            var newEOHD = new SceneNode
+            {
+                id = eohdId,
+                displayName = templateEOHD.displayName,
+                sceneName = templateEOHD.sceneName,
+                sceneAsset = templateEOHD.sceneAsset,
+                isEndOfHubDay = true,
+                persistWhenLeaving = templateEOHD.persistWhenLeaving,
+                TimePasses = templateEOHD.TimePasses,
+                IncrementDate = templateEOHD.IncrementDate,
+                IncrementDays = templateEOHD.IncrementDays,
+                MonthForThisScene = templateEOHD.MonthForThisScene,
+                DayForThisScene = templateEOHD.DayForThisScene,
+                HasYear = templateEOHD.HasYear,
+                YearForThisScene = templateEOHD.YearForThisScene,
+                editorPosition = newHubPos + eohdOffset,
+            };
+
+            var newTransition = new SceneTransition
+            {
+                fromSceneId = hubId,
+                toSceneId = eohdId,
+                label = "End Day",
+                conditions = new List<SceneCondition>(),
+            };
+
+            _graph.AddScene(newHub);
+            _graph.AddScene(newEOHD);
+            _graph.AddTransition(newTransition);
+
+            _selectedNode = newHub;
+            _selectedNodes.Clear();
+            _selectedTransition = null;
+
+            EditorUtility.SetDirty(_graph);
+            AssetDatabase.SaveAssetIfDirty(_graph);
+            Repaint();
         }
 
         private void DrawStatusBar(Rect rect)
