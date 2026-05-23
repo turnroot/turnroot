@@ -73,14 +73,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Detail Panel - Difficulty")]
         public Sprite DifficultyInactiveSprite;
 
-        [BoxGroup("Detail Panel - Flags")]
-        [InfoBox("GameObjects to activate when the battle is a Required Story battle.")]
-        public GameObject[] RequiredObjects;
-
-        [BoxGroup("Detail Panel - Flags")]
-        [InfoBox("GameObjects to activate when the battle is a Paralogue battle.")]
-        public GameObject[] ParalogueObjects;
-
         [BoxGroup("Detail Panel - Background")]
         public Color NormalBackgroundColor = Color.white;
 
@@ -443,8 +435,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
-            SetObjectsActive(RequiredObjects, battle.RequiredStoryBattle);
-            SetObjectsActive(ParalogueObjects, battle.ParalogueBattle);
+            if (_currentIndex >= 0 && _currentIndex < _battleChoices.Count)
+            {
+                if (
+                    _battleChoices[_currentIndex]
+                        .TryGetComponent<BattleChoiceTypeDisplay>(out var typeDisplay)
+                )
+                {
+                    typeDisplay.SetRequiredActive(battle.RequiredStoryBattle);
+                    typeDisplay.SetParalogueActive(battle.ParalogueBattle);
+                }
+            }
 
             var bgColor =
                 battle.RequiredStoryBattle ? RequiredBackgroundColor
@@ -539,22 +540,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #endregion
 
         #region Helpers
-
-        private static void SetObjectsActive(GameObject[] objects, bool active)
-        {
-            if (objects == null)
-            {
-                return;
-            }
-
-            foreach (var obj in objects)
-            {
-                if (obj != null)
-                {
-                    obj.SetActive(active);
-                }
-            }
-        }
 
         private void ClearRewardItems()
         {

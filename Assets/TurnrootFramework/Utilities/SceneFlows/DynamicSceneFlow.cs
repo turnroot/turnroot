@@ -44,10 +44,7 @@ namespace Turnroot.Utilities.AbstractScripts
         public string customKey;
         public bool value;
 
-        public string ResolveKey()
-        {
-            return keySource == SceneFlowFlagKeySource.Custom ? customKey : existingKey;
-        }
+        public string ResolveKey() => keySource == SceneFlowFlagKeySource.Custom ? customKey : existingKey;
     }
 
     /// <summary>
@@ -91,10 +88,7 @@ namespace Turnroot.Utilities.AbstractScripts
             TryBindBrain(FindFirstObjectByType<Brain>());
         }
 
-        protected virtual void OnEnable()
-        {
-            TryBindBrain(brain ?? FindFirstObjectByType<Brain>());
-        }
+        protected virtual void OnEnable() => TryBindBrain(brain ?? FindFirstObjectByType<Brain>());
 
         protected virtual void OnDisable()
         {

@@ -23,10 +23,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         private Graphic _graphic;
 
-        private void Awake()
-        {
-            _graphic = GetComponent<Graphic>();
-        }
+        private void Awake() => _graphic = GetComponent<Graphic>();
 
         private void Update()
         {

@@ -20,7 +20,9 @@ namespace Turnroot.Gameplay.Brain
             foreach (var t in model.GetComponentsInChildren<Transform>(true))
             {
                 if (t.name == boneName)
+                {
                     return t;
+                }
             }
             return null;
         }

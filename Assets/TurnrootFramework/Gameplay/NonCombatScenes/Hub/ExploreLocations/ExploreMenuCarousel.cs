@@ -128,10 +128,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         #region Lifecycle
 
-        private void Awake()
-        {
-            _hubManager = FindFirstObjectByType<HubManager>();
-        }
+        private void Awake() => _hubManager = FindFirstObjectByType<HubManager>();
 
         private void OnEnable()
         {

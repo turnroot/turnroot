@@ -113,10 +113,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             return current >= unlock;
         }
 
-        private bool IsChapterUnlocked(Brain.Brain brain)
-        {
-            return brain?.saveFileBrain?.ActiveSaveFile == null ? false : brain.saveFileBrain.ActiveSaveFile.ChapterNumber >= UnlockAfterChapter;
-        }
+        private bool IsChapterUnlocked(Brain.Brain brain) => brain?.saveFileBrain?.ActiveSaveFile == null ? false : brain.saveFileBrain.ActiveSaveFile.ChapterNumber >= UnlockAfterChapter;
 
         private bool IsCharacterSupportUnlocked(Brain.Brain brain)
         {

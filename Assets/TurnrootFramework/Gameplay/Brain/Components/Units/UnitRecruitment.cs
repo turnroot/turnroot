@@ -25,7 +25,9 @@ namespace Turnroot.Gameplay.Brain
         private bool AvatarHasMinExperienceLevels(CharacterData characterData)
         {
             if (!characterData.AvatarMustHaveMinimumExperienceLevelsToRecruit)
+            {
                 return true;
+            }
 
             // check avatar experience ranks against characterData.AvatarMinimumExperienceRanksToRecruit
             foreach (var required in characterData.AvatarMinimumExperienceRanksToRecruit)
@@ -34,7 +36,9 @@ namespace Turnroot.Gameplay.Brain
                     r.ExperienceTypeId == required.ExperienceTypeId
                 );
                 if (avatarRank == null || required.Rank.CompareTo(avatarRank.Rank.Value) > 0)
+                {
                     return false;
+                }
             }
             return true;
         }
@@ -75,7 +79,9 @@ namespace Turnroot.Gameplay.Brain
         {
             avatar = new NullSafeAvatar(_gamewideContextBrain?.GetOrCreateAvatarInstance());
             if (!avatar.IsValid)
+            {
                 return false;
+            }
 
             var status = false;
 

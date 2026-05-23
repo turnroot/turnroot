@@ -33,10 +33,7 @@ namespace Turnroot.Characters
             }
         }
 
-        public static void ClearCache()
-        {
-            _cachedMaxNonWeaponSlots = null;
-        }
+        public static void ClearCache() => _cachedMaxNonWeaponSlots = null;
 
         /// <summary>
         /// Helper to safely retrieve a setting with a default fallback.

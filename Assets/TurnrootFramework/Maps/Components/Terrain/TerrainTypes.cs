@@ -128,7 +128,10 @@ namespace Turnroot.Gameplay.Maps
             {
                 var p = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
                 if (!p.StartsWith("Assets/TurnrootFramework/"))
+                {
                     return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(p);
+                }
+
                 fallbackPath ??= p;
             }
             return fallbackPath != null ? UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(fallbackPath) : null;

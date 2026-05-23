@@ -388,9 +388,14 @@ namespace Turnroot.Gameplay.Brain
             attacker?.ClearCombatBonuses();
             defender?.ClearCombatBonuses();
             if (attacker != null)
+            {
                 context.CustomData.Remove($"DamageReduction_{attacker.Id}");
+            }
+
             if (defender != null)
+            {
                 context.CustomData.Remove($"DamageReduction_{defender.Id}");
+            }
 
             // Fire CombatStarts skills for attacker (target = defender, is initiating = true)
             if (attacker != null)
