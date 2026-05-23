@@ -231,7 +231,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (EndDay != null)
             {
-                EndDay.CanBeSelected = true;
+                RefreshEndDayAvailability();
             }
             if (Settings != null)
             {
