@@ -111,6 +111,19 @@ namespace Turnroot.Utilities.SceneFlows
                 }
                 _brain?.PublishGameDateChanged(date.year, date.month, date.day);
             }
+
+            // Re-publish the chapter for the current scene now that a save file is active.
+            // ApplySceneArrivalSideEffects already ran for the current scene (e.g. game_start)
+            // but at that point no save file existed yet, so PublishSetSaveFileChapter was a
+            // no-op. Publishing directly here (bypassing the dedup guard) ensures the chapter
+            // is correctly written as soon as the player's save slot becomes active.
+            if (_currentScene != null && _currentScene.SpecificChapter)
+            {
+                _brain?.PublishSetSaveFileChapter(
+                    _currentScene.ChapterName,
+                    _currentScene.ChapterNumber
+                );
+            }
         }
 
         public SceneNode CurrentScene => _currentScene;

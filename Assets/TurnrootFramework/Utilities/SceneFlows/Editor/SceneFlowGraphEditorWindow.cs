@@ -476,12 +476,14 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Handle input
             HandleGraphInput(graphRect);
 
-            // Begin zoomed and panned area
-            GUILayout.BeginArea(graphRect);
+            // Clip all drawing — both regular GUI calls and Handles — to the graph rect.
+            // GUILayout.BeginArea only clips GUI calls; Handles.DrawLine bypasses it and
+            // bleeds into the sidebar. GUI.BeginClip clips everything including Handles.
+            GUI.BeginClip(graphRect);
 
-            // Draw grid BEFORE applying matrix (in screen space)
+            // Draw grid BEFORE applying matrix (in screen space, area-local coords)
             Matrix4x4 oldMatrix = GUI.matrix;
-            DrawGrid(graphRect);
+            DrawGrid(new Rect(0, 0, graphRect.width, graphRect.height));
 
             // Now apply matrix for nodes and transitions
             GUI.matrix = Matrix4x4.TRS(_panOffset, Quaternion.identity, Vector3.one * _zoom);
@@ -496,7 +498,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             DrawAllNodes(graphRect);
 
             GUI.matrix = oldMatrix;
-            GUILayout.EndArea();
+            GUI.EndClip();
 
             // Draw connection line if creating transition
             if (_transitionStartNode != null)
