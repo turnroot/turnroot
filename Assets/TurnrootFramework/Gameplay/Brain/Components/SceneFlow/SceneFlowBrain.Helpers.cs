@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Turnroot.GameSettings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,16 +16,16 @@ namespace Turnroot.Utilities.SceneFlows
             return string.IsNullOrEmpty(fromSceneId) || sceneFlowGraph == null
                 ? null
                 : sceneFlowGraph.transitions.Find(t =>
-                t.fromSceneId == fromSceneId && t.toSceneId == toSceneId
-                || (t.isBidirectional && t.toSceneId == fromSceneId && t.fromSceneId == toSceneId)
-            );
+                    t.fromSceneId == fromSceneId && t.toSceneId == toSceneId
+                    || (
+                        t.isBidirectional
+                        && t.toSceneId == fromSceneId
+                        && t.fromSceneId == toSceneId
+                    )
+                );
         }
 
-        private IEnumerator LoadSceneAsync(
-            SceneNode targetScene,
-            SceneTransition transition,
-            bool addToHistory = true
-        )
+        private IEnumerator LoadSceneAsync(SceneNode targetScene, SceneTransition transition)
         {
             // Publish scene transition started event
             Brain.PublishSceneTransitionStarted(targetScene.sceneName, targetScene.displayName);
@@ -35,8 +36,17 @@ namespace Turnroot.Utilities.SceneFlows
             // This ensures the loading UI is visible and ready before the actual loading begins
             yield return new WaitForSeconds(GamewideUiSettings.Instance.LoadingFadeInTime);
 
-            // Store the previous scene name for unloading (preserve Brain scene)
+            // Store the previous scene for unloading checks (preserve Brain scene)
+            SceneNode previousSceneNode = _currentScene;
             string previousSceneName = _currentScene?.sceneName;
+
+            // Snapshot the hash of every currently loaded scene BEFORE the additive load.
+            // This lets us identify the new scene instance even when old and new share the
+            // same Unity scene file (e.g. Hub Period 1 and Hub Period 2 both load "hub.unity").
+            // Scene.GetHashCode() returns the internal scene handle, which is unique per instance.
+            var sceneHandlesBeforeLoad = new HashSet<int>();
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+                sceneHandlesBeforeLoad.Add(SceneManager.GetSceneAt(i).GetHashCode());
 
             // Start loading the scene additively to preserve Brain scene
             var asyncLoad = SceneManager.LoadSceneAsync(
@@ -47,37 +57,47 @@ namespace Turnroot.Utilities.SceneFlows
             if (asyncLoad == null)
             {
                 $"SceneFlowBrain: Failed to start loading scene '{targetScene.sceneName}'!".LogError();
+                _isTransitioning = false;
                 yield break;
             }
-
-            // Track progress to detect if it actually updates
-            float lastReportedProgress = 0f;
 
             // Wait for scene to load and report progress
             while (!asyncLoad.isDone)
             {
                 float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
-                lastReportedProgress = progress;
                 Brain.PublishSceneLoadProgress(progress);
                 yield return null;
             }
 
-            // Set the newly loaded scene as active immediately
-            Scene newScene = SceneManager.GetSceneByName(targetScene.sceneName);
-            if (newScene.IsValid())
+            // Identify the new and old scene instances using the pre-load handle snapshot.
+            // SceneManager.GetSceneByName always returns the FIRST match, which would be the
+            // OLD scene when the old and new scenes share the same Unity file name.
+            Scene newScene = default;
+            Scene oldScene = default;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
             {
-                SceneManager.SetActiveScene(newScene);
-            }
+                var s = SceneManager.GetSceneAt(i);
+                int hash = s.GetHashCode();
+                bool isNew = !sceneHandlesBeforeLoad.Contains(hash);
 
-            // Disable duplicate singleton components in the old scene to avoid Unity warnings
-            if (!string.IsNullOrEmpty(previousSceneName) && previousSceneName != BrainSceneName)
-            {
-                Scene oldScene = SceneManager.GetSceneByName(previousSceneName);
-                if (oldScene.IsValid())
-                {
-                    DisableDuplicateComponents(oldScene);
-                }
+                if (isNew && !newScene.IsValid() && s.name == targetScene.sceneName)
+                    newScene = s;
+                else if (!isNew && !oldScene.IsValid() && s.name == previousSceneName)
+                    oldScene = s;
             }
+            // Fallback for the edge case where the scene was already unloaded or renamed.
+            if (!newScene.IsValid())
+                newScene = SceneManager.GetSceneByName(targetScene.sceneName);
+            if (!oldScene.IsValid() && !string.IsNullOrEmpty(previousSceneName))
+                oldScene = SceneManager.GetSceneByName(previousSceneName);
+
+            if (newScene.IsValid())
+                SceneManager.SetActiveScene(newScene);
+
+            // Disable duplicate singleton components (EventSystem, AudioListener) in the old
+            // scene before it is unloaded, to suppress Unity warnings while both are loaded.
+            if (oldScene.IsValid() && previousSceneName != BrainSceneName)
+                DisableDuplicateComponents(oldScene);
 
             // Fake progress steps up to 95% - DON'T report 100% yet
             float[] fakeProgressSteps =
@@ -119,30 +139,40 @@ namespace Turnroot.Utilities.SceneFlows
             // Signal that the scene is ready to display - loading UIs should hide now
             Brain.PublishSceneReadyToDisplay(targetScene.sceneName, targetScene.displayName);
 
-            // NOW unload the previous scene (but not the Brain scene)
-            if (!string.IsNullOrEmpty(previousSceneName) && previousSceneName != BrainSceneName)
+            // Determine whether to unload the previous scene.
+            // Priority: persistWhenLeaving on the node overrides everything; otherwise the
+            // transition's unloadPreviousScene flag controls it (defaults to true when no
+            // transition is provided, e.g. GoBackToPreviousScene).
+            bool shouldKeepPrevious =
+                (previousSceneNode?.persistWhenLeaving ?? false)
+                || !(transition?.unloadPreviousScene ?? true);
+
+            if (oldScene.IsValid() && previousSceneName != BrainSceneName && !shouldKeepPrevious)
             {
                 $"SceneFlowBrain: Unloading previous scene '{previousSceneName}'".LogInfo();
-                SceneManager.UnloadSceneAsync(previousSceneName);
+                SceneManager.UnloadSceneAsync(oldScene);
             }
-            else if (previousSceneName == BrainSceneName)
+            else if (!oldScene.IsValid() || previousSceneName == BrainSceneName)
             {
-                $"SceneFlowBrain: Skipping unload of Brain scene '{BrainSceneName}'".LogInfo();
+                $"SceneFlowBrain: Skipping unload — no previous scene or it is the Brain scene.".LogInfo();
+            }
+            else
+            {
+                $"SceneFlowBrain: Keeping '{previousSceneName}' loaded (persist={previousSceneNode?.persistWhenLeaving}, transition.unload={transition?.unloadPreviousScene ?? true}).".LogInfo();
             }
 
-            // Update current scene
+            // Update current scene and apply all arrival side effects (date, hub flags,
+            // HubDayCompleted event, chapter).  ApplySceneArrivalSideEffects is guarded by
+            // _lastSideEffectsSceneId, so if the scene component also calls SetCurrentScene
+            // for this same transition the effects will not double-fire.
             _currentScene = targetScene;
-
-            // Update SaveFileBrain chapter info if this scene has a specific chapter
-            if (targetScene.SpecificChapter)
-            {
-                Brain.PublishSetSaveFileChapter(targetScene.ChapterName, targetScene.ChapterNumber);
-            }
+            ApplySceneArrivalSideEffects(targetScene);
 
             // Publish scene transition completed event
             Brain.PublishSceneTransitionCompleted(targetScene.sceneName, targetScene.displayName);
             Brain.PublishSceneChanged(targetScene.sceneName, targetScene.displayName);
 
+            _isTransitioning = false;
             $"SceneFlowBrain: Loaded scene '{targetScene.displayName}' ({targetScene.sceneName})".LogInfo();
         }
 

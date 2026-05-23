@@ -41,6 +41,11 @@ namespace Turnroot.Gameplay.Brain
         // fired whenever the in‑game calendar date is written to long‑term memory
         public event Action<int, int, int> OnGameDateChanged;
 
+        /// <summary>
+        /// Fired when a hub day is fully completed — the End Of Hub Day scene has been entered.
+        /// </summary>
+        public event Action OnHubDayCompleted;
+
         public void PublishSceneTransitionStarted(string sceneName, string displayName) =>
             OnSceneTransitionStarted?.Invoke(sceneName, displayName);
 
@@ -61,6 +66,8 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishGameDateChanged(int year, int month, int day) =>
             OnGameDateChanged?.Invoke(year, month, day);
+
+        public void PublishHubDayCompleted() => OnHubDayCompleted?.Invoke();
 
         #endregion
     }

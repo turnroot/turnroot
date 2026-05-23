@@ -26,18 +26,22 @@ namespace Turnroot.Utilities.SceneFlows
         [SerializeField, HideInInspector]
         private SceneNode _currentScene;
         private Stack<string> _sceneHistory = new();
-
-        [SerializeField]
         private Dictionary<string, bool> _customFlags = new();
-
-        [SerializeField]
         private Dictionary<string, int> _customIntValues = new();
-
-        [SerializeField]
         private Dictionary<string, string> _customStringValues = new();
 
         // Condition evaluator instance
         private SceneFlowConditionEvaluatorImpl _conditionEvaluator;
+
+        // Tracks which scene last had arrival side-effects applied, so that when both
+        // LoadSceneAsync and a scene component call SetCurrentScene for the same transition
+        // the side effects (hub flag reset, HubDayCompleted, date advance, chapter) only
+        // fire once.
+        private string _lastSideEffectsSceneId;
+
+        // Guards against concurrent scene transitions (e.g. player spam-clicking a button).
+        // Set to true when a transition starts; cleared when LoadSceneAsync finishes or aborts.
+        private bool _isTransitioning;
 
         // The Brain scene name (matches BrainLoader constant)
         private const string BrainSceneName = "TurnrootBrain";
@@ -81,15 +85,10 @@ namespace Turnroot.Utilities.SceneFlows
             }
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
-            // Subscribe to any brain events relevant to scene flow
-            // For example, battle completion, story progression, etc.
-        }
+        protected override void SubscribeToBrainEvents() { }
 
         protected override void UnsubscribeFromBrainEvents()
         {
-            // Unsubscribe from brain events
             if (_brain != null)
             {
                 _brain.OnLongTermMemoryInitialized -= OnLtmInitialized;
@@ -110,7 +109,7 @@ namespace Turnroot.Utilities.SceneFlows
                     _ltm.SetGameDate(start.year, (Month)(start.month - 1), start.day);
                     date = _ltm.GetGameDate();
                 }
-                _brain.PublishGameDateChanged(date.year, date.month, date.day);
+                _brain?.PublishGameDateChanged(date.year, date.month, date.day);
             }
         }
 
@@ -141,30 +140,15 @@ namespace Turnroot.Utilities.SceneFlows
             }
 
             _currentScene = scene;
-
-            // update stored game date based on scene metadata
-            if (scene.TimePasses && _ltm != null && _ltm.Initialized)
-            {
-                ApplySceneDateToLtm(scene);
-            }
-
-            // Reset the end-of-day transition flags when we arrive at a hub scene
-            if (scene.isHub)
-            {
-                SetCustomFlag(SceneFlowConditionKeys.ReturnToHub, false);
-                SetCustomFlag(SceneFlowConditionKeys.EndHubDay, false);
-            }
-
-            if (scene.SpecificChapter)
-            {
-                Brain.PublishSetSaveFileChapter(scene.ChapterName, scene.ChapterNumber);
-            }
-
+            ApplySceneArrivalSideEffects(scene);
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
         }
 
         /// <summary>
         /// Set current scene by scene name instead of ID.
+        /// When multiple graph nodes share the same Unity scene name (e.g. multiple hub day
+        /// instances), prefers the node already resolved by LoadSceneAsync, then the one
+        /// reachable via a transition from the current scene.
         /// </summary>
         public void SetCurrentSceneByName(string sceneName)
         {
@@ -174,25 +158,39 @@ namespace Turnroot.Utilities.SceneFlows
                 return;
             }
 
-            var scene = sceneFlowGraph.GetSceneByName(sceneName);
-            if (scene == null)
+            SceneNode scene;
+            if (_currentScene != null && _currentScene.sceneName == sceneName)
             {
-                $"SceneFlowBrain: Scene with name '{sceneName}' not found in graph!".LogError();
-                return;
+                // LoadSceneAsync already resolved the correct node — reuse it.
+                scene = _currentScene;
+            }
+            else
+            {
+                var matches = sceneFlowGraph.scenes.FindAll(s => s.sceneName == sceneName);
+                if (matches.Count == 0)
+                {
+                    $"SceneFlowBrain: Scene with name '{sceneName}' not found in graph!".LogError();
+                    return;
+                }
+
+                // With multiple nodes, prefer the one directly reachable from the current scene.
+                scene =
+                    matches.Count == 1
+                        ? matches[0]
+                        : matches.Find(s =>
+                            sceneFlowGraph.transitions.Exists(t =>
+                                (t.toSceneId == s.id && t.fromSceneId == _currentScene?.id)
+                                || (
+                                    t.isBidirectional
+                                    && t.fromSceneId == s.id
+                                    && t.toSceneId == _currentScene?.id
+                                )
+                            )
+                        ) ?? matches[0];
             }
 
             _currentScene = scene;
-
-            if (scene.TimePasses && _ltm != null)
-            {
-                ApplySceneDateToLtm(scene);
-            }
-
-            if (scene.SpecificChapter)
-            {
-                Brain.PublishSetSaveFileChapter(scene.ChapterName, scene.ChapterNumber);
-            }
-
+            ApplySceneArrivalSideEffects(scene);
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
         }
 
@@ -253,6 +251,45 @@ namespace Turnroot.Utilities.SceneFlows
             if (newYear != oldDate.year || newMonthInt != oldDate.month || newDay != oldDate.day)
             {
                 _ltm.SetGameDate(newYear, newMonth, newDay);
+                Brain.PublishGameDateChanged(newYear, newMonthInt, newDay);
+            }
+        }
+
+        /// <summary>
+        /// Applies all side effects triggered by arriving at <paramref name="scene"/>:
+        /// date advancement, hub flag resets, <c>HubDayCompleted</c> event, and chapter changes.
+        /// Uses <see cref="_lastSideEffectsSceneId"/> as a dedup guard so that when both
+        /// <c>LoadSceneAsync</c> and a scene component call <c>SetCurrentScene</c> for the
+        /// same transition the side effects only fire once.
+        /// </summary>
+        private void ApplySceneArrivalSideEffects(SceneNode scene)
+        {
+            if (scene == null || _lastSideEffectsSceneId == scene.id)
+                return;
+            _lastSideEffectsSceneId = scene.id;
+
+            // Advance or set the game date when the scene metadata requires it.
+            if (scene.TimePasses && _ltm != null && _ltm.Initialized)
+            {
+                ApplySceneDateToLtm(scene);
+            }
+
+            // Arriving at a hub resets the end-of-day flags so they can be re-triggered.
+            if (scene.isHub)
+            {
+                SetCustomFlag(SceneFlowConditionKeys.ReturnToHub, false);
+                SetCustomFlag(SceneFlowConditionKeys.EndHubDay, false);
+            }
+
+            // Entering the End Of Hub Day scene signals that the current hub day is done.
+            if (scene.isEndOfHubDay)
+            {
+                Brain.PublishHubDayCompleted();
+            }
+
+            if (scene.SpecificChapter)
+            {
+                Brain.PublishSetSaveFileChapter(scene.ChapterName, scene.ChapterNumber);
             }
         }
 
