@@ -476,14 +476,13 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Handle input
             HandleGraphInput(graphRect);
 
-            // Clip all drawing — both regular GUI calls and Handles — to the graph rect.
-            // GUILayout.BeginArea only clips GUI calls; Handles.DrawLine bypasses it and
-            // bleeds into the sidebar. GUI.BeginClip clips everything including Handles.
-            GUI.BeginClip(graphRect);
+            // BeginArea clips regular GUI calls and shifts origin to graphRect.position.
+            // The grid uses EditorGUI.DrawRect (not Handles) so it is also clipped here.
+            GUILayout.BeginArea(graphRect);
 
             // Draw grid BEFORE applying matrix (in screen space, area-local coords)
             Matrix4x4 oldMatrix = GUI.matrix;
-            DrawGrid(new Rect(0, 0, graphRect.width, graphRect.height));
+            DrawGrid(graphRect);
 
             // Now apply matrix for nodes and transitions
             GUI.matrix = Matrix4x4.TRS(_panOffset, Quaternion.identity, Vector3.one * _zoom);
@@ -498,7 +497,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             DrawAllNodes(graphRect);
 
             GUI.matrix = oldMatrix;
-            GUI.EndClip();
+            GUILayout.EndArea();
 
             // Draw connection line if creating transition
             if (_transitionStartNode != null)
@@ -1025,8 +1024,6 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             const float gridSpacing = 50f;
             const float thickLineInterval = 5; // Every 5th line is thicker
 
-            Handles.BeginGUI();
-
             // Calculate visible graph space range
             // Graph position = (screen position - panOffset) / zoom
             float graphStartX = (0 - _panOffset.x) / _zoom;
@@ -1038,37 +1035,28 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             float firstGridX = Mathf.Ceil(graphStartX / gridSpacing) * gridSpacing;
             float firstGridY = Mathf.Ceil(graphStartY / gridSpacing) * gridSpacing;
 
-            // Draw vertical lines (at graph X positions, spanning visible Y)
+            // Draw vertical lines using EditorGUI.DrawRect so they are clipped by BeginArea.
+            // Handles.DrawLine bypasses the IMGUI clip rect and bleeds into adjacent areas.
             int lineCount = (int)(firstGridX / gridSpacing);
             for (float graphX = firstGridX; graphX <= graphEndX; graphX += gridSpacing)
             {
-                // Convert graph position to screen position
                 float screenX = graphX * _zoom + _panOffset.x;
-
                 bool isThickLine = lineCount % thickLineInterval == 0;
-                Handles.color = isThickLine ? _settings.gridMajorColor : _settings.gridMinorColor;
-
-                // Draw in screen coordinates (not affected by GUI.matrix since we draw before setting it)
-                Handles.DrawLine(new Vector2(screenX, 0), new Vector2(screenX, graphRect.height));
+                Color lineColor = isThickLine ? _settings.gridMajorColor : _settings.gridMinorColor;
+                EditorGUI.DrawRect(new Rect(screenX, 0, 1f, graphRect.height), lineColor);
                 lineCount++;
             }
 
-            // Draw horizontal lines (at graph Y positions, spanning visible X)
+            // Draw horizontal lines
             lineCount = (int)(firstGridY / gridSpacing);
             for (float graphY = firstGridY; graphY <= graphEndY; graphY += gridSpacing)
             {
-                // Convert graph position to screen position
                 float screenY = graphY * _zoom + _panOffset.y;
-
                 bool isThickLine = lineCount % thickLineInterval == 0;
-                Handles.color = isThickLine ? _settings.gridMajorColor : _settings.gridMinorColor;
-
-                // Draw in screen coordinates
-                Handles.DrawLine(new Vector2(0, screenY), new Vector2(graphRect.width, screenY));
+                Color lineColor = isThickLine ? _settings.gridMajorColor : _settings.gridMinorColor;
+                EditorGUI.DrawRect(new Rect(0, screenY, graphRect.width, 1f), lineColor);
                 lineCount++;
             }
-
-            Handles.EndGUI();
         }
 
         private void DrawArrow(Vector2 from, Vector2 to, Color color, bool bidirectional)
