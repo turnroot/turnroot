@@ -38,6 +38,16 @@ namespace Turnroot.Gameplay.Combat
             public int ExtraExperienceReward;
 
             public bool RequiredStoryBattle;
+
+            [ShowIf(nameof(RequiredStoryBattle))]
+            [Tooltip(
+                "How many hub days the player may spend faffing around before this Required Story Battle is forced "
+                    + "(End Day is disabled once this limit is reached). "
+                    + "Set to 0 for no limit."
+            )]
+            [Range(0, 30)]
+            public int MaxHubDaysBeforeBattle;
+
             public bool Repeateable;
             public bool ParalogueBattle;
 

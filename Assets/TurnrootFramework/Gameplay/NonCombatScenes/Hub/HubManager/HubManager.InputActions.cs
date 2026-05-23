@@ -211,6 +211,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // Advance the day (persisted via LTM) and transition via SceneFlowBrain.
             // The EndOfDay scene is responsible for doing end-of-day work and
             // then returning to the hub when ready.
+            IncrementForcedBattleDaysSpent();
             IncrementGameDateForHubLoad();
             _brain.storehouseBrain.SaveCurrentStorehouse();
             _brain.storehouseBrain.SaveGoldToLTM();
