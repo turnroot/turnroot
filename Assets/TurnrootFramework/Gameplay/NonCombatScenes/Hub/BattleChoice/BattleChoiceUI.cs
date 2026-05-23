@@ -129,8 +129,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #endregion
 
         #region Public API
-
-        /// <summary>Called by HubManager when the player enters the Battlefields submenu.</summary>
         public void Open(HubManager hubManager)
         {
             _hubManager = hubManager;
@@ -140,7 +138,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             PanelFade?.Show();
         }
 
-        /// <summary>Called by HubManager when the player leaves the Battlefields submenu.</summary>
         public void Close()
         {
             CloseConfirmPopup(silent: true);
@@ -148,7 +145,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             PanelFade?.Hide();
         }
 
-        /// <summary>Called by HubManager to forward input while in Battlefields mode.</summary>
         public void ForwardInput(string action) => HandleInput(action);
 
         #endregion
@@ -205,6 +201,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _battleChoices.Add(choice);
             }
 
+            if (_battleChoices.Count == 0)
+            {
+                "BattleChoiceUI: No available battles to display. Something is wrong with the Scene Flow Graph".LogError();
+                return;
+            }
+
             _currentIndex = 0;
             UpdateChoiceSelection();
         }
@@ -215,12 +217,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_brain?.sceneFlowBrain == null)
             {
+                "BattleChoiceUI: No SceneFlowBrain found in Brain.".LogError();
                 return result;
             }
 
             var available = _brain.sceneFlowBrain.GetAvailableScenes();
             if (available == null)
             {
+                "BattleChoiceUI: SceneFlowBrain returned null for available scenes. Something is wrong with the Scene Flow Graph.".LogError();
                 return result;
             }
 
@@ -234,6 +238,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var battleSceneNames = new HashSet<string>(
                 graph.GetBattleScenes().Select(n => n.sceneName)
             );
+
+            if (battleSceneNames.Count == 0)
+            {
+                "BattleChoiceUI: No battle scenes found in the Scene Flow Graph.".LogError();
+                return result;
+            }
 
             foreach (var opt in available)
             {
