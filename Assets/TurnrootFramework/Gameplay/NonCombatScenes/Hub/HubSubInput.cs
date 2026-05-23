@@ -133,10 +133,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool _wasZoomPressed;
 
-        private void Awake()
-        {
-            hubManager = GetComponent<HubManager>();
-        }
+        private void Awake() => hubManager = GetComponent<HubManager>();
 
         private void Update()
         {
@@ -159,7 +156,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     _isZoomed = !_isZoomed;
                     float targetFov = _isZoomed ? zoomedFov : normalFov;
                     if (_zoomCoroutine != null)
+                    {
                         StopCoroutine(_zoomCoroutine);
+                    }
+
                     if (
                         GameplayPlayerSettings.Instance != null
                         && GameplayPlayerSettings.Instance.AnimatedCameraMovement
@@ -172,9 +172,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         hubCamera.fieldOfView = targetFov;
                     }
                     if (_isZoomed)
+                    {
                         FocusOverlayFade?.Show();
+                    }
                     else
+                    {
                         FocusOverlayFade?.Hide();
+                    }
                 }
                 _wasZoomPressed = zoomPressed;
             }

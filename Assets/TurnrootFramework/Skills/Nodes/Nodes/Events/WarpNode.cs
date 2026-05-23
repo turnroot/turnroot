@@ -184,11 +184,15 @@ namespace Turnroot.Skills.Nodes.Events
             foreach (var ally in allies)
             {
                 if (ally == null || ally == caster || ally.IsDefeatedInCurrentBattle)
+                {
                     continue;
+                }
 
                 float dist = Vector2Int.Distance(ally.MapGridPosition, casterPos);
                 if (dist > maxDist)
+                {
                     continue;
+                }
 
                 float score = useFarthest
                     ? dist
@@ -212,14 +216,18 @@ namespace Turnroot.Skills.Nodes.Events
         private static Vector2Int? FindAdjacentFreeSquare(Vector2Int anchor, MapGrid grid)
         {
             if (grid == null)
+            {
                 return null;
+            }
 
             foreach (var offset in ClockwiseOffsets)
             {
                 var candidate = anchor + offset;
                 var point = grid.GetGridPoint(candidate.x, candidate.y);
                 if (point != null && !point.IsOccupied)
+                {
                     return candidate;
+                }
             }
 
             return null;

@@ -247,10 +247,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             CostCache = GetRepairCost(itemData) * selectionCount;
         }
 
-        private int GetRepairCost(BlacksmithRepairItem itemData)
-        {
-            return itemData.ItemToRepair == null ? 0 : itemData.ItemToRepair.Template.RepairPricePerUse;
-        }
+        private int GetRepairCost(BlacksmithRepairItem itemData) => itemData.ItemToRepair == null ? 0 : itemData.ItemToRepair.Template.RepairPricePerUse;
 
         private int GetStorehouseRepairLimit(ObjectItemInstance item)
         {

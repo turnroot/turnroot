@@ -178,10 +178,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public static System.Collections.Generic.Dictionary<
             int,
             HubSublocationName
-        > GetTeamPlacements()
-        {
-            return !HasTeamPlacements() ? null : _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
-        }
+        > GetTeamPlacements() => !HasTeamPlacements() ? null : _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
 
         public static void SaveTeamPlacements(
             Brain.Brain brain,

@@ -62,17 +62,27 @@ namespace Turnroot.Gameplay.Brain.Commands
 
             // Update map grid occupancy
             if (unitOldPoint != null)
+            {
                 context.MapGrid.RemoveOccupied(unitOldPoint);
+            }
+
             if (targetOldPoint != null)
+            {
                 context.MapGrid.RemoveOccupied(targetOldPoint);
+            }
 
             var unitNewPoint = unit.UnitPositionToMapGridPoint(targetPos, context.MapGrid);
             var targetNewPoint = target.UnitPositionToMapGridPoint(unitPos, context.MapGrid);
 
             if (unitNewPoint != null)
+            {
                 context.MapGrid.SetOccupied(unitNewPoint, unit);
+            }
+
             if (targetNewPoint != null)
+            {
                 context.MapGrid.SetOccupied(targetNewPoint, target);
+            }
 
             context.InvalidateUnitTileCache(unit);
             context.InvalidateUnitTileCache(target);
@@ -122,9 +132,14 @@ namespace Turnroot.Gameplay.Brain.Commands
             target.MoveToPosition(targetFrom, context.MapGrid);
 
             if (unitCurrentPoint != null)
+            {
                 context.MapGrid.RemoveOccupied(unitCurrentPoint);
+            }
+
             if (targetCurrentPoint != null)
+            {
                 context.MapGrid.RemoveOccupied(targetCurrentPoint);
+            }
 
             var unitRestoredPoint = unit.UnitPositionToMapGridPoint(unitFrom, context.MapGrid);
             var targetRestoredPoint = target.UnitPositionToMapGridPoint(
@@ -133,9 +148,14 @@ namespace Turnroot.Gameplay.Brain.Commands
             );
 
             if (unitRestoredPoint != null)
+            {
                 context.MapGrid.SetOccupied(unitRestoredPoint, unit);
+            }
+
             if (targetRestoredPoint != null)
+            {
                 context.MapGrid.SetOccupied(targetRestoredPoint, target);
+            }
 
             context.InvalidateUnitTileCache(unit);
             context.InvalidateUnitTileCache(target);

@@ -133,7 +133,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 if (negateCount != 0)
                 {
                     if (negateCount > 0)
+                    {
                         SetCustomData(negateKey, negateCount - 1);
+                    }
                     // Skip the rest of damage processing for this strike
                     Brain?.PublishAttackLogicCompleted(attacker);
                     Participants.Targets = originalTargets;
@@ -247,7 +249,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                     // Attacker follow-up (Vantage counter already spent)
                     if (!attacker.IsDefeatedInCurrentBattle && CanFollowUp(attacker, defender))
+                    {
                         AttackTarget(attacker, defender, attackerWeapon);
+                    }
 
                     // Defender follow-up if fast enough (Vantage counter was their first attack,
                     // so check follow-up speed threshold for a potential second strike)
@@ -259,7 +263,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         && !defenderDisabledVantage
                         && CanFollowUp(defender, attacker)
                     )
+                    {
                         AttackTarget(defender, attacker);
+                    }
                 }
                 else
                 {
@@ -271,7 +277,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 // First-strike: attacker hits twice before defender can respond
                 result = AttackTarget(attacker, defender, attackerWeapon);
                 if (!attacker.IsDefeatedInCurrentBattle && CanFollowUp(attacker, defender))
+                {
                     AttackTarget(attacker, defender, attackerWeapon);
+                }
             }
             else
             {
@@ -280,11 +288,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 // Defender counter-attack (if still alive and not blocked by DisableFollowup on defender)
                 bool defenderDisabled = GetCustomData<bool>($"DisableFollowup_{defender.Id}");
                 if (!defender.IsDefeatedInCurrentBattle && !defenderDisabled)
+                {
                     AttackTarget(defender, attacker);
+                }
 
                 // Attacker follow-up (SPD diff >= 4, and defender hasn't disabled it)
                 if (!attacker.IsDefeatedInCurrentBattle && CanFollowUp(attacker, defender))
+                {
                     AttackTarget(attacker, defender, attackerWeapon);
+                }
 
                 // Defender follow-up (if defender is fast enough and not disabled)
                 if (
@@ -292,7 +304,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     && !defenderDisabled
                     && CanFollowUp(defender, attacker)
                 )
+                {
                     AttackTarget(defender, attacker);
+                }
             }
 
             // Track combat count for IsFirstCombatOfTurnNode
@@ -328,11 +342,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             // Skill explicitly guarantees a follow-up (e.g. Brash Assault)
             if (GetCustomData<bool>($"GuaranteeFollowup_{attacker.Id}"))
+            {
                 return true;
+            }
 
             // Skill explicitly prevents attacker from following up
             if (GetCustomData<bool>($"DisableFollowup_{attacker.Id}"))
+            {
                 return false;
+            }
 
             var atkSpd = attacker.GetUnboundedStat(UnboundedStatType.Speed)?.Current ?? 0f;
             var defSpd = defender.GetUnboundedStat(UnboundedStatType.Speed)?.Current ?? 0f;

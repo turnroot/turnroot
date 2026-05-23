@@ -27,12 +27,18 @@ namespace Turnroot.Utilities
             get
             {
                 if (string.IsNullOrEmpty(_scenePath))
+                {
                     return string.Empty;
+                }
+
                 int slash = _scenePath.LastIndexOf('/');
                 string name = slash >= 0 ? _scenePath.Substring(slash + 1) : _scenePath;
                 // Strip .unity extension
                 if (name.EndsWith(".unity", StringComparison.OrdinalIgnoreCase))
+                {
                     name = name.Substring(0, name.Length - 6);
+                }
+
                 return name;
             }
         }

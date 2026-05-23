@@ -427,9 +427,6 @@ namespace Turnroot.Gameplay.Objects
             return subtype?.IsWeapon == true || subtype?.IsMagic == true;
         }
 
-        public float GetDurabilityPercentage()
-        {
-            return _template == null || !_template.Durability || _template.MaxUses <= 0 ? 1f : (float)RemainingUses / _template.MaxUses;
-        }
+        public float GetDurabilityPercentage() => _template == null || !_template.Durability || _template.MaxUses <= 0 ? 1f : (float)RemainingUses / _template.MaxUses;
     }
 }

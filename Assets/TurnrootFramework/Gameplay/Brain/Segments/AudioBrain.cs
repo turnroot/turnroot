@@ -137,10 +137,7 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        public OneShot GetRandomOneShot(OneShot[] candidates)
-        {
-            return candidates == null || candidates.Length == 0 ? default : candidates[UnityEngine.Random.Range(0, candidates.Length)];
-        }
+        public OneShot GetRandomOneShot(OneShot[] candidates) => candidates == null || candidates.Length == 0 ? default : candidates[UnityEngine.Random.Range(0, candidates.Length)];
 
         public OneShot GetRandomWelcomeOneShot(OneShot[] welcomeDialogues) =>
             GetRandomOneShot(welcomeDialogues);

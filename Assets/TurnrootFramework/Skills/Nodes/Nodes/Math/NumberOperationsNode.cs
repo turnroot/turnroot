@@ -57,7 +57,10 @@ namespace Turnroot.Skills.Nodes.Math
                     if (Mathf.Approximately(bValue.value, 0f))
                     {
                         if (Application.isPlaying)
+                        {
                             "NumberOperationsNode: Division by zero".LogWarning();
+                        }
+
                         resultValue.value = 0f;
                     }
                     else
