@@ -25,19 +25,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )]
         public Material BaseMaterial;
 
-        // ── Shader property IDs (cached once for performance) ───────────────
-
         private static readonly int TopLeftId = Shader.PropertyToID("_TopLeft");
         private static readonly int TopRightId = Shader.PropertyToID("_TopRight");
         private static readonly int BottomLeftId = Shader.PropertyToID("_BottomLeft");
         private static readonly int BottomRightId = Shader.PropertyToID("_BottomRight");
 
-        // ── Private state ───────────────────────────────────────────────────
-
         private RawImage _rawImage;
         private Material _materialInstance;
-
-        // ── Lifecycle ───────────────────────────────────────────────────────
 
         private void Awake()
         {
@@ -65,12 +59,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        // ── Public API ──────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Sets all four quadrant textures directly.
-        /// A null texture leaves the corresponding slot unchanged.
-        /// </summary>
         public void SetTextures(
             Texture topLeft,
             Texture topRight,
@@ -104,9 +92,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        /// <summary>
-        /// Sets all four quadrant sprites, extracting their underlying textures.
-        /// </summary>
         public void SetSprites(
             Sprite topLeft,
             Sprite topRight,
@@ -115,10 +100,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )
         {
             SetTextures(
-                topLeft?.texture,
-                topRight?.texture,
-                bottomLeft?.texture,
-                bottomRight?.texture
+                topLeft != null ? topLeft.texture : null,
+                topRight != null ? topRight.texture : null,
+                bottomLeft != null ? bottomLeft.texture : null,
+                bottomRight != null ? bottomRight.texture : null
             );
         }
 
@@ -145,8 +130,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     : sprites.BottomRightUnexploredSprite
             );
         }
-
-        // ── Helpers ─────────────────────────────────────────────────────────
 
         private static bool IsExplored(QuadrantExploredState state) =>
             state == QuadrantExploredState.FullyExplored;
