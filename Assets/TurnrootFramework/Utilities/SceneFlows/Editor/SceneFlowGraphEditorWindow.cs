@@ -17,6 +17,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
         private SceneFlowGraph _graph;
         private Vector2 _panOffset = Vector2.zero;
         private float _zoom = 1f;
+
+        // Top-left of the graph area in window space; used to offset Handles calls
+        // (Handles.DrawAAPolyLine uses window-absolute coords, not area-local coords).
+        private Vector2 _graphAreaOrigin;
         private const float MIN_ZOOM = 0.5f;
         private const float MAX_ZOOM = 2f;
 
@@ -476,27 +480,21 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Handle input
             HandleGraphInput(graphRect);
 
-            // BeginArea clips regular GUI calls and shifts origin to graphRect.position.
-            // The grid uses EditorGUI.DrawRect (not Handles) so it is also clipped here.
+            // Store origin so Handles calls (window-absolute) can add this offset.
+            _graphAreaOrigin = graphRect.position;
+
+            // BeginArea clips all GUI calls to graphRect and shifts the coordinate origin.
+            // We do NOT use GUI.matrix: setting it after BeginArea re-transforms the pushed
+            // clip rect into matrix (graph) space, causing nodes to be clipped at graph (0,0)
+            // regardless of pan/zoom. Instead all positions are converted manually via
+            // GraphToArea() = graphPos * _zoom + _panOffset.
             GUILayout.BeginArea(graphRect);
 
-            // Draw grid BEFORE applying matrix (in screen space, area-local coords)
-            Matrix4x4 oldMatrix = GUI.matrix;
             DrawGrid(graphRect);
-
-            // Now apply matrix for nodes and transitions
-            GUI.matrix = Matrix4x4.TRS(_panOffset, Quaternion.identity, Vector3.one * _zoom);
-
-            // Draw complete hub day group outlines (behind everything else)
             DrawCompleteHubDayGroups();
-
-            // Draw transitions first (so they appear behind nodes)
             DrawAllTransitions(graphRect);
-
-            // Draw nodes
             DrawAllNodes(graphRect);
 
-            GUI.matrix = oldMatrix;
             GUILayout.EndArea();
 
             // Draw connection line if creating transition
@@ -682,6 +680,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     : _nodeStyle;
             }
 
+            // Convert node rect from graph space to area-local screen space.
+            // All pixel offsets below are multiplied by _zoom so they scale with zoom.
+            rect = GraphToArea(rect);
+
             // Draw date label above node when this scene advances the game date
             if (node.TimePasses)
             {
@@ -700,7 +702,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     else
                         dateLabel += "*"; // year auto-advances at runtime
                 }
-                var dateLabelRect = new Rect(rect.x, rect.y - 18, rect.width, 16);
+                var dateLabelRect = new Rect(rect.x, rect.y - 18 * _zoom, rect.width, 16 * _zoom);
                 EditorGUI.DrawRect(
                     new Rect(
                         dateLabelRect.x - 1,
@@ -717,17 +719,22 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             GUI.Box(rect, "", style);
 
             // Draw label
-            var labelRect = new Rect(rect.x, rect.y + 5, rect.width, 20);
+            var labelRect = new Rect(rect.x, rect.y + 5 * _zoom, rect.width, 20 * _zoom);
             GUI.Label(labelRect, node.displayName, _labelStyle);
 
             // Draw ID (smaller)
-            var idRect = new Rect(rect.x, rect.y + 25, rect.width, 15);
+            var idRect = new Rect(rect.x, rect.y + 25 * _zoom, rect.width, 15 * _zoom);
             GUI.Label(idRect, node.id, _nodeIdStyle);
 
             // Hub indicator (top-left)
             if (node.isHub)
             {
-                var hubRect = new Rect(rect.x + 5, rect.y + 5, 15, 15);
+                var hubRect = new Rect(
+                    rect.x + 5 * _zoom,
+                    rect.y + 5 * _zoom,
+                    15 * _zoom,
+                    15 * _zoom
+                );
                 EditorGUI.DrawRect(hubRect, new Color(1f, 0.8f, 0f, 0.5f));
                 GUI.Label(hubRect, "H", _badgeLabelStyle);
             }
@@ -735,7 +742,12 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // End Of Hub Day indicator (top-left, same color as hub)
             if (node.isEndOfHubDay)
             {
-                var eodRect = new Rect(rect.x + 5, rect.y + 5, 15, 15);
+                var eodRect = new Rect(
+                    rect.x + 5 * _zoom,
+                    rect.y + 5 * _zoom,
+                    15 * _zoom,
+                    15 * _zoom
+                );
                 EditorGUI.DrawRect(eodRect, new Color(1f, 0.8f, 0f, 0.5f));
                 GUI.Label(eodRect, "E", _badgeLabelStyle);
             }
@@ -743,7 +755,12 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Battle indicator (bottom-left)
             if (node.isBattle)
             {
-                var battleRect = new Rect(rect.x + 5, rect.y + rect.height - 20, 15, 15);
+                var battleRect = new Rect(
+                    rect.x + 5 * _zoom,
+                    rect.y + rect.height - 20 * _zoom,
+                    15 * _zoom,
+                    15 * _zoom
+                );
                 EditorGUI.DrawRect(battleRect, new Color(0.9f, 0.2f, 0.2f, 0.75f));
                 GUI.Label(battleRect, "B", _badgeLabelStyle);
             }
@@ -751,7 +768,12 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Chapter number badge (top left corner)
             if (node.SpecificChapter)
             {
-                var chapterRect = new Rect(rect.x + 5, rect.y + 5, 25, 15);
+                var chapterRect = new Rect(
+                    rect.x + 5 * _zoom,
+                    rect.y + 5 * _zoom,
+                    25 * _zoom,
+                    15 * _zoom
+                );
                 EditorGUI.DrawRect(chapterRect, _settings.chapterBadgeColor);
                 GUI.Label(chapterRect, $"Ch{node.ChapterNumber}", _chapterBadgeLabelStyle);
             }
@@ -759,14 +781,17 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Starting scene indicator (top-right)
             if (_graph.startingScene == node)
             {
-                var startRect = new Rect(rect.x + rect.width - 20, rect.y + 5, 15, 15);
+                var startRect = new Rect(
+                    rect.x + rect.width - 20 * _zoom,
+                    rect.y + 5 * _zoom,
+                    15 * _zoom,
+                    15 * _zoom
+                );
                 EditorGUI.DrawRect(startRect, new Color(0f, 1f, 0f, 0.5f));
                 GUI.Label(startRect, "▶", _smallLabelStyle);
             }
 
-            // Handle node interactions
-            // Inside BeginArea with GUI.matrix, mouse IS transformed by the matrix
-            // Mouse is in transformed space, rect is in graph space, so no transform needed
+            // Mouse is in area-local screen space; rect is now also in area-local screen space.
             var mousePos = e.mousePosition;
 
             if (rect.Contains(mousePos))
@@ -833,8 +858,9 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             // Handle dragging
             if (_isDragging && _draggedNode == node && e.type == EventType.MouseDrag)
             {
+                // e.mousePosition is area-local screen space; convert to graph space.
                 node.editorPosition =
-                    e.mousePosition - new Vector2(NODE_WIDTH / 2, NODE_HEIGHT / 2);
+                    AreaToGraph(e.mousePosition) - new Vector2(NODE_WIDTH / 2f, NODE_HEIGHT / 2f);
                 EditorUtility.SetDirty(_graph);
                 e.Use();
                 Repaint();
@@ -927,10 +953,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 return;
             }
 
-            var fromPos = GetNodeCenter(fromNode);
-            var toPos = GetNodeCenter(toNode);
-            var fromRect = GetNodeRect(fromNode);
-            var toRect = GetNodeRect(toNode);
+            var fromPos = GraphToArea(GetNodeCenter(fromNode));
+            var toPos = GraphToArea(GetNodeCenter(toNode));
+            var fromRect = GraphToArea(GetNodeRect(fromNode));
+            var toRect = GraphToArea(GetNodeRect(toNode));
 
             // Check if this is a cross-chapter transition
             bool isCrossChapter =
@@ -967,7 +993,13 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             var adjustedTo = GetPointOnRectEdge(toRect, toPos, fromPos, _settings.arrowNodeOffset);
 
             // Draw arrow
-            DrawArrow(adjustedFrom, adjustedTo, lineColor, transition.isBidirectional);
+            // DrawArrow uses Handles.DrawAAPolyLine which requires window-absolute coords.
+            DrawArrow(
+                adjustedFrom + _graphAreaOrigin,
+                adjustedTo + _graphAreaOrigin,
+                lineColor,
+                transition.isBidirectional
+            );
 
             // Determine label text
             string labelText = transition.label;
@@ -1008,7 +1040,7 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                     Repaint();
                 }
                 // Also check proximity to the line itself
-                else if (IsPointNearLine(mousePos, fromPos, toPos, 15f / _zoom))
+                else if (IsPointNearLine(mousePos, fromPos, toPos, 15f))
                 {
                     _clickedEmptySpace = false;
                     _selectedTransition = transition;
@@ -1983,6 +2015,16 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             return graphPos * _zoom + _panOffset + graphRect.position;
         }
 
+        // Convert graph-space position to area-local screen position (inside GUILayout.BeginArea).
+        private Vector2 GraphToArea(Vector2 graphPos) => graphPos * _zoom + _panOffset;
+
+        // Convert graph-space rect to area-local screen rect.
+        private Rect GraphToArea(Rect graphRect) =>
+            new Rect(GraphToArea(graphRect.position), graphRect.size * _zoom);
+
+        // Convert area-local screen position back to graph space.
+        private Vector2 AreaToGraph(Vector2 areaPos) => (areaPos - _panOffset) / _zoom;
+
         private bool IsPointNearLine(
             Vector2 point,
             Vector2 lineStart,
@@ -2245,7 +2287,6 @@ namespace Turnroot.Utilities.SceneFlows.Editor
             if (_graph?.transitions == null || _graph.scenes == null)
                 return;
 
-            const float padding = 20f;
             const float labelHeight = 18f;
             var groupOutlineColor = new Color(1f, 0.78f, 0.1f, 0.75f);
             var groupFillColor = new Color(1f, 0.78f, 0.1f, 0.06f);
@@ -2261,9 +2302,10 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 if (!fromNode.isHub || !toNode.isEndOfHubDay)
                     continue;
 
-                var fromRect = GetNodeRect(fromNode);
-                var toRect = GetNodeRect(toNode);
+                var fromRect = GraphToArea(GetNodeRect(fromNode));
+                var toRect = GraphToArea(GetNodeRect(toNode));
 
+                float padding = 20f * _zoom;
                 float left = Mathf.Min(fromRect.xMin, toRect.xMin) - padding;
                 float top = Mathf.Min(fromRect.yMin, toRect.yMin) - padding;
                 float right = Mathf.Max(fromRect.xMax, toRect.xMax) + padding;
@@ -2285,11 +2327,26 @@ namespace Turnroot.Utilities.SceneFlows.Editor
                 Handles.color = groupOutlineColor;
                 Handles.DrawAAPolyLine(
                     2f,
-                    new Vector3(groupRect.xMin, groupRect.yMin),
-                    new Vector3(groupRect.xMax, groupRect.yMin),
-                    new Vector3(groupRect.xMax, groupRect.yMax),
-                    new Vector3(groupRect.xMin, groupRect.yMax),
-                    new Vector3(groupRect.xMin, groupRect.yMin)
+                    new Vector3(
+                        groupRect.xMin + _graphAreaOrigin.x,
+                        groupRect.yMin + _graphAreaOrigin.y
+                    ),
+                    new Vector3(
+                        groupRect.xMax + _graphAreaOrigin.x,
+                        groupRect.yMin + _graphAreaOrigin.y
+                    ),
+                    new Vector3(
+                        groupRect.xMax + _graphAreaOrigin.x,
+                        groupRect.yMax + _graphAreaOrigin.y
+                    ),
+                    new Vector3(
+                        groupRect.xMin + _graphAreaOrigin.x,
+                        groupRect.yMax + _graphAreaOrigin.y
+                    ),
+                    new Vector3(
+                        groupRect.xMin + _graphAreaOrigin.x,
+                        groupRect.yMin + _graphAreaOrigin.y
+                    )
                 );
                 Handles.EndGUI();
 
