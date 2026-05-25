@@ -302,6 +302,41 @@ namespace Turnroot.Utilities.AbstractScripts
 
         #endregion
 
+        #region Scene Flow Completion
+
+        /// <summary>
+        /// Signals that the current scene is done and the flow should advance.
+        /// Reads available outgoing transitions from <see cref="SceneFlowBrain"/> and transitions
+        /// to the next scene: errors if there are none, warns and takes the first if there are
+        /// more than one.
+        /// </summary>
+        public void MarkSceneComplete()
+        {
+            var flowBrain = brain?.sceneFlowBrain;
+            if (flowBrain == null)
+            {
+                "DynamicSceneFlow: MarkSceneComplete called but SceneFlowBrain is unavailable.".LogError();
+                return;
+            }
+
+            var available = flowBrain.GetAvailableScenes();
+
+            if (available == null || available.Count == 0)
+            {
+                "DynamicSceneFlow: MarkSceneComplete — no available transitions from the current scene.".LogError();
+                return;
+            }
+
+            if (available.Count > 1)
+            {
+                $"DynamicSceneFlow: MarkSceneComplete — {available.Count} transitions available; taking the first ('{available[0].sceneId}'). Use TransitionToScene to pick explicitly.".LogWarning();
+            }
+
+            flowBrain.TransitionToScene(available[0].sceneId);
+        }
+
+        #endregion
+
         protected void StartScene()
         {
             ApplySceneStartTriggersIfNeeded();
