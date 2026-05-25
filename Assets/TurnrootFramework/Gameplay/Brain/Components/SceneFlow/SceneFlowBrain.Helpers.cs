@@ -147,10 +147,11 @@ namespace Turnroot.Utilities.SceneFlows
                 (previousSceneNode?.persistWhenLeaving ?? false)
                 || !(transition?.unloadPreviousScene ?? true);
 
+            AsyncOperation unloadOperation = null;
             if (oldScene.IsValid() && previousSceneName != BrainSceneName && !shouldKeepPrevious)
             {
                 $"SceneFlowBrain: Unloading previous scene '{previousSceneName}'".LogInfo();
-                SceneManager.UnloadSceneAsync(oldScene);
+                unloadOperation = SceneManager.UnloadSceneAsync(oldScene);
             }
             else if (!oldScene.IsValid() || previousSceneName == BrainSceneName)
             {
@@ -159,6 +160,16 @@ namespace Turnroot.Utilities.SceneFlows
             else
             {
                 $"SceneFlowBrain: Keeping '{previousSceneName}' loaded (persist={previousSceneNode?.persistWhenLeaving}, transition.unload={transition?.unloadPreviousScene ?? true}).".LogInfo();
+            }
+
+            // Ensure transition completion fires only after the previous scene has finished
+            // unloading (when an unload was requested).
+            if (unloadOperation != null)
+            {
+                while (!unloadOperation.isDone)
+                {
+                    yield return null;
+                }
             }
 
             // Update current scene and apply all arrival side effects (date, hub flags,

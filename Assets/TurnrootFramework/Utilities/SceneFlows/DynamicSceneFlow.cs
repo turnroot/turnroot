@@ -44,7 +44,8 @@ namespace Turnroot.Utilities.AbstractScripts
         public string customKey;
         public bool value;
 
-        public string ResolveKey() => keySource == SceneFlowFlagKeySource.Custom ? customKey : existingKey;
+        public string ResolveKey() =>
+            keySource == SceneFlowFlagKeySource.Custom ? customKey : existingKey;
     }
 
     /// <summary>
@@ -77,6 +78,7 @@ namespace Turnroot.Utilities.AbstractScripts
         public event Action<float> OnLoadedAmountChangedAction;
 
         public UnityEvent StartPreLoading = new();
+        public UnityEvent SceneReadyAfterLoad = new();
 
         private int _lastInvokedIndex = -1;
         private bool _sceneStartTriggersApplied;
@@ -145,6 +147,7 @@ namespace Turnroot.Utilities.AbstractScripts
                 brain.OnSceneLoadProgress += HandleSceneLoadProgress;
                 brain.OnSceneChanged += HandleSceneChanged;
                 brain.OnSceneTransitionStarted += HandleSceneTransitionStarted;
+                brain.OnSceneTransitionCompleted += HandleSceneTransitionCompleted;
                 brain.OnBattleCompleted += HandleBattleCompleted;
                 brain.OnHubCharacterRecruitCompleted += HandleHubCharacterRecruitCompleted;
                 brain.OnSupportLevelIncreased += HandleSupportLevelIncreased;
@@ -160,6 +163,7 @@ namespace Turnroot.Utilities.AbstractScripts
                 brain.OnSceneLoadProgress -= HandleSceneLoadProgress;
                 brain.OnSceneChanged -= HandleSceneChanged;
                 brain.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
+                brain.OnSceneTransitionCompleted -= HandleSceneTransitionCompleted;
                 brain.OnBattleCompleted -= HandleBattleCompleted;
                 brain.OnHubCharacterRecruitCompleted -= HandleHubCharacterRecruitCompleted;
                 brain.OnSupportLevelIncreased -= HandleSupportLevelIncreased;
@@ -193,6 +197,9 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected void HandleSceneTransitionStarted(string sceneName, string displayName) =>
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneEnd);
+
+        protected void HandleSceneTransitionCompleted(string sceneName, string displayName) =>
+            SceneReadyAfterLoad?.Invoke();
 
         protected void HandleBattleCompleted(Turnroot.Gameplay.Combat.BattleExitType exitType) =>
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.BattleCompleted);
