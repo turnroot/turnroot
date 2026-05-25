@@ -67,6 +67,7 @@ namespace Turnroot.Utilities.SceneFlows
                     existing = _ltm.GetGameDate();
                 }
                 _brain?.PublishGameDateChanged(existing.year, existing.month, existing.day);
+                LoadFlagsFromLtm();
             }
 
             if (_brain != null)
@@ -123,6 +124,29 @@ namespace Turnroot.Utilities.SceneFlows
                     _currentScene.ChapterName,
                     _currentScene.ChapterNumber
                 );
+            }
+
+            LoadFlagsFromLtm();
+        }
+
+        private const string LtmFlagPrefix = "sceneflow.flag.";
+
+        /// <summary>
+        /// Restores any custom flags that were previously persisted to LTM into the
+        /// in-memory <see cref="_customFlags"/> dictionary. Called both on Awake (when LTM
+        /// is already initialised) and from <see cref="OnLtmInitialized"/>.
+        /// </summary>
+        private void LoadFlagsFromLtm()
+        {
+            if (_ltm == null || !_ltm.Initialized)
+                return;
+
+            var keys = _ltm.RecallKeysByPrefix(LtmFlagPrefix);
+            foreach (var ltmKey in keys)
+            {
+                string flagKey = ltmKey.Substring(LtmFlagPrefix.Length);
+                _customFlags[flagKey] = _ltm.RecallBool(ltmKey);
+                $"SceneFlowBrain: Restored flag '{flagKey}' = {_customFlags[flagKey]} from LTM.".LogInfo();
             }
         }
 

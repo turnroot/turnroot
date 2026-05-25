@@ -334,14 +334,23 @@ namespace Turnroot.Utilities.AbstractScripts
                 $"DynamicSceneFlow: MarkSceneCompleteAndAdvance — {available.Count} transitions available; taking the first ('{available[0].sceneId}'). Use TransitionToScene to pick explicitly.".LogWarning();
             }
 
+            var loadingScreen = FindFirstObjectByType<LoadingScreenController>();
+
             if (!showLoadingScreen)
             {
-                var loadingScreen = FindFirstObjectByType<LoadingScreenController>();
                 if (loadingScreen != null)
                 {
                     loadingScreen.showOnSceneTransitionStart = false;
                     _pendingLoadingScreenRestore = loadingScreen;
                 }
+            }
+            else
+            {
+                // Explicitly show the loading screen before starting the transition so it
+                // begins fading in immediately. LoadSceneAsync waits LoadingFadeInTime before
+                // touching the scene, giving the fade time to complete — mirroring the
+                // BattleChoiceUI pattern.
+                loadingScreen?.Show();
             }
 
             flowBrain.TransitionToScene(available[0].sceneId);
