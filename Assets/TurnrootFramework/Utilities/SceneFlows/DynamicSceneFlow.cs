@@ -314,7 +314,7 @@ namespace Turnroot.Utilities.AbstractScripts
         #region Scene Flow Completion
         public void MarkSceneCompleteAndAdvance(bool showLoadingScreen = true)
         {
-            var flowBrain = brain?.sceneFlowBrain;
+            var flowBrain = brain.sceneFlowBrain;
             if (flowBrain == null)
             {
                 "DynamicSceneFlow: MarkSceneCompleteAndAdvance called but SceneFlowBrain is unavailable.".LogError();
