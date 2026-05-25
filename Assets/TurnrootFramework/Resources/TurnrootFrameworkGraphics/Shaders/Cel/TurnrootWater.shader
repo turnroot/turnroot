@@ -532,29 +532,53 @@ Shader "Turnroot/Water"
                 float innerEdge  = smoothstep(0.0,             0.18 + sharpness, ring);
                 float ringLine   = outerEdge * innerEdge;
 
-                // ── Brush-stroke breakup (threshold-based, not subtractive) ────────
-                // Two noise layers sampled at oblong UV scales so noise cells are
-                // elongated rather than round. This produces long clean gaps and long
-                // clean segments — the defining character of a brushstroke — instead
-                // of uniformly stippling or thinning the ring.
-                float2 strokeUV_a = float2(warpedXZ.x * 1.0, warpedXZ.y * 2.8)
-                                  * _RippleNoiseScale * 0.08
-                                  + _Time.y * _RippleNoiseSpeed * 0.3;
-                float2 strokeUV_b = float2(warpedXZ.x * 2.5, warpedXZ.y * 0.7)
-                                  * _RippleNoiseScale * 0.09
-                                  + _Time.y * _RippleNoiseSpeed * 0.15 + float2(7.3, 2.1);
+                // ── Shore-tangent-aligned brushstroke breakup ─────────────────────
+                // Compute the shore-radial direction from the already-reconstructed
+                // sceneWorldPos. The perpendicular is the tangent along the ring.
+                // Project warpedXZ onto these axes to get an anisotropic stroke space
+                // where "along-stroke" follows the ring curve regardless of shore angle.
+                //
+                // _RippleNoiseScale  → stroke LENGTH (along-tangent UV scale)
+                // _RippleNoiseScale2 → stroke WIDTH  (across-ring UV scale)
+                // _RippleNoiseStrength  → how much breakup/gaps
+                // _RippleNoiseStrength2 → fine texture within surviving strokes
+                float2 toShore      = sceneWorldPos.xz - input.positionWS.xz;
+                float  shoreDist2D  = length(toShore);
+                float2 radialDir2D  = shoreDist2D > 0.001 ? toShore / shoreDist2D : float2(1, 0);
+                float2 tangentDir2D = float2(-radialDir2D.y, radialDir2D.x);
 
-                float strokeA = SampleNoise(strokeUV_a);
-                float strokeB = SampleNoise(strokeUV_b);
-                // Blend: coarse A gives large stroke shapes, fine B adds sub-stroke texture
-                float strokeMask = strokeA * 0.65 + strokeB * 0.35;
+                // Anisotropic stroke coordinates: long in tangential, thin in radial
+                float strokeAlong  = dot(warpedXZ, tangentDir2D) * abs(_RippleNoiseScale)  * 0.12;
+                float strokeAcross = dot(warpedXZ, radialDir2D)  * abs(_RippleNoiseScale2) * 0.4;
 
-                // Threshold cut: _RippleNoiseStrength=0 → full ring, higher → more/longer breaks
-                float strokeThresh = 1.0 - saturate(_RippleNoiseStrength);
-                float brushBreak   = smoothstep(strokeThresh - 0.08, strokeThresh + 0.08, strokeMask);
+                // Coarse layer: large stroke shapes (low-frequency along tangent)
+                float strokeA = SampleNoise(float2(strokeAlong * 0.6,
+                                                   strokeAcross * 2.5));
+                // Medium layer: stroke sub-divisions (slightly higher frequency)
+                float strokeB = SampleNoise(float2(strokeAlong * 1.4 + 3.7,
+                                                   strokeAcross * 3.0 + 1.8));
+                // Slow drift animation — strokes feel alive without losing their shape
+                float strokeAnim = SampleNoise(float2(
+                    strokeAlong * 0.5 + _Time.y * _RippleNoiseSpeed * 0.4,
+                    strokeAcross + 5.3));
 
-                // Fine secondary texture within surviving stroke segments
-                float fineBreak = saturate(1.0 - wn2 * _RippleNoiseStrength2);
+                float strokeMask = strokeA * 0.55 + strokeB * 0.25 + strokeAnim * 0.2;
+
+                // Sharpen the mask into clean stroke / gap regions
+                float strokeSharp = smoothstep(0.3, 0.7, strokeMask);
+
+                // At strength=0: full ring (no breakup).
+                // At strength=1: strokes only where strokeSharp > 0.
+                // With no texture assigned (white → strokeMask=1, strokeSharp=1):
+                // brushBreak always = 1 at any strength → safe unbroken fallback.
+                float brushBreak = 1.0 - _RippleNoiseStrength * (1.0 - strokeSharp);
+                brushBreak = saturate(brushBreak);
+
+                // Fine secondary texture within surviving strokes (Scale2/Strength2)
+                float fineA = SampleNoise(float2(strokeAlong * 2.5 + 1.1,
+                                                 strokeAcross * 5.0 + 2.2));
+                float fineBreak = 1.0 - wn2 * _RippleNoiseStrength2 * (1.0 - fineA);
+                fineBreak = saturate(fineBreak);
 
                 ringLine *= brushBreak * fineBreak;
 
