@@ -5,6 +5,7 @@ using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -83,6 +84,7 @@ namespace Turnroot.Utilities.AbstractScripts
         private int _lastInvokedIndex = -1;
         private bool _sceneStartTriggersApplied;
         private bool _brainEventsSubscribed;
+        private LoadingScreenController _pendingLoadingScreenRestore;
 
         protected virtual void Awake()
         {
@@ -198,8 +200,15 @@ namespace Turnroot.Utilities.AbstractScripts
         protected void HandleSceneTransitionStarted(string sceneName, string displayName) =>
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneEnd);
 
-        protected void HandleSceneTransitionCompleted(string sceneName, string displayName) =>
+        protected void HandleSceneTransitionCompleted(string sceneName, string displayName)
+        {
+            if (_pendingLoadingScreenRestore != null)
+            {
+                _pendingLoadingScreenRestore.showOnSceneTransitionStart = true;
+                _pendingLoadingScreenRestore = null;
+            }
             SceneReadyAfterLoad?.Invoke();
+        }
 
         protected void HandleBattleCompleted(Turnroot.Gameplay.Combat.BattleExitType exitType) =>
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.BattleCompleted);
@@ -310,12 +319,16 @@ namespace Turnroot.Utilities.AbstractScripts
         /// to the next scene: errors if there are none, warns and takes the first if there are
         /// more than one.
         /// </summary>
-        public void MarkSceneComplete()
+        /// <param name="showLoadingScreen">
+        /// When <c>true</c> (default) the standard loading screen is shown during the transition.
+        /// When <c>false</c> the transition happens without displaying the loading screen.
+        /// </param>
+        public void MarkSceneCompleteAndAdvance(bool showLoadingScreen = true)
         {
             var flowBrain = brain?.sceneFlowBrain;
             if (flowBrain == null)
             {
-                "DynamicSceneFlow: MarkSceneComplete called but SceneFlowBrain is unavailable.".LogError();
+                "DynamicSceneFlow: MarkSceneCompleteAndAdvance called but SceneFlowBrain is unavailable.".LogError();
                 return;
             }
 
@@ -323,13 +336,23 @@ namespace Turnroot.Utilities.AbstractScripts
 
             if (available == null || available.Count == 0)
             {
-                "DynamicSceneFlow: MarkSceneComplete — no available transitions from the current scene.".LogError();
+                "DynamicSceneFlow: MarkSceneCompleteAndAdvance — no available transitions from the current scene.".LogError();
                 return;
             }
 
             if (available.Count > 1)
             {
-                $"DynamicSceneFlow: MarkSceneComplete — {available.Count} transitions available; taking the first ('{available[0].sceneId}'). Use TransitionToScene to pick explicitly.".LogWarning();
+                $"DynamicSceneFlow: MarkSceneCompleteAndAdvance — {available.Count} transitions available; taking the first ('{available[0].sceneId}'). Use TransitionToScene to pick explicitly.".LogWarning();
+            }
+
+            if (!showLoadingScreen)
+            {
+                var loadingScreen = FindFirstObjectByType<LoadingScreenController>();
+                if (loadingScreen != null)
+                {
+                    loadingScreen.showOnSceneTransitionStart = false;
+                    _pendingLoadingScreenRestore = loadingScreen;
+                }
             }
 
             flowBrain.TransitionToScene(available[0].sceneId);
