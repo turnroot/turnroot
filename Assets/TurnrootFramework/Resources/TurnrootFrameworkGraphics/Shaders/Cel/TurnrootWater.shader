@@ -231,36 +231,45 @@ Shader "Turnroot/Water"
 
                 // ─────────────────────────────────────────────────────────
                 // HEIGHT VARIATION
-                // Apply wave displacement to vertices for actual surface height
-                // changes that match the visual wave normals.
+                // Two crossing sine waves at different frequencies create
+                // natural-looking interference. Noise modulates amplitude
+                // per-vertex (calmer/rougher patches) rather than replacing
+                // the wave signal, so the slider blends between uniform
+                // and organic waves instead of wave↔noise.
                 // ─────────────────────────────────────────────────────────
                 #if defined(_HEIGHT_VARIATION_ON)
                 {
-                    // Get world position for wave calculation
                     float3 positionWS = TransformObjectToWorld(positionOS);
-                    float2 wavePos = positionWS.xz;
+                    float2 wavePos    = positionWS.xz;
+                    float  waveTime   = _Time.y * _WaveSpeed;
 
-                    // Base wave direction and time
-                    float2 waveDir = normalize(float2(_WaveDirectionX, _WaveDirectionZ));
-                    float waveTime = _Time.y * _WaveSpeed;
+                    float2 waveDir1 = normalize(float2(_WaveDirectionX, _WaveDirectionZ));
+                    // Secondary wave rotated ~60 degrees for crossing interference
+                    float2 waveDir2 = normalize(float2(
+                        _WaveDirectionZ * 0.866 - _WaveDirectionX * 0.5,
+                        _WaveDirectionX * 0.866 + _WaveDirectionZ * 0.5
+                    ));
 
-                    // Directional wave
-                    float wavePhase = dot(wavePos, waveDir) * _WaveFrequency + waveTime;
-                    float waveBase = sin(wavePhase) * 0.5 + 0.5; // 0..1
-                    
-                    // Smooth out the wave
-                    waveBase = pow(waveBase, _WaveSmoothness);
+                    float phase1 = dot(wavePos, waveDir1) * _WaveFrequency + waveTime;
+                    float wave1  = saturate(sin(phase1) * 0.5 + 0.5);
+                    wave1        = pow(wave1, _WaveSmoothness);
 
-                    // Add noise variation if desired
+                    // Secondary at 0.6x frequency so periods don't perfectly repeat
+                    float phase2 = dot(wavePos, waveDir2) * _WaveFrequency * 0.6 + waveTime * 1.1;
+                    float wave2  = saturate(sin(phase2) * 0.5 + 0.5);
+                    wave2        = pow(wave2, _WaveSmoothness);
+
+                    float waveBase = wave1 * 0.7 + wave2 * 0.3;
+
+                    // Noise modulates amplitude — creates calmer and rougher patches
+                    // without overriding the wave pattern entirely.
                     float2 noiseUV = wavePos * _WaveNoiseScale * 0.1;
-                    float waveNoise = SAMPLE_TEXTURE2D_LOD(_RippleNoiseTex, sampler_RippleNoiseTex,
-                                                           TRANSFORM_TEX(noiseUV, _RippleNoiseTex), 0).r;
-                    
-                    // Combine wave and noise
-                    float heightOffset = waveBase * (1.0 - _WaveNoiseStrength) + waveNoise * _WaveNoiseStrength;
-                    heightOffset = (heightOffset * 2.0 - 1.0) * _WaveHeight; // remap to -height..+height
+                    float  waveNoise = SAMPLE_TEXTURE2D_LOD(_RippleNoiseTex, sampler_RippleNoiseTex,
+                                                            TRANSFORM_TEX(noiseUV, _RippleNoiseTex), 0).r;
 
-                    // Apply displacement along vertex normal
+                    float amplitudeScale = lerp(1.0, waveNoise, _WaveNoiseStrength);
+                    float heightOffset   = (waveBase * 2.0 - 1.0) * _WaveHeight * amplitudeScale;
+
                     positionOS += input.normalOS * heightOffset;
                 }
                 #endif
@@ -343,32 +352,26 @@ Shader "Turnroot/Water"
 
                 // ─────────────────────────────────────────────────────────
                 // 5. WAVE NORMAL (for specular)
-                // Derive a perturbed surface normal from the noise gradient using
-                // screen-space derivatives. ddx/ddy of the noise value give the
-                // rate of change in XZ, which is exactly the slope of the "wave"
-                // implied by the noise field — no extra texture taps required.
-                //
-                // The murkiness and distortion fields are then used to attenuate
-                // the specular, so turbid / rough patches look dull and the
-                // distorted silhouette zone at the waterline has wavy highlights.
+                // Compute a surface normal by sampling the noise texture at
+                // small world-space offsets in X and Z (central differences).
+                // This avoids ddx/ddy, which is constant per 2×2 pixel quad
+                // and produces the blocky "square pixel" faceting artifacts.
                 // ─────────────────────────────────────────────────────────
                 float3 baseNormalWS = normalize(input.normalWS);
 
-                // Combined noise value used to drive the wave slope
-                float nCombined = n1 * 0.7 + n2 * 0.3;
+                // Sample noise at ±eps offsets in world XZ to estimate gradient
+                float eps = 0.08;
+                float2 nUV1_px = (wXZ + float2( eps, 0))   * _RippleNoiseScale  * 0.1 + _Time.y * _RippleNoiseSpeed;
+                float2 nUV1_nx = (wXZ + float2(-eps, 0))   * _RippleNoiseScale  * 0.1 + _Time.y * _RippleNoiseSpeed;
+                float2 nUV1_pz = (wXZ + float2(0,    eps)) * _RippleNoiseScale  * 0.1 + _Time.y * _RippleNoiseSpeed;
+                float2 nUV1_nz = (wXZ + float2(0,   -eps)) * _RippleNoiseScale  * 0.1 + _Time.y * _RippleNoiseSpeed;
 
-                // Screen-space gradient of the noise — gives XZ slope of the wave
-                float3 dPdx  = ddx(input.positionWS);
-                float3 dPdy  = ddy(input.positionWS);
-                float  dNdx  = ddx(nCombined);
-                float  dNdy  = ddy(nCombined);
+                float gradX = (SampleNoise(nUV1_px) - SampleNoise(nUV1_nx)) / (2.0 * eps);
+                float gradZ = (SampleNoise(nUV1_pz) - SampleNoise(nUV1_nz)) / (2.0 * eps);
 
-                // Reconstruct a perturbed normal: push the surface along its tangent
-                // plane by the noise gradient, scaled by _SpecularNormalStrength.
+                // Build perturbed normal: tilt baseNormal by (gradX, 0, gradZ) slope
                 float3 waveNormalWS = normalize(
-                    baseNormalWS
-                    - dNdx * normalize(dPdx) * _SpecularNormalStrength
-                    - dNdy * normalize(dPdy) * _SpecularNormalStrength
+                    baseNormalWS + float3(-gradX, 0, -gradZ) * _SpecularNormalStrength
                 );
 
                 // ─────────────────────────────────────────────────────────
@@ -405,10 +408,13 @@ Shader "Turnroot/Water"
                 //                  the distortion noise (n1 remap) to soften highlights
                 //                  in the same areas where the depth edge wobbles.
                 // ─────────────────────────────────────────────────────────
-                float murkinessSuppress  = 1.0 - murkiness * _MurkinessStrength * _SpecularMurkinessSuppress;
-                // Distortion noise is already in n1 (same texture, same UVs as distortion)
-                float distortionRoughen = 1.0 - saturate((n1 * 2.0 - 1.0) * _DistortionStrength * 40.0);
-                float specularAttenuation = saturate(murkinessSuppress * distortionRoughen);
+                float murkinessSuppress   = 1.0 - murkiness * _MurkinessStrength * _SpecularMurkinessSuppress;
+                // Wave noise roughens specular independently of screen distortion strength.
+                // n1 is already in 0..1; remap to a 0..1 roughness amount, scale by
+                // _SpecularNormalStrength so the same slider that controls specular normal
+                // intensity also controls how much the noise breaks up the highlight.
+                float noiseRoughen        = saturate(abs(n1 * 2.0 - 1.0) * _SpecularNormalStrength * 2.0);
+                float specularAttenuation = saturate(murkinessSuppress * (1.0 - noiseRoughen * 0.5));
 
                 float3 specularAccum = 0.0;
 
@@ -444,57 +450,113 @@ Shader "Turnroot/Water"
 
                 // ─────────────────────────────────────────────────────────
                 // 9. DISTORTION (depth sample)
+                // Two independent noise channels give true 2D screen-space
+                // wobble. Fallback to undistorted depth when distorted sample
+                // lands in front of the water plane (rock face, skybox, etc.)
+                // to prevent sharp jumps at edges.
                 // ─────────────────────────────────────────────────────────
-                float distNoise = n1 * 2.0 - 1.0; // remap 0..1 → -1..1
-                float2 distortedScreenUV = screenUV + distNoise * _DistortionStrength;
-                float  rawSceneDepthD    = SampleSceneDepth(distortedScreenUV);
-                float  sceneEyeDepthD    = LinearEyeDepth(rawSceneDepthD, _ZBufferParams);
-                float  depthDiffDistorted = max(0.0, sceneEyeDepthD - fragEyeDepth);
+                float distNoiseX = n1 * 2.0 - 1.0;
+                float distNoiseY = n2 * 2.0 - 1.0;
+                float2 distortedScreenUV = screenUV + float2(distNoiseX, distNoiseY) * _DistortionStrength;
+
+                float rawSceneDepthD  = SampleSceneDepth(distortedScreenUV);
+                float sceneEyeDepthD  = LinearEyeDepth(rawSceneDepthD, _ZBufferParams);
+
+                // Fallback: if distorted sample is in front of water, use undistorted
+                bool  useUndistorted  = sceneEyeDepthD <= fragEyeDepth;
+                float2 safeScreenUV   = useUndistorted ? screenUV        : distortedScreenUV;
+                float  safeRawDepth   = useUndistorted ? rawSceneDepth   : rawSceneDepthD;
+
+                float  sceneEyeDepthSafe  = useUndistorted ? sceneEyeDepth : sceneEyeDepthD;
+                float  depthDiffDistorted = max(0.0, sceneEyeDepthSafe - fragEyeDepth);
+
+                // Reconstruct world-space XZ of the scene geometry under the water.
+                // Horizontal distance from this to the water fragment is the correct
+                // shore distance at any camera angle — eye-space depth alone is only
+                // valid from above; at grazing / first-person angles it diverges badly.
+                float3 sceneWorldPos = ComputeWorldSpacePosition(safeScreenUV, safeRawDepth, UNITY_MATRIX_I_VP);
 
                 // ─────────────────────────────────────────────────────────
                 // 10. INTERSECTION RIPPLES
+                // Use the true XZ planar distance from the water fragment to
+                // the scene geometry reconstructed from the depth buffer.
+                // This is angle-independent — works from top-down, first-person,
+                // and all angles in between. Eye-space depth diverges badly at
+                // grazing angles and is only kept for the depth color gradient.
                 // ─────────────────────────────────────────────────────────
-                float dxD    = ddx(depthDiffDistorted);
-                float dyD    = ddy(depthDiffDistorted);
-                float gradLen = length(float2(dxD, dyD));
+                float horizDist = length(sceneWorldPos.xz - input.positionWS.xz);
 
-                float pixelDist  = depthDiffDistorted / max(gradLen, 0.0001);
-                float wsPerPixel = length(ddx(input.positionWS));
-                float horizDist  = pixelDist * wsPerPixel;
+                // ── Domain warp ────────────────────────────────────────────────────
+                // Sample two noise values at a coarse world scale to warp the XZ
+                // position before all subsequent ring/breakup lookups. This bends
+                // the coordinate space itself rather than only offsetting horizDist,
+                // so rings deform in a flowing, water-current way rather than
+                // expanding and contracting radially.
+                float2 warp1UV = wXZ * _RippleNoiseScale * 0.04 + _Time.y * _RippleNoiseSpeed * 0.25;
+                float wx = SampleNoise(warp1UV)                  * 2.0 - 1.0;
+                float wz = SampleNoise(warp1UV + float2(5.2, 1.3)) * 2.0 - 1.0;
+                float2 warpedXZ = wXZ + float2(wx, wz) * _RippleDistortion;
 
-                // Warp the effective distance from the edge using both noise layers.
-                // This displaces where each ring sits in world space — perfect circles
-                // become irregular, organic shapes. The two layers at different scales
-                // give large sweeping bends (n1) and finer local kinks (n2).
-                float nDistort = (n1 - 0.5) * 0.8 + (n2 - 0.5) * 0.2; // range ~-0.5..0.5
-                horizDist = max(0.0, horizDist + nDistort * _RippleDistortion * _RippleDistance * 0.5);
+                // Re-sample noise at warped position — all breakup uses this,
+                // so strokes follow the deformed coordinate flow.
+                float2 wNoiseUV1 = warpedXZ * _RippleNoiseScale  * 0.1 + _Time.y * _RippleNoiseSpeed;
+                float2 wNoiseUV2 = warpedXZ * _RippleNoiseScale2 * 0.1 - _Time.y * _RippleNoiseSpeed * 0.7;
+                float wn1 = SampleNoise(wNoiseUV1);
+                float wn2 = SampleNoise(wNoiseUV2);
+
+                // Warp horizDist for organic ring placement (wobbly, not perfect circles)
+                float nDistort = (wn1 - 0.5) * 0.8 + (wn2 - 0.5) * 0.2;
+                horizDist = max(0.0, horizDist + nDistort * _RippleDistortion * _RippleDistance * 0.25);
 
                 float rippleMask = 1.0 - saturate(horizDist / max(_RippleDistance, 0.001));
                 rippleMask *= step(0.001, depthDiffDistorted);
 
                 float edgeFade = saturate(rippleMask / max(_RippleEdgeFade, 0.01));
 
-                // Per-pixel phase offset derived from world XZ position using a
-                // pseudo-random hash. Unlike the noise texture (which is sampled at
-                // low frequency and gives nearly the same value to all pixels along
-                // a flat shore), this varies at sub-pixel frequency so every pixel
-                // on the edge gets a genuinely different phase — fully breaking the
-                // synchronization that causes the pulse, at any slider value > 0.
-                float2 hashInput  = floor(input.positionWS.xz * 8.0); // tile size ~0.125 WU
-                float  phaseJitter = frac(
-                    sin(dot(hashInput, float2(127.1, 311.7))) * 43758.5453
-                ) * _RipplePhaseJitter;
+                // ── Phase jitter via smooth noise (no grid artifacts) ───────────────
+                // The old floor-hash produced phase discontinuities on a 0.125 WU grid
+                // visible as a repeating seam on flat shores. Smooth noise interpolates
+                // continuously so phase varies organically across the shoreline.
+                float phaseJitter = SampleNoise(wXZ * 0.3 + float2(4.1, 8.7)) * _RipplePhaseJitter;
 
+                // ── Ring profile: asymmetric brushstroke shape ─────────────────────
+                // ring=0 is the leading (outer) edge, ring→1 is the trailing edge.
+                // Sharp outer edge (water recedes quickly) + soft inner fade
+                // (water arrives gradually) mimics the feel of a real brushstroke.
                 float ringPhase = (horizDist / max(_RippleDistance, 0.001)) * _RippleCount
                                   - _Time.y * _RippleSpeed + phaseJitter;
-                float ring     = frac(ringPhase);
-                float ringLine = 1.0 - abs(ring - 0.5) * 2.0;
-                ringLine = saturate((ringLine - 0.5) * _RippleSharpness * 0.1 + 0.5);
-                ringLine = saturate(ringLine * 2.0 - 0.75);
+                float ring = frac(ringPhase);
 
-                float n2b = SampleNoise(noiseUV2);
-                float noiseSubtract = n1 * _RippleNoiseStrength + n2b * _RippleNoiseStrength2;
-                ringLine = saturate(ringLine - noiseSubtract);
+                float sharpness  = _RippleSharpness * 0.04;
+                float outerEdge  = smoothstep(0.5 + sharpness, 0.5,              ring);
+                float innerEdge  = smoothstep(0.0,             0.18 + sharpness, ring);
+                float ringLine   = outerEdge * innerEdge;
+
+                // ── Brush-stroke breakup (threshold-based, not subtractive) ────────
+                // Two noise layers sampled at oblong UV scales so noise cells are
+                // elongated rather than round. This produces long clean gaps and long
+                // clean segments — the defining character of a brushstroke — instead
+                // of uniformly stippling or thinning the ring.
+                float2 strokeUV_a = float2(warpedXZ.x * 1.0, warpedXZ.y * 2.8)
+                                  * _RippleNoiseScale * 0.08
+                                  + _Time.y * _RippleNoiseSpeed * 0.3;
+                float2 strokeUV_b = float2(warpedXZ.x * 2.5, warpedXZ.y * 0.7)
+                                  * _RippleNoiseScale * 0.09
+                                  + _Time.y * _RippleNoiseSpeed * 0.15 + float2(7.3, 2.1);
+
+                float strokeA = SampleNoise(strokeUV_a);
+                float strokeB = SampleNoise(strokeUV_b);
+                // Blend: coarse A gives large stroke shapes, fine B adds sub-stroke texture
+                float strokeMask = strokeA * 0.65 + strokeB * 0.35;
+
+                // Threshold cut: _RippleNoiseStrength=0 → full ring, higher → more/longer breaks
+                float strokeThresh = 1.0 - saturate(_RippleNoiseStrength);
+                float brushBreak   = smoothstep(strokeThresh - 0.08, strokeThresh + 0.08, strokeMask);
+
+                // Fine secondary texture within surviving stroke segments
+                float fineBreak = saturate(1.0 - wn2 * _RippleNoiseStrength2);
+
+                ringLine *= brushBreak * fineBreak;
 
                 float rippleAlpha = ringLine * rippleMask * edgeFade * _RippleOpacity;
 
@@ -512,41 +574,62 @@ Shader "Turnroot/Water"
 
                 // ─────────────────────────────────────────────────────────
                 // 11. CONSTANT INTERSECTION FOAM
-                // Similar to ripples but static (no animation). Creates a
-                // persistent foam line at intersection edges. Reuses edge fade,
-                // sharpness, and distortion from ripples, but has independent
-                // color, thickness, and noise strength.
+                // Persistent foam band at the waterline. Uses the same
+                // domain-warped coordinate (warpedXZ) as the ripples so
+                // foam and ripples share the same organic edge deformation.
+                // Uses threshold-based noise breakup (matching ripple style)
+                // rather than the old subtractive approach.
                 // ─────────────────────────────────────────────────────────
                 #if defined(_CONSTANT_FOAM_ON)
                 {
-                    // Calculate foam distance with its own distortion
-                    float foamNDistort = (n1 - 0.5) * 0.8 + (n2 - 0.5) * 0.2;
-                    float foamHorizDist = max(0.0, horizDist + foamNDistort * _FoamDistortion * _FoamThickness * 0.5);
-                    
-                    float foamMask = 1.0 - saturate(foamHorizDist / max(_FoamThickness, 0.001));
+                    // Start fresh from the raw depth difference so foam is
+                    // not double-distorted on top of the already-warped horizDist.
+                    // Apply the same warp as ripples via warpedXZ for consistency.
+                    float2 foamWarp1UV = wXZ * _RippleNoiseScale * 0.04;
+                    float fwx = SampleNoise(foamWarp1UV)                    * 2.0 - 1.0;
+                    float fwz = SampleNoise(foamWarp1UV + float2(5.2, 1.3)) * 2.0 - 1.0;
+                    // Share warpedXZ from ripples (already computed), scale distortion
+                    // independently by _FoamDistortion vs _RippleDistortion.
+                    float2 foamWarpedXZ = wXZ + float2(fwx, fwz) * _FoamDistortion;
+
+                    float2 foamWNoiseUV = foamWarpedXZ * _RippleNoiseScale * 0.1;
+                    float fn1 = SampleNoise(foamWNoiseUV);
+                    float fn2 = SampleNoise(foamWNoiseUV * 1.7 + float2(3.1, 7.4));
+                    float foamNDistort = (fn1 - 0.5) * 0.8 + (fn2 - 0.5) * 0.2;
+
+                    float foamRawDist = depthDiffDistorted;
+                    foamRawDist = max(0.0, foamRawDist + foamNDistort * _FoamDistortion * _FoamThickness * 0.3);
+
+                    float foamMask = 1.0 - saturate(foamRawDist / max(_FoamThickness, 0.001));
                     foamMask *= step(0.001, depthDiffDistorted);
 
-                    // Apply edge fade (reuse _RippleEdgeFade)
                     float foamEdgeFade = saturate(foamMask / max(_RippleEdgeFade, 0.01));
 
-                    // Create foam pattern using noise - static, no time component
-                    float2 foamNoiseUV = wXZ * _RippleNoiseScale * 0.1;
-                    float foamNoise1 = SampleNoise(foamNoiseUV);
-                    float foamNoise2 = SampleNoise(foamNoiseUV * 2.3 + float2(5.7, 2.3));
-                    float foamNoiseCombined = foamNoise1 * 0.7 + foamNoise2 * 0.3;
+                    // Threshold-based foam breakup using oblong noise cells.
+                    // Same principle as the brushstroke ripples — clean clumps
+                    // and clean gaps rather than uniformly thinned foam.
+                    float2 foamStrokeUV_a = float2(foamWarpedXZ.x * 1.0, foamWarpedXZ.y * 2.5)
+                                          * _RippleNoiseScale * 0.1 + float2(1.1, 4.4);
+                    float2 foamStrokeUV_b = float2(foamWarpedXZ.x * 2.3, foamWarpedXZ.y * 0.8)
+                                          * _RippleNoiseScale * 0.12 + float2(6.2, 9.7);
 
-                    // Apply foam's own sharpness
-                    float foamPattern = saturate((foamMask - (1.0 - foamNoiseCombined) * _FoamNoiseStrength) * _FoamSharpness * 0.1);
-                    foamPattern *= foamEdgeFade;
+                    float foamNA = SampleNoise(foamStrokeUV_a);
+                    float foamNB = SampleNoise(foamStrokeUV_b);
+                    float foamStrokeMask = foamNA * 0.6 + foamNB * 0.4;
 
-                    // Apply shadow mask like ripples
+                    // _FoamNoiseStrength drives the threshold: 0 = solid band, 1 = broken clumps
+                    float foamThresh   = 1.0 - saturate(_FoamNoiseStrength * 0.85);
+                    float foamBreak    = smoothstep(foamThresh - 0.1, foamThresh + 0.1, foamStrokeMask);
+
+                    // Sharp inner/outer edges using _FoamSharpness
+                    float foamSharp   = _FoamSharpness * 0.04;
+                    float foamInner   = smoothstep(0.0,           0.15 + foamSharp, foamMask);
+                    float foamOuter   = smoothstep(foamSharp * 2.0, 0.0,            1.0 - foamMask);
+                    float foamPattern = foamInner * foamOuter * foamBreak * foamEdgeFade;
+
                     float foamShadowFactor = lerp(1.0, shadowAtten, _RippleShadowMask);
-                    foamPattern *= foamShadowFactor;
+                    foamPattern *= foamShadowFactor * depthFadeOut;
 
-                    // Fade out foam in deeper water (same as ripples)
-                    foamPattern *= depthFadeOut;
-
-                    // Blend foam into water
                     waterCol.rgb = lerp(waterCol.rgb, _FoamColor.rgb, foamPattern * _FoamColor.a);
                     waterCol.a   = max(waterCol.a, foamPattern * _FoamColor.a);
                 }
