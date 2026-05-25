@@ -375,6 +375,8 @@ namespace Turnroot.Utilities.SceneFlows
         public void SetCustomFlag(string key, bool value)
         {
             _customFlags[key] = value;
+            if (_ltm != null && _ltm.Initialized)
+                _ltm.RememberBool(LtmFlagPrefix + key, value);
             $"SceneFlowBrain: Set flag '{key}' = {value}".LogInfo();
         }
 
