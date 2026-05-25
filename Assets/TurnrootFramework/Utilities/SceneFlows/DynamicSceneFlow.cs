@@ -312,17 +312,6 @@ namespace Turnroot.Utilities.AbstractScripts
         #endregion
 
         #region Scene Flow Completion
-
-        /// <summary>
-        /// Signals that the current scene is done and the flow should advance.
-        /// Reads available outgoing transitions from <see cref="SceneFlowBrain"/> and transitions
-        /// to the next scene: errors if there are none, warns and takes the first if there are
-        /// more than one.
-        /// </summary>
-        /// <param name="showLoadingScreen">
-        /// When <c>true</c> (default) the standard loading screen is shown during the transition.
-        /// When <c>false</c> the transition happens without displaying the loading screen.
-        /// </param>
         public void MarkSceneCompleteAndAdvance(bool showLoadingScreen = true)
         {
             var flowBrain = brain?.sceneFlowBrain;
@@ -357,6 +346,9 @@ namespace Turnroot.Utilities.AbstractScripts
 
             flowBrain.TransitionToScene(available[0].sceneId);
         }
+
+        public void MarkSceneCompleteAndAdvanceLoadingScreen() =>
+            MarkSceneCompleteAndAdvance(showLoadingScreen: true);
 
         #endregion
 
