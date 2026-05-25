@@ -70,7 +70,7 @@ namespace Turnroot.Graphics2D
         private int maxCols;
         private int maxRows;
 
-        public void HandleInput(string action)
+        public void HandleInput(string action, int min = 0, int max = 0)
         {
             switch (action)
             {
@@ -88,7 +88,7 @@ namespace Turnroot.Graphics2D
                     break;
                 case InputActionConstants.Submit:
                 case InputActionConstants.Select:
-                    ProcessSelect();
+                    ProcessSelect(min, max);
                     break;
             }
         }

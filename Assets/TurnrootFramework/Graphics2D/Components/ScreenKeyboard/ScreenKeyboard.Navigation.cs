@@ -47,17 +47,17 @@ namespace Turnroot.Graphics2D
             HighlightCurrentButton();
         }
 
-        public void ProcessSelect()
+        public void ProcessSelect(int min = 0, int max = 0)
         {
             if (buttons[currentRow, currentCol] != null)
             {
                 buttons[currentRow, currentCol].Press();
                 string key = buttons[currentRow, currentCol].GetKeyValue();
-                ProcessKey(key);
+                ProcessKey(key, min, max);
             }
         }
 
-        private void ProcessKey(string key)
+        private void ProcessKey(string key, int min = 0, int max = 0)
         {
             switch (key)
             {
@@ -115,9 +115,15 @@ namespace Turnroot.Graphics2D
                         return;
                     }
 
-                    if (currentText.Length >= 100)
+                    if (currentText.Length >= max)
                     {
                         StartCoroutine(FlashInvalidInput("Too long"));
+                        return;
+                    }
+
+                    if (currentText.Length < min)
+                    {
+                        StartCoroutine(FlashInvalidInput("Too short"));
                         return;
                     }
 
