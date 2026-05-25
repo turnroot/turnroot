@@ -70,7 +70,7 @@ namespace Turnroot.Graphics2D
         private int maxCols;
         private int maxRows;
 
-        public void HandleInput(string action, int min = 0, int max = 0)
+        public void HandleInput(string action, int min = 1, int max = 10)
         {
             switch (action)
             {
