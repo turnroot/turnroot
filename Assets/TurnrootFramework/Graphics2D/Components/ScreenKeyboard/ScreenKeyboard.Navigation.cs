@@ -233,6 +233,7 @@ namespace Turnroot.Graphics2D
 
         private void UpdateDisplay()
         {
+            UpdateShiftButtonVisual();
             if (displayText != null)
             {
                 displayText.text = currentText;

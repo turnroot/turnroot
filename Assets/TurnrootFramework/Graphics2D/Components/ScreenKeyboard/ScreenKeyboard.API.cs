@@ -2,7 +2,6 @@ namespace Turnroot.Graphics2D
 {
     public partial class ScreenKeyboard
     {
-        // Public API
         public string GetCurrentText() => currentText;
 
         public void SetText(string text)
@@ -16,9 +15,5 @@ namespace Turnroot.Graphics2D
             currentText = "";
             UpdateDisplay();
         }
-
-        public bool IsShiftActive() => isShiftActive;
-
-        public bool IsCapsLockActive() => isCapsLockActive;
     }
 }
