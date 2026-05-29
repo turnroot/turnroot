@@ -172,13 +172,42 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        public static bool HasRecruitmentAttemptHappenedToday(string characterFullName) =>
+            _currentState?.RecruitAttemptDoneIds != null
+            && _currentState.RecruitAttemptDoneIds.Contains(characterFullName);
+
+        public static void MarkRecruitmentAttemptHappenedToday(
+            Brain.Brain brain,
+            string characterFullName
+        )
+        {
+            if (
+                brain?.ltm == null
+                || _currentState == null
+                || string.IsNullOrEmpty(characterFullName)
+            )
+            {
+                return;
+            }
+
+            _currentState.RecruitAttemptDoneIds ??= new System.Collections.Generic.List<string>();
+            if (!_currentState.RecruitAttemptDoneIds.Contains(characterFullName))
+            {
+                _currentState.RecruitAttemptDoneIds.Add(characterFullName);
+                SaveState(brain);
+            }
+        }
+
         public static bool HasTeamPlacements() =>
             _currentState?.TeamPlacements != null && _currentState.TeamPlacements.Count > 0;
 
         public static System.Collections.Generic.Dictionary<
             int,
             HubSublocationName
-        > GetTeamPlacements() => !HasTeamPlacements() ? null : _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
+        > GetTeamPlacements() =>
+            !HasTeamPlacements()
+                ? null
+                : _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
 
         public static void SaveTeamPlacements(
             Brain.Brain brain,
@@ -212,9 +241,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             return !HasNonRosterPlacements()
                 ? null
                 : _currentState.NonRosterPlacements.ToDictionary(
-                e => e.CharacterKey,
-                e => e.Location
-            );
+                    e => e.CharacterKey,
+                    e => e.Location
+                );
         }
 
         public static void SaveNonRosterPlacements(
@@ -360,6 +389,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public System.Collections.Generic.List<ShopStockEntry> ShopStock;
 
             public System.Collections.Generic.List<string> ChitChatDoneIds;
+
+            public System.Collections.Generic.List<string> RecruitAttemptDoneIds;
 
             public System.Collections.Generic.List<string> InteractionDoneIds;
             public System.Collections.Generic.List<TeamPlacementEntry> TeamPlacements;

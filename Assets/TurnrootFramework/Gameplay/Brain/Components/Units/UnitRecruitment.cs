@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters;
+using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts.UI;
@@ -6,15 +10,22 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
+    public enum RecruitmentAttemptOutcome
+    {
+        Failure,
+        NearlySucceeded,
+        Success,
+    }
+
     [RequireComponent(typeof(LongTermMemory))]
     public partial class CharactersBrain : BrainComponent
     {
         private struct NullSafeAvatar
         {
-            public CharacterInstance? Avatar { get; }
+            public CharacterInstance Avatar { get; }
             public bool IsValid => Avatar != null;
 
-            public NullSafeAvatar(CharacterInstance? avatar)
+            public NullSafeAvatar(CharacterInstance avatar)
             {
                 Avatar = avatar;
             }
@@ -43,80 +54,161 @@ namespace Turnroot.Gameplay.Brain
             return true;
         }
 
-        private bool CheckMinExperienceOverride(CharacterData characterData)
+        private bool AvatarHasMinExperienceLevels(CharacterData characterData, out bool isNearMiss)
         {
-            var status = AvatarHasMinExperienceLevels(characterData);
-            if (status)
+            isNearMiss = false;
+
+            if (!characterData.AvatarMustHaveMinimumExperienceLevelsToRecruit)
             {
                 return true;
             }
-            else
+
+            var status = true;
+            foreach (var required in characterData.AvatarMinimumExperienceRanksToRecruit)
             {
-                if (characterData.SupportCanCompensateForMissingExperienceLevels)
-                { // failed the experience check but support relationship can compensate
-                    var supportRel = avatar.Avatar?.GetSupportRelationship(characterData);
-                    if (
-                        supportRel == null
-                        || characterData.RecruitCompensationSupportLevel.CompareTo(
-                            supportRel.CurrentLevel
-                        ) > 0
-                    )
-                    {
-                        status = false;
-                    }
-                }
-                else
+                var avatarRank = avatar.Avatar.ExperienceRanks.Find(r =>
+                    r.ExperienceTypeId == required.ExperienceTypeId
+                );
+                if (avatarRank == null)
                 {
-                    // failed and can't compensate
                     status = false;
+                    continue;
+                }
+
+                var difference = required.Rank.CompareTo(avatarRank.Rank.Value);
+                if (difference > 0)
+                {
+                    status = false;
+                    if (difference == 1)
+                    {
+                        isNearMiss = true;
+                    }
                 }
             }
 
             return status;
         }
 
-        public bool CanRecruit(CharacterInstance character)
+        private bool AvatarMeetsRecruitSupportRequirement(
+            CharacterData characterData,
+            out bool isNearMiss
+        )
         {
-            avatar = new NullSafeAvatar(_gamewideContextBrain?.GetOrCreateAvatarInstance());
-            if (!avatar.IsValid)
+            isNearMiss = false;
+
+            if (!characterData.RecruitRequiresMinSupportLevel)
+            {
+                return true;
+            }
+
+            var supportRel = avatar.Avatar.GetSupportRelationship(characterData);
+            if (supportRel == null)
             {
                 return false;
             }
 
-            var status = false;
+            var difference = characterData.RecruitSupportRelationshipMinRank.CompareTo(
+                supportRel.CurrentLevel
+            );
+            if (difference > 0)
+            {
+                isNearMiss = difference == 1;
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool RequiredAllyIsRecruited(CharacterData characterData)
+        {
+            if (!characterData.WillJoinIfAllyIsAlreadyRecruited)
+            {
+                return false;
+            }
+
+            var requiredAlly = characterData.SpecificAllyRequiredForRecruitment;
+            if (requiredAlly == null)
+            {
+                return false;
+            }
+
+            var roster = _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
+            if (roster == null)
+            {
+                return false;
+            }
+
+            var rosterInstance = _gamewideContextBrain?.GetOrCreatePlayerTeamRoster(roster);
+            return rosterInstance?.GetInstanceFor(requiredAlly) != null;
+        }
+
+        private int GetCurrentPlayerRosterAverageLevel()
+        {
+            var rosterInstance = _gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
+            var levels = rosterInstance
+                ?.Instances?.Where(i => i != null)
+                .Select(i => i.CurrentLevel)
+                .ToArray();
+            if (levels == null || levels.Length == 0)
+            {
+                return 1;
+            }
+
+            return Mathf.Max(1, Mathf.FloorToInt((float)levels.Average()));
+        }
+
+        public RecruitmentAttemptOutcome GetRecruitmentAttemptOutcome(CharacterInstance character)
+        {
+            avatar = new NullSafeAvatar(_gamewideContextBrain?.GetOrCreateAvatarInstance());
+            if (!avatar.IsValid || character?.CharacterTemplate == null)
+            {
+                return RecruitmentAttemptOutcome.Failure;
+            }
 
             var characterData = character.CharacterTemplate;
 
-            if (characterData.WillJoinIfAllyIsAlreadyRecruited)
+            if (RequiredAllyIsRecruited(characterData))
             {
-                var requiredAlly = characterData.SpecificAllyRequiredForRecruitment;
-                var roster =
-                    _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
-                if (roster != null)
-                {
-                    // Check if the required ally is in the roster
-                    var rosterInstance = _gamewideContextBrain?.GetOrCreatePlayerTeamRoster(roster);
-                    return rosterInstance?.GetInstanceFor(requiredAlly) != null;
-                    ; // If true the character is recruitable regardless of other conditions
-                }
+                return RecruitmentAttemptOutcome.Success;
             }
 
-            CheckMinExperienceOverride(characterData); // check experience next since it can be overridden by support relationship
+            var experienceNearMiss = false;
+            var supportNearMiss = false;
 
-            if (characterData.RecruitRequiresMinSupportLevel)
+            var experienceMet = AvatarHasMinExperienceLevels(characterData, out experienceNearMiss);
+            if (!experienceMet && characterData.SupportCanCompensateForMissingExperienceLevels)
             {
                 var supportRel = avatar.Avatar.GetSupportRelationship(characterData);
                 if (
-                    supportRel == null
-                    || characterData.RecruitSupportRelationshipMinRank.CompareTo(
+                    supportRel != null
+                    && characterData.RecruitCompensationSupportLevel.CompareTo(
                         supportRel.CurrentLevel
-                    ) > 0
+                    ) <= 0
                 )
                 {
-                    status = false;
+                    experienceMet = true;
+                    experienceNearMiss = false;
                 }
             }
-            return status;
+
+            var supportMet = AvatarMeetsRecruitSupportRequirement(
+                characterData,
+                out supportNearMiss
+            );
+
+            if (experienceMet && supportMet)
+            {
+                return RecruitmentAttemptOutcome.Success;
+            }
+
+            return experienceNearMiss || supportNearMiss
+                ? RecruitmentAttemptOutcome.NearlySucceeded
+                : RecruitmentAttemptOutcome.Failure;
+        }
+
+        public bool CanRecruit(CharacterInstance character)
+        {
+            return GetRecruitmentAttemptOutcome(character) == RecruitmentAttemptOutcome.Success;
         }
 
         public OperationResult Recruit(CharacterInstance character)
@@ -138,6 +230,20 @@ namespace Turnroot.Gameplay.Brain
             if (rosterInstance == null)
             {
                 return OperationResult.Failure("Could not access player roster instance.");
+            }
+
+            var targetLevel = Mathf.Max(
+                character.CurrentLevel,
+                GetCurrentPlayerRosterAverageLevel()
+            );
+            while (character.CurrentLevel < targetLevel)
+            {
+                var beforeLevel = character.CurrentLevel;
+                LevelUpCharacter(character);
+                if (character.CurrentLevel <= beforeLevel)
+                {
+                    return OperationResult.Failure("Could not normalize recruited unit level.");
+                }
             }
 
             roster.AddCharacter(character.CharacterTemplate);

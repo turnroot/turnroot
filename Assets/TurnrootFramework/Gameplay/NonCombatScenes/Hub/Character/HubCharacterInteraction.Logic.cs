@@ -159,6 +159,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return false;
             }
 
+            if (
+                ActiveCharacter.CharacterTemplate != null
+                && HubDayStateStore.HasRecruitmentAttemptHappenedToday(
+                    ActiveCharacter.CharacterTemplate.FullName
+                )
+            )
+            {
+                return false;
+            }
+
             var rosterInstance =
                 CharacterManager._brain.gamewideContextBrain.GetPersistentPlayerTeamRosterInstance();
             var alreadyRecruited =

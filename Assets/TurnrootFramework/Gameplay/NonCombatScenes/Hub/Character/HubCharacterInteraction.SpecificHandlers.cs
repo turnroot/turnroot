@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Conversations;
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
@@ -170,32 +171,79 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void HandleRecruit()
         {
-            var canRecruit = CharacterManager._brain.charactersBrain.CanRecruit(ActiveCharacter);
-            if (canRecruit == false)
+            var recruitmentOutcome =
+                CharacterManager._brain.charactersBrain.GetRecruitmentAttemptOutcome(
+                    ActiveCharacter
+                );
+
+            // Consume the day's recruit slot and immediately refresh the menu so the
+            // Recruit option disappears before the one-shot finishes playing.
+            HubDayStateStore.MarkRecruitmentAttemptHappenedToday(
+                CharacterManager._brain,
+                ActiveCharacter.CharacterTemplate.FullName
+            );
+            SetUpActionsMenuChoices();
+
+            if (recruitmentOutcome == Turnroot.Gameplay.Brain.RecruitmentAttemptOutcome.Failure)
             {
                 var oneShot = CharacterManager.GetDailyOneShotForType(
                     ActiveCharacter,
                     CurrentChapter,
                     HubCharacterOneShotType.RecruitFail
                 );
-                var basePoints = GameplayGeneralSettings.Instance.RecruitFailureSupportPoints;
                 CharacterManager._brain.charactersBrain.AwardHubSupportPointsAvatarPairing(
                     ActiveCharacter,
-                    basePoints
+                    GameplayGeneralSettings.Instance.RecruitFailureSupportPoints
                 );
                 OneShotPlayer.PlayOneShotThen(oneShot, OnRecruitFailedOneShotFinished);
                 return;
             }
-            else
+
+            if (
+                recruitmentOutcome
+                == Turnroot.Gameplay.Brain.RecruitmentAttemptOutcome.NearlySucceeded
+            )
             {
-                CharacterManager._brain.charactersBrain.Recruit(ActiveCharacter);
                 var oneShot = CharacterManager.GetDailyOneShotForType(
                     ActiveCharacter,
                     CurrentChapter,
-                    HubCharacterOneShotType.RecruitSucceed
+                    HubCharacterOneShotType.RecruitNearlySucceeded
                 );
-                OneShotPlayer.PlayOneShotThen(oneShot, OnRecruitSucceededOneShotFinished);
+                CharacterManager._brain.charactersBrain.AwardHubSupportPointsAvatarPairing(
+                    ActiveCharacter,
+                    GameplayGeneralSettings.Instance.RecruitFailureSupportPoints
+                );
+                OneShotPlayer.PlayOneShotThen(oneShot, OnRecruitFailedOneShotFinished);
+                return;
             }
+
+            // Success path — recruit may still fail internally (e.g. roster access issue).
+            var recruitResult = CharacterManager._brain.charactersBrain.Recruit(ActiveCharacter);
+            if (!recruitResult.Success)
+            {
+                var oneShot = CharacterManager.GetDailyOneShotForType(
+                    ActiveCharacter,
+                    CurrentChapter,
+                    HubCharacterOneShotType.RecruitFail
+                );
+                CharacterManager._brain.charactersBrain.AwardHubSupportPointsAvatarPairing(
+                    ActiveCharacter,
+                    GameplayGeneralSettings.Instance.RecruitFailureSupportPoints
+                );
+                OneShotPlayer.PlayOneShotThen(oneShot, OnRecruitFailedOneShotFinished);
+                return;
+            }
+
+            CharacterManager._brain.charactersBrain.AwardHubSupportPointsAvatarPairing(
+                ActiveCharacter,
+                GameplayGeneralSettings.Instance.RecruitSuccessSupportPoints
+            );
+            var successOneShot = CharacterManager.GetDailyOneShotForType(
+                ActiveCharacter,
+                CurrentChapter,
+                HubCharacterOneShotType.RecruitSucceed
+            );
+            OneShotPlayer.PlayOneShotThen(successOneShot, OnRecruitSucceededOneShotFinished);
         }
 
         private void HandleTrain() { }

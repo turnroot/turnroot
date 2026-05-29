@@ -15,6 +15,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         GetLostItemMine,
         GetLostItemNotMine,
         RecruitFail,
+        RecruitNearlySucceeded,
         RecruitSucceed,
     }
 
