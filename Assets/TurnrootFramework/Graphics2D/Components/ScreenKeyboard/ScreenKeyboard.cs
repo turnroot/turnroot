@@ -98,6 +98,7 @@ namespace Turnroot.Graphics2D
             BuildKeyboard();
             UpdateDisplay();
             HighlightCurrentButton();
+            isShiftActive = true;
         }
     }
 }

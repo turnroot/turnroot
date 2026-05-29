@@ -276,6 +276,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _blacksmith._charactersBrain = hubmanager._brain.charactersBrain;
 
                 bool hasWork = hubmanager._brain.charactersBrain.BlacksmithWorkAvailable;
+                $"Blacksmith work available: {hasWork}".LogInfo();
                 if (!hasWork)
                 {
                     CanSelect = false;
