@@ -97,7 +97,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
         public int GetSelectedRepairIndex()
         {
-            return itemChoiceToIndex != null
+            return
+                itemChoiceToIndex != null
                 && CurrentSelectionIndex >= 0
                 && CurrentSelectionIndex < itemChoiceToIndex.Count
                 ? itemChoiceToIndex[CurrentSelectionIndex]
@@ -107,9 +108,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
         public void HandleSelectInput(string action)
         {
             if (
-                action != InputActionConstants.Submit
-                && action != InputActionConstants.Select
-                && action != InputActionConstants.Confirm
+                action
+                is not InputActionConstants.Submit
+                    and not InputActionConstants.Select
+                    and not InputActionConstants.Confirm
             )
             {
                 return;

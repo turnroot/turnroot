@@ -2,6 +2,7 @@ using System.Collections;
 using NaughtyAttributes;
 using TMPro;
 using Turnroot.Characters;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -275,13 +276,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _blacksmith._storehouseBrain = hubmanager._brain.storehouseBrain;
                 _blacksmith._charactersBrain = hubmanager._brain.charactersBrain;
 
-                bool hasWork = hubmanager._brain.charactersBrain.BlacksmithWorkAvailable;
-                $"Blacksmith work available: {hasWork}".LogInfo();
-                if (!hasWork)
+                bool hasRepairWork = hubmanager._brain.charactersBrain.RepairWorkAvailable;
+                bool hasForgeWork = hubmanager._brain.charactersBrain.ForgeWorkAvailable;
+                $"Blacksmith work available - repair: {hasRepairWork}, forge: {hasForgeWork}".LogInfo();
+                if (!hasRepairWork && !hasForgeWork)
                 {
                     CanSelect = false;
                     SetBadgeTexture(ForbiddenBadgeTexture);
                     SetLabel("No blacksmith work");
+                }
+                else if (!hasRepairWork && hasForgeWork)
+                {
+                    if (_blacksmith.TryGetComponent<BlacksmithUi>(out var blacksmithUi))
+                    {
+                        blacksmithUi.SetInitialMode(BlacksmithMode.Forge);
+                    }
                 }
             }
 
