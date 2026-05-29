@@ -3,6 +3,7 @@ using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -74,12 +75,14 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public bool HasBlacksmithWork()
         {
+            "Checking for blacksmith work".LogInfo();
             var settings = GameplayGeneralSettings.Instance;
             bool canRepair = settings != null && settings.WeaponsCanBeRepaired;
             bool canForge = settings != null && settings.WeaponsCanBeForged;
 
             if (!canRepair && !canForge)
             {
+                "Blacksmith work is disabled by settings".LogInfo();
                 return false;
             }
 
@@ -106,11 +109,13 @@ namespace Turnroot.Gameplay.Brain
 
                         if (canRepair && item.IsRepairableWeaponAccessoryOrShield())
                         {
+                            $"Found repairable item {item.Template.Name} in character {character.CharacterTemplate.DisplayName} inventory".LogInfo();
                             return true;
                         }
 
                         if (canForge && item.IsForgeableWeaponOrMagic())
                         {
+                            $"Found forgeable item {item.Template.Name} in character {character.CharacterTemplate.DisplayName} inventory".LogInfo();
                             return true;
                         }
                     }
