@@ -408,6 +408,11 @@ namespace Turnroot.GameSettings
 #if UNITY_EDITOR
         public void OnValidate()
         {
+            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                return;
+            }
+
             // When gameplay toggles change, refresh related assets so their
             // OnValidate/OnEnable handlers can re-apply defaults (ObjectItem, etc.)
             UnityEditor.EditorApplication.delayCall += () =>

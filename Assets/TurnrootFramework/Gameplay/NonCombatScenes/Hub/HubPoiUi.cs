@@ -27,7 +27,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Inspector Fields
 
-        [Tooltip("What kind of interaction this POI drives (MarketPOI, DocksPOI, TrainingPOI, or UnitPOI).")]
+        [Tooltip(
+            "What kind of interaction this POI drives (MarketPOI, DocksPOI, TrainingPOI, or UnitPOI)."
+        )]
         public HubPoiType Type;
 
         [ShowIf(nameof(Type), HubPoiType.MarketPOI)]
@@ -272,6 +274,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _blacksmith._inventoryBrain = hubmanager._brain.inventoryBrain;
                 _blacksmith._storehouseBrain = hubmanager._brain.storehouseBrain;
                 _blacksmith._charactersBrain = hubmanager._brain.charactersBrain;
+
+                bool hasWork = hubmanager._brain.charactersBrain.BlacksmithWorkAvailable;
+                if (!hasWork)
+                {
+                    CanSelect = false;
+                    SetBadgeTexture(ForbiddenBadgeTexture);
+                    SetLabel("No blacksmith work");
+                }
             }
 
             ChildReferencesSet = true;
@@ -392,9 +402,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return mat.color.a;
             }
 
-            return mat.HasProperty("_FaceColor")
-                ? mat.GetColor("_FaceColor").a
-                : mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor").a : 1f;
+            return mat.HasProperty("_FaceColor") ? mat.GetColor("_FaceColor").a
+                : mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor").a
+                : 1f;
         }
 
         private IEnumerator FadeRoutine(float from, float to)
@@ -556,4 +566,3 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #endregion
     }
 }
-

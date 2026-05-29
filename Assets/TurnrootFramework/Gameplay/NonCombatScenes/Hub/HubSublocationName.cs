@@ -13,12 +13,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         Blacksmith,
         DanceHall,
         Spa,
-        Healer,
-        Enchanter,
-        Maps,
-        Quests,
         Library,
-        Recruitment,
         ExploreMisc,
     }
 }

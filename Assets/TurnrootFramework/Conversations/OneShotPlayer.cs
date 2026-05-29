@@ -77,8 +77,12 @@ namespace Turnroot.Conversations
                 {
                     _pendingCallback = onFinished;
                     _controller.OnAnyConversationFinished.AddListener(onFinished);
+                    PlayOneShot(oneShot);
+                    return;
                 }
+
                 PlayOneShot(oneShot);
+                onFinished?.Invoke();
             }
             else
             {

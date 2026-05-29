@@ -58,6 +58,10 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Event Subscription
+        partial void SubscribeBlacksmithItemEvents();
+
+        partial void UnsubscribeBlacksmithItemEvents();
+
         protected override void SubscribeToBrainEvents()
         {
             _brain.OnBattleStarted += HandleStartBattle;
@@ -73,6 +77,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnStateChanged += HandleStateChanged;
             _brain.OnHubCharacterInteracted += HandleHubCharacterInteracted;
             _brain.OnHubCharacterTalked += HandleHubCharacterTalked;
+            SubscribeBlacksmithItemEvents();
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -90,6 +95,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnStateChanged -= HandleStateChanged;
             _brain.OnHubCharacterInteracted -= HandleHubCharacterInteracted;
             _brain.OnHubCharacterTalked -= HandleHubCharacterTalked;
+            UnsubscribeBlacksmithItemEvents();
         }
         #endregion
 
