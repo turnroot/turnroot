@@ -144,7 +144,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
         private void BuildItemListForCurrentMode()
         {
-            // Keep previous selection index mapping before rebuilding
             int previousSelectedItemIndex = -1;
             if (
                 itemChoiceToIndex != null
@@ -156,7 +155,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             }
 
             ClearInstantiatedItems();
-
             itemChoices = new List<UiChoice>();
             itemChoiceToIndex = new List<int>();
 
@@ -169,7 +167,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             {
                 if (ItemPrefab == null || ItemsParentContainer == null)
                 {
-                    "BlacksmithUi.BuildItemListForCurrentMode: cannot instantiate item row because ItemPrefab or ItemsParentContainer is null".LogWarning(
+                    "BlacksmithUi.BuildItemListForCurrentMode: ItemPrefab or ItemsParentContainer is null".LogWarning(
                         "BlacksmithUi"
                     );
                     continue;
@@ -189,13 +187,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                     uiChoice = itemUiObject.AddComponent<UiChoice>();
                 }
 
-                if (!itemUiObject.TryGetComponent<BlacksmithItemRefs>(out var itemRefs))
-                {
-                    $"BlacksmithUi.BuildItemListForCurrentMode: itemRefs is null for instantiated row index {i}".LogWarning(
-                        "BlacksmithUi"
-                    );
-                }
+                itemUiObject.TryGetComponent<BlacksmithItemRefs>(out var itemRefs);
 
+                bool canSelect;
                 if (
                     CurrentMode == BlacksmithMode.Repair
                     && repairableItems != null
@@ -203,44 +197,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 )
                 {
                     ConfigureRepairItemUi(repairableItems[i], itemRefs, SelectionCountCache);
-
-                    var repairTarget = repairableItems[i].ItemToRepair;
-                    var canRepair = false;
-                    if (repairTarget == null)
-                    {
-                        "BlacksmithUi.BuildItemListForCurrentMode: repairTarget is null".LogWarning(
-                            "BlacksmithUi"
-                        );
-                    }
-                    else if (repairTarget.Template == null)
-                    {
-                        "BlacksmithUi.BuildItemListForCurrentMode: repairTarget.Template is null".LogWarning(
-                            "BlacksmithUi"
-                        );
-                    }
-                    else
-                    {
-                        var repairItemName =
-                            repairTarget.Template?.RepairItem?.Name ?? "<no-repair-item>";
-                        var storedCount =
-                            brain?.storehouseBrain?.GetMaterialCount(
-                                repairTarget.Template?.RepairItem
-                            ) ?? 0;
-
-                        try
-                        {
-                            canRepair = repairTarget.CanRepair(1, brain?.storehouseBrain);
-                        }
-                        catch (System.Exception ex)
-                        {
-                            $"BlacksmithUi.BuildItemListForCurrentMode: CanRepair threw on item '{repairTarget.Template?.name ?? "<null>"}' currentUses={repairTarget?.CurrentUses.ToString() ?? "<null>"}, ex={ex.GetType().Name}:{ex.Message}".LogWarning(
-                                "BlacksmithUi"
-                            );
-                            canRepair = false;
-                        }
-                    }
-
-                    uiChoice.CanBeSelected = canRepair;
+                    canSelect = EvaluateCanRepair(repairableItems[i]);
                 }
                 else if (
                     CurrentMode == BlacksmithMode.Forge
@@ -249,15 +206,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 )
                 {
                     ConfigureForgeItemUi(forgeableItems[i], itemRefs, SelectionCountCache);
-                    uiChoice.CanBeSelected = true;
+                    canSelect = true;
+                }
+                else
+                {
+                    canSelect = false;
                 }
 
-                if (!uiChoice.CanBeSelected)
+                uiChoice.CanBeSelected = canSelect;
+
+                if (!canSelect && itemRefs?.ItemNameText != null)
                 {
-                    if (itemRefs?.ItemNameText != null)
-                    {
-                        itemRefs.ItemNameText.color = Color.grey;
-                    }
+                    itemRefs.ItemNameText.color = Color.grey;
                 }
 
                 itemChoices.Add(uiChoice);
@@ -276,21 +236,42 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             if (previousSelectedItemIndex >= 0)
             {
                 var restoredIndex = itemChoiceToIndex.IndexOf(previousSelectedItemIndex);
-                if (restoredIndex >= 0)
-                {
-                    CurrentSelectionIndex = restoredIndex;
-                    CurrentPage = restoredIndex / ItemsPerPage;
-                }
-                else
-                {
-                    CurrentSelectionIndex = 0;
-                    CurrentPage = 0;
-                }
+                CurrentSelectionIndex = restoredIndex >= 0 ? restoredIndex : 0;
             }
             else
             {
                 CurrentSelectionIndex = 0;
-                CurrentPage = 0;
+            }
+
+            CurrentPage = CurrentSelectionIndex / ItemsPerPage;
+        }
+
+        private bool EvaluateCanRepair(BlacksmithRepairItem entry)
+        {
+            var repairTarget = entry.ItemToRepair;
+
+            if (repairTarget == null)
+            {
+                "BlacksmithUi.EvaluateCanRepair: ItemToRepair is null".LogWarning("BlacksmithUi");
+                return false;
+            }
+
+            if (repairTarget.Template == null)
+            {
+                "BlacksmithUi.EvaluateCanRepair: Template is null".LogWarning("BlacksmithUi");
+                return false;
+            }
+
+            try
+            {
+                return repairTarget.CanRepair(1, brain?.storehouseBrain);
+            }
+            catch (System.Exception ex)
+            {
+                $"BlacksmithUi.EvaluateCanRepair: threw on '{repairTarget.Template?.name ?? "<null>"}' currentUses={repairTarget.CurrentUses}, ex={ex.GetType().Name}:{ex.Message}".LogWarning(
+                    "BlacksmithUi"
+                );
+                return false;
             }
         }
     }

@@ -131,6 +131,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             }
         }
 
+        /// <summary>
+        /// Sets the initial mode before the blacksmith display is opened.
+        /// Call this before <see cref="RefreshBlacksmithDisplay"/> to open on a specific tab.
+        /// </summary>
+        public void SetInitialMode(BlacksmithMode mode)
+        {
+            CurrentMode = mode;
+        }
+
         public void RefreshBlacksmithDisplay()
         {
             HubVendorUiHelper.UpdateGoldDisplay(TotalGoldText, TotalGoldScroll, brain);
@@ -247,7 +256,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             CostCache = GetRepairCost(itemData) * selectionCount;
         }
 
-        private int GetRepairCost(BlacksmithRepairItem itemData) => itemData.ItemToRepair == null ? 0 : itemData.ItemToRepair.Template.RepairPricePerUse;
+        private int GetRepairCost(BlacksmithRepairItem itemData) =>
+            itemData.ItemToRepair == null ? 0 : itemData.ItemToRepair.Template.RepairPricePerUse;
 
         private int GetStorehouseRepairLimit(ObjectItemInstance item)
         {
@@ -262,14 +272,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 return 0;
             }
 
-            var goldLimit = template.RepairPricePerUse > 0 ? brain.storehouseBrain.PlayerGold / template.RepairPricePerUse : int.MaxValue;
+            var goldLimit =
+                template.RepairPricePerUse > 0
+                    ? brain.storehouseBrain.PlayerGold / template.RepairPricePerUse
+                    : int.MaxValue;
             int materialLimit = int.MaxValue;
             if (template.RepairNeedsItems && template.RepairItem != null)
             {
                 int materialCount = brain.storehouseBrain.GetMaterialCount(template.RepairItem);
                 materialLimit = template.OneRepairItemCoversFullRepair
-                    ? materialCount > 0 ? 1 : 0
-                    : template.RepairItemAmountPerUse > 0 ? materialCount / template.RepairItemAmountPerUse : 0;
+                    ? materialCount > 0
+                        ? 1
+                        : 0
+                    : template.RepairItemAmountPerUse > 0
+                        ? materialCount / template.RepairItemAmountPerUse
+                        : 0;
             }
 
             return Mathf.Max(0, Mathf.Min(goldLimit, materialLimit));
