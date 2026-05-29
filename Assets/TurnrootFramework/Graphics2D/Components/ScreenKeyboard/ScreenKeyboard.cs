@@ -95,10 +95,10 @@ namespace Turnroot.Graphics2D
 
         private void Start()
         {
+            isShiftActive = true;
             BuildKeyboard();
             UpdateDisplay();
             HighlightCurrentButton();
-            isShiftActive = true;
         }
     }
 }
