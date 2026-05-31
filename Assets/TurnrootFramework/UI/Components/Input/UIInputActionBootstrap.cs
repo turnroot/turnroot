@@ -44,7 +44,8 @@ namespace Turnroot.UI
                 s.RotateCamera,
                 s.Start,
                 s.RightStickClick,
-                s.ToggleDetails
+                s.ToggleDetails,
+                s.Special
             );
 
             // Enable everything immediately so all consumers can listen to all actions.
@@ -56,7 +57,7 @@ namespace Turnroot.UI
 
         private void EnableAllActions()
         {
-            void TryEnable(InputAction action)
+            static void TryEnable(InputAction action)
             {
                 if (action != null && !action.enabled)
                 {
@@ -80,6 +81,7 @@ namespace Turnroot.UI
             TryEnable(UIInputActionDefaults.Start);
             TryEnable(UIInputActionDefaults.ToggleDetails);
             TryEnable(UIInputActionDefaults.RightStickClick);
+            TryEnable(UIInputActionDefaults.Special);
         }
     }
 }

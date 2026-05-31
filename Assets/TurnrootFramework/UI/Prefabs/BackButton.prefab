@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8002503227345024121}
   - component: {fileID: 630378151330695086}
   - component: {fileID: 2593191793554375880}
+  - component: {fileID: 1554039910318723121}
   m_Layer: 5
   m_Name: BackButton
   m_TagString: Untagged
@@ -114,12 +115,23 @@ MonoBehaviour:
       m_Action: Select
       m_Flags: 0
     m_Flags: 0
-  OnSelectedInspector:
-    m_PersistentCalls:
-      m_Calls: []
   Role: 1
   ButtonImage: {fileID: 630378151330695086}
-  ButtonText: {fileID: 8220362511364760467}
+--- !u!114 &1554039910318723121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1551417459137271937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f872eecbc2923064795115afb63e7a96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TurnrootFramework.Runtime::Turnroot.Utilities.AbstractScripts.InputDeviceImage
+  TargetImage: {fileID: 630378151330695086}
+  KeyboardImage: {fileID: 21300000, guid: b5d4121a62f2b1944bd747b87e87226f, type: 3}
+  GamepadImage: {fileID: 21300000, guid: 362437a5393a12d4dba7abce328669de, type: 3}
 --- !u!1 &2117720194569930238
 GameObject:
   m_ObjectHideFlags: 0
@@ -223,6 +235,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0

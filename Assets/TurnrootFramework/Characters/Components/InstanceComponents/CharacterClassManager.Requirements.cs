@@ -186,7 +186,7 @@ namespace Turnroot.Characters
                     )
                 )
                 {
-                    int MapRank(string v)
+                    static int MapRank(string v)
                     {
                         return v switch
                         {

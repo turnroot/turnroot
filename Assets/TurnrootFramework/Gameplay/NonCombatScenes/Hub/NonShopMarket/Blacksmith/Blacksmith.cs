@@ -43,41 +43,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 return;
             }
 
+            var blacksmithUi = TryGetComponent<BlacksmithUi>(out var ui) ? ui : null;
+            if (blacksmithUi?.TryHandleBack(action) == true)
+            {
+                return;
+            }
+
             NotifyBlacksmithExited();
-        }
-
-        /* --------------------------------- Testing -------------------------------- */
-        public ObjectItem TestRepairItem;
-
-        [Button("Add Test Repair Item to Storehouse")]
-        public void AddTestRepairItemInstanceToStorehouse()
-        {
-            if (_storehouseBrain == null)
-            {
-                $"Blacksmith '{name}': Cannot add test repair item instance to storehouse because StorehouseBrain reference is null.".LogWarning();
-                return;
-            }
-
-            if (TestRepairItem == null)
-            {
-                $"Blacksmith '{name}': TestRepairItem is null, cannot add item.".LogWarning();
-                return;
-            }
-
-            var newItemInstance = new ObjectItemInstance(TestRepairItem);
-            _inventoryBrain.UseItem(newItemInstance);
-            _inventoryBrain.UseItem(newItemInstance);
-            _inventoryBrain.UseItem(newItemInstance);
-            _inventoryBrain.UseItem(newItemInstance);
-            _inventoryBrain.UseItem(newItemInstance);
-            _inventoryBrain.UseItem(newItemInstance);
-            _inventoryBrain.UseItem(newItemInstance);
-            var result = _storehouseBrain.DepositItem(newItemInstance);
-            if (!result.Success)
-            {
-                $"Blacksmith '{name}': Failed to deposit item instance: {result.ErrorMessage}".LogWarning();
-                return;
-            }
         }
     }
 }

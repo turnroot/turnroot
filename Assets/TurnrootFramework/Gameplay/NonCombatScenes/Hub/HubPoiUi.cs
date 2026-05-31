@@ -289,7 +289,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     if (_blacksmith.TryGetComponent<BlacksmithUi>(out var blacksmithUi))
                     {
-                        blacksmithUi.SetInitialMode(BlacksmithMode.Forge);
+                        blacksmithUi.SetMode(BlacksmithMode.Forge);
                     }
                 }
             }
