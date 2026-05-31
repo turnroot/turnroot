@@ -139,10 +139,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
         public void SetMode(BlacksmithMode mode)
         {
             CurrentMode = mode;
-            RefreshBlacksmithDisplay();
+            RefreshBlacksmithDisplay(false);
         }
 
-        public void RefreshBlacksmithDisplay()
+        public void RefreshBlacksmithDisplay(bool show = true)
         {
             HubVendorUiHelper.UpdateGoldDisplay(TotalGoldText, TotalGoldScroll, brain);
 
@@ -181,7 +181,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             CurrentPage = newPage;
             CurrentSelectionIndex = newSelectionIndex;
 
-            BlacksmithUiFade.Show();
+            if (show)
+            {
+                BlacksmithUiFade.Show();
+            }
         }
 
         private void ConfigureRepairItemUi(
