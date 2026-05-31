@@ -116,6 +116,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
         public AudioSource AudioPlayer;
         public AudioClip PageChangeAudioClip;
         public AudioClip NavigateAudioClip;
+
+        [Header("Forge Options Panel")]
+        public GameObject ForgeOptionsPanel;
+        public GameObject ForgeOptionPrefab;
+        public GameObject ForgeOptionsListContainer;
         private readonly List<GameObject> pageIndicatorObjects = new();
         private int totalPages;
         public int CurrentPage { get; private set; } = 0;
@@ -131,13 +136,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             }
         }
 
-        /// <summary>
-        /// Sets the initial mode before the blacksmith display is opened.
-        /// Call this before <see cref="RefreshBlacksmithDisplay"/> to open on a specific tab.
-        /// </summary>
-        public void SetInitialMode(BlacksmithMode mode)
+        public void SetMode(BlacksmithMode mode)
         {
             CurrentMode = mode;
+            RefreshBlacksmithDisplay();
         }
 
         public void RefreshBlacksmithDisplay()
@@ -154,12 +156,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             else if (CurrentMode == BlacksmithMode.Forge && CanForge)
             {
                 GetForgeableItems();
-            }
-            else if (!CanRepair && !CanForge)
-            {
-                // shouldn't be here if both are false, but just in case
-                "Blacksmith cannot repair or forge any items based on current game settings.".LogWarning();
-                return;
             }
 
             BuildItemListForCurrentMode();

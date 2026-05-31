@@ -14,5 +14,7 @@ namespace Turnroot.Utilities
         public const string Confirm = "Confirm";
         public const string Cancel = "Cancel";
         public const string Back = "Back";
+        public const string ToggleDetails = "ToggleDetails";
+        public const string Special = "Special";
     }
 }

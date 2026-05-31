@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -8,6 +9,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
     {
         public void HandleItemChangeInput(string action)
         {
+            if (_inForgeOptionSelection)
+            {
+                NavigateForgeOptions(action);
+                return;
+            }
+
             if (
                 HubVendorUiHelper.HandleItemNavigationInput(
                     action,
@@ -41,9 +48,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             CurrentSelectionIndex = newSelection;
         }
 
+        public void HandleSpecialInput(string action)
+        {
+            if (_inForgeOptionSelection)
+            {
+                return;
+            }
+
+            if (CurrentMode == BlacksmithMode.Repair)
+            {
+                SetMode(BlacksmithMode.Forge);
+            }
+            else if (CurrentMode == BlacksmithMode.Forge)
+            {
+                SetMode(BlacksmithMode.Repair);
+            }
+        }
+
         public void HandleNavigateLeftInput(string action)
         {
             if (action != InputActionConstants.NavigateLeft)
+            {
+                return;
+            }
+
+            if (_inForgeOptionSelection || CurrentMode != BlacksmithMode.Repair)
             {
                 return;
             }
@@ -54,7 +83,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 return;
             }
 
-            // Decrease repair quantity, min 1.
             SelectionCountCache = Mathf.Max(1, SelectionCountCache - 1);
             UpdateCurrentItemUiWithSelectionCount();
             AudioPlayer?.PlayOneShot(NavigateAudioClip);
@@ -67,26 +95,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 return;
             }
 
+            if (_inForgeOptionSelection || CurrentMode != BlacksmithMode.Repair)
+            {
+                return;
+            }
+
             if (paginationHelper == null || itemChoices == null || itemChoices.Count == 0)
             {
                 "BlacksmithUi: No item choices available to change quantity".LogWarning();
                 return;
             }
 
-            int maxSelection = 1;
-            if (
-                CurrentMode == BlacksmithMode.Repair
-                && repairableItems != null
-                && CurrentSelectionIndex >= 0
-                && CurrentSelectionIndex < repairableItems.Length
-            )
-            {
-                maxSelection = GetSelectedRepairMaxCount();
-            }
-
+            int maxSelection = GetSelectedRepairMaxCount();
             if (maxSelection <= 0)
             {
-                "BlacksmithUi: selected item cannot be repaired because shortage of gold/materials/durability".LogWarning();
+                "BlacksmithUi: Cannot increase repair count — insufficient gold, materials, or uses remaining".LogWarning();
                 return;
             }
 
@@ -117,14 +140,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 return;
             }
 
-            if (
-                repairableItems == null
-                || repairableItems.Length == 0
-                || itemChoices == null
-                || itemChoices.Count == 0
-            )
+            if (_inForgeOptionSelection)
             {
-                "BlacksmithUi.HandleSelectInput: No repairable items are available".LogWarning(
+                ExecuteSelectedForgeOption();
+                return;
+            }
+
+            if (itemChoices == null || itemChoices.Count == 0)
+            {
+                "BlacksmithUi.HandleSelectInput: No item choices available".LogWarning(
+                    "BlacksmithUi"
+                );
+                return;
+            }
+
+            if (CurrentMode == BlacksmithMode.Forge)
+            {
+                HandleForgeSelect();
+            }
+            else
+            {
+                HandleRepairSelect();
+            }
+        }
+
+        private void HandleRepairSelect()
+        {
+            if (repairableItems == null || repairableItems.Length == 0)
+            {
+                "BlacksmithUi.HandleRepairSelect: No repairable items are available".LogWarning(
                     "BlacksmithUi"
                 );
                 return;
@@ -133,7 +177,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             int chosenIndex = GetSelectedRepairIndex();
             if (chosenIndex < 0 || chosenIndex >= repairableItems.Length)
             {
-                "BlacksmithUi.HandleSelectInput: Selected index is invalid".LogWarning(
+                "BlacksmithUi.HandleRepairSelect: Selected index is invalid".LogWarning(
                     "BlacksmithUi"
                 );
                 return;
@@ -143,7 +187,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             var itemInstance = entry.ItemToRepair;
             if (itemInstance == null)
             {
-                "BlacksmithUi.HandleSelectInput: No item instance available for selected entry".LogWarning(
+                "BlacksmithUi.HandleRepairSelect: No item instance available for selected entry".LogWarning(
                     "BlacksmithUi"
                 );
                 return;
@@ -152,7 +196,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             var storehouse = brain?.storehouseBrain;
             if (storehouse == null)
             {
-                "BlacksmithUi.HandleSelectInput: Missing StorehouseBrain".LogWarning(
+                "BlacksmithUi.HandleRepairSelect: Missing StorehouseBrain".LogWarning(
                     "BlacksmithUi"
                 );
                 return;
@@ -160,37 +204,67 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
             if (!itemInstance.CanRepair(SelectionCountCache, storehouse))
             {
-                "BlacksmithUi.HandleSelectInput: Selected item cannot be repaired with current resources".LogWarning(
+                "BlacksmithUi.HandleRepairSelect: Selected item cannot be repaired with current resources".LogWarning(
                     "BlacksmithUi"
                 );
                 return;
             }
 
-            int currentGold = storehouse.PlayerGold;
-            if (TotalGoldScroll != null)
-            {
-                TotalGoldScroll.StartNumber = currentGold;
-                TotalGoldScroll.EndNumber = Mathf.Max(0, currentGold - CostCache);
-                TotalGoldScroll.StartScroll();
-            }
+            BeginGoldScroll(CostCache);
 
             var repairResult = itemInstance.Repair(SelectionCountCache);
             if (!repairResult.Success)
             {
-                $"BlacksmithUi.HandleSelectInput: Repair failed: {repairResult.ErrorMessage}".LogWarning(
+                $"BlacksmithUi.HandleRepairSelect: Repair failed: {repairResult.ErrorMessage}".LogWarning(
                     "BlacksmithUi"
                 );
                 return;
             }
 
-            // Ensure gold and storehouse material state is saved.
+            FinalizeTransaction(storehouse);
+            RefreshBlacksmithDisplay();
+        }
+
+        private void HandleForgeSelect()
+        {
+            if (forgeableItems == null || forgeableItems.Length == 0)
+            {
+                "BlacksmithUi.HandleForgeSelect: No forgeable items are available".LogWarning(
+                    "BlacksmithUi"
+                );
+                return;
+            }
+
+            int chosenIndex = GetSelectedRepairIndex();
+            if (chosenIndex < 0 || chosenIndex >= forgeableItems.Length)
+            {
+                "BlacksmithUi.HandleForgeSelect: Selected index is invalid".LogWarning(
+                    "BlacksmithUi"
+                );
+                return;
+            }
+
+            EnterForgeOptionSelection(forgeableItems[chosenIndex]);
+        }
+
+        private void BeginGoldScroll(int cost)
+        {
+            if (TotalGoldScroll == null)
+            {
+                return;
+            }
+
+            int currentGold = brain?.storehouseBrain?.PlayerGold ?? 0;
+            TotalGoldScroll.StartNumber = currentGold;
+            TotalGoldScroll.EndNumber = Mathf.Max(0, currentGold - cost);
+            TotalGoldScroll.StartScroll();
+        }
+
+        private void FinalizeTransaction(StorehouseBrain storehouse)
+        {
             storehouse.SaveGoldToLTM();
             storehouse.SaveCurrentStorehouse();
-
             AudioPlayer?.PlayOneShot(NavigateAudioClip);
-
-            // Refresh to remove fully repaired entries from the list, and update costs.
-            RefreshBlacksmithDisplay();
         }
 
         private void UpdateCurrentItemUiWithSelectionCount()
@@ -225,6 +299,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             {
                 ConfigureRepairItemUi(
                     repairableItems[CurrentSelectionIndex],
+                    refs,
+                    SelectionCountCache
+                );
+            }
+            else if (
+                CurrentMode == BlacksmithMode.Forge
+                && forgeableItems != null
+                && CurrentSelectionIndex < forgeableItems.Length
+            )
+            {
+                ConfigureForgeItemUi(
+                    forgeableItems[CurrentSelectionIndex],
                     refs,
                     SelectionCountCache
                 );

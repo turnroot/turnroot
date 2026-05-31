@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8002503227345024121}
   - component: {fileID: 630378151330695086}
   - component: {fileID: 2593191793554375880}
+  - component: {fileID: 2463246091621971722}
   m_Layer: 5
   m_Name: DetailsButton
   m_TagString: Untagged
@@ -124,6 +125,21 @@ MonoBehaviour:
     m_Flags: 0
   Role: 2
   ButtonImage: {fileID: 630378151330695086}
+--- !u!114 &2463246091621971722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1551417459137271937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f872eecbc2923064795115afb63e7a96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TurnrootFramework.Runtime::Turnroot.Utilities.AbstractScripts.InputDeviceImage
+  TargetImage: {fileID: 630378151330695086}
+  KeyboardImage: {fileID: 21300000, guid: 7425f4c6d5022da48bcee76535641d82, type: 3}
+  GamepadImage: {fileID: 21300000, guid: 6181d33d4ce10dd488687de3f2151725, type: 3}
 --- !u!1 &2117720194569930238
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,6 +243,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0

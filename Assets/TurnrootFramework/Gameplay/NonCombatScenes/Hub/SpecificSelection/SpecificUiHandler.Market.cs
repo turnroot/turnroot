@@ -58,6 +58,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        public void HandleMarketSpecial(string action)
+        {
+            if (_activeBlacksmith != null)
+            {
+                var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
+                blacksmithUi?.HandleSpecialInput(action);
+            }
+        }
+
         public void HandleMarketExit(string action)
         {
             var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;

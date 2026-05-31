@@ -32,6 +32,7 @@ namespace Turnroot.GameSettings
         public InputActionReference Start;
         public InputActionReference ToggleDetails;
         public InputActionReference RightStickClick;
+        public InputActionReference Special;
 
         [Header("Hold Repeat"), HorizontalLine(color: EColor.Green)]
         [Tooltip("Seconds before held navigation begins repeating.")]
