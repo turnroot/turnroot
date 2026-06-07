@@ -610,6 +610,15 @@ namespace Turnroot.Gameplay.Brain
 
             var from = unit.MapGridPosition;
             var oldPoint = unit.UnitPositionToMapGridPoint(from, mapGrid);
+
+            // Fire movement-start before mutating data so UnitAppearanceBrain can build a path
+            // from the pre-move position (including Undo-driven moves).
+            var destinationPoint = mapGrid.GetGridPoint(target.x, target.y);
+            if (destinationPoint != null)
+            {
+                Brain.PublishCharacterMoveStarted(unit, destinationPoint);
+            }
+
             var result = unit.MoveToPosition(target, mapGrid);
             if (result.Success)
             {
@@ -624,9 +633,10 @@ namespace Turnroot.Gameplay.Brain
                     BattleObject.Context.UpdateTargetsInRange();
                 }
 
+                // Keep event order aligned with MoveCommand.Execute to avoid subtle listener regressions.
+                Brain.Publish(new Events.UnitMovedEvent(unit, from, target));
                 Brain.PublishCharacterMoveCompleted(unit, newPoint);
                 Brain.PublishUnitMoved(unit, target);
-                Brain.Publish(new Events.UnitMovedEvent(unit, from, target));
                 Brain.PublishMoveCompleted(unit, newPoint);
             }
             return result.Success;

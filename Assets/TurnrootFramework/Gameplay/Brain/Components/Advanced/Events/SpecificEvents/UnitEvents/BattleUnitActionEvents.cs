@@ -63,7 +63,6 @@ namespace Turnroot.Gameplay.Brain
         public void PublishUnitTakesAnotherTurn(CharacterInstance unit) =>
             OnUnitTakesAnotherTurn?.Invoke(unit);
 
-        public event Action<CharacterInstance, MapGridPoint> OnMoveStarted; // logical start (includes target)
         public event Action<CharacterInstance, MapGridPoint> OnMoveCompleted; // logical completion (context)
         public event Action<CharacterInstance> OnMoveAnimationCompleted; // visual/animation completion
 
@@ -80,9 +79,6 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, ObjectItemInstance> OnUseItemAnimationCompleted;
 
         public event Action<CharacterInstance> OnEndTurnCompleted;
-
-        public void PublishMoveStarted(CharacterInstance unit, MapGridPoint targetPoint) =>
-            OnMoveStarted?.Invoke(unit, targetPoint);
 
         public void PublishMoveCompleted(CharacterInstance unit, MapGridPoint targetPoint) =>
             OnMoveCompleted?.Invoke(unit, targetPoint);

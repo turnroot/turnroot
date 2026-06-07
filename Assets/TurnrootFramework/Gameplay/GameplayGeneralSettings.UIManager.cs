@@ -26,6 +26,12 @@ namespace Turnroot.GameSettings
         [BoxGroup("Visuals")]
         public float UnitMovementMinSpeedMultiplier = 0.4f;
 
+        [BoxGroup("Visuals")]
+        [Tooltip(
+            "Lateral offset (in world units) applied to the arc midpoint when two units swap, so they pass beside each other rather than through each other."
+        )]
+        public float SwapArcOffset = 0.5f;
+
         [BoxGroup("Maps"), HorizontalLine(color: EColor.Green)]
         public bool UnexploredMaps;
 

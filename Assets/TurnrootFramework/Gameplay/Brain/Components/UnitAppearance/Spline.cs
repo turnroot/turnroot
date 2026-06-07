@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,12 +24,23 @@ namespace Turnroot.Gameplay.Brain
             var path = BuildPathToDestination(character, destination);
             if (path == null || path.Count < 2)
             {
-                LogWarning($"Invalid path for {character.CharacterTemplate.DisplayName}");
+                // Destination is outside normal movement range (e.g. teleport skill) or
+                // the start tile isn't in the reachable set — snap the model instead.
+                LogWarning(
+                    $"{character.CharacterTemplate.DisplayName}: no walkable path to destination — snapping model"
+                );
                 Brain.PublishMoveAnimationCompleted(character);
                 return;
             }
 
-            StartCoroutine(AnimateCharacterMovementCoroutine(character, path));
+            StartCoroutine(
+                AnimateAlongSplinePath(
+                    character,
+                    path,
+                    clearTileHighlights: true,
+                    onComplete: () => Brain.PublishMoveAnimationCompleted(character)
+                )
+            );
         }
 
         private List<Vector3> BuildPathToDestination(
@@ -42,6 +54,24 @@ namespace Turnroot.Gameplay.Brain
 
             var startPos = character.MapGridPosition;
             var startPoint = mapGrid.GetGridPoint(startPos.x, startPos.y);
+
+            if (startPoint == null || destination == null)
+            {
+                return null;
+            }
+
+            // TryGetValidTilesForUnit currently computes tiles relative to the active context unit.
+            // For skill moves that reposition a non-active unit, fall back to a direct two-point path
+            // so the model still animates instead of snapping.
+            if (context.Unit?.UnitInstance != character)
+            {
+                return new List<Vector3>
+                {
+                    mapGrid.GetTerrainAdjustedWorldPosition(startPoint.CoordinatesInt),
+                    mapGrid.GetTerrainAdjustedWorldPosition(destination.CoordinatesInt),
+                };
+            }
+
             if (!context.TryGetValidTilesForUnit(character, out var validMoveTiles, out _))
             {
                 LogWarning(
@@ -66,16 +96,24 @@ namespace Turnroot.Gameplay.Brain
             return path;
         }
 
-        private IEnumerator AnimateCharacterMovementCoroutine(
+        /// <summary>
+        /// Core spline-walk coroutine. Reused by both regular move and swap animations.
+        /// Does NOT clear tile highlights by default; pass <paramref name="clearTileHighlights"/>
+        /// true only when the caller owns the highlight state (i.e. single-unit moves).
+        /// Calls <paramref name="onComplete"/> when the model reaches the destination.
+        /// </summary>
+        internal IEnumerator AnimateAlongSplinePath(
             CharacterInstance character,
-            List<Vector3> path
+            List<Vector3> path,
+            bool clearTileHighlights,
+            Action onComplete
         )
         {
             var unitModel = GetModelForUnit(character.Id);
             if (unitModel == null)
             {
                 LogWarning($"No model for {character.Id}");
-                Brain.PublishMoveAnimationCompleted(character);
+                onComplete?.Invoke();
                 yield break;
             }
 
@@ -94,9 +132,10 @@ namespace Turnroot.Gameplay.Brain
                 animator = modelToMove.GetComponent<Animator>();
             }
 
-            var tileHighlighter = Brain.battleBrain.BattleObject.TileHighlighter;
-
-            tileHighlighter.ClearAll();
+            if (clearTileHighlights)
+            {
+                Brain.battleBrain.BattleObject.TileHighlighter.ClearAll();
+            }
 
             BlendToWalkAnimation(animator);
             yield return new WaitForSeconds(ANIMATION_BLEND_DURATION);
@@ -159,7 +198,7 @@ namespace Turnroot.Gameplay.Brain
                 yield return new WaitForSeconds(ANIMATION_BLEND_DURATION);
             }
 
-            Brain.PublishMoveAnimationCompleted(character);
+            onComplete?.Invoke();
         }
 
         private float ApplyDecelerationFactor(float currentDistance, float totalDistance)
@@ -182,11 +221,10 @@ namespace Turnroot.Gameplay.Brain
                 return Vector2Int.zero;
             }
 
-            // Grid size is implicitly 1f based on grid point positioning
-            var gridSize = 1f;
+            // Grid points are placed 1 unit apart, so integer rounding maps world position to grid coords.
             var estimatedGridPos = new Vector2Int(
-                Mathf.RoundToInt(worldPos.x / gridSize),
-                Mathf.RoundToInt(worldPos.z / gridSize)
+                Mathf.RoundToInt(worldPos.x),
+                Mathf.RoundToInt(worldPos.z)
             );
 
             var gridPoint = mapGrid.GetGridPoint(estimatedGridPos.x, estimatedGridPos.y);
@@ -257,19 +295,6 @@ namespace Turnroot.Gameplay.Brain
             }
 
             return spline;
-        }
-
-        public float GetSplineLength(Spline spline)
-        {
-            float length = 0f;
-            var knots = spline.Knots.ToArray();
-
-            for (int i = 0; i < knots.Length - 1; i++)
-            {
-                length += math.distance(knots[i].Position, knots[i + 1].Position);
-            }
-
-            return length;
         }
 
         private float CalculateSplineArcLength(Spline spline, int samples)

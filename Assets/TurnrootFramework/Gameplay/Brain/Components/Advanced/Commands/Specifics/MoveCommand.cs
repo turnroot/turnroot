@@ -29,13 +29,19 @@ namespace Turnroot.Gameplay.Brain.Commands
             var oldPoint = unit.UnitPositionToMapGridPoint(unit.MapGridPosition, context.MapGrid);
             UndoState[UndoStateKeys.From] = unit.MapGridPosition;
 
-            // TODO: Fire PublishCharacterMoveStarted(unit, newPoint) HERE (before the data move)
-            // so that UnitAppearanceBrain.HandleCharacterMoveStarted can start the spline animation
-            // coroutine for skill-triggered and AI-triggered moves (WarpNode, RepositionNode,
-            // MoveUnitNode, AI ExecuteGoal). Currently only the player input controller fires
-            // OnCharacterMoveStarted, so those moves teleport the model instead of animating.
-            // After firing, the command should await OnMoveAnimationCompleted before returning true
-            // (or use a callback pattern) so callers block until the visual is done.
+            // Fire before the data move so UnitAppearanceBrain.HandleCharacterMoveStarted can
+            // read the unit's current (pre-move) position when building the animation path.
+            // This replaces the previous call site in BattleInputControllerBrain so all callers
+            // (player input, skill nodes, AI) get the walk animation. If no path can be found
+            // (e.g. a teleport outside movement range) HandleCharacterMoveStarted falls back to
+            // PublishMoveAnimationCompleted immediately, which is the same as the old behaviour.
+            // Animation is fire-and-forget; callers do not block on OnMoveAnimationCompleted.
+            var destinationPoint = context.MapGrid.GetGridPoint(Target.x, Target.y);
+            if (destinationPoint != null)
+            {
+                context.Brain.PublishCharacterMoveStarted(unit, destinationPoint);
+            }
+
             var result = unit.MoveToPosition(Target, context.MapGrid);
             if (!result.Success)
             {
