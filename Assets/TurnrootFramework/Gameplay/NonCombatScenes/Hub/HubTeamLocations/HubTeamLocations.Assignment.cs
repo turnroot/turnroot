@@ -46,28 +46,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
 
         private HubSublocationName PickRandomValidLocation(
-            HubSubLocation[] subLocations,
-            HubExploreLocation[] exploreLocations,
+            HubCharacterSpawnArea[] spawnAreas,
             int maxPerLocation
         )
         {
-            // Build a combined pool of candidate locations, excluding Battlefields and locked explore locations.
-            var pool = new System.Collections.Generic.List<HubSubLocation>();
-            if (subLocations != null)
+            // Build a pool of candidate locations, excluding Battlefields.
+            var pool = new System.Collections.Generic.List<HubCharacterSpawnArea>();
+            if (spawnAreas != null)
             {
-                foreach (var loc in subLocations)
+                foreach (var loc in spawnAreas)
                 {
                     if (loc != null && loc.LocationName != HubSublocationName.Battlefields)
-                    {
-                        pool.Add(loc);
-                    }
-                }
-            }
-            if (exploreLocations != null)
-            {
-                foreach (var loc in exploreLocations)
-                {
-                    if (loc != null && !loc.IsLocked)
                     {
                         pool.Add(loc);
                     }
@@ -103,22 +92,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             int rosterIndex,
             Characters.Roster.UnitPlacement unit,
             HubSublocationName desiredLocation,
-            HubSubLocation[] subLocations,
-            HubExploreLocation[] exploreLocations,
+            HubCharacterSpawnArea[] spawnAreas,
             int maxPerLocation
         )
         {
-            HubSubLocation assignedLocation = System.Array.Find(
-                subLocations,
+            HubCharacterSpawnArea assignedLocation = System.Array.Find(
+                spawnAreas,
                 l => l.LocationName == desiredLocation
             );
-            if (assignedLocation == null && exploreLocations != null)
-            {
-                assignedLocation = System.Array.Find(
-                    exploreLocations,
-                    l => l.LocationName == desiredLocation
-                );
-            }
             if (assignedLocation == null)
             {
                 return;
@@ -144,12 +125,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             };
             assignedLocation.CharactersPresent = list.ToArray();
 
-            // All explore locations (Cafe, DanceHall, Spa, etc.) share the ExploreMisc layout group.
-            var layoutLocationName =
-                assignedLocation is HubExploreLocation
-                    ? HubSublocationName.ExploreMisc
-                    : assignedLocation.LocationName;
-            int layoutIndex = FindLayoutIndexForLocation(layoutLocationName);
+            int layoutIndex = FindLayoutIndexForLocation(assignedLocation.LocationName);
             if (
                 layoutIndex >= 0
                 && layoutIndex < LocationLayouts.Length

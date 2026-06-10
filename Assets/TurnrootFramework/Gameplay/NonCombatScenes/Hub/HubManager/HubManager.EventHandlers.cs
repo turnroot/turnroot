@@ -7,12 +7,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubManager
     {
-        #region Brain Event Handlers
-
-        private void HandleSublocationInputModeChange(HubInputMode mode) => SetInputMode(mode);
-
-        #endregion
-
         #region Event Handlers
 
         public void HandleGameDateChanged(int year, int month, int day)

@@ -16,6 +16,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     public static class HubDayStateStore
     {
         private const string HubDayStateKeyPrefix = "HubDayState_";
+        private const string ExploreTutorialSeenKey = "HubExploreTutorialSeen";
 
         private static HubDayState _currentState;
 
@@ -33,6 +34,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public static bool HasSkyboxIndex =>
             _currentState != null && _currentState.SkyboxIndex >= 0;
+
+        public static bool HasSeenExploreTutorial(Brain.Brain brain)
+        {
+            return brain?.ltm != null && brain.ltm.RecallBool(ExploreTutorialSeenKey);
+        }
+
+        public static void MarkExploreTutorialSeen(Brain.Brain brain)
+        {
+            if (brain?.ltm == null)
+            {
+                return;
+            }
+
+            brain.ltm.RememberBool(ExploreTutorialSeenKey, true);
+        }
 
         public static void SetSkyboxIndex(Brain.Brain brain, int index)
         {

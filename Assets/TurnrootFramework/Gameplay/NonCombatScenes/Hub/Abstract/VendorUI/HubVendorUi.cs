@@ -66,8 +66,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
         protected List<UiChoice> itemChoices;
         protected List<int> itemChoiceToVendorIndex;
 
-        protected virtual void Awake() =>
-            brain = BrainReference ?? Vendor?.brain ?? FindFirstObjectByType<Brain.Brain>();
+        private Brain.Brain ResolveBrain() =>
+            brain ??= BrainReference ?? Vendor?.brain ?? FindFirstObjectByType<Brain.Brain>();
+
+        protected virtual void Awake() => ResolveBrain();
 
         protected virtual void NotifyVendorItemSold(ShopItem itemSold) { }
 
@@ -104,10 +106,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 return;
             }
 
-            if (brain == null)
-            {
-                brain = BrainReference ?? Vendor?.brain ?? FindFirstObjectByType<Brain.Brain>();
-            }
+            ResolveBrain();
 
             HubVendorUiHelper.ClearInstantiatedItems(
                 ItemsParentContainer,

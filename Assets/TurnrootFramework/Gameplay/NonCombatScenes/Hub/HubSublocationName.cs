@@ -2,13 +2,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public enum HubSublocationName
     {
-        // Main hub sublocations
+        // Hub location identifiers used by teleport points and spawn areas.
         Market,
         Battlefields,
         Docks,
         Training,
 
-        // Explore sublocations (accessed via the Explore submenu)
+        // Optional thematic locations surfaced through POIs and traversal.
         Cafe,
         Blacksmith,
         DanceHall,

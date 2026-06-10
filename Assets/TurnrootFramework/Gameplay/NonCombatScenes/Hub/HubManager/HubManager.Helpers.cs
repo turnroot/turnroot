@@ -17,12 +17,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 return;
             }
-            if (subLocations == null)
+
+            var discoveredLocations = FindObjectsByType<HubCharacterSpawnArea>(
+                FindObjectsSortMode.None
+            );
+            if (discoveredLocations == null || discoveredLocations.Length == 0)
             {
                 return;
             }
 
-            foreach (var sub in subLocations)
+            foreach (var sub in discoveredLocations)
             {
                 if (sub == null || sub.UnitSpawnPoints == null)
                 {
@@ -78,24 +82,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 list.AddRange(LocationChoices);
             }
 
-            // Only append ExploreChoice separately if it is NOT already embedded inside LocationChoices.
-            bool exploreEmbedded =
-                ExploreChoice != null
-                && LocationChoices != null
-                && System.Array.IndexOf(LocationChoices, ExploreChoice) >= 0;
-
-            if (ExploreChoice != null && !exploreEmbedded)
+            if (ExploreChoice != null)
             {
                 list.Add(ExploreChoice);
             }
 
-            // Only append BattlefieldsChoice separately if it is NOT already embedded inside LocationChoices.
-            bool battlefieldsEmbedded =
-                BattlefieldsChoice != null
-                && LocationChoices != null
-                && System.Array.IndexOf(LocationChoices, BattlefieldsChoice) >= 0;
-
-            if (BattlefieldsChoice != null && !battlefieldsEmbedded)
+            if (BattlefieldsChoice != null)
             {
                 list.Add(BattlefieldsChoice);
             }

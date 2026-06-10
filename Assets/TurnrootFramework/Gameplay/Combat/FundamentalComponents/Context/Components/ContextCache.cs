@@ -57,14 +57,33 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Try to use cached pathfinding parameters when available to reduce allocations
             var parametersWithRange = GetCachedPathfindingParameters(unit, includeRange: true);
             bool success;
-            if (parametersWithRange != null)
+            // AIHelper currently reads _context.Unit.UnitInstance internally. Temporarily
+            // swap the active unit so tile generation is correct for the requested unit.
+            var previousActiveUnit = Unit?.UnitInstance;
+            var mustRestoreActiveUnit = previousActiveUnit != unit;
+            if (mustRestoreActiveUnit)
             {
-                // Use the AIHelper variant that accepts precomputed parameters if available
-                success = AIHelper.GetTilesForAINonAlloc(startPoint, move, attack);
+                Unit.UnitInstance = unit;
             }
-            else
+
+            try
             {
-                success = AIHelper.GetTilesForAINonAlloc(startPoint, move, attack);
+                if (parametersWithRange != null)
+                {
+                    // Use the AIHelper variant that accepts precomputed parameters if available
+                    success = AIHelper.GetTilesForAINonAlloc(startPoint, move, attack);
+                }
+                else
+                {
+                    success = AIHelper.GetTilesForAINonAlloc(startPoint, move, attack);
+                }
+            }
+            finally
+            {
+                if (mustRestoreActiveUnit)
+                {
+                    Unit.UnitInstance = previousActiveUnit;
+                }
             }
 
             if (success)

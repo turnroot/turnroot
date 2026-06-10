@@ -91,12 +91,6 @@ namespace Turnroot.Gameplay.Brain.Commands
 
             context.Brain.PublishSwapLogicCompleted(unit, target);
 
-            // TODO: UnitAppearanceBrain needs a subscriber to OnSwapLogicCompleted (or OnSwapStarted)
-            // that runs a swap animation coroutine and then fires PublishSwapAnimationCompleted.
-            // Until then, SwapCommand performs an instant position swap with no visual transition.
-            // Pattern to follow: HandleCharacterMoveStarted → AnimateCharacterMovementCoroutine
-            // → PublishMoveAnimationCompleted.
-
             return true;
         }
 

@@ -103,7 +103,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
         private void Start()
         {
-            _brain = FindFirstObjectByType<Brain.Brain>();
+            _brain = EnsureBrainReference();
             LoadState();
 
             // Ensure ships marked as always docked never end up at sea due to stale save data
@@ -134,7 +134,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
             if (_brain == null)
             {
-                _brain = FindFirstObjectByType<Brain.Brain>();
+                _brain = EnsureBrainReference();
             }
 
             if (_brain?.ltm == null)
@@ -218,7 +218,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
             if (_brain == null)
             {
-                _brain = FindFirstObjectByType<Brain.Brain>();
+                _brain = EnsureBrainReference();
             }
 
             if (_brain?.ltm == null)

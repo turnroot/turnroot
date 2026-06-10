@@ -16,7 +16,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Vector3 savedCameraPosition;
         private Quaternion savedCameraRotation;
 
-        public HubSubLocation CurrentSubLocation { get; private set; }
+        public HubSublocationName? CurrentSubLocation { get; private set; }
         public HubPoiUi CurrentPoi { get; private set; }
 
         private HubPoiType _currentType;
@@ -30,17 +30,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool _waitingForShopExitDialogue;
 
         /// <summary>
-        /// Set by HubSublocationTutorialHandler when a first-visit tutorial is active.
+        /// Set by a tutorial handler when a first-visit or Explore tutorial is active.
         /// Input is forwarded exclusively to the tutorial until it clears this reference.
         /// </summary>
-        public HubSublocationTutorialHandler ActiveTutorialHandler { get; set; }
+        public ISpecificUiTutorialHandler ActiveTutorialHandler { get; set; }
 
         // Stored reference so unsubscribe always targets the same object we subscribed to.
         private ConversationController _subscribedController;
 
         private void Awake() => hubManager = GetComponent<HubManager>();
 
-        public void SetCurrentSelection(HubSubLocation subLocation, HubPoiUi poi)
+        public void SetCurrentSelection(HubSublocationName? subLocation, HubPoiUi poi)
         {
             var type = poi.Type;
             _currentType = type;
@@ -283,8 +283,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             else
             {
-                // Fallback to default behavior if we don't have a saved transform
-                hubManager.CurrentSubLocation?.ResetCameraToCameraPoint();
+                // Fallback: keep current camera if no saved transform was captured.
             }
 
             _activeShop = null;

@@ -22,17 +22,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 case HubInputMode.MarketChoice:
                 case HubInputMode.Docks:
                 case HubInputMode.Training:
-                case HubInputMode.ExploreMisc:
-                    if (CurrentSubLocation == null || CurrentSubLocation.AcceptingInput)
-                    {
-                        SublocationInput.HandleSubLocationInput(action);
-                    }
+                case HubInputMode.Traversal:
+                    SublocationInput.HandleSubLocationInput(action);
                     break;
                 case HubInputMode.Battlefields:
                     BattleChoiceUi?.ForwardInput(action);
-                    break;
-                case HubInputMode.ExploreMenu:
-                    HandleExploreMenuInput(action);
                     break;
                 case HubInputMode.Chosen:
                     SpecificUiInputHandler.HandleInput(action);
@@ -57,31 +51,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 HubInputMode.Battlefields => false,
                 HubInputMode.Docks => true,
                 HubInputMode.Training => true,
-                HubInputMode.ExploreMisc => true,
-                HubInputMode.ExploreMenu => false,
+                HubInputMode.Traversal => true,
                 HubInputMode.Chosen => false,
                 HubInputMode.None => false,
                 _ => false,
             };
 
             SublocationInput.SetLookEnabled(allowLook);
-        }
-
-        private void HandleExploreMenuInput(string action)
-        {
-            // All input is forwarded exclusively to the carousel while the explore menu is open.
-            // The carousel handles navigation, confirm, and back — nothing else receives input.
-            if (ExploreCarousel != null)
-            {
-                ExploreCarousel.HandleInput(action);
-                return;
-            }
-
-            // Fallback (no carousel assigned): at least handle back.
-            if (action is InputActionConstants.Cancel or InputActionConstants.Back)
-            {
-                BackFromExploreMenu();
-            }
         }
 
         public void RevertToPreviousInputMode()

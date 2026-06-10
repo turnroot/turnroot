@@ -6,7 +6,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubTeamLocations
     {
-        public void SpawnCharactersForLocation(HubSubLocation location, Brain.Brain brain)
+        public void SpawnCharactersForLocation(HubCharacterSpawnArea location, Brain.Brain brain)
         {
             if (location == null)
             {
@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (brain == null)
             {
-                $"HubSubLocation {location.LocationName}: Cannot spawn characters because Brain is null".LogWarning();
+                $"HubCharacterSpawnArea {location.LocationName}: Cannot spawn characters because Brain is null".LogWarning();
                 return;
             }
 
@@ -37,7 +37,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (location.UnitSpawnPoints == null || location.UnitSpawnPoints.Length == 0)
             {
-                $"HubSubLocation {location.LocationName}: No spawn points set for this sublocation".LogWarning();
+                $"HubCharacterSpawnArea {location.LocationName}: No spawn points set for this area".LogWarning();
                 return;
             }
 
@@ -73,7 +73,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 var character = location.CharactersPresent[i];
                 if (character == null)
                 {
-                    $"HubSubLocation {location.LocationName}: CharactersPresent contains a null entry".LogWarning();
+                    $"HubCharacterSpawnArea {location.LocationName}: CharactersPresent contains a null entry".LogWarning();
                     continue;
                 }
 
@@ -88,7 +88,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 var spawnPoint = entry.UnitSpawnPoint;
                 if (spawnPoint == null)
                 {
-                    $"HubSubLocation {location.LocationName}: UnitSpawnPoints contains a null entry".LogWarning();
+                    $"HubCharacterSpawnArea {location.LocationName}: UnitSpawnPoints contains a null entry".LogWarning();
                     continue;
                 }
 
@@ -102,7 +102,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 if (poiUi == null)
                 {
-                    $"HubSubLocation {location.LocationName}: No HubPoiUi found on spawn point or children '{spawnPoint.name}'".LogWarning();
+                    $"HubCharacterSpawnArea {location.LocationName}: No HubPoiUi found on spawn point or children '{spawnPoint.name}'".LogWarning();
                 }
 
                 float spawnY =
@@ -130,7 +130,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 var model = brain.unitAppearanceBrain?.CreateModelForUnit(character);
                 if (model == null)
                 {
-                    $"HubSubLocation {location.LocationName}: Failed to create model for character".LogWarning();
+                    $"HubCharacterSpawnArea {location.LocationName}: Failed to create model for character".LogWarning();
                     continue;
                 }
 

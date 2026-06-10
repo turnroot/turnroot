@@ -32,6 +32,7 @@ namespace Turnroot.Gameplay.Brain
         {
             Brain.OnBattleObjectSet += HandleBattleObjectSet;
             Brain.OnCharacterMoveStarted += HandleCharacterMoveStarted;
+            Brain.OnSwapLogicCompleted += HandleSwapLogicCompleted;
             Brain.OnItemEquipped += HandleItemEquipped;
             Brain.OnItemUnequipped += HandleItemUnequipped;
 
@@ -54,6 +55,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 Brain.OnBattleObjectSet -= HandleBattleObjectSet;
                 Brain.OnCharacterMoveStarted -= HandleCharacterMoveStarted;
+                Brain.OnSwapLogicCompleted -= HandleSwapLogicCompleted;
                 Brain.OnItemEquipped -= HandleItemEquipped;
                 Brain.OnItemUnequipped -= HandleItemUnequipped;
                 Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);

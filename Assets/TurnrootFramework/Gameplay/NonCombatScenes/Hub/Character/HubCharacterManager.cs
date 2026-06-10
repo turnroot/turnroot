@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
     /// When the player selects a unit POI, <see cref="NotifyCharacterVisited"/> receives the character
     /// at runtime; the unit model is resolved via <see cref="UnitAppearanceBrain.GetModelForUnit"/>.
     /// </summary>
-    public class HubCharacterManager : MonoBehaviour
+    public partial class HubCharacterManager : MonoBehaviour
     {
         [BoxGroup("Dialogue")]
         [InfoBox(
@@ -37,11 +37,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         )]
         public HubCharacterInteraction CharacterInteraction;
 
+        [BoxGroup("Interaction")]
+        [Tooltip("When enabled, the avatar model is spawned automatically on hub load.")]
+        public bool SpawnAvatarOnHubLoad = true;
+
+        [BoxGroup("Interaction")]
+        [Tooltip(
+            "Preferred spawn point for the hub-load avatar. If empty, traversal avatar spawn waits for a valid current traversal point."
+        )]
+        public Transform HubLoadAvatarPoint;
+
         // ── Runtime ──────────────────────────────────────────────────────────
 
         private CharacterInstance _activeCharacter;
         private GameObject _avatarModel;
         private Transform _activeAvatarPoint;
+        private HubManager _hubManager;
+        private Coroutine _spawnOnLoadRoutine;
 
         [HideInInspector]
         public Brain.Brain _brain;
@@ -56,11 +68,44 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         {
             _brain = FindFirstObjectByType<Brain.Brain>();
             _audioBrain = _brain?.audioBrain;
+            _hubManager = FindFirstObjectByType<HubManager>();
 
             if (CharacterInteraction == null)
             {
                 CharacterInteraction = GetComponent<HubCharacterInteraction>();
             }
+        }
+
+        private void Start()
+        {
+            if (!SpawnAvatarOnHubLoad)
+            {
+                return;
+            }
+
+            if (_spawnOnLoadRoutine != null)
+            {
+                StopCoroutine(_spawnOnLoadRoutine);
+            }
+
+            _spawnOnLoadRoutine = StartCoroutine(SpawnAvatarOnHubLoadRoutine());
+        }
+
+        private IEnumerator SpawnAvatarOnHubLoadRoutine()
+        {
+            // Wait for brain sub-systems that avatar model creation depends on.
+            while (
+                _brain == null
+                || _brain.gamewideContextBrain == null
+                || _brain.unitAppearanceBrain == null
+            )
+            {
+                _brain ??= FindFirstObjectByType<Brain.Brain>();
+                yield return null;
+            }
+
+            EnsureHubTraversalAvatarSpawned();
+            _spawnOnLoadRoutine = null;
         }
 
         // ── Public API ───────────────────────────────────────────────────────
@@ -191,7 +236,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             }
 
             var oneShots = _audioBrain.ConvertToOneShots(dialogues, characterData.DisplayName);
-            return oneShots == null || oneShots.Length == 0 ? default : oneShots[HubDayRandom.Range(0, oneShots.Length)];
+            return oneShots == null || oneShots.Length == 0
+                ? default
+                : oneShots[HubDayRandom.Range(0, oneShots.Length)];
         }
 
         /// <summary>Returns a random <see cref="HubCharacterOneShotType.StartInteraction"/> one-shot.</summary>
@@ -248,7 +295,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             _activeAvatarPoint = avatarPoint;
 
             CharacterInteraction?.Initialize(character);
-            SpawnAvatarModel(character);
+            SpawnAvatarModel();
             BeginUnitTurn(character);
             PlayWelcomeOneShot(character, chapterNumber);
             _brain?.PublishHubCharacterInteracted(character);
@@ -260,11 +307,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         /// </summary>
         public void NotifyCharacterExited()
         {
-            if (_avatarModel != null)
-            {
-                Destroy(_avatarModel);
-                _avatarModel = null;
-            }
+            DestroyCurrentAvatarModel();
 
             if (_turnCoroutine != null)
             {
@@ -275,153 +318,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             CharacterInteraction?.HideActionsMenu();
             _activeCharacter = null;
             _activeAvatarPoint = null;
+
+            EnsureHubTraversalAvatarSpawned();
         }
 
         // ── Private helpers ──────────────────────────────────────────────────
-
-        private void SpawnAvatarModel(CharacterInstance character)
-        {
-            if (_activeAvatarPoint == null || character == null || _brain == null)
-            {
-                return;
-            }
-
-            if (_avatarModel != null)
-            {
-                Destroy(_avatarModel);
-                _avatarModel = null;
-            }
-
-            var avatarInstance = _brain.gamewideContextBrain?.GetOrCreateAvatarInstance();
-            if (avatarInstance == null)
-            {
-                $"HubCharacterManager '{name}': Could not find Avatar character instance in persistent roster.".LogWarning();
-                return;
-            }
-
-            var model = _brain.unitAppearanceBrain?.CreateModelForUnit(avatarInstance);
-            if (model == null)
-            {
-                $"HubCharacterManager '{name}': Failed to create avatar model for {avatarInstance.CharacterTemplate?.DisplayName}.".LogWarning();
-                return;
-            }
-
-            model.transform.SetPositionAndRotation(
-                _activeAvatarPoint.position,
-                _activeAvatarPoint.rotation
-            );
-            model.transform.SetParent(_activeAvatarPoint, worldPositionStays: true);
-
-            _brain.unitAppearanceBrain.SetupHubIdleAnimation(model, avatarInstance);
-            _avatarModel = model;
-        }
-
-        private void BeginUnitTurn(CharacterInstance character)
-        {
-            if (_activeAvatarPoint == null || character == null || _brain == null)
-            {
-                return;
-            }
-
-            // Resolve the already-spawned hub unit model from the appearance brain.
-            var unitModel = _brain.unitAppearanceBrain?.GetModelForUnit(character.Id);
-            if (unitModel == null)
-            {
-                return;
-            }
-
-            if (_turnCoroutine != null)
-            {
-                StopCoroutine(_turnCoroutine);
-            }
-
-            _turnCoroutine = StartCoroutine(TurnUnitTowardLookPoint(unitModel, character));
-        }
-
-        private void PlayWelcomeOneShot(CharacterInstance character, int chapterNumber)
-        {
-            if (_brain == null || _audioBrain == null)
-            {
-                return;
-            }
-
-            var oneShot = GetRandomWelcomeOneShot(character, chapterNumber);
-            if (string.IsNullOrWhiteSpace(oneShot.Dialogue))
-            {
-                return;
-            }
-
-            var player = _audioBrain.GetOrCreateOneShotPlayer();
-            if (player == null)
-            {
-                $"HubCharacterManager '{name}': Could not obtain OneShotPlayer for welcome dialogue.".LogWarning();
-                return;
-            }
-
-            player.PlayOneShot(oneShot);
-        }
-
-        private IEnumerator TurnUnitTowardLookPoint(
-            GameObject unitModel,
-            CharacterInstance character
-        )
-        {
-            if (unitModel == null || _activeAvatarPoint == null)
-            {
-                yield break;
-            }
-
-            var direction = _activeAvatarPoint.position - unitModel.transform.position;
-            direction.y = 0f;
-
-            if (direction.sqrMagnitude < 0.001f)
-            {
-                yield break;
-            }
-
-            var targetRotation = Quaternion.LookRotation(direction);
-            var turnClip = character?.CharacterTemplate?.HubTurnAnimation;
-
-            if (
-                turnClip != null
-                && unitModel.TryGetComponent<Animator>(out var anim)
-                && anim.runtimeAnimatorController != null
-            )
-            {
-                var overrideController = new AnimatorOverrideController(
-                    anim.runtimeAnimatorController
-                );
-                const string TurnState = "Turn";
-                overrideController[TurnState] = turnClip;
-                anim.runtimeAnimatorController = overrideController;
-                anim.Play(Animator.StringToHash(TurnState), 0, 0f);
-
-                yield return new WaitForSeconds(turnClip.length);
-
-                // Restore idle animation after the turn clip finishes.
-                _brain?.unitAppearanceBrain?.SetupHubIdleAnimation(unitModel, character);
-            }
-            else
-            {
-                const float TurnDuration = 0.4f;
-                var startRotation = unitModel.transform.rotation;
-                float elapsed = 0f;
-
-                while (elapsed < TurnDuration)
-                {
-                    elapsed += Time.deltaTime;
-                    unitModel.transform.rotation = Quaternion.Slerp(
-                        startRotation,
-                        targetRotation,
-                        Mathf.Clamp01(elapsed / TurnDuration)
-                    );
-                    yield return null;
-                }
-            }
-
-            // Enforce Y-axis-only rotation — no X or Z tilt.
-            unitModel.transform.rotation = Quaternion.Euler(0f, targetRotation.eulerAngles.y, 0f);
-            _turnCoroutine = null;
-        }
     }
 }

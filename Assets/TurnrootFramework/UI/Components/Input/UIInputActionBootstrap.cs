@@ -42,6 +42,7 @@ namespace Turnroot.UI
                 s.Cancel,
                 s.Menu,
                 s.RotateCamera,
+                s.RightStickMove,
                 s.Start,
                 s.RightStickClick,
                 s.ToggleDetails,
@@ -78,6 +79,7 @@ namespace Turnroot.UI
             TryEnable(UIInputActionDefaults.Cancel);
             TryEnable(UIInputActionDefaults.Menu);
             TryEnable(UIInputActionDefaults.RotateCamera);
+            TryEnable(UIInputActionDefaults.RightStickMove);
             TryEnable(UIInputActionDefaults.Start);
             TryEnable(UIInputActionDefaults.ToggleDetails);
             TryEnable(UIInputActionDefaults.RightStickClick);

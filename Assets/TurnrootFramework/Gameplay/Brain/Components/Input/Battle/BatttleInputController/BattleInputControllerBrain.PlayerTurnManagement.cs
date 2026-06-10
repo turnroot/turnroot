@@ -134,7 +134,8 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            Brain.PublishCharacterMoveStarted(unit, _pendingDestination);
+            // PublishCharacterMoveStarted is now fired inside MoveCommand.Execute so that
+            // skill-triggered and AI-triggered moves also get the walk animation.
             var moveRes = BattleContext.MoveUnitToPoint(unit, _pendingDestination);
 
             if (!moveRes.Success)

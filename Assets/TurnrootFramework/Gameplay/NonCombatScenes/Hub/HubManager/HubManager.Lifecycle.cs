@@ -108,7 +108,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _brain.OnGameDateChanged += HandleGameDateChanged;
             _brain.OnCharacterBirthdayThisWeek += HandleCharacterBirthdayThisWeek;
-            _brain.OnHubSublocationInputModeChange += HandleSublocationInputModeChange;
             UpdateDateText();
             _brain.charactersBrain.CheckBirthdays();
 
@@ -137,79 +136,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             );
             SetInputMode(HubInputMode.Location);
 
-            // Initialize sublocations and explore locations BEFORE HubTeamLocations.Initialize,
-            // so that CanBeVisitedToday() / IsLocked can safely access _brain.
-
-            // Count how many LocationChoices slots are reserved for special choices (ExploreChoice, BattlefieldsChoice).
-            // These may be embedded inside LocationChoices; if so, the remaining slots
-            // map 1:1 with subLocations.
-            int embeddedExploreCount =
-                ExploreChoice != null
-                && LocationChoices != null
-                && System.Array.IndexOf(LocationChoices, ExploreChoice) >= 0
-                    ? 1
-                    : 0;
-
-            int embeddedBattlefieldsCount =
-                BattlefieldsChoice != null
-                && LocationChoices != null
-                && System.Array.IndexOf(LocationChoices, BattlefieldsChoice) >= 0
-                    ? 1
-                    : 0;
-
-            int expectedChoiceCount =
-                subLocations.Length + embeddedExploreCount + embeddedBattlefieldsCount;
-            if (LocationChoices == null || LocationChoices.Length != expectedChoiceCount)
+            if (LocationChoices == null || LocationChoices.Length != (TeleportPoints?.Length ?? 0))
             {
-                $"LocationChoices has {LocationChoices?.Length ?? 0} entries but subLocations has {subLocations.Length} (plus {embeddedExploreCount} embedded ExploreChoice, {embeddedBattlefieldsCount} embedded BattlefieldsChoice). Expected {expectedChoiceCount} total. Check the HubManager inspector.".LogWarning();
-            }
-
-            // Walk LocationChoices in order; skip the ExploreChoice and BattlefieldsChoice slots and map the rest to subLocations.
-            int subIndex = 0;
-            for (int i = 0; i < subLocations.Length; i++)
-            {
-                subLocations[i].Initialize(_brain);
+                $"LocationChoices has {LocationChoices?.Length ?? 0} entries but TeleportPoints has {TeleportPoints?.Length ?? 0}. Expected one button per teleport point. Check the HubManager inspector.".LogWarning();
             }
 
             if (LocationChoices != null)
             {
-                subIndex = 0;
-                for (int i = 0; i < LocationChoices.Length; i++)
+                int pointCount = TeleportPoints?.Length ?? 0;
+                int count =
+                    LocationChoices.Length < pointCount ? LocationChoices.Length : pointCount;
+                for (int i = 0; i < count; i++)
                 {
-                    if (
-                        LocationChoices[i] == ExploreChoice
-                        || LocationChoices[i] == BattlefieldsChoice
-                    )
+                    if (LocationChoices[i] != null)
                     {
-                        // This slot is a special button — no subLocation to map to.
-                        continue;
-                    }
-
-                    if (subIndex >= subLocations.Length)
-                    {
-                        $"LocationChoices has more non-explore entries than subLocations. Extra entry at index {i}.".LogWarning();
-                        break;
-                    }
-
-                    LocationChoices[i].CanBeSelected = subLocations[subIndex].CanBeVisitedToday();
-                    subIndex++;
-                }
-            }
-
-            if (ExploreLocations != null)
-            {
-                foreach (var exploreLoc in ExploreLocations)
-                {
-                    if (exploreLoc != null)
-                    {
-                        exploreLoc.Initialize(_brain);
+                        LocationChoices[i].CanBeSelected = TeleportPoints[i].Point != null;
                     }
                 }
             }
 
             if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
             {
-                GetComponent<HubTeamLocations>().Initialize(_brain, subLocations, ExploreLocations);
+                var discoveredLocations = FindObjectsByType<HubCharacterSpawnArea>(
+                    FindObjectsSortMode.None
+                );
+                var teamLocations = GetComponent<HubTeamLocations>();
+                teamLocations.CharacterSpawnAreas = discoveredLocations;
+                teamLocations.Initialize(_brain);
             }
             else
             {
@@ -220,8 +173,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (ExploreChoice != null)
             {
-                ExploreChoice.CanBeSelected =
-                    ExploreLocations != null && ExploreLocations.Length > 0;
+                ExploreChoice.CanBeSelected = true;
             }
 
             if (BattlefieldsChoice != null)
@@ -257,7 +209,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _brain.OnGameDateChanged -= HandleGameDateChanged;
                 _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
-                _brain.OnHubSublocationInputModeChange -= HandleSublocationInputModeChange;
             }
 
             // Ensure we clean up any menu canvas / subscriptions when hub is destroyed.

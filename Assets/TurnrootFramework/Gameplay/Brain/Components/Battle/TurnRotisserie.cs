@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
@@ -47,6 +48,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private bool UnitTakesAnotherTurn =>
             Context?.Flags?.ActiveUnitFlags?.AnotherTurnGranted ?? false;
 
+        // When EndTurn is requested for AI/third-party units, keep the camera/state on the
+        // active unit until its movement/swap visuals are done.
+        private readonly HashSet<string> _unitsWithPendingMoveAnimation = new();
+        private readonly HashSet<string> _unitsWithPendingSwapAnimation = new();
+        private string _pendingEndTurnUnitIdAwaitingAnimation;
+
         #endregion
 
         #region Unity Lifecycle
@@ -62,22 +69,43 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (Brain != null)
             {
                 Brain.OnPlayerTurnEnded -= HandlePlayerTurnCompleted;
-                Brain.OnEndTurnCompleted -= HandlePlayerActionCompleted;
+                Brain.OnEndTurnCompleted -= HandleActionCompleted;
+                Brain.OnCharacterMoveStarted -= HandleCharacterMoveStarted;
+                Brain.OnMoveAnimationCompleted -= HandleMoveAnimationCompleted;
+                Brain.OnSwapStarted -= HandleSwapStarted;
+                Brain.OnSwapAnimationCompleted -= HandleSwapAnimationCompleted;
             }
+
+            _unitsWithPendingMoveAnimation.Clear();
+            _unitsWithPendingSwapAnimation.Clear();
+            _pendingEndTurnUnitIdAwaitingAnimation = null;
             _sceneFlow = null;
         }
 
-        private void HandlePlayerActionCompleted(CharacterInstance unit)
+        private void HandleActionCompleted(CharacterInstance unit)
         {
-            // If the active player chose to Wait or explicitly EndTurn, advance the rotisserie.
-            if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
+            // Handle EndTurn for all factions. For AI/NPC turns, defer advancement until
+            // the active unit's movement/swap visuals complete.
+            var active = GetActiveUnit();
+            if (active == null || active != unit)
             {
-                var active = GetActiveUnit();
-                if (active != null && active == unit)
-                {
-                    Progress();
-                }
+                return;
             }
+
+            var shouldWaitForVisuals =
+                _currentTurnOrder
+                    is TurnOrder.EnemyStart
+                        or TurnOrder.EnemyEnd
+                        or TurnOrder.ThirdPartyStart
+                        or TurnOrder.ThirdPartyEnd;
+
+            if (shouldWaitForVisuals && HasPendingVisualForUnit(unit))
+            {
+                _pendingEndTurnUnitIdAwaitingAnimation = unit.Id;
+                return;
+            }
+
+            Progress();
         }
 
         #endregion
@@ -94,7 +122,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             Brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
-            Brain.OnEndTurnCompleted += HandlePlayerActionCompleted;
+            Brain.OnEndTurnCompleted += HandleActionCompleted;
+            Brain.OnCharacterMoveStarted += HandleCharacterMoveStarted;
+            Brain.OnMoveAnimationCompleted += HandleMoveAnimationCompleted;
+            Brain.OnSwapStarted += HandleSwapStarted;
+            Brain.OnSwapAnimationCompleted += HandleSwapAnimationCompleted;
             Brain.OnPlayerTurnStateChanged += state =>
             {
                 var active = GetActiveUnit();
@@ -148,7 +180,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var units = GetCurrentRosterUnits();
             if (units.Count == 0)
             {
-                // this isn't possible, so this is a safety check to avoid infinite loops if something goes wrong with roster population
+                // End phases are transition-only; they don't activate per-unit turns.
+                if (
+                    _currentTurnOrder
+                    is TurnOrder.PlayerEnd
+                        or TurnOrder.EnemyEnd
+                        or TurnOrder.ThirdPartyEnd
+                )
+                {
+                    return ProgressToNextPhase();
+                }
+
+                // This should not happen for start phases and likely indicates roster setup issues.
                 "TurnRotisserie: No units found in current roster!".LogError();
                 Debug.Break();
                 return false;
@@ -215,11 +258,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Read from context participants (populated during battle init)
             IEnumerable<CharacterInstance> instances = _currentTurnOrder switch
             {
-                TurnOrder.PlayerStart or TurnOrder.PlayerEnd => Context.Participants.Allies,
-                TurnOrder.EnemyStart or TurnOrder.EnemyEnd => Context.Participants.Targets,
-                TurnOrder.ThirdPartyStart or TurnOrder.ThirdPartyEnd => Context
-                    .Participants
-                    .ThirdParty,
+                TurnOrder.PlayerStart => Context.Participants.Allies,
+                TurnOrder.EnemyStart => Context.Participants.Targets,
+                TurnOrder.ThirdPartyStart => Context.Participants.ThirdParty,
+                TurnOrder.PlayerEnd or TurnOrder.EnemyEnd or TurnOrder.ThirdPartyEnd =>
+                    new List<CharacterInstance>(),
                 _ => new List<CharacterInstance>(),
             };
 
@@ -382,7 +425,120 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 Brain.PublishPlayerControlledUnitActivated(activeUnit);
             }
 
+            if (_currentTurnOrder is TurnOrder.EnemyStart or TurnOrder.ThirdPartyStart)
+            {
+                StartCoroutine(ExecuteAITurnCoroutine(activeUnit));
+            }
+
             return OperationResult.Successful();
+        }
+
+        private IEnumerator ExecuteAITurnCoroutine(CharacterInstance expectedUnit)
+        {
+            // Let camera/state listeners react to the unit activation first.
+            yield return null;
+
+            var context = Context;
+            var active = GetActiveUnit();
+            if (context == null || active == null || active != expectedUnit)
+            {
+                yield break;
+            }
+
+            if (context.AIHelper == null)
+            {
+                "TurnRotisserie: AIHelper missing during AI turn; ending turn to prevent lockup".LogWarning();
+                context.EndTurn();
+                yield break;
+            }
+
+            context.AIHelper?.PickTileAndAction();
+        }
+
+        private bool HasPendingVisualForUnit(CharacterInstance unit)
+        {
+            if (unit == null)
+            {
+                return false;
+            }
+
+            return _unitsWithPendingMoveAnimation.Contains(unit.Id)
+                || _unitsWithPendingSwapAnimation.Contains(unit.Id);
+        }
+
+        private void TryProgressDeferredEndTurn()
+        {
+            if (string.IsNullOrEmpty(_pendingEndTurnUnitIdAwaitingAnimation))
+            {
+                return;
+            }
+
+            var active = GetActiveUnit();
+            if (active == null || active.Id != _pendingEndTurnUnitIdAwaitingAnimation)
+            {
+                _pendingEndTurnUnitIdAwaitingAnimation = null;
+                return;
+            }
+
+            if (HasPendingVisualForUnit(active))
+            {
+                return;
+            }
+
+            _pendingEndTurnUnitIdAwaitingAnimation = null;
+            Progress();
+        }
+
+        private void HandleCharacterMoveStarted(
+            CharacterInstance character,
+            Maps.MapGridPoint targetPoint
+        )
+        {
+            if (character == null)
+            {
+                return;
+            }
+
+            _unitsWithPendingMoveAnimation.Add(character.Id);
+        }
+
+        private void HandleMoveAnimationCompleted(CharacterInstance character)
+        {
+            if (character == null)
+            {
+                return;
+            }
+
+            _unitsWithPendingMoveAnimation.Remove(character.Id);
+            TryProgressDeferredEndTurn();
+        }
+
+        private void HandleSwapStarted(CharacterInstance unit, CharacterInstance target)
+        {
+            if (unit != null)
+            {
+                _unitsWithPendingSwapAnimation.Add(unit.Id);
+            }
+
+            if (target != null)
+            {
+                _unitsWithPendingSwapAnimation.Add(target.Id);
+            }
+        }
+
+        private void HandleSwapAnimationCompleted(CharacterInstance unit, CharacterInstance target)
+        {
+            if (unit != null)
+            {
+                _unitsWithPendingSwapAnimation.Remove(unit.Id);
+            }
+
+            if (target != null)
+            {
+                _unitsWithPendingSwapAnimation.Remove(target.Id);
+            }
+
+            TryProgressDeferredEndTurn();
         }
 
         #endregion
