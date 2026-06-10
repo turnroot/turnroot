@@ -47,7 +47,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnDestroy()
         {
-            if (_specificUiHandler != null && _specificUiHandler.ActiveTutorialHandler == this)
+            if (
+                _specificUiHandler != null
+                && ReferenceEquals(_specificUiHandler.ActiveTutorialHandler, this)
+            )
             {
                 _specificUiHandler.ActiveTutorialHandler = null;
             }
