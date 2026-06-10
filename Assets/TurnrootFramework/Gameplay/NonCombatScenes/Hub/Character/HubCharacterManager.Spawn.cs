@@ -95,17 +95,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             Transform spawnPoint = ResolveCurrentTraversalPoint();
             if (spawnPoint == null)
             {
-                if (!SpawnAvatarOnHubLoad)
+                if (!SpawnAvatarOnTraversalStart)
                 {
                     return;
                 }
 
-                spawnPoint = ResolveHubLoadAvatarPoint();
+                spawnPoint = ResolveTraversalStartPoint();
             }
 
             if (spawnPoint == null)
             {
-                "HubCharacterManager: Could not find traversal spawn point. Assign traversalAvatarPoint on the active sublocation or HubLoadAvatarPoint.".LogWarning();
+                "HubCharacterManager: Could not find traversal spawn point. Assign a teleport point or HubManager.TraversalStartAvatarPoint.".LogWarning();
                 return;
             }
 
@@ -114,7 +114,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             _activeAvatarPoint = null;
         }
 
-        private Transform ResolveHubLoadAvatarPoint() => HubLoadAvatarPoint;
+        private Transform ResolveTraversalStartPoint()
+        {
+            return GetHubManager()?.TraversalStartAvatarPoint;
+        }
 
         private Transform ResolveCurrentTraversalPoint()
         {
@@ -134,8 +137,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
-            adapter.AvatarRoot = model.transform;
-            adapter.AvatarAnimator = model.GetComponentInChildren<Animator>();
+            adapter.BindAvatar(model);
         }
 
         private void ClearThirdPersonAdapterAvatarIfMatches(GameObject model)
@@ -151,11 +153,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
-            if (adapter.AvatarRoot == model.transform)
-            {
-                adapter.AvatarRoot = null;
-                adapter.AvatarAnimator = null;
-            }
+            adapter.ClearAvatarBindingIfMatches(model);
         }
 
         private HubManager GetHubManager()

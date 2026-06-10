@@ -15,7 +15,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [Header("Input Drive")]
         public bool ConsumeHubInput = true;
-        public Transform AvatarRoot;
         public CharacterController CharacterController;
         public NavMeshAgent NavMeshAgent;
         public Transform CameraReference;
@@ -23,7 +22,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float RotationLerp = 12f;
 
         [Header("Animation (Reuse UnitAppearanceBrain)")]
-        public Animator AvatarAnimator;
         public float WalkingInputThreshold = 0.05f;
 
         [Header("Optional Camera Yaw")]
@@ -36,6 +34,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Vector2 _lookInput;
         private bool _isWalking;
         private BrainType _brain;
+        private Transform _avatarRoot;
+        private Animator _avatarAnimator;
+
+        public void BindAvatar(GameObject avatarModel)
+        {
+            if (avatarModel == null)
+            {
+                _avatarRoot = null;
+                _avatarAnimator = null;
+                return;
+            }
+
+            _avatarRoot = avatarModel.transform;
+            _avatarAnimator = avatarModel.GetComponentInChildren<Animator>();
+        }
+
+        public void ClearAvatarBindingIfMatches(GameObject avatarModel)
+        {
+            if (avatarModel == null)
+            {
+                return;
+            }
+
+            if (_avatarRoot == avatarModel.transform)
+            {
+                _avatarRoot = null;
+                _avatarAnimator = null;
+            }
+        }
 
         public void SetWalkMode(bool enabled)
         {
@@ -133,16 +160,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 NavMeshAgent.Move(desiredDirection * (MoveSpeed * Time.deltaTime));
             }
-            else if (AvatarRoot != null)
+            else if (_avatarRoot != null)
             {
-                AvatarRoot.position += desiredDirection * (MoveSpeed * Time.deltaTime);
+                _avatarRoot.position += desiredDirection * (MoveSpeed * Time.deltaTime);
             }
 
-            if (AvatarRoot != null && desiredDirection.sqrMagnitude > 0.0001f)
+            if (_avatarRoot != null && desiredDirection.sqrMagnitude > 0.0001f)
             {
                 Quaternion targetRot = Quaternion.LookRotation(desiredDirection, Vector3.up);
-                AvatarRoot.rotation = Quaternion.Slerp(
-                    AvatarRoot.rotation,
+                _avatarRoot.rotation = Quaternion.Slerp(
+                    _avatarRoot.rotation,
                     targetRot,
                     RotationLerp * Time.deltaTime
                 );
@@ -175,7 +202,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             TryResolveAnimator();
 
-            if (AvatarAnimator == null)
+            if (_avatarAnimator == null)
             {
                 return;
             }
@@ -188,27 +215,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (walking)
             {
-                appearanceBrain.BlendToWalkAnimation(AvatarAnimator);
+                appearanceBrain.BlendToWalkAnimation(_avatarAnimator);
             }
             else
             {
-                appearanceBrain.BlendToIdleAnimation(AvatarAnimator);
+                appearanceBrain.BlendToIdleAnimation(_avatarAnimator);
             }
         }
 
         private void TryResolveAnimator()
         {
-            if (AvatarAnimator != null)
+            if (_avatarAnimator != null)
             {
                 return;
             }
 
-            if (AvatarRoot == null)
+            if (_avatarRoot == null)
             {
                 return;
             }
 
-            AvatarAnimator = AvatarRoot.GetComponentInChildren<Animator>();
+            _avatarAnimator = _avatarRoot.GetComponentInChildren<Animator>();
         }
     }
 }

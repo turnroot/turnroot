@@ -38,14 +38,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         public HubCharacterInteraction CharacterInteraction;
 
         [BoxGroup("Interaction")]
-        [Tooltip("When enabled, the avatar model is spawned automatically on hub load.")]
-        public bool SpawnAvatarOnHubLoad = true;
-
-        [BoxGroup("Interaction")]
-        [Tooltip(
-            "Preferred spawn point for the hub-load avatar. If empty, traversal avatar spawn waits for a valid current traversal point."
-        )]
-        public Transform HubLoadAvatarPoint;
+        [Tooltip("When enabled, the avatar model is spawned automatically when traversal starts.")]
+        public bool SpawnAvatarOnTraversalStart = true;
 
         // ── Runtime ──────────────────────────────────────────────────────────
 
@@ -78,7 +72,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void Start()
         {
-            if (!SpawnAvatarOnHubLoad)
+            if (!SpawnAvatarOnTraversalStart)
             {
                 return;
             }
@@ -88,10 +82,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 StopCoroutine(_spawnOnLoadRoutine);
             }
 
-            _spawnOnLoadRoutine = StartCoroutine(SpawnAvatarOnHubLoadRoutine());
+            _spawnOnLoadRoutine = StartCoroutine(SpawnAvatarOnTraversalStartRoutine());
         }
 
-        private IEnumerator SpawnAvatarOnHubLoadRoutine()
+        private IEnumerator SpawnAvatarOnTraversalStartRoutine()
         {
             // Wait for brain sub-systems that avatar model creation depends on.
             while (

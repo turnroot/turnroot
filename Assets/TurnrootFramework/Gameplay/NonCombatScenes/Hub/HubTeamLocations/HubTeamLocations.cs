@@ -14,7 +14,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     public struct HubCharacterLocation
     {
         public CharacterData Character;
-        public HubSublocationName Location;
+        public HubCharacterSpawnArea SpawnArea;
 
         public int Chapter;
 
@@ -32,18 +32,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private CharacterFactory _charFactory;
         private readonly System.Collections.Generic.HashSet<string> _spawnedCharacterIds = new();
         public HubCharacterLocation[] HubCharacterLocations;
-
-        [Serializable]
-        public struct LocationLayout
-        {
-            public HubSublocationName location;
-            public GameObject layoutObject;
-        }
-
-        public LocationLayout[] LocationLayouts;
-        public GameObject UnitLocationPortraitPrefab;
-
-        public Sprite FallBackPortrait;
 
         [Tooltip(
             "Spawn areas used for assigning and placing team and non-roster characters in hub."
@@ -131,7 +119,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     {
                         desiredLocation = userSet.IsRandomForThisChapter
                             ? PickRandomValidLocation(spawnAreas, maxPerLocation)
-                            : userSet.Location;
+                            : ResolveAssignedLocationOrRandom(
+                                userSet.SpawnArea,
+                                spawnAreas,
+                                maxPerLocation
+                            );
                     }
                     else
                     {
@@ -144,10 +136,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 else if (
                     userSet.Character != null
                     && !userSet.IsRandomForThisChapter
-                    && desiredLocation != userSet.Location
+                    && desiredLocation
+                        != ResolveAssignedLocationOrRandom(
+                            userSet.SpawnArea,
+                            spawnAreas,
+                            maxPerLocation
+                        )
                 )
                 {
-                    desiredLocation = userSet.Location;
+                    desiredLocation = ResolveAssignedLocationOrRandom(
+                        userSet.SpawnArea,
+                        spawnAreas,
+                        maxPerLocation
+                    );
                     placementMap[i] = desiredLocation;
                     changed = true;
                 }
@@ -216,19 +217,36 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     desiredLocation = info.IsRandomForThisChapter
                         ? PickRandomValidLocation(spawnAreas, maxPerLocation)
-                        : info.Location;
+                        : ResolveAssignedLocationOrRandom(
+                            info.SpawnArea,
+                            spawnAreas,
+                            maxPerLocation
+                        );
                     placementMap[characterKey] = desiredLocation;
                     changed = true;
                     $"[HubDiag] SetNonRosterUnitsInHub({characterKey}): Not in saved map — assigned to {desiredLocation} (isRandom={info.IsRandomForThisChapter})".LogInfo(
                         "HubTeamLocations"
                     );
                 }
-                else if (!info.IsRandomForThisChapter && desiredLocation != info.Location)
+                else if (
+                    !info.IsRandomForThisChapter
+                    && desiredLocation
+                        != ResolveAssignedLocationOrRandom(
+                            info.SpawnArea,
+                            spawnAreas,
+                            maxPerLocation
+                        )
+                )
                 {
-                    $"[HubDiag] SetNonRosterUnitsInHub({characterKey}): OVERRIDING saved location {desiredLocation} with inspector location {info.Location} (isRandom=false)".LogWarning(
+                    var resolvedInspectorLocation = ResolveAssignedLocationOrRandom(
+                        info.SpawnArea,
+                        spawnAreas,
+                        maxPerLocation
+                    );
+                    $"[HubDiag] SetNonRosterUnitsInHub({characterKey}): OVERRIDING saved location {desiredLocation} with inspector spawn area location {resolvedInspectorLocation} (isRandom=false)".LogWarning(
                         "HubTeamLocations"
                     );
-                    desiredLocation = info.Location;
+                    desiredLocation = resolvedInspectorLocation;
                     placementMap[characterKey] = desiredLocation;
                     changed = true;
                 }

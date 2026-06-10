@@ -530,7 +530,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
                 else
                 {
-                    // fade to black, move, fade back in (use the same structure as the sublocation transition)
+                    // fade to black, move, fade back in (use the same structure as the traversal transition)
                     if (
                         hubmanager?.HubFadeToBlack != null
                         && hubmanager.GeneralCamera != null
