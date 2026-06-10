@@ -50,11 +50,11 @@ namespace Turnroot.UI.Components.SimpleButton
             return SelectAction != null
                 ? SelectAction
                 : Role switch
-            {
-                SimpleButtonRole.Back => UIInputActionDefaults.Back,
-                SimpleButtonRole.Details => UIInputActionDefaults.ToggleDetails,
-                _ => UIInputActionDefaults.Select,
-            };
+                {
+                    SimpleButtonRole.Back => UIInputActionDefaults.Back,
+                    SimpleButtonRole.Details => UIInputActionDefaults.ToggleDetails,
+                    _ => UIInputActionDefaults.Select,
+                };
         }
 
         private void SubscribeToSelectAction()
@@ -93,6 +93,7 @@ namespace Turnroot.UI.Components.SimpleButton
                 || action == UIInputActionDefaults.Menu
                 || action == UIInputActionDefaults.Navigate
                 || action == UIInputActionDefaults.RotateCamera
+                || action == UIInputActionDefaults.RightStickMove
                 || action == UIInputActionDefaults.ToggleDetails;
         }
 

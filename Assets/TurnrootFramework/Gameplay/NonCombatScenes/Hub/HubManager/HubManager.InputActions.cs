@@ -53,16 +53,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             var choice = _navigableChoices[currentIndex];
 
-            // ExploreChoice may be embedded inside LocationChoices or appended after —
-            // handle it first regardless of position.
             if (ExploreChoice != null && choice == ExploreChoice)
             {
-                OpenExploreMenu();
+                OpenExploreTraversal();
                 return;
             }
 
-            // BattlefieldsChoice may be embedded inside LocationChoices or appended after —
-            // handle it first regardless of position.
             if (BattlefieldsChoice != null && choice == BattlefieldsChoice)
             {
                 OpenBattleChoice();
@@ -71,58 +67,29 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             var locationCount = LocationChoices?.Length ?? 0;
 
-            // Choices inside LocationChoices: map to subLocations, skipping ExploreChoice and BattlefieldsChoice slots.
+            // Choices inside LocationChoices map directly to teleport points.
             if (currentIndex < locationCount)
             {
-                // Count how many non-special choices precede currentIndex.
-                int subIndex = 0;
-                for (int i = 0; i < currentIndex; i++)
+                if (TeleportPoints != null && currentIndex < TeleportPoints.Length)
                 {
-                    if (
-                        LocationChoices[i] != ExploreChoice
-                        && LocationChoices[i] != BattlefieldsChoice
-                    )
-                    {
-                        subIndex++;
-                    }
-                }
-
-                if (subLocations != null && subIndex < subLocations.Length)
-                {
-                    var selectedLocation = subLocations[subIndex];
-                    if (selectedLocation != null && selectedLocation.CanBeVisitedToday())
-                    {
-                        selectedLocation.PlayerVisit();
-                    }
+                    VisitTeleportPoint(TeleportPoints[currentIndex]);
                 }
                 return;
             }
 
-            // Choices after LocationChoices.
-            // If ExploreChoice was NOT embedded, it sits here before EndDay/Settings.
-            bool exploreEmbedded =
-                ExploreChoice != null
-                && LocationChoices != null
-                && System.Array.IndexOf(LocationChoices, ExploreChoice) >= 0;
-
-            bool battlefieldsEmbedded =
-                BattlefieldsChoice != null
-                && LocationChoices != null
-                && System.Array.IndexOf(LocationChoices, BattlefieldsChoice) >= 0;
-
             int remaining = currentIndex - locationCount;
 
-            if (ExploreChoice != null && !exploreEmbedded)
+            if (ExploreChoice != null)
             {
                 if (remaining == 0)
                 {
-                    OpenExploreMenu();
+                    OpenExploreTraversal();
                     return;
                 }
                 remaining--;
             }
 
-            if (BattlefieldsChoice != null && !battlefieldsEmbedded)
+            if (BattlefieldsChoice != null)
             {
                 if (remaining == 0)
                 {
@@ -142,19 +109,61 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        /// <summary>Opens the Explore submenu from the main hub menu.</summary>
-        public void OpenExploreMenu()
+        public void OpenExploreTraversal()
         {
             HubActionsFade?.Hide();
-            SetInputMode(HubInputMode.ExploreMenu);
-            OnExploreMenuOpened?.Invoke();
+
+            if (_brain != null && !HubDayStateStore.HasSeenExploreTutorial(_brain))
+            {
+                OpenExploreTutorial();
+                return;
+            }
+
+            BeginExploreTraversal();
         }
 
-        public void BackFromExploreMenu()
+        private void OpenExploreTutorial()
         {
-            SetInputMode(HubInputMode.Location);
-            HubActionsFade?.Show();
-            UpdateChoiceSelection();
+            if (ExploreTutorialPrefab == null)
+            {
+                BeginExploreTraversal();
+                return;
+            }
+
+            var instance = Instantiate(ExploreTutorialPrefab);
+            var handler = instance.GetComponent<HubExploreTutorialHandler>();
+            if (handler == null)
+            {
+                "HubManager: ExploreTutorialPrefab does not contain a HubExploreTutorialHandler component.".LogWarning();
+                Destroy(instance);
+                BeginExploreTraversal();
+                return;
+            }
+
+            handler.Completed = BeginExploreTraversal;
+        }
+
+        public void BeginExploreTraversal()
+        {
+            SetInputMode(HubInputMode.Traversal);
+            BackButtonFade?.Show();
+        }
+
+        private void VisitTeleportPoint(HubTeleportPoint teleportPoint)
+        {
+            SetCurrentLocation(teleportPoint);
+
+            if (GeneralCamera != null)
+            {
+                GeneralCamera.fieldOfView = SublocationInput.normalFov;
+            }
+
+            GetHubCharacterManager()
+                ?.HandleTraversalEntered(teleportPoint.Point, teleportPoint.Name);
+            SetInputMode(HubInputMode.Traversal);
+            BackButtonFade?.Show();
+
+            _brain?.PublishHubSublocationVisited(teleportPoint.Name);
         }
 
         public void OpenBattleChoice()
@@ -176,34 +185,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SetInputMode(HubInputMode.Location);
             HubActionsFade?.Show();
             UpdateChoiceSelection();
-        }
-
-        public void EnterExploreLocation(HubExploreLocation location)
-        {
-            if (location == null)
-            {
-                "HubManager: EnterExploreLocation called with a null location.".LogWarning();
-                return;
-            }
-
-            if (!location.CanBeVisitedToday())
-            {
-                $"HubManager: {location.LocationName} is locked and cannot be visited.".LogWarning();
-                return;
-            }
-
-            if (location.Indoors)
-            {
-                foreach (var effect in OutdoorEffects)
-                {
-                    if (effect != null)
-                    {
-                        effect.SetActive(false);
-                    }
-                }
-            }
-
-            location.PlayerVisit();
         }
 
         private void HandleEndDaySelected()

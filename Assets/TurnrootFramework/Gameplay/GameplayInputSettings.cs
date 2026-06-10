@@ -29,6 +29,7 @@ namespace Turnroot.GameSettings
         public InputActionReference Cancel;
         public InputActionReference Menu;
         public InputActionReference RotateCamera;
+        public InputActionReference RightStickMove;
         public InputActionReference Start;
         public InputActionReference ToggleDetails;
         public InputActionReference RightStickClick;

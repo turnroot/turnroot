@@ -42,8 +42,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopVisited()
         {
-            brain ??= FindFirstObjectByType<Brain.Brain>();
-            audioBrain ??= brain?.audioBrain;
+            EnsureBrainReference();
             brain?.PublishShopVisited(this);
 
             // Guard: nothing to sell or show if there are no items
@@ -70,7 +69,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
 
         public void NotifyShopExited()
         {
-            brain ??= FindFirstObjectByType<Brain.Brain>();
+            EnsureBrainReference();
             brain?.PublishShopExited(this);
 
             NotifyVendorExited(
@@ -137,7 +136,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 return "";
             }
 
-            var brainRef = brain ?? FindFirstObjectByType<Brain.Brain>();
+            var brainRef = EnsureBrainReference();
             bool hasSavedShopStock = HubDayStateStore.HasShopStock(name);
             bool isDailyUpdateAlreadyProcessed = HubDayStateStore.HasProcessedDailyUpdates;
 

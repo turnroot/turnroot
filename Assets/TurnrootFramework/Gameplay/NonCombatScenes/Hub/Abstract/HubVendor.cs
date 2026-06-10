@@ -24,12 +24,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         protected AudioBrain audioBrain;
 
+        protected Brain.Brain EnsureBrainReference()
+        {
+            brain ??= FindFirstObjectByType<Brain.Brain>();
+            audioBrain ??= brain?.audioBrain;
+            return brain;
+        }
+
         protected virtual void Awake()
         {
             cachedWelcomeDialogues = (OneShotDialogue[])WelcomeDialogues.Clone();
 
-            brain ??= FindFirstObjectByType<Brain.Brain>();
-            audioBrain ??= brain?.audioBrain;
+            EnsureBrainReference();
 
             var speakerName = Shopkeeper != null ? Shopkeeper.DisplayName : "???";
 
@@ -45,8 +51,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         protected void NotifyVisited(Action refreshUi, string componentName)
         {
-            brain ??= FindFirstObjectByType<Brain.Brain>();
-            audioBrain ??= brain?.audioBrain;
+            EnsureBrainReference();
 
             if (refreshUi != null)
             {
@@ -79,8 +84,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         protected void NotifyExited(Action hideUi, string componentName)
         {
-            brain ??= FindFirstObjectByType<Brain.Brain>();
-            audioBrain ??= brain?.audioBrain;
+            EnsureBrainReference();
 
             var farewellOneShot =
                 audioBrain != null
@@ -172,7 +176,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             string onEmptyLogFormat
         )
         {
-            brain ??= FindFirstObjectByType<Brain.Brain>();
+            EnsureBrainReference();
             publishAction?.Invoke(itemOrItems);
 
             var oneShot =
@@ -185,8 +189,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         public OneShot GetRandomWelcomeOneShot()
         {
-            brain ??= FindFirstObjectByType<Brain.Brain>();
-            audioBrain ??= brain?.audioBrain;
+            EnsureBrainReference();
             return audioBrain != null
                 ? audioBrain.GetRandomOneShot(WelcomeDialogueConversations)
                 : default;
@@ -194,8 +197,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         public OneShot GetRandomFarewellOneShot()
         {
-            brain ??= FindFirstObjectByType<Brain.Brain>();
-            audioBrain ??= brain?.audioBrain;
+            EnsureBrainReference();
             return audioBrain != null
                 ? audioBrain.GetRandomOneShot(FarewellDialogueConversations)
                 : default;

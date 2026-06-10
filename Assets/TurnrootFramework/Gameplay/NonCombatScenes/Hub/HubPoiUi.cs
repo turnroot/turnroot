@@ -484,28 +484,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             UiFx?.PlayOneShot(PoiSelectSound);
 
-            var subLocation = GetComponentInParent<HubSubLocation>();
-            if (subLocation == null)
-            {
-                $"HubPoiUi: Failed to find parent HubSubLocation for {name}".LogWarning();
-            }
+            hubmanager?.SpecificUiInputHandler?.SetCurrentSelection(
+                hubmanager.CurrentLocationName,
+                this
+            );
 
-            hubmanager?.SpecificUiInputHandler?.SetCurrentSelection(subLocation, this);
-
-            // POIs inside any ExploreLocation always move to Chosen mode.
-            // Regular POIs (MarketPOI, DocksPOI, TrainingPOI, UnitPOI) do the same.
-            bool setChosen = subLocation is HubExploreLocation;
-            if (!setChosen)
+            bool setChosen = false;
+            switch (Type)
             {
-                switch (Type)
-                {
-                    case HubPoiType.MarketPOI:
-                    case HubPoiType.DocksPOI:
-                    case HubPoiType.TrainingPOI:
-                    case HubPoiType.UnitPOI:
-                        setChosen = true;
-                        break;
-                }
+                case HubPoiType.MarketPOI:
+                case HubPoiType.DocksPOI:
+                case HubPoiType.TrainingPOI:
+                case HubPoiType.UnitPOI:
+                    setChosen = true;
+                    break;
             }
 
             if (setChosen)

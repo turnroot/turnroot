@@ -11,7 +11,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     [RequireComponent(typeof(HubManager))]
     public class HubSubInput : MonoBehaviour
     {
-        // absolute degree limits from the default hub sublocation base orientation; use positive values.
+        // Absolute degree limits from the default hub traversal camera base orientation; use positive values.
         // World-space tilt is clamped to [default - up,down], even when returning from POI.
         public float MaxTiltUp;
         public float MaxTiltDown;
@@ -49,6 +49,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public UIFade FocusOverlayFade;
 
+        [Header("Third Person Walk (Phase 1)")]
+        [Tooltip(
+            "When enabled, non-zoom input is routed into ThirdPersonAdapter instead of hub camera look."
+        )]
+        public bool useThirdPersonWalkWhenUnzoomed = true;
+
+        [Tooltip("Optional adapter that receives move/look from shared hub input actions.")]
+        public HubThirdPersonAdapter ThirdPersonAdapter;
+
         [Tooltip(
             "Radius used when casting out of the camera. A larger value gives you a bigger forgiveness window around the centre of the view."
         )]
@@ -59,6 +68,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
         private float _cachedUpLimit;
         private float _cachedDownLimit;
+        private bool _loggedMissingThirdPersonAdapter;
 
         public void HandleSubLocationInput(string action)
         {
@@ -127,6 +137,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     hubCamera.fieldOfView = normalFov;
                 }
+                ThirdPersonAdapter?.SetWalkMode(false);
+                ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
             }
         }
@@ -147,40 +159,58 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 hubCamera = hubManager.GeneralCamera;
             }
 
-            var zoomAction = UiChoice.RightStickClickAction;
-            if (zoomAction != null && zoomAction.enabled)
-            {
-                bool zoomPressed = zoomAction.IsPressed();
-                if (zoomPressed && !_wasZoomPressed)
-                {
-                    _isZoomed = !_isZoomed;
-                    float targetFov = _isZoomed ? zoomedFov : normalFov;
-                    if (_zoomCoroutine != null)
-                    {
-                        StopCoroutine(_zoomCoroutine);
-                    }
+            UpdateZoomToggle();
 
-                    if (
-                        GameplayPlayerSettings.Instance != null
-                        && GameplayPlayerSettings.Instance.AnimatedCameraMovement
-                    )
-                    {
-                        _zoomCoroutine = StartCoroutine(AnimateFov(targetFov));
-                    }
-                    else
-                    {
-                        hubCamera.fieldOfView = targetFov;
-                    }
-                    if (_isZoomed)
-                    {
-                        FocusOverlayFade?.Show();
-                    }
-                    else
-                    {
-                        FocusOverlayFade?.Hide();
-                    }
-                }
-                _wasZoomPressed = zoomPressed;
+            Vector2 moveInput = GetMoveInput();
+            Vector2 lookInput = GetLookInput();
+
+            if (TryHandleThirdPersonMode(moveInput, lookInput))
+            {
+                return;
+            }
+
+            UpdateInspectLook(lookInput);
+        }
+
+        private bool TryHandleThirdPersonMode(Vector2 moveInput, Vector2 lookInput)
+        {
+            bool shouldUseThirdPersonWalk =
+                useThirdPersonWalkWhenUnzoomed && ThirdPersonAdapter != null && !_isZoomed;
+
+            if (ThirdPersonAdapter != null)
+            {
+                ThirdPersonAdapter.SetWalkMode(shouldUseThirdPersonWalk);
+                ThirdPersonAdapter.SetInput(
+                    shouldUseThirdPersonWalk ? moveInput : Vector2.zero,
+                    shouldUseThirdPersonWalk ? lookInput : Vector2.zero
+                );
+            }
+
+            if (shouldUseThirdPersonWalk)
+            {
+                ClearCurrentPoiTarget();
+                FocusOverlayFade?.Hide();
+                return true;
+            }
+
+            if (
+                useThirdPersonWalkWhenUnzoomed
+                && ThirdPersonAdapter == null
+                && !_loggedMissingThirdPersonAdapter
+            )
+            {
+                "HubSubInput: useThirdPersonWalkWhenUnzoomed is enabled but ThirdPersonAdapter is not assigned. Falling back to camera-look controls.".LogWarning();
+                _loggedMissingThirdPersonAdapter = true;
+            }
+
+            return false;
+        }
+
+        private void UpdateInspectLook(Vector2 lookInput)
+        {
+            if (lookInput.sqrMagnitude < 0.0001f)
+            {
+                return;
             }
 
             if (!_hasBaseRotation)
@@ -192,13 +222,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _hasBaseRotation = true;
             }
 
-            Vector2 inVec = GetLookInput();
-            float h = inVec.x;
-            float v = inVec.y;
-            if (Mathf.Abs(h) < 0.01f && Mathf.Abs(v) < 0.01f)
-            {
-                return;
-            }
+            float h = lookInput.x;
+            float v = lookInput.y;
 
             var cam = hubManager._brain.cameraBrain;
 
@@ -222,6 +247,68 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 hubManager._brain.cameraBrain.SmoothLook(hubCamera, targetRotation, lookSmoothTime)
             );
             UpdatePoiDetection();
+        }
+
+        private void UpdateZoomToggle()
+        {
+            var zoomAction = UiChoice.RightStickClickAction;
+            if (zoomAction == null || !zoomAction.enabled)
+            {
+                return;
+            }
+
+            bool zoomPressed = zoomAction.IsPressed();
+            if (zoomPressed && !_wasZoomPressed)
+            {
+                _isZoomed = !_isZoomed;
+                float targetFov = _isZoomed ? zoomedFov : normalFov;
+                if (_zoomCoroutine != null)
+                {
+                    StopCoroutine(_zoomCoroutine);
+                }
+
+                if (
+                    GameplayPlayerSettings.Instance != null
+                    && GameplayPlayerSettings.Instance.AnimatedCameraMovement
+                )
+                {
+                    _zoomCoroutine = StartCoroutine(AnimateFov(targetFov));
+                }
+                else
+                {
+                    hubCamera.fieldOfView = targetFov;
+                }
+
+                if (!_isZoomed)
+                {
+                    ClearCurrentPoiTarget();
+                    FocusOverlayFade?.Hide();
+                }
+            }
+
+            _wasZoomPressed = zoomPressed;
+        }
+
+        private void ClearCurrentPoiTarget()
+        {
+            HideCurrentPoiTarget();
+
+            targetCollider = null;
+            _isPoiActive = false;
+        }
+
+        private void HideCurrentPoiTarget()
+        {
+            if (targetCollider == null)
+            {
+                return;
+            }
+
+            var poi = targetCollider.GetComponent<HubPoiUi>();
+            if (poi != null)
+            {
+                poi.Hide();
+            }
         }
 
         private void UpdatePoiDetection()
@@ -271,15 +358,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 if (!_isPoiActive || newTarget != targetCollider)
                 {
-                    // hide previous POI UI if present
-                    if (targetCollider != null)
-                    {
-                        var oldPoi = targetCollider.GetComponent<HubPoiUi>();
-                        if (oldPoi != null)
-                        {
-                            oldPoi.Hide();
-                        }
-                    }
+                    HideCurrentPoiTarget();
 
                     targetCollider = newTarget;
                     _isPoiActive = true;
@@ -294,22 +373,43 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             else if (_isPoiActive)
             {
-                if (targetCollider != null)
-                {
-                    var oldPoi = targetCollider.GetComponent<HubPoiUi>();
-                    if (oldPoi != null)
-                    {
-                        oldPoi.Hide();
-                    }
-                }
-
-                targetCollider = null;
-                _isPoiActive = false;
+                ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
             }
         }
 
+        private Vector2 GetMoveInput()
+        {
+            if (UIInputActionDefaults.Navigate != null && UIInputActionDefaults.Navigate.enabled)
+            {
+                Vector2 analog = UIInputActionDefaults.Navigate.ReadValue<Vector2>();
+                if (analog.sqrMagnitude > 0.0001f)
+                {
+                    return Vector2.ClampMagnitude(analog, 1f);
+                }
+            }
+
+            return GetDigitalNavigationInput();
+        }
+
         private Vector2 GetLookInput()
+        {
+            if (
+                UIInputActionDefaults.RightStickMove != null
+                && UIInputActionDefaults.RightStickMove.enabled
+            )
+            {
+                Vector2 analog = UIInputActionDefaults.RightStickMove.ReadValue<Vector2>();
+                if (analog.sqrMagnitude > 0.0001f)
+                {
+                    return ApplyGameSpeedScale(Vector2.ClampMagnitude(analog, 1f));
+                }
+            }
+
+            return Vector2.zero;
+        }
+
+        private Vector2 GetDigitalNavigationInput()
         {
             Vector2 result = Vector2.zero;
 
@@ -333,6 +433,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 result.y -= 1;
             }
 
+            return result;
+        }
+
+        private Vector2 ApplyGameSpeedScale(Vector2 input)
+        {
             var gameSpeed = GameplayPlayerSettings.Instance.SpeedSetting;
 
             switch (gameSpeed)
@@ -340,14 +445,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 case GameplayPlayerSettings.GameSpeed.Normal:
                     break;
                 case GameplayPlayerSettings.GameSpeed.Fast:
-                    result *= 1.25f;
+                    input *= 1.25f;
                     break;
                 case GameplayPlayerSettings.GameSpeed.VeryFast:
-                    result *= 1.5f;
+                    input *= 1.5f;
                     break;
             }
 
-            return result;
+            return input;
         }
 
         private IEnumerator AnimateFov(float targetFov)

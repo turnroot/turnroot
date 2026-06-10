@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
@@ -5,16 +6,12 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    /// <summary>
-    /// Handles the first-visit tutorial for a hub sublocation.
-    /// Attach to a prefab that is instantiated by HubSubLocation on first visit.
-    /// Assign an ordered list of UIFade panels in the inspector; the handler shows
-    /// them one at a time and hands input back to the sublocation when all are done.
-    /// </summary>
-    public class HubSublocationTutorialHandler : MonoBehaviour
+    public class HubExploreTutorialHandler : MonoBehaviour, ISpecificUiTutorialHandler
     {
         [Tooltip("Ordered list of UIFade panels to display as tutorial pages.")]
         public List<UIFade> Pages = new();
+
+        public Action Completed;
 
         private int _currentIndex = -1;
         private Brain.Brain _brain;
@@ -31,7 +28,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             else
             {
-                "HubSublocationTutorialHandler: Could not find SpecificUiHandler in scene.".LogWarning();
+                "HubExploreTutorialHandler: Could not find SpecificUiHandler in scene.".LogWarning();
             }
         }
 
@@ -39,7 +36,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (Pages == null || Pages.Count == 0)
             {
-                "HubSublocationTutorialHandler: No pages assigned — completing tutorial immediately.".LogWarning();
+                "HubExploreTutorialHandler: No pages assigned — completing tutorial immediately.".LogWarning();
                 Complete();
                 return;
             }
@@ -56,9 +53,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        /// <summary>
-        /// Called by SpecificUiHandler.HandleInput when this handler is active.
-        /// </summary>
         public void HandleInput(string action)
         {
             if (
@@ -110,7 +104,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void Complete()
         {
-            _brain?.PublishHubSublocationTutorialCompleted();
+            HubDayStateStore.MarkExploreTutorialSeen(_brain);
+            Completed?.Invoke();
             Destroy(gameObject);
         }
     }

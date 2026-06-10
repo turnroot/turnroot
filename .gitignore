@@ -80,3 +80,4 @@ Packages/UnityMarkdownViewer/
 .config/dotnet-tools.json
 /Assets/Demos
 'Assets/Demos/' 
+*.md

@@ -44,6 +44,7 @@ namespace Turnroot.UI
         public static InputAction Cancel;
         public static InputAction Menu;
         public static InputAction RotateCamera;
+        public static InputAction RightStickMove;
         public static InputAction RotateMapCamera; // legacy alias
         public static InputAction Start;
         public static InputAction ToggleDetails;
@@ -68,6 +69,7 @@ namespace Turnroot.UI
             InputActionReference cancel,
             InputActionReference menu,
             InputActionReference rotateCamera,
+            InputActionReference rightStickMove,
             InputActionReference start,
             InputActionReference rightStickClick,
             InputActionReference toggleDetails,
@@ -88,6 +90,7 @@ namespace Turnroot.UI
             Cancel = cancel?.action;
             Menu = menu?.action;
             RotateCamera = rotateCamera?.action;
+            RightStickMove = rightStickMove?.action;
             Start = start?.action;
             ToggleDetails = toggleDetails?.action;
             ScrollLeft = scrollLeft?.action;
@@ -138,6 +141,7 @@ namespace Turnroot.UI
             TryEnable(Cancel);
             TryEnable(Menu);
             TryEnable(RotateCamera);
+            TryEnable(RightStickMove);
             TryEnable(Start);
             TryEnable(ToggleDetails);
             TryEnable(ScrollLeft);
@@ -193,6 +197,7 @@ namespace Turnroot.UI
                 || action == Cancel
                 || action == Menu
                 || action == RotateCamera
+                || action == RightStickMove
                 || action == Start
                 || action == ToggleDetails
                 || action == ScrollLeft

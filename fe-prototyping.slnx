@@ -1,6 +1,6 @@
 ﻿<Solution>
-  <Project Path="Unity.ShaderGraph.Editor.csproj" />
   <Project Path="TurnrootFramework.Runtime.csproj" />
+  <Project Path="Unity.ShaderGraph.Editor.csproj" />
   <Project Path="Unity.RenderPipelines.Universal.Editor.csproj" />
   <Project Path="TurnrootFramework.Editor.Characters.Components.csproj" />
   <Project Path="Mischief.MDV.Editor.csproj" />

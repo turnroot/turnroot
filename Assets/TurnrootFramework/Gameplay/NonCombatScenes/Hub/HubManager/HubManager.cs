@@ -13,6 +13,13 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
+    [Serializable]
+    public struct HubTeleportPoint
+    {
+        public HubSublocationName Name;
+        public Transform Point;
+    }
+
     [RequireComponent(typeof(UiInputProvider))]
     [RequireComponent(typeof(HubTeamLocations))]
     [RequireComponent(typeof(HubSubInput))]
@@ -51,7 +58,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [HorizontalLine(color: EColor.Red)]
         [BoxGroup("Navigation Choices")]
         [InfoBox(
-            "Selectable UI elements corresponding to each hub location. Order must match subLocations (excluding special choices like ExploreChoice and BattlefieldsChoice)."
+            "Selectable UI elements corresponding to each hub location. Order must match TeleportPoints (excluding special choices like ExploreChoice and BattlefieldsChoice)."
         )]
         public UiChoice[] LocationChoices;
 
@@ -68,9 +75,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UiChoice Settings;
 
         [BoxGroup("Navigation Choices")]
-        [InfoBox(
-            "UiChoice for the Explore entry in the main hub menu. Can be embedded in LocationChoices or left standalone."
-        )]
+        [InfoBox("UiChoice for the Explore entry in the main hub menu.")]
         public UiChoice ExploreChoice;
 
         [BoxGroup("Navigation Choices")]
@@ -87,25 +92,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private GameObject _menuCanvasInstance;
         private bool _settingsMenuOpen;
         private Action _menuDepthChangedHandler;
+        private Turnroot.Gameplay.NonCombatScenes.Hub.Character.HubCharacterManager _hubCharacterManager;
+        private SceneSkyboxSetter _sceneSkyboxSetter;
 
         [HorizontalLine(color: EColor.Yellow)]
         [BoxGroup("Sublocations")]
-        [InfoBox(
-            "All sublocation areas that can be visited from the hub. Do NOT include entries for ExploreChoice or BattlefieldsChoice here — those are special choices handled separately."
-        )]
-        public HubSubLocation[] subLocations;
+        [InfoBox("Teleport destinations used by location choices.")]
+        public HubTeleportPoint[] TeleportPoints;
 
         [BoxGroup("Sublocations")]
-        [InfoBox(
-            "All explore locations available in this scene. Locked ones show as unavailable in the Explore submenu."
-        )]
-        public HubExploreLocation[] ExploreLocations;
-
-        [BoxGroup("Sublocations")]
-        [InfoBox(
-            "The carousel UI that drives the Explore submenu. Receives all input while the submenu is open."
-        )]
-        public ExploreMenuCarousel ExploreCarousel;
+        [InfoBox("Tutorial shown the first time Explore is entered.")]
+        public GameObject ExploreTutorialPrefab;
 
         [BoxGroup("Sublocations")]
         public ShopsManager shopsManager;
@@ -127,7 +124,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [HorizontalLine(color: EColor.Blue)]
         [BoxGroup("Camera & Fades")]
-        [InfoBox("Fade used when returning from a sublocation back to the hub.")]
+        [InfoBox("Fade used when returning from traversal/POI interaction back to the hub.")]
         public UIFade HubFadeToBlack;
 
         [BoxGroup("Camera & Fades")]
@@ -145,7 +142,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UIFade BackButtonFade;
 
         [BoxGroup("Camera & Fades")]
-        [InfoBox("Field of view used for the hub camera when not in a sublocation.")]
+        [InfoBox("Field of view used for the hub camera when not in traversal zoom/POI focus.")]
         public float HubMainFov;
 
         [BoxGroup("Camera & Fades")]
@@ -191,9 +188,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public HubInputMode PreviousInputMode { get; private set; } = HubInputMode.None;
 
-        public HubSubLocation CurrentSubLocation { get; private set; }
-
-        public Action OnExploreMenuOpened;
+        public HubSublocationName? CurrentLocationName { get; private set; }
+        public Transform CurrentLocationPoint { get; private set; }
+        public Transform CurrentTraversalAvatarPoint { get; private set; }
 
         public enum HubInputMode
         {
@@ -204,8 +201,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Battlefields,
             Docks,
             Training,
-            ExploreMisc,
-            ExploreMenu,
+            Traversal,
         }
 
         private readonly System.Collections.Generic.Dictionary<
@@ -213,57 +209,32 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             float
         > _spawnPointHeights = new();
 
-        public void SetCurrentSubLocation(HubSubLocation subLocation)
+        public void SetCurrentLocation(HubTeleportPoint teleportPoint)
         {
-            if (
-                subLocation is HubExploreLocation exploreLocation
-                && !exploreLocation.CanBeVisitedToday()
-            )
-            {
-                $"HubManager: Blocking SetCurrentSubLocation for locked explore location {exploreLocation.LocationName}.".LogWarning();
-                return;
-            }
+            CurrentLocationName = teleportPoint.Name;
+            CurrentLocationPoint = teleportPoint.Point;
+            CurrentTraversalAvatarPoint = teleportPoint.Point;
 
-            CurrentSubLocation = subLocation;
-
-            if (subLocations != null)
+            if (GeneralCamera != null && teleportPoint.Point != null)
             {
-                foreach (var loc in subLocations)
-                {
-                    if (loc != null)
-                    {
-                        loc.gameObject.SetActive(loc == subLocation);
-                    }
-                }
-            }
-
-            if (ExploreLocations != null)
-            {
-                foreach (var loc in ExploreLocations)
-                {
-                    if (loc != null)
-                    {
-                        loc.gameObject.SetActive(loc == subLocation);
-                    }
-                }
+                GeneralCamera.transform.SetPositionAndRotation(
+                    teleportPoint.Point.position,
+                    teleportPoint.Point.rotation
+                );
             }
         }
 
         public void TransitionBackToHub(UIFade fadeToBlack = null)
         {
-            bool returningToExploreMenu = CurrentSubLocation is HubExploreLocation;
-            bool wasIndoorExploreLocation =
-                CurrentSubLocation is HubExploreLocation iel && iel.Indoors;
-
             void DoReturn()
             {
-                if (CurrentSubLocation != null)
+                var allPoi = FindObjectsByType<HubPoiUi>(FindObjectsSortMode.None);
+                foreach (var poi in allPoi)
                 {
-                    foreach (var poi in CurrentSubLocation.GetComponentsInChildren<HubPoiUi>())
-                    {
-                        poi.Hide();
-                    }
+                    poi.Hide();
                 }
+
+                GetHubCharacterManager()?.HandleHubOverviewEntered();
 
                 _brain.audioBrain.SetMusic(HubBackgroundMusic);
                 GeneralCamera.fieldOfView = HubMainFov;
@@ -276,64 +247,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
                 }
 
-                CurrentSubLocation = null;
+                CurrentLocationName = null;
+                CurrentLocationPoint = null;
+                CurrentTraversalAvatarPoint = null;
 
-                // Always restore regular sublocations so the hub overview is correct.
-                if (subLocations != null)
-                {
-                    foreach (var loc in subLocations)
-                    {
-                        if (loc != null)
-                        {
-                            loc.gameObject.SetActive(true);
-                        }
-                    }
-                }
-
-                // Restore explore locations too — they were deactivated by SetCurrentSubLocation.
-                if (ExploreLocations != null)
-                {
-                    foreach (var loc in ExploreLocations)
-                    {
-                        if (loc != null)
-                        {
-                            loc.gameObject.SetActive(true);
-                        }
-                    }
-                }
-
-                // When returning from an indoor explore location, restore outdoor effects.
-                // First re-enable all OutdoorEffects as the base outdoor state, then let
-                // SceneSkyboxSetter apply the correct weather-specific particle overrides on top.
-                if (wasIndoorExploreLocation)
-                {
-                    foreach (var effect in OutdoorEffects)
-                    {
-                        if (effect != null)
-                        {
-                            effect.SetActive(true);
-                        }
-                    }
-                    var skyboxSetter = FindFirstObjectByType<SceneSkyboxSetter>();
-                    if (skyboxSetter != null)
-                    {
-                        skyboxSetter.SetActiveParticles(gameDate.month);
-                    }
-                }
-
-                if (returningToExploreMenu)
-                {
-                    SetInputMode(HubInputMode.ExploreMenu);
-                    OnExploreMenuOpened?.Invoke();
-                }
-                else
-                {
-                    SetInputMode(HubInputMode.Location);
-                    UpdateChoiceSelection();
-                    UpdateDateText();
-                    HubActionsFade.Show();
-                    _brain?.charactersBrain.CheckBirthdays();
-                }
+                SetInputMode(HubInputMode.Location);
+                UpdateChoiceSelection();
+                UpdateDateText();
+                HubActionsFade.Show();
+                _brain?.charactersBrain.CheckBirthdays();
             }
 
             if (fadeToBlack == null)
@@ -383,6 +305,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public HubSubInput SublocationInput => GetComponent<HubSubInput>();
 
         public SpecificUiHandler SpecificUiInputHandler => GetComponent<SpecificUiHandler>();
+
+        private Turnroot.Gameplay.NonCombatScenes.Hub.Character.HubCharacterManager GetHubCharacterManager() =>
+            _hubCharacterManager ??=
+                FindFirstObjectByType<Turnroot.Gameplay.NonCombatScenes.Hub.Character.HubCharacterManager>();
+
+        private SceneSkyboxSetter GetSceneSkyboxSetter() =>
+            _sceneSkyboxSetter ??= FindFirstObjectByType<SceneSkyboxSetter>();
 
         #endregion
     }

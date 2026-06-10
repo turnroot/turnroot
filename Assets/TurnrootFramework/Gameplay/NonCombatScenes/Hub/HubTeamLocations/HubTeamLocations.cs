@@ -45,50 +45,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public Sprite FallBackPortrait;
 
-        private HubExploreLocation[] _exploreLocations;
+        [Tooltip(
+            "Spawn areas used for assigning and placing team and non-roster characters in hub."
+        )]
+        public HubCharacterSpawnArea[] CharacterSpawnAreas;
 
-        public void Initialize(
-            Brain.Brain brain,
-            HubSubLocation[] subLocations,
-            HubExploreLocation[] exploreLocations = null
-        )
+        public void Initialize(Brain.Brain brain)
         {
             _hubManager = GetComponent<HubManager>();
             _brain = brain;
             _charFactory = new CharacterFactory(_brain.ltm);
-            _exploreLocations = exploreLocations ?? Array.Empty<HubExploreLocation>();
+
+            CharacterSpawnAreas ??= Array.Empty<HubCharacterSpawnArea>();
 
             _spawnedCharacterIds.Clear();
-            ClearAssignedCharacters(subLocations, _exploreLocations);
+            ClearAssignedCharacters(CharacterSpawnAreas);
 
             var persistentRoster =
                 _brain.gamewideContextBrain.CreateOrRecallGamewidePersistentPlayerRoster();
-            SetTeamLocations(persistentRoster, subLocations, _exploreLocations);
-            SetNonRosterUnitsInHub(persistentRoster, subLocations, _exploreLocations);
+            SetTeamLocations(persistentRoster, CharacterSpawnAreas);
+            SetNonRosterUnitsInHub(persistentRoster, CharacterSpawnAreas);
 
-            SpawnAllCharacters(subLocations, _brain);
-            SpawnAllCharacters(_exploreLocations, _brain);
+            SpawnAllCharacters(CharacterSpawnAreas, _brain);
         }
 
-        private void ClearAssignedCharacters(
-            HubSubLocation[] subLocations,
-            HubExploreLocation[] exploreLocations
-        )
+        private void ClearAssignedCharacters(HubCharacterSpawnArea[] spawnAreas)
         {
-            if (subLocations != null)
+            if (spawnAreas != null)
             {
-                foreach (var location in subLocations)
-                {
-                    if (location != null)
-                    {
-                        location.CharactersPresent = new CharacterInstance[0];
-                    }
-                }
-            }
-
-            if (exploreLocations != null)
-            {
-                foreach (var location in exploreLocations)
+                foreach (var location in spawnAreas)
                 {
                     if (location != null)
                     {
@@ -98,24 +83,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public void SpawnAllCharacters(HubSubLocation[] subLocations, Brain.Brain brain)
+        public void SpawnAllCharacters(HubCharacterSpawnArea[] spawnAreas, Brain.Brain brain)
         {
-            if (subLocations == null || subLocations.Length == 0)
+            if (spawnAreas == null || spawnAreas.Length == 0)
             {
                 return;
             }
 
-            foreach (var location in subLocations)
+            foreach (var location in spawnAreas)
             {
                 SpawnCharactersForLocation(location, brain);
             }
         }
 
-        public void SetTeamLocations(
-            PlayerTeamRoster roster,
-            HubSubLocation[] subLocations,
-            HubExploreLocation[] exploreLocations = null
-        )
+        public void SetTeamLocations(PlayerTeamRoster roster, HubCharacterSpawnArea[] spawnAreas)
         {
             int maxPerLocation = GameplayGeneralSettings.Instance.MaxUnitsPerHubLocation;
 
@@ -131,7 +112,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             for (int i = 0; i < roster.characters.Length; i++)
             {
                 var unit = roster.characters[i];
-                if (unit.Status == UnitStatus.Defeated || subLocations.Length == 0)
+                if (unit.Status == UnitStatus.Defeated || spawnAreas.Length == 0)
                 {
                     continue;
                 }
@@ -149,21 +130,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     if (userSet.Character != null)
                     {
                         desiredLocation = userSet.IsRandomForThisChapter
-                            ? PickRandomValidLocation(
-                                subLocations,
-                                exploreLocations ?? Array.Empty<HubExploreLocation>(),
-                                maxPerLocation
-                            )
+                            ? PickRandomValidLocation(spawnAreas, maxPerLocation)
                             : userSet.Location;
                     }
                     else
                     {
                         // if not set in inspector, use random
-                        desiredLocation = PickRandomValidLocation(
-                            subLocations,
-                            exploreLocations ?? Array.Empty<HubExploreLocation>(),
-                            maxPerLocation
-                        );
+                        desiredLocation = PickRandomValidLocation(spawnAreas, maxPerLocation);
                     }
                     placementMap[i] = desiredLocation;
                     changed = true;
@@ -179,15 +152,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     changed = true;
                 }
 
-                AssignUnitToLocation(
-                    roster,
-                    i,
-                    unit,
-                    desiredLocation,
-                    subLocations,
-                    exploreLocations ?? Array.Empty<HubExploreLocation>(),
-                    maxPerLocation
-                );
+                AssignUnitToLocation(roster, i, unit, desiredLocation, spawnAreas, maxPerLocation);
             }
 
             if (changed)
@@ -198,8 +163,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void SetNonRosterUnitsInHub(
             PlayerTeamRoster roster,
-            HubSubLocation[] subLocations,
-            HubExploreLocation[] exploreLocations = null
+            HubCharacterSpawnArea[] spawnAreas
         )
         {
             int maxPerLocation = GameplayGeneralSettings.Instance.MaxUnitsPerHubLocation;
@@ -251,11 +215,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (!placementMap.TryGetValue(characterKey, out var desiredLocation))
                 {
                     desiredLocation = info.IsRandomForThisChapter
-                        ? PickRandomValidLocation(
-                            subLocations,
-                            exploreLocations ?? Array.Empty<HubExploreLocation>(),
-                            maxPerLocation
-                        )
+                        ? PickRandomValidLocation(spawnAreas, maxPerLocation)
                         : info.Location;
                     placementMap[characterKey] = desiredLocation;
                     changed = true;
@@ -279,15 +239,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     );
                 }
 
-                HubSubLocation location = subLocations.FirstOrDefault(s =>
+                HubCharacterSpawnArea location = spawnAreas.FirstOrDefault(s =>
                     s.LocationName == desiredLocation
                 );
-                if (location == null && exploreLocations != null)
-                {
-                    location = exploreLocations.FirstOrDefault(e =>
-                        e.LocationName == desiredLocation
-                    );
-                }
 
                 if (location == null)
                 {
