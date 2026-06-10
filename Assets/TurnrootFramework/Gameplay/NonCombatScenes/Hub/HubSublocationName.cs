@@ -14,6 +14,5 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         DanceHall,
         Spa,
         Library,
-        ExploreMisc,
     }
 }

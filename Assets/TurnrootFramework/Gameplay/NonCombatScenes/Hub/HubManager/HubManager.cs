@@ -75,12 +75,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UiChoice Settings;
 
         [BoxGroup("Navigation Choices")]
-        [InfoBox("UiChoice for the Explore entry in the main hub menu.")]
+        [InfoBox(
+            "UiChoice for the Explore entry in the main hub menu. Keep this out of LocationChoices."
+        )]
         public UiChoice ExploreChoice;
 
         [BoxGroup("Navigation Choices")]
         [InfoBox(
-            "UiChoice for the Battlefields entry in the main hub menu. Can be embedded in LocationChoices or left standalone."
+            "UiChoice for the Battlefields entry in the main hub menu. Keep this out of LocationChoices."
         )]
         public UiChoice BattlefieldsChoice;
 
@@ -159,6 +161,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Camera GeneralCamera;
 
         [HorizontalLine(color: EColor.Indigo)]
+        [BoxGroup("Spawn Points")]
+        [InfoBox(
+            "Fallback avatar spawn point used when entering traversal without an active location traversal point."
+        )]
+        public Transform TraversalStartAvatarPoint;
+
         [BoxGroup("Spawn Points")]
         [InfoBox("Collider used to sample terrain height for unit spawn points.")]
         public MeshCollider SpawnGroundCollider;

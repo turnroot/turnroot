@@ -1,5 +1,4 @@
 using Turnroot.Characters;
-using Turnroot.Components.UI;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
@@ -124,49 +123,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 ci,
             };
             assignedLocation.CharactersPresent = list.ToArray();
-
-            int layoutIndex = FindLayoutIndexForLocation(assignedLocation.LocationName);
-            if (
-                layoutIndex >= 0
-                && layoutIndex < LocationLayouts.Length
-                && LocationLayouts[layoutIndex].layoutObject != null
-                && UnitLocationPortraitPrefab != null
-            )
-            {
-                var portrait = Instantiate(
-                    UnitLocationPortraitPrefab,
-                    LocationLayouts[layoutIndex].layoutObject.transform
-                );
-                var portraitScript = portrait.GetComponent<UnitLocationPortraitRefs>();
-                if (portraitScript != null)
-                {
-                    portraitScript.Set(
-                        ci.CharacterTemplate.DisplayName,
-                        ci.CharacterTemplate.DefaultPortrait?.RuntimeSprite ?? FallBackPortrait
-                    );
-                }
-            }
-            else
-            {
-                $"HubTeamLocations: No horizontal layout prefab or unit portrait prefab assigned for {assignedLocation.LocationName}".LogWarning();
-            }
         }
 
-        private int FindLayoutIndexForLocation(HubSublocationName locationName)
+        private HubSublocationName ResolveAssignedLocationOrRandom(
+            HubCharacterSpawnArea assignedArea,
+            HubCharacterSpawnArea[] spawnAreas,
+            int maxPerLocation
+        )
         {
-            if (LocationLayouts == null)
+            if (assignedArea != null)
             {
-                return -1;
+                return assignedArea.LocationName;
             }
 
-            for (int idx = 0; idx < LocationLayouts.Length; idx++)
-            {
-                if (LocationLayouts[idx].location == locationName)
-                {
-                    return idx;
-                }
-            }
-            return -1;
+            return PickRandomValidLocation(spawnAreas, maxPerLocation);
         }
     }
 }

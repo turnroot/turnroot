@@ -84,12 +84,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (ExploreChoice != null)
             {
-                list.Add(ExploreChoice);
+                AddChoiceIfMissing(list, ExploreChoice);
             }
 
             if (BattlefieldsChoice != null)
             {
-                list.Add(BattlefieldsChoice);
+                AddChoiceIfMissing(list, BattlefieldsChoice);
             }
 
             if (EndDay != null)
@@ -103,6 +103,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _navigableChoices = list.ToArray();
+        }
+
+        private static void AddChoiceIfMissing(
+            System.Collections.Generic.List<UiChoice> list,
+            UiChoice choice
+        )
+        {
+            if (choice == null || list.Contains(choice))
+            {
+                return;
+            }
+
+            list.Add(choice);
         }
 
         private void UpdateChoiceSelection()
