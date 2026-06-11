@@ -5,7 +5,6 @@ using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.UI;
-using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using Turnroot.Utilities.Ui;
 using UnityEngine;

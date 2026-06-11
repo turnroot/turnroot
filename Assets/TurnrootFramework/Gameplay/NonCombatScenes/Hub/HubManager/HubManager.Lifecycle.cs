@@ -136,25 +136,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             );
             SetInputMode(HubInputMode.Location);
 
-            if (LocationChoices == null || LocationChoices.Length != (TeleportPoints?.Length ?? 0))
-            {
-                $"LocationChoices has {LocationChoices?.Length ?? 0} entries but TeleportPoints has {TeleportPoints?.Length ?? 0}. Expected one button per teleport point. Check the HubManager inspector.".LogWarning();
-            }
-
-            if (LocationChoices != null)
-            {
-                int pointCount = TeleportPoints?.Length ?? 0;
-                int count =
-                    LocationChoices.Length < pointCount ? LocationChoices.Length : pointCount;
-                for (int i = 0; i < count; i++)
-                {
-                    if (LocationChoices[i] != null)
-                    {
-                        LocationChoices[i].CanBeSelected = TeleportPoints[i].Point != null;
-                    }
-                }
-            }
-
             if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
             {
                 var discoveredLocations = FindObjectsByType<HubCharacterSpawnArea>(

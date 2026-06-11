@@ -77,11 +77,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             var list = new System.Collections.Generic.List<UiChoice>();
 
-            if (LocationChoices != null)
-            {
-                list.AddRange(LocationChoices);
-            }
-
             if (ExploreChoice != null)
             {
                 AddChoiceIfMissing(list, ExploreChoice);

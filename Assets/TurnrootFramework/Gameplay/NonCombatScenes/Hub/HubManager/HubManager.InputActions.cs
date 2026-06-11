@@ -65,45 +65,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            var locationCount = LocationChoices?.Length ?? 0;
-
-            // Choices inside LocationChoices map directly to teleport points.
-            if (currentIndex < locationCount)
+            if (EndDay != null && choice == EndDay)
             {
-                if (TeleportPoints != null && currentIndex < TeleportPoints.Length)
-                {
-                    VisitTeleportPoint(TeleportPoints[currentIndex]);
-                }
+                HandleEndDaySelected();
                 return;
             }
 
-            int remaining = currentIndex - locationCount;
-
-            if (ExploreChoice != null)
-            {
-                if (remaining == 0)
-                {
-                    OpenExploreTraversal();
-                    return;
-                }
-                remaining--;
-            }
-
-            if (BattlefieldsChoice != null)
-            {
-                if (remaining == 0)
-                {
-                    OpenBattleChoice();
-                    return;
-                }
-                remaining--;
-            }
-
-            if (remaining == 0)
-            {
-                HandleEndDaySelected();
-            }
-            else if (remaining == 1)
+            if (Settings != null && choice == Settings)
             {
                 OpenSettingsMenu();
             }
@@ -147,23 +115,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             SetInputMode(HubInputMode.Traversal);
             BackButtonFade?.Show();
-        }
-
-        private void VisitTeleportPoint(HubTeleportPoint teleportPoint)
-        {
-            SetCurrentLocation(teleportPoint);
-
-            if (GeneralCamera != null)
-            {
-                GeneralCamera.fieldOfView = SublocationInput.normalFov;
-            }
-
-            GetHubCharacterManager()
-                ?.HandleTraversalEntered(teleportPoint.Point, teleportPoint.Name);
-            SetInputMode(HubInputMode.Traversal);
-            BackButtonFade?.Show();
-
-            _brain?.PublishHubSublocationVisited(teleportPoint.Name);
         }
 
         public void OpenBattleChoice()
