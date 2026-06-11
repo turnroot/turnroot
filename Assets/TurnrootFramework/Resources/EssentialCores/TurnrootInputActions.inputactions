@@ -97,6 +97,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "RightStickMove",
+                    "type": "Value",
+                    "id": "44ef2c8c-e6f0-4a99-a848-277523c42ee2",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "ScrollLeft",
                     "type": "Button",
                     "id": "038ef043-b7d0-45ba-a098-bb1220aa52de",
@@ -507,6 +516,28 @@
                     "action": "Navigate",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "d5a8c7b6-7b75-403e-bdde-bba1500f5fae",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "RightStickMove",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "665887cd-c3f3-4736-a28d-8df15c12c036",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard",
+                    "action": "RightStickMove",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
