@@ -9,6 +9,7 @@ using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using Turnroot.Utilities.Weather;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -114,6 +115,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public GameDate gameDate;
 
         [HorizontalLine(color: EColor.Blue)]
+        [BoxGroup("Camera & Fades")]
+        public UnityEvent OnHubStartInitialize;
+
+        [BoxGroup("Camera & Fades")]
+        public UnityEvent OnHubInitialize;
+
         [BoxGroup("Camera & Fades")]
         [InfoBox("Fade used when returning from traversal/POI interaction back to the hub.")]
         public UIFade HubFadeToBlack;
