@@ -12,7 +12,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     public struct HubExploreTutorialPage
     {
         public string Title;
+
+        [TextArea(5, 20)]
         public string KeyboardText;
+
+        [TextArea(5, 20)]
         public string GamepadText;
         public UIFade Fade;
 
