@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
@@ -73,7 +74,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _currentState.ShopStock ??= new System.Collections.Generic.List<ShopStockEntry>();
+            _currentState.ShopStock ??= new List<ShopStockEntry>();
 
             string shopKey = LongTermMemory.EncodeKey(shopName);
             string itemKey = LongTermMemory.EncodeKey(itemName);
@@ -157,7 +158,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _currentState.InteractionDoneIds ??= new System.Collections.Generic.List<string>();
+            _currentState.InteractionDoneIds ??= new List<string>();
             if (!_currentState.InteractionDoneIds.Contains(characterFullName))
             {
                 _currentState.InteractionDoneIds.Add(characterFullName);
@@ -180,7 +181,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _currentState.ChitChatDoneIds ??= new System.Collections.Generic.List<string>();
+            _currentState.ChitChatDoneIds ??= new List<string>();
             if (!_currentState.ChitChatDoneIds.Contains(characterFullName))
             {
                 _currentState.ChitChatDoneIds.Add(characterFullName);
@@ -206,7 +207,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _currentState.RecruitAttemptDoneIds ??= new System.Collections.Generic.List<string>();
+            _currentState.RecruitAttemptDoneIds ??= new List<string>();
             if (!_currentState.RecruitAttemptDoneIds.Contains(characterFullName))
             {
                 _currentState.RecruitAttemptDoneIds.Add(characterFullName);
@@ -217,7 +218,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public static bool HasTeamPlacements() =>
             _currentState?.TeamPlacements != null && _currentState.TeamPlacements.Count > 0;
 
-        public static System.Collections.Generic.Dictionary<
+        public static Dictionary<
             int,
             HubSublocationName
         > GetTeamPlacements() =>
@@ -227,7 +228,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public static void SaveTeamPlacements(
             Brain.Brain brain,
-            System.Collections.Generic.Dictionary<int, HubSublocationName> map
+            Dictionary<int, HubSublocationName> map
         )
         {
             if (brain?.ltm == null || _currentState == null || map == null)
@@ -249,7 +250,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _currentState?.NonRosterPlacements != null
             && _currentState.NonRosterPlacements.Count > 0;
 
-        public static System.Collections.Generic.Dictionary<
+        public static Dictionary<
             string,
             HubSublocationName
         > GetNonRosterPlacements()
@@ -264,7 +265,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public static void SaveNonRosterPlacements(
             Brain.Brain brain,
-            System.Collections.Generic.Dictionary<string, HubSublocationName> map
+            Dictionary<string, HubSublocationName> map
         )
         {
             if (brain?.ltm == null || _currentState == null || map == null)
@@ -402,15 +403,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public WeatherType Weather;
             public bool HasWeather;
             public int SkyboxIndex = -1;
-            public System.Collections.Generic.List<ShopStockEntry> ShopStock;
+            public List<ShopStockEntry> ShopStock;
 
-            public System.Collections.Generic.List<string> ChitChatDoneIds;
+            public List<string> ChitChatDoneIds;
 
-            public System.Collections.Generic.List<string> RecruitAttemptDoneIds;
+            public List<string> RecruitAttemptDoneIds;
 
-            public System.Collections.Generic.List<string> InteractionDoneIds;
-            public System.Collections.Generic.List<TeamPlacementEntry> TeamPlacements;
-            public System.Collections.Generic.List<NonRosterPlacementEntry> NonRosterPlacements;
+            public List<string> InteractionDoneIds;
+            public List<TeamPlacementEntry> TeamPlacements;
+            public List<NonRosterPlacementEntry> NonRosterPlacements;
         }
 
         [Serializable]

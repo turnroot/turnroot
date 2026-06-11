@@ -129,7 +129,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 // Check if this attack is negated by a skill (NegateNextAttackNode, etc.).
                 // Value: -1 = all attacks this turn negated; positive = remaining shield count.
                 var negateKey = $"NegateAttacks_{target.Id}";
-                int negateCount = GetCustomData<int>(negateKey, 0);
+                int negateCount = GetCustomData(negateKey, 0);
                 if (negateCount != 0)
                 {
                     if (negateCount > 0)

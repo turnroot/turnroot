@@ -94,10 +94,10 @@ namespace Turnroot.Skills
         public bool HasEnemyDefeatedNode() => HasNodeOfType<EnemyDefeatedNode>();
 
         /// <summary>True when the graph contains a <see cref="CombatStartsNode"/>.</summary>
-        public bool HasCombatStartsNode() => HasNodeOfType<Nodes.Flow.CombatStartsNode>();
+        public bool HasCombatStartsNode() => HasNodeOfType<CombatStartsNode>();
 
         /// <summary>True when the graph contains a <see cref="PostCombatNode"/>.</summary>
-        public bool HasPostCombatNode() => HasNodeOfType<Nodes.Flow.PostCombatNode>();
+        public bool HasPostCombatNode() => HasNodeOfType<PostCombatNode>();
 
         [BoxGroup("Appearance"), HideInInspector]
         public SkillBadge Badge;

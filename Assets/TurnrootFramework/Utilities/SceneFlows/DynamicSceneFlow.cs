@@ -210,7 +210,7 @@ namespace Turnroot.Utilities.AbstractScripts
             SceneReadyAfterLoad?.Invoke();
         }
 
-        protected void HandleBattleCompleted(Turnroot.Gameplay.Combat.BattleExitType exitType) =>
+        protected void HandleBattleCompleted(Gameplay.Combat.BattleExitType exitType) =>
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.BattleCompleted);
 
         protected void HandleHubCharacterRecruitCompleted(CharacterInstance character) =>

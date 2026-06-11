@@ -94,7 +94,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private GameObject _menuCanvasInstance;
         private bool _settingsMenuOpen;
         private Action _menuDepthChangedHandler;
-        private Turnroot.Gameplay.NonCombatScenes.Hub.Character.HubCharacterManager _hubCharacterManager;
+        private Character.HubCharacterManager _hubCharacterManager;
         private SceneSkyboxSetter _sceneSkyboxSetter;
 
         [HorizontalLine(color: EColor.Yellow)]
@@ -314,9 +314,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public SpecificUiHandler SpecificUiInputHandler => GetComponent<SpecificUiHandler>();
 
-        private Turnroot.Gameplay.NonCombatScenes.Hub.Character.HubCharacterManager GetHubCharacterManager() =>
+        private Character.HubCharacterManager GetHubCharacterManager() =>
             _hubCharacterManager ??=
-                FindFirstObjectByType<Turnroot.Gameplay.NonCombatScenes.Hub.Character.HubCharacterManager>();
+                FindFirstObjectByType<Character.HubCharacterManager>();
 
         private SceneSkyboxSetter GetSceneSkyboxSetter() =>
             _sceneSkyboxSetter ??= FindFirstObjectByType<SceneSkyboxSetter>();
