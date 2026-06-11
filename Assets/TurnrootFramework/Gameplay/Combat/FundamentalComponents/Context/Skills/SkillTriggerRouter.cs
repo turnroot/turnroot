@@ -335,7 +335,7 @@ namespace Turnroot.Gameplay.Brain
 
             // Execute EnemyAttacksNode skills on the defender; temporarily set Targets = [attacker]
             var originalTargets = context.Participants.Targets;
-            context.Participants.Targets = new System.Collections.Generic.List<CharacterInstance>
+            context.Participants.Targets = new List<CharacterInstance>
             {
                 attacker,
             };
@@ -363,7 +363,7 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var originalTargets = context.Participants.Targets;
-            context.Participants.Targets = new System.Collections.Generic.List<CharacterInstance>
+            context.Participants.Targets = new List<CharacterInstance>
             {
                 evt.Unit,
             };
@@ -403,7 +403,7 @@ namespace Turnroot.Gameplay.Brain
                 context.SetCustomData("IsInitiatingCombat", true);
                 var originalTargets = context.Participants.Targets;
                 context.Participants.Targets =
-                    new System.Collections.Generic.List<CharacterInstance> { defender };
+                    new List<CharacterInstance> { defender };
                 ExecuteTriggerSkills(attacker, _combatStartSkills, "CombatStarts");
                 context.Participants.Targets = originalTargets;
             }
@@ -414,7 +414,7 @@ namespace Turnroot.Gameplay.Brain
                 context.SetCustomData("IsInitiatingCombat", false);
                 var originalTargets = context.Participants.Targets;
                 context.Participants.Targets =
-                    new System.Collections.Generic.List<CharacterInstance> { attacker };
+                    new List<CharacterInstance> { attacker };
                 ExecuteTriggerSkills(defender, _combatStartSkills, "CombatStarts");
                 context.Participants.Targets = originalTargets;
             }
@@ -437,7 +437,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 var originalTargets = context.Participants.Targets;
                 context.Participants.Targets =
-                    new System.Collections.Generic.List<CharacterInstance> { defender };
+                    new List<CharacterInstance> { defender };
                 ExecuteTriggerSkills(attacker, _postCombatSkills, "PostCombat");
                 context.Participants.Targets = originalTargets;
             }
@@ -447,7 +447,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 var originalTargets = context.Participants.Targets;
                 context.Participants.Targets =
-                    new System.Collections.Generic.List<CharacterInstance> { attacker };
+                    new List<CharacterInstance> { attacker };
                 ExecuteTriggerSkills(defender, _postCombatSkills, "PostCombat");
                 context.Participants.Targets = originalTargets;
             }
