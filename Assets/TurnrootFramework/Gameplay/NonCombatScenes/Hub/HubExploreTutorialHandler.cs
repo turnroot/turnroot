@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
+    [Serializable]
     public struct HubExploreTutorialPage
     {
         public string Title;
