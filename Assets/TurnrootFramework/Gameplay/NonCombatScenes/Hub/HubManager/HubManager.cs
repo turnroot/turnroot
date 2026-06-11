@@ -1,7 +1,6 @@
 using System;
 using NaughtyAttributes;
 using TMPro;
-using Turnroot.Gameplay;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.UI;
@@ -57,12 +56,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [HorizontalLine(color: EColor.Red)]
         [BoxGroup("Navigation Choices")]
-        [InfoBox(
-            "Selectable UI elements corresponding to each hub location. Order must match TeleportPoints (excluding special choices like ExploreChoice and BattlefieldsChoice)."
-        )]
-        public UiChoice[] LocationChoices;
-
-        [BoxGroup("Navigation Choices")]
         public UiChoice EndDay;
 
         [BoxGroup("Navigation Choices")]
@@ -75,15 +68,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UiChoice Settings;
 
         [BoxGroup("Navigation Choices")]
-        [InfoBox(
-            "UiChoice for the Explore entry in the main hub menu. Keep this out of LocationChoices."
-        )]
+        [InfoBox("UiChoice for the Explore entry in the main hub menu.")]
         public UiChoice ExploreChoice;
 
         [BoxGroup("Navigation Choices")]
-        [InfoBox(
-            "UiChoice for the Battlefields entry in the main hub menu. Keep this out of LocationChoices."
-        )]
+        [InfoBox("UiChoice for the Battlefields entry in the main hub menu.")]
         public UiChoice BattlefieldsChoice;
 
         [HorizontalLine(color: EColor.Orange)]
@@ -98,18 +87,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private SceneSkyboxSetter _sceneSkyboxSetter;
 
         [HorizontalLine(color: EColor.Yellow)]
-        [BoxGroup("Sublocations")]
-        [InfoBox("Teleport destinations used by location choices.")]
+        [BoxGroup("Locations")]
+        [InfoBox("Teleport destinations used by hub traversal flows.")]
         public HubTeleportPoint[] TeleportPoints;
 
-        [BoxGroup("Sublocations")]
+        [BoxGroup("Locations")]
         [InfoBox("Tutorial shown the first time Explore is entered.")]
         public GameObject ExploreTutorialPrefab;
 
-        [BoxGroup("Sublocations")]
+        [BoxGroup("Locations")]
         public ShopsManager shopsManager;
 
-        [BoxGroup("Sublocations")]
+        [BoxGroup("Locations")]
         public Dock dock;
 
         [HorizontalLine(color: EColor.Green)]
@@ -315,8 +304,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public SpecificUiHandler SpecificUiInputHandler => GetComponent<SpecificUiHandler>();
 
         private Character.HubCharacterManager GetHubCharacterManager() =>
-            _hubCharacterManager ??=
-                FindFirstObjectByType<Character.HubCharacterManager>();
+            _hubCharacterManager =
+                _hubCharacterManager != null
+                    ? _hubCharacterManager
+                    : FindFirstObjectByType<Character.HubCharacterManager>();
 
         private SceneSkyboxSetter GetSceneSkyboxSetter() =>
             _sceneSkyboxSetter ??= FindFirstObjectByType<SceneSkyboxSetter>();

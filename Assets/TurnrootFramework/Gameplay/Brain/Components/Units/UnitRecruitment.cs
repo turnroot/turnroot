@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
-using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts.UI;

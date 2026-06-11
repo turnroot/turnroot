@@ -1,7 +1,5 @@
-using NaughtyAttributes;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Abstract;
-using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith

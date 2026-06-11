@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Conversations;
-using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;

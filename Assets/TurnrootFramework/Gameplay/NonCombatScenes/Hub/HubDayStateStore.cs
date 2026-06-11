@@ -218,10 +218,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public static bool HasTeamPlacements() =>
             _currentState?.TeamPlacements != null && _currentState.TeamPlacements.Count > 0;
 
-        public static Dictionary<
-            int,
-            HubSublocationName
-        > GetTeamPlacements() =>
+        public static Dictionary<int, HubSublocationName> GetTeamPlacements() =>
             !HasTeamPlacements()
                 ? null
                 : _currentState.TeamPlacements.ToDictionary(e => e.RosterIndex, e => e.Location);
@@ -238,7 +235,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _currentState.TeamPlacements = map.Select(static kv => new TeamPlacementEntry
                 {
-                    RosterIndex = kv.Key,
+                RosterIndex = kv.Key,
                     Location = kv.Value,
                 })
                 .ToList();
@@ -250,10 +247,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _currentState?.NonRosterPlacements != null
             && _currentState.NonRosterPlacements.Count > 0;
 
-        public static Dictionary<
-            string,
-            HubSublocationName
-        > GetNonRosterPlacements()
+        public static Dictionary<string, HubSublocationName> GetNonRosterPlacements()
         {
             return !HasNonRosterPlacements()
                 ? null

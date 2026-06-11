@@ -3,7 +3,6 @@ using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
-using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {

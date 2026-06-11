@@ -2,8 +2,6 @@ using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Combat;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
-using UnityEngine;
-using UnityEngine.UI;
 using static Turnroot.Gameplay.Brain.GamewideContextBrainHelpers;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
