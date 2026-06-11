@@ -228,14 +228,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Dictionary<int, HubSublocationName> map
         )
         {
-            if (brain?.ltm == null || _currentState == null || map == null)
+            if (brain.ltm == null || _currentState == null || map == null)
             {
                 return;
             }
 
             _currentState.TeamPlacements = map.Select(static kv => new TeamPlacementEntry
                 {
-                RosterIndex = kv.Key,
+                    RosterIndex = kv.Key,
                     Location = kv.Value,
                 })
                 .ToList();
