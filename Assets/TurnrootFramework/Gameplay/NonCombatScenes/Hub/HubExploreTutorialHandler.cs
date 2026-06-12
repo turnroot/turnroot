@@ -72,6 +72,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void OnDeviceChange(InputDevice device, InputDeviceChange change) =>
             UsingGamepad = Gamepad.all.Count > 0;
 
+        public void RefreshDevices() => UsingGamepad = Gamepad.all.Count > 0;
+
         private void OnDestroy()
         {
             if (
