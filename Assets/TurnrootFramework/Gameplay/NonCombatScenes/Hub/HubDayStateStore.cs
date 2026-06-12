@@ -36,10 +36,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public static bool HasSkyboxIndex =>
             _currentState != null && _currentState.SkyboxIndex >= 0;
 
-        public static bool HasSeenExploreTutorial(Brain.Brain brain)
-        {
-            return brain?.ltm != null && brain.ltm.RecallBool(ExploreTutorialSeenKey);
-        }
+        public static bool HasSeenExploreTutorial(Brain.Brain brain) => brain?.ltm != null && brain.ltm.RecallBool(ExploreTutorialSeenKey);
 
         public static void MarkExploreTutorialSeen(Brain.Brain brain)
         {

@@ -203,10 +203,7 @@ namespace Turnroot.Gameplay.Brain
                 : RecruitmentAttemptOutcome.Failure;
         }
 
-        public bool CanRecruit(CharacterInstance character)
-        {
-            return GetRecruitmentAttemptOutcome(character) == RecruitmentAttemptOutcome.Success;
-        }
+        public bool CanRecruit(CharacterInstance character) => GetRecruitmentAttemptOutcome(character) == RecruitmentAttemptOutcome.Success;
 
         public OperationResult Recruit(CharacterInstance character)
         {

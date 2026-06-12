@@ -144,12 +144,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float HubMainFov;
 
         [BoxGroup("Camera & Fades")]
-        [InfoBox(
-            "If an explore location is Indoors, these effects will be disabled when visiting it and re-enabled when returning to the hub."
-        )]
-        public GameObject[] OutdoorEffects;
-
-        [BoxGroup("Camera & Fades")]
         [InfoBox("Possible camera positions for randomising the hub camera on load.")]
         public Transform[] cameraPoints;
 
@@ -215,6 +209,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void SetCurrentLocation(HubTeleportPoint teleportPoint)
         {
+            var validation = OperationResultGuards.RequireNotNull(
+                teleportPoint.Point,
+                "teleportPoint.Point"
+            );
+            if (!validation.Success)
+            {
+                $"HubManager: Cannot set current location '{teleportPoint.Name}'. {validation.ErrorMessage}".LogError();
+                return;
+            }
+
             CurrentLocationName = teleportPoint.Name;
             CurrentLocationPoint = teleportPoint.Point;
             CurrentTraversalAvatarPoint = teleportPoint.Point;
@@ -232,6 +236,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             void DoReturn()
             {
+                var brainValidation = OperationResultGuards.RequireNotNull(_brain, nameof(_brain));
+                if (!brainValidation.Success)
+                {
+                    $"HubManager: TransitionBackToHub aborted. {brainValidation.ErrorMessage}".LogError();
+                    return;
+                }
+
                 var allPoi = FindObjectsByType<HubPoiUi>(FindObjectsSortMode.None);
                 foreach (var poi in allPoi)
                 {
@@ -268,8 +279,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            UnityEngine.Events.UnityAction onVisible = null;
-            UnityEngine.Events.UnityAction onHidden = null;
+            UnityAction onVisible = null;
+            UnityAction onHidden = null;
 
             onVisible = () =>
             {

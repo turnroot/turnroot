@@ -22,15 +22,9 @@ namespace Turnroot.Utilities.AbstractScripts
             Refresh();
         }
 
-        private void OnDisable()
-        {
-            InputSystem.onDeviceChange -= OnDeviceChange;
-        }
+        private void OnDisable() => InputSystem.onDeviceChange -= OnDeviceChange;
 
-        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
-        {
-            Refresh();
-        }
+        private void OnDeviceChange(InputDevice device, InputDeviceChange change) => Refresh();
 
         private void Refresh()
         {

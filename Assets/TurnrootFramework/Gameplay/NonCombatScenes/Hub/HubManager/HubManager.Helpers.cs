@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Gameplay.Combat;
 using Turnroot.UI;
@@ -75,7 +76,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void BuildNavigableChoices()
         {
-            var list = new System.Collections.Generic.List<UiChoice>();
+            var list = new List<UiChoice>();
 
             if (ExploreChoice != null)
             {
@@ -100,17 +101,42 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _navigableChoices = list.ToArray();
         }
 
-        private static void AddChoiceIfMissing(
-            System.Collections.Generic.List<UiChoice> list,
-            UiChoice choice
-        )
+        private static void AddChoiceIfMissing(List<UiChoice> list, UiChoice choice)
         {
-            if (choice == null || list.Contains(choice))
+            var validation = ValidateChoiceForNavigation(list, choice);
+            if (!validation.Success)
             {
+                if (list == null || choice == null)
+                {
+                    $"HubManager: Failed to add navigation choice. {validation.ErrorMessage}".LogError();
+                }
+
                 return;
             }
 
             list.Add(choice);
+        }
+
+        private static OperationResult ValidateChoiceForNavigation(
+            List<UiChoice> list,
+            UiChoice choice
+        )
+        {
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(list, nameof(list)),
+                OperationResultGuards.RequireNotNull(choice, nameof(choice))
+            );
+            if (!validation.Success)
+            {
+                return validation;
+            }
+
+            if (list.Contains(choice))
+            {
+                return OperationResult.Failure("Choice already exists in navigable list.");
+            }
+
+            return OperationResult.Successful();
         }
 
         private void UpdateChoiceSelection()
@@ -183,11 +209,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return false;
             }
 
-            var battleSceneNames = new System.Collections.Generic.HashSet<string>(
+            var battleSceneNames = new HashSet<string>(
                 graph.GetBattleScenes().Select(n => n.sceneName)
             );
 
-            var availableBattleNames = new System.Collections.Generic.HashSet<string>();
+            var availableBattleNames = new HashSet<string>();
             foreach (var opt in availableScenes)
             {
                 if (battleSceneNames.Contains(opt.sceneName))
@@ -236,12 +262,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         /// </summary>
         public void IncrementForcedBattleDaysSpent()
         {
-            if (
-                AllGameBattlesTable.Instance == null || _brain != null ? _brain.sceneFlowBrain
-                : null == null || _brain != null ? _brain.ltm
-                : null == null
-            )
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(
+                    AllGameBattlesTable.Instance,
+                    "AllGameBattlesTable.Instance"
+                ),
+                OperationResultGuards.RequireNotNull(_brain, nameof(_brain)),
+                OperationResultGuards.RequireNotNull(
+                    _brain?.sceneFlowBrain,
+                    "_brain.sceneFlowBrain"
+                ),
+                OperationResultGuards.RequireNotNull(_brain?.ltm, "_brain.ltm")
+            );
+            if (!validation.Success)
             {
+                $"HubManager: Failed to increment forced-battle day counters. {validation.ErrorMessage}".LogError();
                 return;
             }
 
@@ -257,11 +292,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            var battleSceneNames = new System.Collections.Generic.HashSet<string>(
+            var battleSceneNames = new HashSet<string>(
                 graph.GetBattleScenes().Select(n => n.sceneName)
             );
 
-            var availableBattleNames = new System.Collections.Generic.HashSet<string>();
+            var availableBattleNames = new HashSet<string>();
             foreach (var opt in availableScenes)
             {
                 if (battleSceneNames.Contains(opt.sceneName))

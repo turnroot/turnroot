@@ -1,3 +1,4 @@
+using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
 using BrainType = Turnroot.Gameplay.Brain.Brain;
@@ -25,9 +26,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float WalkingInputThreshold = 0.05f;
 
         [Header("Optional Camera Yaw")]
-        public bool ApplyLookYaw;
+        public bool ApplyLookYaw = true;
         public Transform CameraYawRoot;
         public float LookYawSpeed = 120f;
+
+        [Header("Third-Person Camera Follow")]
+        public bool UseSimpleCameraFollow = true;
+        public Vector3 CameraFollowOffset = new(0f, 2.25f, -3.5f);
+        public float CameraFollowLerp = 12f;
+        public float CameraLookHeight = 1.6f;
 
         private bool _walkMode;
         private Vector2 _moveInput;
@@ -36,6 +43,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private BrainType _brain;
         private Transform _avatarRoot;
         private Animator _avatarAnimator;
+        private bool _loggedMissingMovementDriver;
+        private bool _loggedMissingCameraReference;
 
         public void BindAvatar(GameObject avatarModel)
         {
@@ -48,6 +57,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _avatarRoot = avatarModel.transform;
             _avatarAnimator = avatarModel.GetComponentInChildren<Animator>();
+
+            CharacterController ??= avatarModel.GetComponent<CharacterController>();
+            NavMeshAgent ??= avatarModel.GetComponent<NavMeshAgent>();
+
+            SnapCameraToAvatar();
         }
 
         public void ClearAvatarBindingIfMatches(GameObject avatarModel)
@@ -72,6 +86,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _walkMode = enabled;
+
+            if (enabled)
+            {
+                var readiness = ValidateWalkReadiness();
+                if (!readiness.Success)
+                {
+                    $"HubThirdPersonAdapter: Cannot enter walk mode. {readiness.ErrorMessage}".LogError();
+                    _walkMode = false;
+                    return;
+                }
+            }
 
             if (ComponentsToEnableInWalkMode != null)
             {
@@ -101,6 +126,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _lookInput = Vector2.zero;
                 SetWalkingState(false);
             }
+
+            if (NavMeshAgent != null && CharacterController != null && CharacterController.enabled)
+            {
+                NavMeshAgent.updatePosition = !enabled;
+                NavMeshAgent.updateRotation = !enabled;
+            }
         }
 
         public void SetInput(Vector2 moveInput, Vector2 lookInput)
@@ -116,19 +147,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            var readiness = ValidateWalkReadiness();
+            if (!readiness.Success)
+            {
+                $"HubThirdPersonAdapter: Disabling walk mode. {readiness.ErrorMessage}".LogError();
+                SetWalkMode(false);
+                return;
+            }
+
             TryResolveAnimator();
 
             ApplyMovement(_moveInput);
             ApplyLook(_lookInput);
+            UpdateCameraFollow();
             SetWalkingState(
                 _moveInput.sqrMagnitude >= (WalkingInputThreshold * WalkingInputThreshold)
             );
         }
 
-        private void Awake()
-        {
-            _brain = FindFirstObjectByType<BrainType>();
-        }
+        private void Awake() => _brain = FindFirstObjectByType<BrainType>();
 
         private void ApplyMovement(Vector2 moveInput)
         {
@@ -160,9 +197,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 NavMeshAgent.Move(desiredDirection * (MoveSpeed * Time.deltaTime));
             }
-            else if (_avatarRoot != null)
+            else if (!_loggedMissingMovementDriver)
             {
-                _avatarRoot.position += desiredDirection * (MoveSpeed * Time.deltaTime);
+                "HubThirdPersonAdapter: No enabled CharacterController/NavMeshAgent available for movement.".LogError();
+                _loggedMissingMovementDriver = true;
             }
 
             if (_avatarRoot != null && desiredDirection.sqrMagnitude > 0.0001f)
@@ -178,17 +216,128 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void ApplyLook(Vector2 lookInput)
         {
-            if (!ApplyLookYaw || CameraYawRoot == null)
+            if (!ApplyLookYaw || Mathf.Abs(lookInput.x) < 0.01f)
             {
                 return;
             }
 
-            if (Mathf.Abs(lookInput.x) < 0.01f)
+            if (CameraYawRoot != null)
+            {
+                CameraYawRoot.Rotate(
+                    0f,
+                    lookInput.x * LookYawSpeed * Time.deltaTime,
+                    0f,
+                    Space.World
+                );
+                return;
+            }
+
+            Transform cam = ResolveCameraTransform();
+            if (cam != null)
+            {
+                cam.Rotate(0f, lookInput.x * LookYawSpeed * Time.deltaTime, 0f, Space.World);
+            }
+        }
+
+        private Transform ResolveCameraTransform() =>
+            CameraReference != null ? CameraReference : Camera.main?.transform;
+
+        private OperationResult ValidateWalkReadiness()
+        {
+            var avatarValidation = OperationResultGuards.RequireNotNull(
+                _avatarRoot,
+                "AvatarRootBinding"
+            );
+            if (!avatarValidation.Success)
+            {
+                return avatarValidation;
+            }
+
+            bool hasMovementDriver =
+                (CharacterController != null && CharacterController.enabled)
+                || (NavMeshAgent != null && NavMeshAgent.enabled);
+            if (!hasMovementDriver)
+            {
+                return OperationResult.Failure(
+                    "Neither CharacterController nor NavMeshAgent is assigned and enabled."
+                );
+            }
+
+            var cam = ResolveCameraTransform();
+            if (cam == null)
+            {
+                if (!_loggedMissingCameraReference)
+                {
+                    "HubThirdPersonAdapter: No camera transform resolved from CameraReference or Camera.main.".LogError();
+                    _loggedMissingCameraReference = true;
+                }
+
+                return OperationResult.Failure(
+                    "No camera transform available. Assign CameraReference or ensure Camera.main exists."
+                );
+            }
+
+            return OperationResult.Successful();
+        }
+
+        private void SnapCameraToAvatar()
+        {
+            if (!UseSimpleCameraFollow || _avatarRoot == null)
             {
                 return;
             }
 
-            CameraYawRoot.Rotate(0f, lookInput.x * LookYawSpeed * Time.deltaTime, 0f, Space.World);
+            Transform cam = ResolveCameraTransform();
+            if (cam == null)
+            {
+                return;
+            }
+
+            if (CameraYawRoot != null)
+            {
+                CameraYawRoot.position = _avatarRoot.position;
+            }
+
+            var followAnchor = CameraYawRoot != null ? CameraYawRoot : _avatarRoot;
+            cam.position = followAnchor.TransformPoint(CameraFollowOffset);
+
+            var lookTarget = _avatarRoot.position + Vector3.up * CameraLookHeight;
+            cam.rotation = Quaternion.LookRotation(lookTarget - cam.position, Vector3.up);
+        }
+
+        private void UpdateCameraFollow()
+        {
+            if (!UseSimpleCameraFollow || _avatarRoot == null || !_walkMode)
+            {
+                return;
+            }
+
+            Transform cam = ResolveCameraTransform();
+            if (cam == null)
+            {
+                return;
+            }
+
+            if (CameraYawRoot != null)
+            {
+                CameraYawRoot.position = _avatarRoot.position;
+            }
+
+            var followAnchor = CameraYawRoot != null ? CameraYawRoot : _avatarRoot;
+            var desiredPosition = followAnchor.TransformPoint(CameraFollowOffset);
+            cam.position = Vector3.Lerp(
+                cam.position,
+                desiredPosition,
+                Mathf.Clamp01(CameraFollowLerp * Time.deltaTime)
+            );
+
+            var lookTarget = _avatarRoot.position + Vector3.up * CameraLookHeight;
+            var desiredRotation = Quaternion.LookRotation(lookTarget - cam.position, Vector3.up);
+            cam.rotation = Quaternion.Slerp(
+                cam.rotation,
+                desiredRotation,
+                Mathf.Clamp01(CameraFollowLerp * Time.deltaTime)
+            );
         }
 
         private void SetWalkingState(bool walking)

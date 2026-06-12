@@ -282,16 +282,11 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
         }
 
-        private void HandleUnitFinishedMovingAfterAction(CharacterInstance unit)
-        {
-            TryCompleteMoveForActiveUnit(unit);
-        }
+        private void HandleUnitFinishedMovingAfterAction(CharacterInstance unit) => TryCompleteMoveForActiveUnit(unit);
 
-        private void HandleUnitMoveAnimationCompleted(CharacterInstance unit)
-        {
+        private void HandleUnitMoveAnimationCompleted(CharacterInstance unit) =>
             // Transition the flow from ExecutingMove -> ChoosingAction when the visual animation finishes.
             TryCompleteMoveForActiveUnit(unit);
-        }
 
         private void TryCompleteMoveForActiveUnit(CharacterInstance unit)
         {

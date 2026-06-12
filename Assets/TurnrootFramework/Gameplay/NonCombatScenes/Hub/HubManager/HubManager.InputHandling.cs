@@ -8,6 +8,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleInput(string action)
         {
+            var specificUiValidation = OperationResultGuards.RequireNotNull(
+                SpecificUiInputHandler,
+                nameof(SpecificUiInputHandler)
+            );
+            if (!specificUiValidation.Success)
+            {
+                $"HubManager: Input handling failed. {specificUiValidation.ErrorMessage}".LogError();
+                return;
+            }
+
             if (SpecificUiInputHandler.ActiveTutorialHandler != null)
             {
                 SpecificUiInputHandler.HandleInput(action);
@@ -23,6 +33,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 case HubInputMode.Docks:
                 case HubInputMode.Training:
                 case HubInputMode.Traversal:
+                    var subInputValidation = OperationResultGuards.RequireNotNull(
+                        SublocationInput,
+                        nameof(SublocationInput)
+                    );
+                    if (!subInputValidation.Success)
+                    {
+                        $"HubManager: Cannot forward traversal input. {subInputValidation.ErrorMessage}".LogError();
+                        return;
+                    }
+
+                    "HubManager: Forwarding input to sublocation handler.".LogInfo();
                     SublocationInput.HandleSubLocationInput(action);
                     break;
                 case HubInputMode.Battlefields:
@@ -57,6 +78,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _ => false,
             };
 
+            var subInputValidation = OperationResultGuards.RequireNotNull(
+                SublocationInput,
+                nameof(SublocationInput)
+            );
+            if (!subInputValidation.Success)
+            {
+                $"HubManager: Failed to set input mode '{mode}'. {subInputValidation.ErrorMessage}".LogError();
+                return;
+            }
+
             SublocationInput.SetLookEnabled(allowLook);
         }
 
@@ -72,8 +103,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void IncrementGameDateForHubLoad()
         {
-            if (_brain?.ltm == null)
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(_brain, nameof(_brain)),
+                OperationResultGuards.RequireNotNull(_brain?.ltm, "_brain.ltm")
+            );
+            if (!validation.Success)
             {
+                $"HubManager: Failed to increment game date. {validation.ErrorMessage}".LogError();
                 return;
             }
 
