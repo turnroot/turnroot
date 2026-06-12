@@ -35,6 +35,7 @@ namespace Turnroot.UI
         private InputAction _subscribedNavigateLeft;
         private InputAction _subscribedNavigateRight;
         private InputAction _subscribedStart;
+        private InputAction _subscribedRightStickMove;
 
         private InputAction _subscribedScrollLeft;
         private InputAction _subscribedScrollRight;
@@ -72,6 +73,7 @@ namespace Turnroot.UI
                     && _subscribedNavigateRight == UiChoice.NavigateRightAction
                     && _subscribedScrollLeft == UiChoice.ScrollLeftAction
                     && _subscribedScrollRight == UiChoice.ScrollRightAction
+                    && _subscribedRightStickMove == UIInputActionDefaults.RightStickMove
                 )
                 {
                     return;
@@ -122,6 +124,7 @@ namespace Turnroot.UI
             _subscribedStart = UiChoice.StartAction;
             _subscribedScrollLeft = UiChoice.ScrollLeftAction;
             _subscribedScrollRight = UiChoice.ScrollRightAction;
+            _subscribedRightStickMove = UIInputActionDefaults.RightStickMove;
 
             if (_subscribedSelect != null)
             {
@@ -166,6 +169,12 @@ namespace Turnroot.UI
             if (_subscribedScrollRight != null)
             {
                 _subscribedScrollRight.performed += HandleScrollRight;
+            }
+            if (_subscribedRightStickMove != null)
+            {
+                _subscribedRightStickMove.started += HandleRightStickMove;
+                _subscribedRightStickMove.performed += HandleRightStickMove;
+                _subscribedRightStickMove.canceled += HandleRightStickMove;
             }
         }
 
@@ -227,6 +236,13 @@ namespace Turnroot.UI
             {
                 _subscribedScrollRight.performed -= HandleScrollRight;
                 _subscribedScrollRight = null;
+            }
+            if (_subscribedRightStickMove != null)
+            {
+                _subscribedRightStickMove.started -= HandleRightStickMove;
+                _subscribedRightStickMove.performed -= HandleRightStickMove;
+                _subscribedRightStickMove.canceled -= HandleRightStickMove;
+                _subscribedRightStickMove = null;
             }
             {
                 UIInputActionDefaults.RemoveInitializedHandler(Subscribe);
@@ -328,7 +344,11 @@ namespace Turnroot.UI
         private void HandleScrollRight(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke(InputActionConstants.ScrollRight);
 
-        private void HandleStart(InputAction.CallbackContext ctx) => OnInput?.Invoke("Start");
+        private void HandleRightStickMove(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.RightStickMove);
+
+        private void HandleStart(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.Start);
 
         /// <summary>
         /// Helper wrapping <see cref="UiChoiceHandler.HandleNavigation"/> that
