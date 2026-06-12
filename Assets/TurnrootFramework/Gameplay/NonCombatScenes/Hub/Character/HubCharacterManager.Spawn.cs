@@ -7,19 +7,37 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
     {
         public void HandleTraversalEntered(Transform spawnPoint, HubSublocationName locationName)
         {
-            if (spawnPoint == null)
+            var validation = ValidateTraversalEnterRequest(spawnPoint);
+            if (!validation.Success)
             {
-                return;
-            }
-
-            if (_activeCharacter != null)
-            {
+                $"HubCharacterManager: Traversal enter rejected. {validation.ErrorMessage}".LogError();
                 return;
             }
 
             _activeAvatarPoint = spawnPoint;
             SpawnAvatarModel();
             _activeAvatarPoint = null;
+        }
+
+        private OperationResult ValidateTraversalEnterRequest(Transform spawnPoint)
+        {
+            var spawnValidation = OperationResultGuards.RequireNotNull(
+                spawnPoint,
+                nameof(spawnPoint)
+            );
+            if (!spawnValidation.Success)
+            {
+                return spawnValidation;
+            }
+
+            if (_activeCharacter != null)
+            {
+                return OperationResult.Failure(
+                    "Cannot enter traversal while a character interaction is active."
+                );
+            }
+
+            return OperationResult.Successful();
         }
 
         public void HandleHubOverviewEntered()
@@ -37,15 +55,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             _activeAvatarPoint = null;
         }
 
-        private void SpawnAvatarModel()
-        {
-            RebuildAvatarModelAtPoint(_activeAvatarPoint);
-        }
+        private void SpawnAvatarModel() => RebuildAvatarModelAtPoint(_activeAvatarPoint);
 
         private void RebuildAvatarModelAtPoint(Transform avatarPoint)
         {
-            if (avatarPoint == null || _brain == null)
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(avatarPoint, nameof(avatarPoint)),
+                OperationResultGuards.RequireNotNull(_brain, nameof(_brain))
+            );
+            if (!validation.Success)
             {
+                $"HubCharacterManager: Avatar rebuild skipped. {validation.ErrorMessage}".LogError();
                 return;
             }
 
@@ -114,26 +134,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             _activeAvatarPoint = null;
         }
 
-        private Transform ResolveTraversalStartPoint()
-        {
-            return GetHubManager()?.TraversalStartAvatarPoint;
-        }
+        private Transform ResolveTraversalStartPoint() =>
+            GetHubManager()?.TraversalStartAvatarPoint;
 
-        private Transform ResolveCurrentTraversalPoint()
-        {
-            return GetHubManager()?.CurrentTraversalAvatarPoint;
-        }
+        private Transform ResolveCurrentTraversalPoint() =>
+            GetHubManager()?.CurrentTraversalAvatarPoint;
 
         private void BindThirdPersonAdapterToAvatar(GameObject model)
         {
-            if (model == null)
+            var validation = OperationResultGuards.RequireNotNull(model, nameof(model));
+            if (!validation.Success)
             {
+                $"HubCharacterManager: Adapter bind failed. {validation.ErrorMessage}".LogError();
                 return;
             }
 
             var adapter = GetThirdPersonAdapter();
             if (adapter == null)
             {
+                "HubCharacterManager: Adapter bind failed. HubSubInput.ThirdPersonAdapter is missing.".LogError();
                 return;
             }
 

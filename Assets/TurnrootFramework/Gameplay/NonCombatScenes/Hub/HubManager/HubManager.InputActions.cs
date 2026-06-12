@@ -5,6 +5,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubManager
     {
+        private struct TraversalStartContext
+        {
+            public UnityEngine.Transform TraversalPoint;
+            public HubThirdPersonAdapter Adapter;
+            public Character.HubCharacterManager CharacterManager;
+        }
+
         #region Input Actions
 
         public void HandleLocationInput(string action)
@@ -74,7 +81,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (Settings != null && choice == Settings)
             {
                 OpenSettingsMenu();
+                return;
             }
+
+            $"HubManager: Selected choice '{choice?.name}' is not mapped to a hub action.".LogWarning();
         }
 
         public void OpenExploreTraversal()
@@ -113,8 +123,110 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void BeginExploreTraversal()
         {
+            "HubManager: Starting explore traversal.".LogInfo();
+            HubActionsFade?.Hide();
+
+            var contextResult = TryBuildTraversalStartContext();
+            if (!contextResult.Success)
+            {
+                $"HubManager: Failed to start traversal. {contextResult.Error}".LogError();
+                HubActionsFade?.Show();
+                SetInputMode(HubInputMode.Location);
+                UpdateChoiceSelection();
+                return;
+            }
+
+            var context = contextResult.Value;
+
+            if (GeneralCamera != null)
+            {
+                GeneralCamera.transform.SetPositionAndRotation(
+                    context.TraversalPoint.position,
+                    context.TraversalPoint.rotation
+                );
+            }
+
             SetInputMode(HubInputMode.Traversal);
             BackButtonFade?.Show();
+
+            if (context.Adapter.CameraReference == null && GeneralCamera != null)
+            {
+                context.Adapter.CameraReference = GeneralCamera.transform;
+            }
+
+            context.CharacterManager.HandleTraversalEntered(
+                context.TraversalPoint,
+                CurrentLocationName ?? HubSublocationName.Market
+            );
+        }
+
+        private OperationResult<TraversalStartContext> TryBuildTraversalStartContext()
+        {
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(SublocationInput, nameof(SublocationInput)),
+                OperationResultGuards.RequireNotNull(
+                    SublocationInput?.ThirdPersonAdapter,
+                    "SublocationInput.ThirdPersonAdapter"
+                ),
+                OperationResultGuards.RequireNotNull(GeneralCamera, nameof(GeneralCamera)),
+                OperationResultGuards.RequireNotNull(
+                    GetHubCharacterManager(),
+                    "HubCharacterManager"
+                )
+            );
+            if (!validation.Success)
+            {
+                return OperationResult<TraversalStartContext>.Failure(validation.ErrorMessage);
+            }
+
+            var traversalPoint = ResolveTraversalEntryPoint();
+            if (traversalPoint == null)
+            {
+                return OperationResult<TraversalStartContext>.Failure(
+                    "No traversal entry point is configured. Assign HubManager.TraversalStartAvatarPoint or a valid TeleportPoint."
+                );
+            }
+
+            var context = new TraversalStartContext
+            {
+                TraversalPoint = traversalPoint,
+                Adapter = SublocationInput.ThirdPersonAdapter,
+                CharacterManager = GetHubCharacterManager(),
+            };
+
+            return OperationResult<TraversalStartContext>.SuccessResult(context);
+        }
+
+        private UnityEngine.Transform ResolveTraversalEntryPoint()
+        {
+            if (TraversalStartAvatarPoint != null)
+            {
+                return TraversalStartAvatarPoint;
+            }
+
+            if (CurrentTraversalAvatarPoint != null)
+            {
+                return CurrentTraversalAvatarPoint;
+            }
+
+            if (TeleportPoints == null || TeleportPoints.Length == 0)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < TeleportPoints.Length; i++)
+            {
+                var teleportPoint = TeleportPoints[i];
+                if (teleportPoint.Point == null)
+                {
+                    continue;
+                }
+
+                SetCurrentLocation(teleportPoint);
+                return teleportPoint.Point;
+            }
+
+            return null;
         }
 
         public void OpenBattleChoice()

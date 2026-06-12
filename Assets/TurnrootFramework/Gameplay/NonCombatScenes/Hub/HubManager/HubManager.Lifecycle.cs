@@ -13,7 +13,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (InputProvider != null)
             {
                 InputProvider.OnInput += HandleInput;
+                return;
             }
+
+            "HubManager: InputProvider is missing on enable; hub input will not be received.".LogError();
         }
 
         private void OnDisable()
@@ -21,7 +24,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (InputProvider != null)
             {
                 InputProvider.OnInput -= HandleInput;
+                return;
             }
+
+            "HubManager: InputProvider is missing on disable; nothing to unsubscribe.".LogWarning();
         }
 
         private bool _hubInitialized = false;

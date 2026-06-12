@@ -68,7 +68,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
         private float _cachedUpLimit;
         private float _cachedDownLimit;
-        private bool _loggedMissingThirdPersonAdapter;
+        private bool _loggedMissingHubCamera;
 
         public void HandleSubLocationInput(string action)
         {
@@ -159,6 +159,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 hubCamera = hubManager.GeneralCamera;
             }
 
+            var cameraValidation = OperationResultGuards.RequireNotNull(
+                hubCamera,
+                nameof(hubCamera)
+            );
+            if (!cameraValidation.Success)
+            {
+                if (!_loggedMissingHubCamera)
+                {
+                    $"HubSubInput: Traversal input aborted. {cameraValidation.ErrorMessage}".LogError();
+                    _loggedMissingHubCamera = true;
+                }
+
+                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
+                return;
+            }
+
             UpdateZoomToggle();
 
             Vector2 moveInput = GetMoveInput();
@@ -174,36 +190,36 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool TryHandleThirdPersonMode(Vector2 moveInput, Vector2 lookInput)
         {
-            bool shouldUseThirdPersonWalk =
-                useThirdPersonWalkWhenUnzoomed && ThirdPersonAdapter != null && !_isZoomed;
+            bool shouldUseThirdPersonWalk = useThirdPersonWalkWhenUnzoomed && !_isZoomed;
 
-            if (ThirdPersonAdapter != null)
+            if (!shouldUseThirdPersonWalk)
             {
-                ThirdPersonAdapter.SetWalkMode(shouldUseThirdPersonWalk);
-                ThirdPersonAdapter.SetInput(
-                    shouldUseThirdPersonWalk ? moveInput : Vector2.zero,
-                    shouldUseThirdPersonWalk ? lookInput : Vector2.zero
-                );
+                if (ThirdPersonAdapter != null)
+                {
+                    ThirdPersonAdapter.SetWalkMode(false);
+                    ThirdPersonAdapter.SetInput(Vector2.zero, Vector2.zero);
+                }
+
+                return false;
             }
 
-            if (shouldUseThirdPersonWalk)
+            var adapterValidation = OperationResultGuards.RequireNotNull(
+                ThirdPersonAdapter,
+                nameof(ThirdPersonAdapter)
+            );
+            if (!adapterValidation.Success)
             {
-                ClearCurrentPoiTarget();
-                FocusOverlayFade?.Hide();
+                $"HubSubInput: Traversal cannot continue. {adapterValidation.ErrorMessage}".LogError();
+                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
                 return true;
             }
 
-            if (
-                useThirdPersonWalkWhenUnzoomed
-                && ThirdPersonAdapter == null
-                && !_loggedMissingThirdPersonAdapter
-            )
-            {
-                "HubSubInput: useThirdPersonWalkWhenUnzoomed is enabled but ThirdPersonAdapter is not assigned. Falling back to camera-look controls.".LogWarning();
-                _loggedMissingThirdPersonAdapter = true;
-            }
+            ThirdPersonAdapter.SetWalkMode(true);
+            ThirdPersonAdapter.SetInput(moveInput, lookInput);
 
-            return false;
+            ClearCurrentPoiTarget();
+            FocusOverlayFade?.Hide();
+            return true;
         }
 
         private void UpdateInspectLook(Vector2 lookInput)
