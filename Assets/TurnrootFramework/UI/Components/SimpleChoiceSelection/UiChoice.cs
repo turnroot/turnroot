@@ -33,7 +33,7 @@ namespace Turnroot.UI
 
         [ShowIf(nameof(ChangeTextColor))]
         public Color TextHighlightColor = Color.yellow;
-        private Color originalTextColor = Color.black;
+        public Color originalTextColor = Color.black;
         public bool CanBeSelected = true;
         public Color TextColorIfDisabled = Color.gray;
 

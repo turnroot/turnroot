@@ -11,10 +11,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Behaviour[] ComponentsToEnableInWalkMode;
         public GameObject[] ObjectsToEnableInWalkMode;
 
+        [Header("Movement Rig")]
+        [Tooltip(
+            "Persistent scene transform that drives traversal movement. The spawned avatar visual "
+                + "model is re-parented onto this transform (at local identity) when bound — it does "
+                + "not need its own CharacterController/NavMeshAgent."
+        )]
+        public Transform MovementRig;
+
+        [Tooltip("CharacterController on MovementRig (preferred movement driver).")]
+        public CharacterController CharacterController;
+
+        [Tooltip(
+            "NavMeshAgent on MovementRig (used if CharacterController is not assigned/enabled)."
+        )]
+        public NavMeshAgent NavMeshAgent;
+
         [Header("Input Drive")]
         public bool ConsumeHubInput = true;
-        public CharacterController CharacterController;
-        public NavMeshAgent NavMeshAgent;
         public float MoveSpeed = 3f;
         public float RotationLerp = 12f;
 
@@ -55,15 +69,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _avatarRoot = avatarModel.transform;
             _avatarAnimator = avatarModel.GetComponentInChildren<Animator>();
 
-            CharacterController ??= avatarModel.GetComponent<CharacterController>();
-            NavMeshAgent ??= avatarModel.GetComponent<NavMeshAgent>();
+            if (MovementRig != null)
+            {
+                // Align the rig to wherever the avatar model was just spawned/positioned,
+                // then re-parent the visual model onto the rig at local identity so the rig's
+                // CharacterController/NavMeshAgent drives both from now on.
+                MovementRig.SetPositionAndRotation(_avatarRoot.position, _avatarRoot.rotation);
+                _avatarRoot.SetParent(MovementRig, worldPositionStays: false);
+                _avatarRoot.localPosition = Vector3.zero;
+                _avatarRoot.localRotation = Quaternion.identity;
+            }
 
-            // Snap the yaw root to the avatar's position/yaw so Cinemachine starts framed behind
+            // Snap the yaw root to the rig's position/yaw so Cinemachine starts framed behind
             // the avatar rather than wherever it was left from a previous traversal session.
             if (CameraYawRoot != null)
             {
-                CameraYawRoot.position = _avatarRoot.position;
-                CameraYawRoot.rotation = Quaternion.Euler(0f, _avatarRoot.eulerAngles.y, 0f);
+                Transform reference = MovementRig != null ? MovementRig : _avatarRoot;
+                CameraYawRoot.position = reference.position;
+                CameraYawRoot.rotation = Quaternion.Euler(0f, reference.eulerAngles.y, 0f);
             }
         }
 
@@ -160,9 +183,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             TryResolveAnimator();
 
-            // Keep the yaw root glued to the avatar's position so Cinemachine's framing
+            // Keep the yaw root glued to the rig's position so Cinemachine's framing
             // follows movement. Rotation is left alone here — that's player/Cinemachine territory.
-            CameraYawRoot.position = _avatarRoot.position;
+            CameraYawRoot.position = MovementRig.position;
 
             // Apply look first so movement direction this frame is based on the
             // up-to-date yaw root orientation.
@@ -210,11 +233,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _loggedMissingMovementDriver = true;
             }
 
-            if (_avatarRoot != null && desiredDirection.sqrMagnitude > 0.0001f)
+            if (desiredDirection.sqrMagnitude > 0.0001f)
             {
                 Quaternion targetRot = Quaternion.LookRotation(desiredDirection, Vector3.up);
-                _avatarRoot.rotation = Quaternion.Slerp(
-                    _avatarRoot.rotation,
+                MovementRig.rotation = Quaternion.Slerp(
+                    MovementRig.rotation,
                     targetRot,
                     RotationLerp * Time.deltaTime
                 );
@@ -238,6 +261,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private OperationResult ValidateWalkReadiness()
         {
+            var rigValidation = OperationResultGuards.RequireNotNull(
+                MovementRig,
+                nameof(MovementRig)
+            );
+            if (!rigValidation.Success)
+            {
+                return rigValidation;
+            }
+
             var avatarValidation = OperationResultGuards.RequireNotNull(
                 _avatarRoot,
                 "AvatarRootBinding"
@@ -262,7 +294,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (!hasMovementDriver)
             {
                 return OperationResult.Failure(
-                    "Neither CharacterController nor NavMeshAgent is assigned and enabled."
+                    "Neither CharacterController nor NavMeshAgent is assigned and enabled on MovementRig."
                 );
             }
 
