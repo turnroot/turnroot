@@ -27,6 +27,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Header("Input Drive")]
         public bool ConsumeHubInput = true;
         public float MoveSpeed = 3f;
+        public float RunSpeed = 5f;
+        private bool isRunning = false;
         public float RotationLerp = 12f;
 
         [Header("Animation (Reuse UnitAppearanceBrain)")]
@@ -210,7 +212,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            TryResolveAnimator();
+            if (_avatarAnimator == null)
+            {
+                TryResolveAnimator();
+            }
 
             // Keep the yaw root glued to the rig's position so Cinemachine's framing
             // follows movement. Rotation is left alone here — that's player/Cinemachine territory.
@@ -248,7 +253,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             // NavMeshAgent.Move projects the requested motion onto the navmesh surface,
             // handling Y for us (slopes, steps within the agent's step height, etc.).
-            NavMeshAgent.Move(desiredDirection * MoveSpeed * Time.deltaTime);
+            if (isRunning)
+            {
+                NavMeshAgent.Move(desiredDirection * RunSpeed * Time.deltaTime);
+            }
+            else
+            {
+                NavMeshAgent.Move(desiredDirection * MoveSpeed * Time.deltaTime);
+            }
 
             if (desiredDirection.sqrMagnitude > 0.0001f)
             {
@@ -336,8 +348,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _isWalking = walking;
 
-            TryResolveAnimator();
-
             if (_avatarAnimator == null)
             {
                 return;
@@ -372,6 +382,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _avatarAnimator = _avatarRoot.GetComponentInChildren<Animator>();
+        }
+
+        public void ApplyLookOnly(Vector2 lookInput)
+        {
+            if (CameraYawRoot == null)
+            {
+                return;
+            }
+
+            ApplyLook(Vector2.ClampMagnitude(lookInput, 1f));
         }
     }
 }
