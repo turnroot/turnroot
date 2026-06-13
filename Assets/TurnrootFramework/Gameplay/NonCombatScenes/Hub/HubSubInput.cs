@@ -40,9 +40,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip("Third-person traversal vcam — active while not zoomed")]
         public CinemachineVirtualCamera TraversalVcam;
         private Camera hubCamera;
-
         private Collider targetCollider;
-
+        public float maxPoiDistance = 10f;
         private bool _isLooking;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
@@ -343,7 +342,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 origin,
                 forward,
                 out RaycastHit rayInfo,
-                Mathf.Infinity,
+                maxPoiDistance,
                 poiLayerMask
             );
 
@@ -352,7 +351,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 zoomCastRadius,
                 forward,
                 out RaycastHit sphereInfo,
-                Mathf.Infinity,
+                maxPoiDistance,
                 poiLayerMask
             );
 
