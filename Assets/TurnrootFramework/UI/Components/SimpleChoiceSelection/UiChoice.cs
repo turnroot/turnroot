@@ -10,6 +10,7 @@ namespace Turnroot.UI
     [RequireComponent(typeof(RectTransform))]
     public class UiChoice : MonoBehaviour
     {
+        // static shared input actions used by all menus
         public static InputAction SelectAction => UIInputActionDefaults.Select;
         public static InputAction BackAction => UIInputActionDefaults.Back;
         public static InputAction NavigateUpAction => UIInputActionDefaults.NavigateUp;
@@ -33,7 +34,7 @@ namespace Turnroot.UI
 
         [ShowIf(nameof(ChangeTextColor))]
         public Color TextHighlightColor = Color.yellow;
-        public Color originalTextColor = Color.black;
+        public Color originalTextColor;
         public bool CanBeSelected = true;
         public Color TextColorIfDisabled = Color.gray;
 
@@ -53,9 +54,10 @@ namespace Turnroot.UI
             }
 
             IsActive = true;
-
-            ToScale.localScale = UseScale ? Vector3.one * 1.1f : Vector3.one;
-
+            if (UseScale)
+            {
+                ToScale.localScale = Vector3.one * 1.1f;
+            }
             if (ChangeTextColor && TextToChangeColor != null)
             {
                 TextToChangeColor.color = TextHighlightColor;
@@ -65,13 +67,19 @@ namespace Turnroot.UI
             {
                 Effect.enabled = true;
             }
+            else
+            {
+                "UiChoice.Select: Effect is null, skipping effect activation".LogWarning();
+            }
         }
 
         public void Deselect()
         {
             IsActive = false;
-            ToScale.localScale = Vector3.one;
-
+            if (UseScale)
+            {
+                ToScale.localScale = Vector3.one;
+            }
             if (ChangeTextColor && TextToChangeColor != null)
             {
                 TextToChangeColor.color = originalTextColor;
