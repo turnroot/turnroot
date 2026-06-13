@@ -5,9 +5,6 @@ using BrainType = Turnroot.Gameplay.Brain.Brain;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    /// <summary>
-    /// Lightweight bridge for hub third-person walk mode that stays independent from any external controller package.
-    /// </summary>
     public class HubThirdPersonAdapter : MonoBehaviour
     {
         [Header("Mode Toggle")]
@@ -18,23 +15,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public bool ConsumeHubInput = true;
         public CharacterController CharacterController;
         public NavMeshAgent NavMeshAgent;
-        public Transform CameraReference;
         public float MoveSpeed = 3f;
         public float RotationLerp = 12f;
 
         [Header("Animation (Reuse UnitAppearanceBrain)")]
         public float WalkingInputThreshold = 0.05f;
 
-        [Header("Optional Camera Yaw")]
-        public bool ApplyLookYaw = true;
+        [Header("Camera Yaw (Cinemachine target)")]
+        [Tooltip(
+            "Required for walk mode. Movement direction is derived from this transform's forward/right, "
+                + "and right-stick/mouse input rotates its yaw. Cinemachine's vcam should track this "
+                + "transform (e.g. as its Follow target) so the camera turns when this rotates."
+        )]
         public Transform CameraYawRoot;
-        public float LookYawSpeed = 120f;
 
-        [Header("Third-Person Camera Follow")]
-        public bool UseSimpleCameraFollow = true;
-        public Vector3 CameraFollowOffset = new(0f, 2.25f, -3.5f);
-        public float CameraFollowLerp = 12f;
-        public float CameraLookHeight = 1.6f;
+        [Tooltip("If true, right-stick/mouse X input rotates CameraYawRoot's yaw.")]
+        public bool ApplyLookYaw = true;
+
+        public float LookYawSpeed = 120f;
 
         private bool _walkMode;
         private Vector2 _moveInput;
@@ -44,7 +42,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Transform _avatarRoot;
         private Animator _avatarAnimator;
         private bool _loggedMissingMovementDriver;
-        private bool _loggedMissingCameraReference;
 
         public void BindAvatar(GameObject avatarModel)
         {
@@ -61,7 +58,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CharacterController ??= avatarModel.GetComponent<CharacterController>();
             NavMeshAgent ??= avatarModel.GetComponent<NavMeshAgent>();
 
-            SnapCameraToAvatar();
+            // Snap the yaw root to the avatar's position/yaw so Cinemachine starts framed behind
+            // the avatar rather than wherever it was left from a previous traversal session.
+            if (CameraYawRoot != null)
+            {
+                CameraYawRoot.position = _avatarRoot.position;
+                CameraYawRoot.rotation = Quaternion.Euler(0f, _avatarRoot.eulerAngles.y, 0f);
+            }
         }
 
         public void ClearAvatarBindingIfMatches(GameObject avatarModel)
@@ -157,9 +160,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             TryResolveAnimator();
 
-            ApplyMovement(_moveInput);
+            // Keep the yaw root glued to the avatar's position so Cinemachine's framing
+            // follows movement. Rotation is left alone here — that's player/Cinemachine territory.
+            CameraYawRoot.position = _avatarRoot.position;
+
+            // Apply look first so movement direction this frame is based on the
+            // up-to-date yaw root orientation.
             ApplyLook(_lookInput);
-            UpdateCameraFollow();
+            ApplyMovement(_moveInput);
+
             SetWalkingState(
                 _moveInput.sqrMagnitude >= (WalkingInputThreshold * WalkingInputThreshold)
             );
@@ -174,10 +183,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            Transform cameraRef =
-                CameraReference != null ? CameraReference : Camera.main?.transform;
-            Vector3 forward = cameraRef != null ? cameraRef.forward : Vector3.forward;
-            Vector3 right = cameraRef != null ? cameraRef.right : Vector3.right;
+            Vector3 forward = CameraYawRoot.forward;
+            Vector3 right = CameraYawRoot.right;
             forward.y = 0f;
             right.y = 0f;
             forward.Normalize();
@@ -214,6 +221,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        /// <summary>
+        /// Rotates <see cref="CameraYawRoot"/>'s yaw based on right-stick/mouse X input.
+        /// This is the only rotation this script applies in response to look input — the
+        /// actual Camera transform is left untouched for Cinemachine to drive.
+        /// </summary>
         private void ApplyLook(Vector2 lookInput)
         {
             if (!ApplyLookYaw || Mathf.Abs(lookInput.x) < 0.01f)
@@ -221,26 +233,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (CameraYawRoot != null)
-            {
-                CameraYawRoot.Rotate(
-                    0f,
-                    lookInput.x * LookYawSpeed * Time.deltaTime,
-                    0f,
-                    Space.World
-                );
-                return;
-            }
-
-            Transform cam = ResolveCameraTransform();
-            if (cam != null)
-            {
-                cam.Rotate(0f, lookInput.x * LookYawSpeed * Time.deltaTime, 0f, Space.World);
-            }
+            CameraYawRoot.Rotate(0f, lookInput.x * LookYawSpeed * Time.deltaTime, 0f, Space.World);
         }
-
-        private Transform ResolveCameraTransform() =>
-            CameraReference != null ? CameraReference : Camera.main?.transform;
 
         private OperationResult ValidateWalkReadiness()
         {
@@ -253,6 +247,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return avatarValidation;
             }
 
+            var yawRootValidation = OperationResultGuards.RequireNotNull(
+                CameraYawRoot,
+                nameof(CameraYawRoot)
+            );
+            if (!yawRootValidation.Success)
+            {
+                return yawRootValidation;
+            }
+
             bool hasMovementDriver =
                 (CharacterController != null && CharacterController.enabled)
                 || (NavMeshAgent != null && NavMeshAgent.enabled);
@@ -263,81 +266,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 );
             }
 
-            var cam = ResolveCameraTransform();
-            if (cam == null)
-            {
-                if (!_loggedMissingCameraReference)
-                {
-                    "HubThirdPersonAdapter: No camera transform resolved from CameraReference or Camera.main.".LogError();
-                    _loggedMissingCameraReference = true;
-                }
-
-                return OperationResult.Failure(
-                    "No camera transform available. Assign CameraReference or ensure Camera.main exists."
-                );
-            }
-
             return OperationResult.Successful();
-        }
-
-        private void SnapCameraToAvatar()
-        {
-            if (!UseSimpleCameraFollow || _avatarRoot == null)
-            {
-                return;
-            }
-
-            Transform cam = ResolveCameraTransform();
-            if (cam == null)
-            {
-                return;
-            }
-
-            if (CameraYawRoot != null)
-            {
-                CameraYawRoot.position = _avatarRoot.position;
-            }
-
-            var followAnchor = CameraYawRoot != null ? CameraYawRoot : _avatarRoot;
-            cam.position = followAnchor.TransformPoint(CameraFollowOffset);
-
-            var lookTarget = _avatarRoot.position + Vector3.up * CameraLookHeight;
-            cam.rotation = Quaternion.LookRotation(lookTarget - cam.position, Vector3.up);
-        }
-
-        private void UpdateCameraFollow()
-        {
-            if (!UseSimpleCameraFollow || _avatarRoot == null || !_walkMode)
-            {
-                return;
-            }
-
-            Transform cam = ResolveCameraTransform();
-            if (cam == null)
-            {
-                return;
-            }
-
-            if (CameraYawRoot != null)
-            {
-                CameraYawRoot.position = _avatarRoot.position;
-            }
-
-            var followAnchor = CameraYawRoot != null ? CameraYawRoot : _avatarRoot;
-            var desiredPosition = followAnchor.TransformPoint(CameraFollowOffset);
-            cam.position = Vector3.Lerp(
-                cam.position,
-                desiredPosition,
-                Mathf.Clamp01(CameraFollowLerp * Time.deltaTime)
-            );
-
-            var lookTarget = _avatarRoot.position + Vector3.up * CameraLookHeight;
-            var desiredRotation = Quaternion.LookRotation(lookTarget - cam.position, Vector3.up);
-            cam.rotation = Quaternion.Slerp(
-                cam.rotation,
-                desiredRotation,
-                Mathf.Clamp01(CameraFollowLerp * Time.deltaTime)
-            );
         }
 
         private void SetWalkingState(bool walking)

@@ -149,11 +149,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SetInputMode(HubInputMode.Traversal);
             BackButtonFade?.Show();
 
-            if (context.Adapter.CameraReference == null && GeneralCamera != null)
-            {
-                context.Adapter.CameraReference = GeneralCamera.transform;
-            }
-
             context.CharacterManager.HandleTraversalEntered(
                 context.TraversalPoint,
                 CurrentLocationName ?? HubSublocationName.Market
