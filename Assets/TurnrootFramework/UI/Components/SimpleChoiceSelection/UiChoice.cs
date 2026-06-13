@@ -7,13 +7,9 @@ using UnityEngine.InputSystem;
 
 namespace Turnroot.UI
 {
-    /// <summary>
-    /// simple reusable UI component for selectable choices in menus
-    /// </summary>
     [RequireComponent(typeof(RectTransform))]
     public class UiChoice : MonoBehaviour
     {
-        // static shared input actions used by all menus
         public static InputAction SelectAction => UIInputActionDefaults.Select;
         public static InputAction BackAction => UIInputActionDefaults.Back;
         public static InputAction NavigateUpAction => UIInputActionDefaults.NavigateUp;
@@ -37,16 +33,12 @@ namespace Turnroot.UI
 
         [ShowIf(nameof(ChangeTextColor))]
         public Color TextHighlightColor = Color.yellow;
-        private Color originalTextColor;
+        private Color originalTextColor = Color.black;
         public bool CanBeSelected = true;
         public Color TextColorIfDisabled = Color.gray;
 
         private void Awake()
         {
-            if (ChangeTextColor && TextToChangeColor != null)
-            {
-                originalTextColor = TextToChangeColor.color;
-            }
             if (!CanBeSelected && TextToChangeColor != null)
             {
                 TextToChangeColor.color = TextColorIfDisabled;
@@ -61,10 +53,9 @@ namespace Turnroot.UI
             }
 
             IsActive = true;
-            if (UseScale)
-            {
-                ToScale.localScale = Vector3.one * 1.1f;
-            }
+
+            ToScale.localScale = UseScale ? Vector3.one * 1.1f : Vector3.one;
+
             if (ChangeTextColor && TextToChangeColor != null)
             {
                 TextToChangeColor.color = TextHighlightColor;
@@ -74,19 +65,13 @@ namespace Turnroot.UI
             {
                 Effect.enabled = true;
             }
-            else
-            {
-                "UiChoice.Select: Effect is null, skipping effect activation".LogWarning();
-            }
         }
 
         public void Deselect()
         {
             IsActive = false;
-            if (UseScale)
-            {
-                ToScale.localScale = Vector3.one;
-            }
+            ToScale.localScale = Vector3.one;
+
             if (ChangeTextColor && TextToChangeColor != null)
             {
                 TextToChangeColor.color = originalTextColor;
