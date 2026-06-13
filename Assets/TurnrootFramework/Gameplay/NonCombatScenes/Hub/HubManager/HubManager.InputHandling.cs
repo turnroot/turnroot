@@ -43,7 +43,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         return;
                     }
 
-                    "HubManager: Forwarding input to sublocation handler.".LogInfo();
                     SublocationInput.HandleSubLocationInput(action);
                     break;
                 case HubInputMode.Battlefields:

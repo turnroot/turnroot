@@ -70,20 +70,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private float _cachedDownLimit;
         private bool _loggedMissingHubCamera;
 
-        private const float MovePulseDuration = 0.18f;
-        private const float LookPulseDuration = 0.12f;
-
-        private float _moveUpUntil;
-        private float _moveDownUntil;
-        private float _moveLeftUntil;
-        private float _moveRightUntil;
-        private Vector2 _cachedLookInput;
-        private float _lookInputUntil;
-
         public void HandleSubLocationInput(string action)
         {
-            CacheDirectionalInputFromAction(action);
-
             if (
                 action
                 is InputActionConstants.Select
@@ -106,31 +94,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
                 hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
-            }
-        }
-
-        private void CacheDirectionalInputFromAction(string action)
-        {
-            float now = Time.unscaledTime;
-
-            switch (action)
-            {
-                case InputActionConstants.NavigateUp:
-                    _moveUpUntil = now + MovePulseDuration;
-                    break;
-                case InputActionConstants.NavigateDown:
-                    _moveDownUntil = now + MovePulseDuration;
-                    break;
-                case InputActionConstants.NavigateLeft:
-                    _moveLeftUntil = now + MovePulseDuration;
-                    break;
-                case InputActionConstants.NavigateRight:
-                    _moveRightUntil = now + MovePulseDuration;
-                    break;
-                case InputActionConstants.RightStickMove:
-                    _cachedLookInput = ReadRightStickLookInput();
-                    _lookInputUntil = now + LookPulseDuration;
-                    break;
             }
         }
 
@@ -214,8 +177,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             UpdateZoomToggle();
 
-            Vector2 moveInput = GetMoveInputFromActionConstants();
-            Vector2 lookInput = GetLookInputFromActionConstants();
+            Vector2 moveInput = GetNavigateMoveInput();
+            Vector2 lookInput = GetRightStickLookInput();
 
             if (TryHandleThirdPersonMode(moveInput, lookInput))
             {
@@ -431,45 +394,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private Vector2 GetMoveInputFromActionConstants()
+        private Vector2 GetNavigateMoveInput()
         {
-            float now = Time.unscaledTime;
-
-            Vector2 result = Vector2.zero;
-            if (_moveLeftUntil > now)
+            if (UIInputActionDefaults.Navigate != null && UIInputActionDefaults.Navigate.enabled)
             {
-                result.x -= 1f;
-            }
-
-            if (_moveRightUntil > now)
-            {
-                result.x += 1f;
-            }
-
-            if (_moveUpUntil > now)
-            {
-                result.y += 1f;
-            }
-
-            if (_moveDownUntil > now)
-            {
-                result.y -= 1f;
-            }
-
-            return Vector2.ClampMagnitude(result, 1f);
-        }
-
-        private Vector2 GetLookInputFromActionConstants()
-        {
-            if (_lookInputUntil > Time.unscaledTime)
-            {
-                return _cachedLookInput;
+                Vector2 value = UIInputActionDefaults.Navigate.ReadValue<Vector2>();
+                if (value.sqrMagnitude > 0.0001f)
+                {
+                    return Vector2.ClampMagnitude(value, 1f);
+                }
             }
 
             return Vector2.zero;
         }
 
-        private Vector2 ReadRightStickLookInput()
+        private Vector2 GetRightStickLookInput()
         {
             if (
                 UIInputActionDefaults.RightStickMove != null
