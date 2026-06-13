@@ -31,6 +31,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private float _yawOffset;
 
         private HubManager hubManager;
+
+        [Header("Cameras")]
+        [Tooltip("Activated (higher priority) while zoomed")]
+        public CinemachineVirtualCamera ZoomVcam;
+
+        [Header("Cameras")]
+        [Tooltip("Third-person traversal vcam — active while not zoomed")]
+        public CinemachineVirtualCamera TraversalVcam;
         private Camera hubCamera;
 
         private Collider targetCollider;
@@ -41,13 +49,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public LayerMask poiLayerMask;
         public float normalFov = 60f;
         public float zoomedFov = 30f;
-
-        [Tooltip(
-            "Time in seconds to transition between normal and zoomed FOV when AnimatedCameraMovement is enabled."
-        )]
-        public float zoomSmoothTime = 0.2f;
-        private Coroutine _zoomCoroutine;
-
         public UIFade FocusOverlayFade;
 
         [Header("Third Person Walk (Phase 1)")]
@@ -129,11 +130,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _isZoomed = false;
                 _wasZoomPressed = false;
-                if (_zoomCoroutine != null)
-                {
-                    StopCoroutine(_zoomCoroutine);
-                    _zoomCoroutine = null;
-                }
                 if (hubCamera != null)
                 {
                     hubCamera.fieldOfView = normalFov;
@@ -189,6 +185,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (TryHandleThirdPersonMode(moveInput, lookInput))
             {
+                UpdatePoiDetection();
                 return;
             }
 
@@ -284,22 +281,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (zoomPressed && !_wasZoomPressed)
             {
                 _isZoomed = !_isZoomed;
-                float targetFov = _isZoomed ? zoomedFov : normalFov;
-                if (_zoomCoroutine != null)
-                {
-                    StopCoroutine(_zoomCoroutine);
-                }
 
-                if (
-                    GameplayPlayerSettings.Instance != null
-                    && GameplayPlayerSettings.Instance.AnimatedCameraMovement
-                )
+                if (ZoomVcam != null)
                 {
-                    _zoomCoroutine = StartCoroutine(AnimateFov(targetFov));
+                    ZoomVcam.Priority = _isZoomed ? 20 : 0;
                 }
-                else
+                if (TraversalVcam != null)
                 {
-                    hubCamera.fieldOfView = targetFov;
+                    TraversalVcam.Priority = _isZoomed ? 0 : 10;
                 }
 
                 if (!_isZoomed)
@@ -449,20 +438,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             return input;
-        }
-
-        private IEnumerator AnimateFov(float targetFov)
-        {
-            float startFov = hubCamera.fieldOfView;
-            float elapsed = 0f;
-            while (elapsed < zoomSmoothTime)
-            {
-                elapsed += Time.deltaTime;
-                hubCamera.fieldOfView = Mathf.Lerp(startFov, targetFov, elapsed / zoomSmoothTime);
-                yield return null;
-            }
-            hubCamera.fieldOfView = targetFov;
-            _zoomCoroutine = null;
         }
     }
 }
