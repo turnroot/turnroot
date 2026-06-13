@@ -44,6 +44,8 @@ namespace Turnroot.UI
             {
                 TextToChangeColor.color = TextColorIfDisabled;
             }
+
+            TextToChangeColor.color = originalTextColor;
         }
 
         public void Select()
