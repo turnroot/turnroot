@@ -2,6 +2,7 @@ namespace Turnroot.Utilities
 {
     public static class InputActionConstants
     {
+        public const string Navigate = "Navigate";
         public const string NavigateUp = "NavigateUp";
         public const string NavigateDown = "NavigateDown";
         public const string NavigateLeft = "NavigateLeft";
