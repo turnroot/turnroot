@@ -1,4 +1,5 @@
 using System.Collections;
+using Cinemachine;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI;
 using Turnroot.Utilities;
@@ -140,6 +141,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 ThirdPersonAdapter?.SetWalkMode(false);
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
+            }
+
+            // Cinemachine should only drive the camera while look/traversal mode is active.
+            if (
+                hubCamera != null
+                && hubCamera.TryGetComponent<Cinemachine.CinemachineBrain>(out var brain)
+            )
+            {
+                brain.enabled = enabled;
             }
         }
 

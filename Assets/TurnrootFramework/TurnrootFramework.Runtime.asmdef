@@ -3,6 +3,7 @@
     "rootNamespace": "Turnroot",
     "references": [
         "XNode",
+        "Cinemachine",
         "NaughtyAttributes.Core",
         "Unity.AI.Navigation",
         "Coffee.UIEffect",
