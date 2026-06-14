@@ -33,11 +33,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private HubManager hubManager;
 
         [Header("Cameras")]
-        [Tooltip("Activated (higher priority) while zoomed")]
-        public CinemachineVirtualCamera ZoomVcam;
-
-        [Header("Cameras")]
-        [Tooltip("Third-person traversal vcam — active while not zoomed")]
+        [Tooltip("Single traversal vcam used for both exploring and zooming")]
         public CinemachineVirtualCamera TraversalVcam;
         private Camera hubCamera;
         private Collider targetCollider;
@@ -46,8 +42,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
         public LayerMask poiLayerMask;
-        public float normalFov = 60f;
-        public float zoomedFov = 30f;
+
+        [UnityEngine.Serialization.FormerlySerializedAs("normalFov")]
+        public float ExploreFOV = 60f;
+
+        [UnityEngine.Serialization.FormerlySerializedAs("zoomedFov")]
+        public float ZoomFOV = 30f;
+
+        [Tooltip("Seconds used to blend between ExploreFOV and ZoomFOV")]
+        public float zoomTime = 0.2f;
+
         public UIFade FocusOverlayFade;
 
         [Header("Third Person Walk (Phase 1)")]
@@ -70,6 +74,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private float _cachedUpLimit;
         private float _cachedDownLimit;
         private bool _loggedMissingHubCamera;
+        private Coroutine _zoomFovCoroutine;
 
         public void HandleSubLocationInput(string action)
         {
@@ -113,13 +118,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _lookCoroutine = null;
             }
 
+            if (_zoomFovCoroutine != null)
+            {
+                StopCoroutine(_zoomFovCoroutine);
+                _zoomFovCoroutine = null;
+            }
+
             if (_isLooking)
             {
                 if (hubCamera == null)
                 {
                     hubCamera = hubManager.GeneralCamera;
-                    hubCamera.fieldOfView = normalFov;
                 }
+
+                SetTraversalFovImmediate(ExploreFOV);
+
                 _hasBaseRotation = false;
                 _pitchOffset = _yawOffset = 0f;
                 _cachedUpLimit = Mathf.Abs(MaxTiltUp);
@@ -129,10 +142,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _isZoomed = false;
                 _wasZoomPressed = false;
-                if (hubCamera != null)
-                {
-                    hubCamera.fieldOfView = normalFov;
-                }
+                SetTraversalFovImmediate(ExploreFOV);
                 ThirdPersonAdapter?.SetWalkMode(false);
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
@@ -193,7 +203,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool TryHandleThirdPersonMode(Vector2 moveInput, Vector2 lookInput)
         {
-            bool shouldUseThirdPersonWalk = useThirdPersonWalkWhenUnzoomed && !_isZoomed;
+            bool shouldUseThirdPersonWalk = useThirdPersonWalkWhenUnzoomed;
 
             if (!shouldUseThirdPersonWalk)
             {
@@ -286,14 +296,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _isZoomed = !_isZoomed;
 
-                if (ZoomVcam != null)
-                {
-                    ZoomVcam.Priority = _isZoomed ? 20 : 0;
-                }
-                if (TraversalVcam != null)
-                {
-                    TraversalVcam.Priority = _isZoomed ? 0 : 10;
-                }
+                float targetFov = _isZoomed ? ZoomFOV : ExploreFOV;
+                StartTraversalFovTween(targetFov);
 
                 if (!_isZoomed)
                 {
@@ -303,6 +307,57 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _wasZoomPressed = zoomPressed;
+        }
+
+        private void SetTraversalFovImmediate(float fov)
+        {
+            if (TraversalVcam != null)
+            {
+                var lens = TraversalVcam.m_Lens;
+                lens.FieldOfView = fov;
+                TraversalVcam.m_Lens = lens;
+            }
+
+            if (hubCamera != null)
+            {
+                hubCamera.fieldOfView = fov;
+            }
+        }
+
+        private void StartTraversalFovTween(float targetFov)
+        {
+            if (_zoomFovCoroutine != null)
+            {
+                StopCoroutine(_zoomFovCoroutine);
+            }
+
+            _zoomFovCoroutine = StartCoroutine(TweenTraversalFov(targetFov));
+        }
+
+        private IEnumerator TweenTraversalFov(float targetFov)
+        {
+            if (TraversalVcam == null)
+            {
+                SetTraversalFovImmediate(targetFov);
+                _zoomFovCoroutine = null;
+                yield break;
+            }
+
+            var startLens = TraversalVcam.m_Lens;
+            float startFov = startLens.FieldOfView;
+            float duration = Mathf.Max(0.0001f, zoomTime);
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                SetTraversalFovImmediate(Mathf.Lerp(startFov, targetFov, t));
+                yield return null;
+            }
+
+            SetTraversalFovImmediate(targetFov);
+            _zoomFovCoroutine = null;
         }
 
         private void ClearCurrentPoiTarget()
