@@ -211,6 +211,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     ThirdPersonAdapter.SetWalkMode(false);
                     ThirdPersonAdapter.SetInput(Vector2.zero, Vector2.zero);
+
+                    if (_isZoomed)
+                    {
+                        ThirdPersonAdapter.ApplyLookOnly(lookInput);
+                    }
                 }
 
                 return false;
