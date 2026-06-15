@@ -184,6 +184,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _lookInput = Vector2.ClampMagnitude(lookInput, 1f);
         }
 
+        public void SetRunning(bool running)
+        {
+            isRunning = running;
+        }
+
         private void Update()
         {
             if (!_walkMode || !ConsumeHubInput)

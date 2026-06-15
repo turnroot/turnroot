@@ -203,18 +203,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _isRunning = !_isRunning;
             }
+            _wasRunPressed = runPressed;
 
             Vector2 moveInput = GetNavigateMoveInput();
             Vector2 lookInput = GetRightStickLookInput();
 
             if (TryHandleThirdPersonMode(moveInput, lookInput))
             {
+                UpdateRunning(_isRunning);
                 UpdatePoiDetection();
                 return;
             }
+        }
 
-            UpdateInspectLook(lookInput);
+        private void UpdateRunning(bool isRunning)
+        {
+            if (ThirdPersonAdapter == null)
+            {
+                return;
+            }
 
+            ThirdPersonAdapter.SetRunning(isRunning);
         }
 
         private bool TryHandleThirdPersonMode(Vector2 moveInput, Vector2 lookInput)
