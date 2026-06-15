@@ -94,44 +94,21 @@ namespace Turnroot.GameSettings
         public TrianglePositionEnum GetWeaponTrianglePosition(string weaponId)
         {
             var weapon = GetWeaponTypeById(weaponId);
-            if (weapon == null)
-            {
-                return TrianglePositionEnum.NotOnTriangle;
-            }
-
-            if (
-                TopTriangleWeaponTypes != null
+            return weapon == null ? TrianglePositionEnum.NotOnTriangle
+                : TopTriangleWeaponTypes != null
                 && System.Array.Exists(TopTriangleWeaponTypes, w => w == weapon)
-            )
-            {
-                return TrianglePositionEnum.Top;
-            }
-
-            if (
-                LeftTriangleWeaponTypes != null
+                    ? TrianglePositionEnum.Top
+                : LeftTriangleWeaponTypes != null
                 && System.Array.Exists(LeftTriangleWeaponTypes, w => w == weapon)
-            )
-            {
-                return TrianglePositionEnum.Left;
-            }
-
-            if (
-                RightTriangleWeaponTypes != null
+                    ? TrianglePositionEnum.Left
+                : RightTriangleWeaponTypes != null
                 && System.Array.Exists(RightTriangleWeaponTypes, w => w == weapon)
-            )
-            {
-                return TrianglePositionEnum.Right;
-            }
-
-            if (
-                NotOnTriangleWeaponTypes != null
+                    ? TrianglePositionEnum.Right
+                : NotOnTriangleWeaponTypes != null
                 && System.Array.Exists(NotOnTriangleWeaponTypes, w => w == weapon)
-            )
-            {
-                return TrianglePositionEnum.NotOnTriangle;
-            }
-
-            return weapon.TrianglePosition != null ? weapon.TrianglePosition.Position : TrianglePositionEnum.NotOnTriangle;
+                    ? TrianglePositionEnum.NotOnTriangle
+                : weapon.TrianglePosition != null ? weapon.TrianglePosition.Position
+                : TrianglePositionEnum.NotOnTriangle;
         }
 
         [BoxGroup("Characters"), InfoBox("Put all of the species types your game uses here")]
