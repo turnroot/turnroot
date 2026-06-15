@@ -112,9 +112,7 @@ jobs:
 
           for cs_file in sorted(SCAN_ROOT.rglob('*.cs')):
               # Skip generated / Unity-internal paths
-              if any(part in cs_file.parts for part in ('bin', 'obj', '.git')):
-                  continue
-              if "samples" in cs_file.lower():
+              if any(part in cs_file.parts for part in ('bin', 'obj', '.git', 'Samples', 'samples')):
                   continue
 
               try:
