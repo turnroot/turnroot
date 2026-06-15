@@ -18,5 +18,6 @@ namespace Turnroot.Utilities
         public const string ToggleDetails = "ToggleDetails";
         public const string RightStickMove = "RightStickMove";
         public const string Special = "Special";
+        public const string LeftStickClick = "LeftStickClick";
     }
 }

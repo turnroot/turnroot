@@ -46,7 +46,8 @@ namespace Turnroot.UI
                 s.Start,
                 s.RightStickClick,
                 s.ToggleDetails,
-                s.Special
+                s.Special,
+                s.LeftStickClick
             );
 
             // Enable everything immediately so all consumers can listen to all actions.
@@ -84,6 +85,7 @@ namespace Turnroot.UI
             TryEnable(UIInputActionDefaults.ToggleDetails);
             TryEnable(UIInputActionDefaults.RightStickClick);
             TryEnable(UIInputActionDefaults.Special);
+            TryEnable(UIInputActionDefaults.LeftStickClick);
         }
     }
 }
