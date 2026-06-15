@@ -1,10 +1,13 @@
+using UnityEngine;
+
 namespace Turnroot.Gameplay.Brain
 {
-    /// <summary>
-    /// Partial class handling player settings management.
-    /// </summary>
     public partial class GamewideContextBrain
     {
+        public Color AvatarHairColor { get; private set; }
+        public Color AvatarEyeColor { get; private set; }
+        public Color AvatarSkinColor { get; private set; }
+
         #region Player Settings Management
         public void UpdatePlayerSetting(string settingName, object value)
         {

@@ -15,6 +15,14 @@ namespace Turnroot.Gameplay.Brain
         public const string BattlesRetreated = "CharactersBrain.BattlesRetreated";
         public const string TotalBattles = "CharactersBrain.TotalBattles";
 
+        public const string AvatarSelectedEyeColor = "CharactersBrain.AvatarSelectedEyeColor";
+        public const string AvatarSelectedHairColor = "CharactersBrain.AvatarSelectedHairColor";
+        public const string AvatarSelectedSkinColor = "CharactersBrain.AvatarSelectedSkinColor";
+        public const string AvatarSelectedHairStyle = "CharactersBrain.AvatarSelectedHairStyle";
+        public const string AvatarSelectedHeadAccessory =
+            "CharactersBrain.AvatarSelectedHeadAccessory";
+        public const string AvatarSelectedOutfit = "CharactersBrain.AvatarSelectedFullOutfit";
+
         #endregion
 
         #region StateBrain Keys
