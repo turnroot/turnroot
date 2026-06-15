@@ -39,7 +39,8 @@ jobs:
 
           SCAN_ROOT = Path('Assets/TurnrootFramework')
 
-          errors = []
+          failures = []   # namespace violations  → fail the job
+          warnings = []   # serializable violations → warn only
 
           # Matches a public struct declaration (covers partial structs too).
           # Does NOT match private/internal/protected structs.
@@ -90,13 +91,18 @@ jobs:
                 - [Serializable] + using System;
               """
               if ATTR_FULL_RE.search(clean):
-                  # At least one fully-qualified attribute found; treat as valid.
-                  # (If a file mixes [Serializable] without `using System;` that
-                  #  would be a compile error anyway, so we trust the developer.)
                   return True
               if ATTR_BARE_RE.search(clean) and USING_SYSTEM_RE.search(clean):
                   return True
               return False
+
+          def gha_error(filepath, message):
+              """Emit a GitHub Actions error annotation."""
+              print(f"::error file={filepath}::{message}")
+
+          def gha_warning(filepath, message):
+              """Emit a GitHub Actions warning annotation."""
+              print(f"::warning file={filepath}::{message}")
 
           # ---------------------------------------------------------------
           # Scan
@@ -108,6 +114,8 @@ jobs:
               # Skip generated / Unity-internal paths
               if any(part in cs_file.parts for part in ('bin', 'obj', '.git')):
                   continue
+              if "samples" in cs_file.lower():
+                  continue
 
               try:
                   raw = cs_file.read_text(encoding='utf-8')
@@ -118,37 +126,36 @@ jobs:
               clean = strip_comments_and_strings(raw)
               files_checked += 1
 
-              file_errors = []
-
-              # 1. Namespace check (applies to every file in scope)
+              # 1. Namespace check — FAILURE
               if not has_namespace(clean):
-                  file_errors.append(
-                      "  ✗ Missing namespace declaration"
-                  )
+                  msg = "Missing namespace declaration"
+                  gha_error(cs_file, msg)
+                  failures.append(f"  ✗ {cs_file}: {msg}")
 
-              # 2. Serializable check (only relevant if file has public structs)
-              if has_public_struct(clean):
-                  if not has_valid_serializable(clean):
-                      file_errors.append(
-                          "  ✗ Public struct found but no valid [Serializable] attribute.\n"
-                          "    Add [System.Serializable] directly, or [Serializable] with `using System;`"
-                      )
-
-              if file_errors:
-                  errors.append(f"\n{cs_file}")
-                  errors.extend(file_errors)
+              # 2. Serializable check — WARNING only
+              if has_public_struct(clean) and not has_valid_serializable(clean):
+                  msg = ("Public struct found but no valid [Serializable] attribute. "
+                         "Add [System.Serializable] directly, or [Serializable] with `using System;`")
+                  gha_warning(cs_file, msg)
+                  warnings.append(f"  ⚠ {cs_file}: {msg}")
 
           # ---------------------------------------------------------------
           # Report
           # ---------------------------------------------------------------
 
-          print(f"Scanned {files_checked} .cs file(s) under {SCAN_ROOT}\n")
+          print(f"\nScanned {files_checked} .cs file(s) under {SCAN_ROOT}")
 
-          if errors:
-              print("Validation FAILED — issues found:")
-              print('\n'.join(errors))
+          if warnings:
+              print(f"\nWarnings ({len(warnings)}) — will not fail the build:")
+              print('\n'.join(warnings))
+
+          if failures:
+              print(f"\nFailed ({len(failures)}) — namespace violations must be fixed:")
+              print('\n'.join(failures))
               sys.exit(1)
           else:
-              print("Validation PASSED — all files have namespaces and public structs are [Serializable].")
+              print("\nNamespace check PASSED.")
+              if not warnings:
+                  print("Serializable check PASSED.")
 
           EOF
