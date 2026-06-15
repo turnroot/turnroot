@@ -21,6 +21,7 @@ namespace Turnroot.GameSettings
         RecruitUnit,
     }
 
+    [System.Serializable]
     public struct AvatarUnlockable
     {
         public string Name;
