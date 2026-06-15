@@ -3,6 +3,7 @@
 [![CodeQL](https://github.com/turnroot/turnroot/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/turnroot/turnroot/actions/workflows/github-code-scanning/codeql)
 [![Sync TODOs with Issues](https://github.com/turnroot/turnroot/actions/workflows/manual.yml/badge.svg)](https://github.com/turnroot/turnroot/actions/workflows/manual.yml)
 [![Bump Version on PR](https://github.com/turnroot/turnroot/actions/workflows/version-bump-pr.yml/badge.svg)](https://github.com/turnroot/turnroot/actions/workflows/version-bump-pr.yml)
+[![Validate C# Struct Serialization & Namespaces](https://github.com/turnroot/turnroot/actions/workflows/sanity-checks.yml/badge.svg)](https://github.com/turnroot/turnroot/actions/workflows/sanity-checks.yml)
 ![GitHub code size](https://img.shields.io/github/languages/code-size/turnroot/turnroot)
 
 [![Documentation Status](https://readthedocs.org/projects/turnroot-framework-docs/badge/?version=latest)](http://docs.turnroot.com/?badge=latest)
