@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -118,6 +119,9 @@ namespace Turnroot.Gameplay.Brain
                 FileName = "Unnamed",
                 AvatarBodyType = AvatarBody.None,
                 AvatarPortrait = null,
+                AvatarHairColor = GameplayGeneralSettings.Instance.AvatarHairColorChoices[0],
+                AvatarEyeColor = GameplayGeneralSettings.Instance.AvatarEyeColorChoices[0],
+                AvatarSkinColor = GameplayGeneralSettings.Instance.AvatarSkinColorChoices[0],
                 ChapterName = "Prologue",
                 ChapterNumber = 0,
                 Progress = 0,

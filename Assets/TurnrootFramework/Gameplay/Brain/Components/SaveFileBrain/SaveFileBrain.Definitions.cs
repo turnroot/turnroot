@@ -10,6 +10,10 @@ namespace Turnroot.Gameplay.Brain
         public string FileName;
         public Sprite AvatarPortrait;
         public AvatarBody AvatarBodyType;
+
+        public Color AvatarHairColor;
+        public Color AvatarEyeColor;
+        public Color AvatarSkinColor;
         public int Progress;
         public string CurrentScene;
 

@@ -89,6 +89,26 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            var settings = GameplayGeneralSettings.Instance;
+            var fallbackHair =
+                settings.AvatarHairColorChoices != null
+                && settings.AvatarHairColorChoices.Length > 0
+                    ? settings.AvatarHairColorChoices[0]
+                    : Color.white;
+            var fallbackEye =
+                settings.AvatarEyeColorChoices != null && settings.AvatarEyeColorChoices.Length > 0
+                    ? settings.AvatarEyeColorChoices[0]
+                    : Color.white;
+            var fallbackSkin =
+                settings.AvatarSkinColorChoices != null
+                && settings.AvatarSkinColorChoices.Length > 0
+                    ? settings.AvatarSkinColorChoices[0]
+                    : Color.white;
+
+            AvatarHairColor = ParseColorOrFallback(ltm.Recall("Avatar/HairColor"), fallbackHair);
+            AvatarEyeColor = ParseColorOrFallback(ltm.Recall("Avatar/EyeColor"), fallbackEye);
+            AvatarSkinColor = ParseColorOrFallback(ltm.Recall("Avatar/SkinColor"), fallbackSkin);
+
             var displayName = ltm.Recall("Avatar/DisplayName");
             if (string.IsNullOrEmpty(displayName))
             {
@@ -133,6 +153,43 @@ namespace Turnroot.Gameplay.Brain
             }
 
             $"GamewideContextBrain: Restored avatar profile '{displayName}' from LTM.".LogInfo();
+        }
+
+        private static Color ParseColorOrFallback(string serializedColor, Color fallback)
+        {
+            if (string.IsNullOrWhiteSpace(serializedColor))
+            {
+                return fallback;
+            }
+
+            if (ColorUtility.TryParseHtmlString(serializedColor, out var htmlColor))
+            {
+                return htmlColor;
+            }
+
+            if (serializedColor.Length is 6 or 8)
+            {
+                if (
+                    ColorUtility.TryParseHtmlString($"#{serializedColor}", out var compactHtmlColor)
+                )
+                {
+                    return compactHtmlColor;
+                }
+            }
+
+            if (serializedColor.StartsWith("{"))
+            {
+                try
+                {
+                    return JsonUtility.FromJson<Color>(serializedColor);
+                }
+                catch
+                {
+                    "GamewideContextBrain: Failed to parse color from JSON, using fallback.".LogWarning();
+                }
+            }
+
+            return fallback;
         }
         #endregion
 
