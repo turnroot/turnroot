@@ -7,8 +7,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public class HubThirdPersonAdapter : MonoBehaviour
     {
-        [Header("Mode Toggle")]
-        public Behaviour[] ComponentsToEnableInWalkMode;
         public GameObject[] ObjectsToEnableInWalkMode;
 
         [Header("Movement Rig")]
@@ -153,17 +151,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     $"HubThirdPersonAdapter: Cannot enter walk mode. {readiness.ErrorMessage}".LogError();
                     _walkMode = false;
                     return;
-                }
-            }
-
-            if (ComponentsToEnableInWalkMode != null)
-            {
-                foreach (var component in ComponentsToEnableInWalkMode)
-                {
-                    if (component != null)
-                    {
-                        component.enabled = enabled;
-                    }
                 }
             }
 

@@ -39,6 +39,7 @@ namespace Turnroot.UI
 
         private InputAction _subscribedScrollLeft;
         private InputAction _subscribedScrollRight;
+        private InputAction _subscribedLeftStickClick;
 
         private readonly Dictionary<string, Coroutine> _repeatCoroutines = new();
 
