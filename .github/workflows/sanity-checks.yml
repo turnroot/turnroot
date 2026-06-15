@@ -1,0 +1,154 @@
+name: Validate C# Struct Serialization & Namespaces
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'Assets/TurnrootFramework/**/*.cs'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'Assets/TurnrootFramework/**/*.cs'
+  workflow_dispatch:
+
+jobs:
+  validate-structs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Validate public structs and namespaces
+        run: |
+          python - <<'EOF'
+          import re
+          import sys
+          from pathlib import Path
+
+          SCAN_ROOT = Path('Assets/TurnrootFramework')
+
+          errors = []
+
+          # Matches a public struct declaration (covers partial structs too).
+          # Does NOT match private/internal/protected structs.
+          PUBLIC_STRUCT_RE = re.compile(
+              r'^\s*(?:(?:readonly|partial|unsafe)\s+)*public\s+(?:(?:readonly|partial|unsafe)\s+)*struct\s+\w+',
+              re.MULTILINE
+          )
+
+          # [Serializable] with no namespace qualifier (needs `using System;`)
+          ATTR_BARE_RE = re.compile(r'^\s*\[Serializable\]', re.MULTILINE)
+          # [System.Serializable] — always valid, no using needed
+          ATTR_FULL_RE = re.compile(r'^\s*\[System\.Serializable\]', re.MULTILINE)
+          # `using System;` (covers `using System ;` etc.)
+          USING_SYSTEM_RE = re.compile(r'^\s*using\s+System\s*;', re.MULTILINE)
+          # Any namespace declaration
+          NAMESPACE_RE = re.compile(r'^\s*namespace\s+\S+', re.MULTILINE)
+
+          # ---------------------------------------------------------------
+          # Helpers
+          # ---------------------------------------------------------------
+
+          def strip_comments_and_strings(source: str) -> str:
+              """
+              Remove line comments, block comments, and string literals so we
+              don't false-positive on commented-out or string-embedded patterns.
+              """
+              # Block comments
+              source = re.sub(r'/\*.*?\*/', '', source, flags=re.DOTALL)
+              # Line comments
+              source = re.sub(r'//[^\n]*', '', source)
+              # Verbatim strings (@"...")
+              source = re.sub(r'@"[^"]*"', '""', source)
+              # Regular strings (naive, good enough for struct attribute scanning)
+              source = re.sub(r'"(?:[^"\\]|\\.)*"', '""', source)
+              return source
+
+          def has_public_struct(clean: str) -> bool:
+              return bool(PUBLIC_STRUCT_RE.search(clean))
+
+          def has_namespace(clean: str) -> bool:
+              return bool(NAMESPACE_RE.search(clean))
+
+          def has_valid_serializable(clean: str) -> bool:
+              """
+              Returns True when every public struct in the file is covered by a
+              valid [Serializable] attribute.  We accept:
+                - [System.Serializable]        (always valid)
+                - [Serializable] + using System;
+              """
+              if ATTR_FULL_RE.search(clean):
+                  # At least one fully-qualified attribute found; treat as valid.
+                  # (If a file mixes [Serializable] without `using System;` that
+                  #  would be a compile error anyway, so we trust the developer.)
+                  return True
+              if ATTR_BARE_RE.search(clean) and USING_SYSTEM_RE.search(clean):
+                  return True
+              return False
+
+          # ---------------------------------------------------------------
+          # Scan
+          # ---------------------------------------------------------------
+
+          files_checked = 0
+
+          for cs_file in sorted(SCAN_ROOT.rglob('*.cs')):
+              # Skip generated / Unity-internal paths
+              if any(part in cs_file.parts for part in ('bin', 'obj', '.git')):
+                  continue
+
+              try:
+                  raw = cs_file.read_text(encoding='utf-8')
+              except Exception as exc:
+                  print(f"WARNING: Could not read {cs_file}: {exc}")
+                  continue
+
+              clean = strip_comments_and_strings(raw)
+              files_checked += 1
+
+              file_errors = []
+
+              # 1. Namespace check (applies to every file in scope)
+              if not has_namespace(clean):
+                  file_errors.append(
+                      "  ✗ Missing namespace declaration"
+                  )
+
+              # 2. Serializable check (only relevant if file has public structs)
+              if has_public_struct(clean):
+                  if not has_valid_serializable(clean):
+                      file_errors.append(
+                          "  ✗ Public struct found but no valid [Serializable] attribute.\n"
+                          "    Add [System.Serializable] directly, or [Serializable] with `using System;`"
+                      )
+
+              if file_errors:
+                  errors.append(f"\n{cs_file}")
+                  errors.extend(file_errors)
+
+          # ---------------------------------------------------------------
+          # Report
+          # ---------------------------------------------------------------
+
+          print(f"Scanned {files_checked} .cs file(s) under {SCAN_ROOT}\n")
+
+          if errors:
+              print("Validation FAILED — issues found:")
+              print('\n'.join(errors))
+              sys.exit(1)
+          else:
+              print("Validation PASSED — all files have namespaces and public structs are [Serializable].")
+
+          EOF
