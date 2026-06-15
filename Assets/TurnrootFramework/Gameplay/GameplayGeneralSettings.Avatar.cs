@@ -68,8 +68,14 @@ namespace Turnroot.GameSettings
     {
         [BoxGroup("Avatar Settings"), HorizontalLine(color: EColor.Indigo)]
         public Color[] AvatarHairColorChoices;
+
+        [BoxGroup("Avatar Settings")]
         public Color[] AvatarEyeColorChoices;
+
+        [BoxGroup("Avatar Settings")]
         public Color[] AvatarSkinColorChoices;
+
+        [BoxGroup("Avatar Settings")]
         public AvatarUnlockable[] AvatarUnlockables;
 
         public AvatarUnlockable[] GetAnyAvailableAvatarUnlockables(
