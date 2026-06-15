@@ -69,6 +69,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public float zoomCastRadius = 0.25f;
         private bool _isPoiActive;
         private bool _isZoomed;
+        private bool _isRunning;
 
         // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
         private float _cachedUpLimit;
@@ -157,6 +158,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool _wasZoomPressed;
 
+        private bool _wasRunPressed;
+
         private void Awake() => hubManager = GetComponent<HubManager>();
 
         private void Update()
@@ -189,6 +192,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             UpdateZoomToggle();
 
+            var runAction = UIInputActionDefaults.LeftStickClick;
+            if (runAction == null || !runAction.enabled)
+            {
+                return;
+            }
+
+            bool runPressed = runAction.IsPressed();
+            if (runPressed && !_wasRunPressed)
+            {
+                _isRunning = !_isRunning;
+            }
+
             Vector2 moveInput = GetNavigateMoveInput();
             Vector2 lookInput = GetRightStickLookInput();
 
@@ -199,6 +214,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             UpdateInspectLook(lookInput);
+
         }
 
         private bool TryHandleThirdPersonMode(Vector2 moveInput, Vector2 lookInput)
