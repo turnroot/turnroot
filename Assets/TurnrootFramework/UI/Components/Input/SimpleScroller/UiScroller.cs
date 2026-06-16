@@ -22,7 +22,7 @@ namespace Turnroot.UI
         public UIEffect LeftEffect;
         public UIEffect RightEffect;
 
-        public UIEffect SelectedEffect;
+        public GameObject SelectedDecorator;
         public Color TextHighlightColor = Color.yellow;
         public Color originalTextColor;
         public TextMeshProUGUI DisplayText;
@@ -36,18 +36,18 @@ namespace Turnroot.UI
 
         public void Select()
         {
-            if (SelectedEffect != null)
+            if (SelectedDecorator != null)
             {
-                SelectedEffect.enabled = true;
+                SelectedDecorator.SetActive(true);
             }
             DisplayText.color = TextHighlightColor;
         }
 
         public void Deselect()
         {
-            if (SelectedEffect != null)
+            if (SelectedDecorator != null)
             {
-                SelectedEffect.enabled = false;
+                SelectedDecorator.SetActive(false);
             }
             DisplayText.color = originalTextColor;
         }
