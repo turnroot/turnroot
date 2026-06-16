@@ -61,7 +61,6 @@ namespace Turnroot.UI
 
             if (
                 action is InputActionConstants.NavigateUp
-                || (action is InputActionConstants.NavigateLeft && navigate2D)
             )
             {
                 if (
@@ -76,7 +75,6 @@ namespace Turnroot.UI
             }
             else if (
                 action is InputActionConstants.NavigateDown
-                || (action is InputActionConstants.NavigateRight && navigate2D)
             )
             {
                 if (
@@ -147,6 +145,7 @@ namespace Turnroot.UI
                 || managers[currentIndex] == null
             )
             {
+                $"UiChoiceHandler: Invalid currentIndex {currentIndex} after navigation.".LogWarning();
                 currentIndex = 0;
             }
             // also suppress missing receiver warning
