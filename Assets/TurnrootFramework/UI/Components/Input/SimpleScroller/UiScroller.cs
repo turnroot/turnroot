@@ -100,5 +100,32 @@ namespace Turnroot.UI
                 effect.enabled = false;
             }
         }
+
+        public void SetChoices(string[] choices, string defaultChoice = null, bool selected = false)
+        {
+            Choices = choices;
+            if (Choices == null || Choices.Length == 0)
+            {
+                SelectedChoice = null;
+                DisplayText.text = "";
+                return;
+            }
+
+            SelectedChoice =
+                defaultChoice != null && Array.IndexOf(Choices, defaultChoice) >= 0
+                    ? defaultChoice
+                    : Choices[0];
+
+            DisplayText.text = SelectedChoice;
+
+            if (selected)
+            {
+                Select();
+            }
+            else
+            {
+                Deselect();
+            }
+        }
     }
 }
