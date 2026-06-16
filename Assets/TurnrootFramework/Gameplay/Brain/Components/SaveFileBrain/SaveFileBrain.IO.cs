@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;

@@ -19,7 +19,6 @@ namespace Turnroot.UI
         public static InputAction NavigateRightAction => UIInputActionDefaults.NavigateRight;
         public static InputAction StartAction => UIInputActionDefaults.Start;
         public static InputAction RightStickClickAction => UIInputActionDefaults.RightStickClick;
-
         public static InputAction ScrollLeftAction => UIInputActionDefaults.ScrollLeft;
         public static InputAction ScrollRightAction => UIInputActionDefaults.ScrollRight;
 
