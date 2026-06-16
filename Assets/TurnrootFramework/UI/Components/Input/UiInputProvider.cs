@@ -374,30 +374,5 @@ namespace Turnroot.UI
                 NavigateClip
             );
         }
-
-        public void Navigate1D<T>(
-            string action,
-            T[] managers,
-            ref int currentIndex,
-            int maxCount,
-            Action onSelect,
-            Action on1DL,
-            Action on1DR
-        )
-            where T : MonoBehaviour
-        {
-            UiChoiceHandler.HandleNavigation(
-                action,
-                managers,
-                ref currentIndex,
-                maxCount,
-                onSelect,
-                UiFx,
-                NavigateClip,
-                false,
-                on1DL,
-                on1DR
-            );
-        }
     }
 }
