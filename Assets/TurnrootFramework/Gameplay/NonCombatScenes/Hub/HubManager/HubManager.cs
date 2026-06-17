@@ -21,7 +21,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     }
 
     [RequireComponent(typeof(UiInputProvider))]
-    [RequireComponent(typeof(HubTeamLocations))]
     [RequireComponent(typeof(SpecificUiHandler))]
     /// <remarks>
     /// This may need editing for your project, but if you aren't making major logic changes, you should
