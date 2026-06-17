@@ -1,6 +1,6 @@
 using Turnroot.Characters;
-using UnityEngine;
 using Turnroot.Utilities;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -10,7 +10,12 @@ namespace Turnroot.Gameplay.Brain
         /// Try to instantiate a prefab under <paramref name="parent"/> with a consistent name and logging.
         /// Returns the created GameObject or null on failure.
         /// </summary>
-        public static GameObject TryInstantiatePrefab(GameObject prefab, Transform parent, string name = null, string context = null)
+        public static GameObject TryInstantiatePrefab(
+            GameObject prefab,
+            Transform parent,
+            string name = null,
+            string context = null
+        )
         {
             if (prefab == null)
             {
@@ -41,7 +46,13 @@ namespace Turnroot.Gameplay.Brain
         /// Assigns a runtime animator controller if present, logs a single consistent warning if missing,
         /// and optionally calls <see cref="SetupWalkAnimation"/> to complete setup.
         /// </summary>
-        public void AssignAnimatorController(Animator animator, RuntimeAnimatorController controllerToUse, GameObject model = null, CharacterInstance unit = null, bool callSetupWalk = false)
+        public void AssignAnimatorController(
+            Animator animator,
+            RuntimeAnimatorController controllerToUse,
+            GameObject model = null,
+            CharacterInstance unit = null,
+            bool callSetupWalk = false
+        )
         {
             if (animator == null)
             {
@@ -54,8 +65,11 @@ namespace Turnroot.Gameplay.Brain
             }
             else
             {
-                var displayName = unit?.CharacterTemplate?.DisplayName ?? model?.name ?? "<unknown>";
-                LogWarning($"No animator controller available for {displayName}. Set MountAnimator on class or DefaultUnitAnimatorController in settings.");
+                var displayName =
+                    unit?.CharacterTemplate?.DisplayName ?? model?.name ?? "<unknown>";
+                LogWarning(
+                    $"No animator controller available for {displayName}. Set MountAnimator on class or DefaultUnitAnimatorController in settings."
+                );
             }
 
             if (callSetupWalk && model != null && unit != null)

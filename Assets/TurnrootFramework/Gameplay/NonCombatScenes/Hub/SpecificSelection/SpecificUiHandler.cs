@@ -55,8 +55,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CurrentSubLocation = subLocation;
             CurrentPoi = poi;
 
-            hubManager?.MainOverlayUiFade?.Hide();
-            hubManager?.SublocationInput?.FocusOverlayFade?.Hide();
+            hubManager.MainOverlayUiFade?.Hide();
+            hubManager.FocusOverlayFade?.Hide();
 
             if (type == HubPoiType.MarketPOI)
             {

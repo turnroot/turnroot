@@ -12,6 +12,8 @@ namespace Turnroot.UI
         public string SelectedSkinColor { get; private set; }
         public string SelectedHairStyle { get; private set; }
         public string SelectedVoice { get; private set; }
+        public string SelectedFacialAccessory { get; private set; }
+        public string SelectedOutfit { get; private set; }
 
         public void Initialize()
         {
@@ -50,6 +52,18 @@ namespace Turnroot.UI
                         scroller.scroller.OnChange += voice =>
                         {
                             SelectedVoice = voice;
+                        };
+                        break;
+                    case ScrollerType.FacialAccessory:
+                        scroller.scroller.OnChange += accessory =>
+                        {
+                            SelectedFacialAccessory = accessory;
+                        };
+                        break;
+                    case ScrollerType.Outfit:
+                        scroller.scroller.OnChange += outfit =>
+                        {
+                            SelectedOutfit = outfit;
                         };
                         break;
                 }

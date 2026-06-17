@@ -1,27 +1,29 @@
 using System.Collections;
 using Cinemachine;
+using NaughtyAttributes;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    [RequireComponent(typeof(HubManager))]
-    public class HubSubInput : MonoBehaviour
+    public partial class HubManager : MonoBehaviour
     {
-        // Absolute degree limits from the default hub traversal camera base orientation; use positive values.
-        // World-space tilt is clamped to [default - up,down], even when returning from POI.
+        [BoxGroup("Look/Traversal Settings")]
         public float MaxTiltUp;
+
+        [BoxGroup("Look/Traversal Settings")]
         public float MaxTiltDown;
 
         [Tooltip("Time it takes to reach the target rotation (seconds)")]
+        [BoxGroup("Look/Traversal Settings")]
         public float lookSmoothTime = 0.15f;
         private Coroutine _lookCoroutine;
 
         // degrees per second movement when axis input is present.
+        [BoxGroup("Look/Traversal Settings")]
         public float lookStep = 10f;
 
         private Vector3 _baseRotation;
@@ -32,40 +34,48 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private HubManager hubManager;
 
-        [Header("Cameras")]
+        [BoxGroup("Look/Traversal Settings")]
         [Tooltip("Single traversal vcam used for both exploring and zooming")]
         public CinemachineVirtualCamera TraversalVcam;
         private Camera hubCamera;
         private Collider targetCollider;
+
+        [BoxGroup("Look/Traversal Settings")]
         public float maxPoiDistance = 10f;
         private bool _isLooking;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
+        [BoxGroup("Look/Traversal Settings")]
         public LayerMask poiLayerMask;
 
         [UnityEngine.Serialization.FormerlySerializedAs("normalFov")]
+        [BoxGroup("Look/Traversal Settings")]
         public float ExploreFOV = 60f;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomedFov")]
+        [BoxGroup("Look/Traversal Settings")]
         public float ZoomFOV = 30f;
 
         [Tooltip("Seconds used to blend between ExploreFOV and ZoomFOV")]
+        [BoxGroup("Look/Traversal Settings")]
         public float zoomTime = 0.2f;
 
+        [BoxGroup("Look/Traversal Settings")]
         public UIFade FocusOverlayFade;
 
-        [Header("Third Person Walk (Phase 1)")]
+        [BoxGroup("Look/Traversal Settings")]
         [Tooltip(
             "When enabled, non-zoom input is routed into ThirdPersonAdapter instead of hub camera look."
         )]
         public bool useThirdPersonWalkWhenUnzoomed = true;
 
-        [Tooltip("Optional adapter that receives move/look from shared hub input actions.")]
+        [BoxGroup("Look/Traversal Settings")]
         public HubThirdPersonAdapter ThirdPersonAdapter;
 
         [Tooltip(
             "Radius used when casting out of the camera. A larger value gives you a bigger forgiveness window around the centre of the view."
         )]
+        [BoxGroup("Look/Traversal Settings")]
         public float zoomCastRadius = 0.25f;
         private bool _isPoiActive;
         private bool _isZoomed;
@@ -400,8 +410,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            var poi = targetCollider.GetComponent<HubPoiUi>();
-            if (poi != null)
+            if (targetCollider.TryGetComponent<HubPoiUi>(out var poi))
             {
                 poi.Hide();
             }

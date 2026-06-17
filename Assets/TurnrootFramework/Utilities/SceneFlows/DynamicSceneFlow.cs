@@ -345,10 +345,6 @@ namespace Turnroot.Utilities.AbstractScripts
             }
             else
             {
-                // Explicitly show the loading screen before starting the transition so it
-                // begins fading in immediately. LoadSceneAsync waits LoadingFadeInTime before
-                // touching the scene, giving the fade time to complete — mirroring the
-                // BattleChoiceUI pattern.
                 loadingScreen?.Show();
             }
 
@@ -380,18 +376,10 @@ namespace Turnroot.Utilities.AbstractScripts
         {
             if (brain?.stateBrain == null || string.IsNullOrEmpty(stateId))
             {
-                if (brain == null)
-                {
-                    "DynamicSceneFlow: Cannot set state - brain is null".LogError(
-                        "DynamicSceneFlow.SetBrainStateFromSegment"
-                    );
-                }
-                else if (brain.stateBrain == null)
-                {
-                    "DynamicSceneFlow: Cannot set state - stateBrain is null".LogError(
-                        "DynamicSceneFlow.SetBrainStateFromSegment"
-                    );
-                }
+                "DynamicSceneFlow: Cannot set state".LogWarning(
+                    "DynamicSceneFlow.SetBrainStateFromSegment"
+                );
+
                 return;
             }
 
