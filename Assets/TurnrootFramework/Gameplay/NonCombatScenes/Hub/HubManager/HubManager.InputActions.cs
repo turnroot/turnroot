@@ -158,11 +158,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private OperationResult<TraversalStartContext> TryBuildTraversalStartContext()
         {
             var validation = OperationResultGuards.All(
-                OperationResultGuards.RequireNotNull(SublocationInput, nameof(SublocationInput)),
-                OperationResultGuards.RequireNotNull(
-                    SublocationInput?.ThirdPersonAdapter,
-                    "SublocationInput.ThirdPersonAdapter"
-                ),
                 OperationResultGuards.RequireNotNull(GeneralCamera, nameof(GeneralCamera)),
                 OperationResultGuards.RequireNotNull(
                     GetHubCharacterManager(),
@@ -185,7 +180,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var context = new TraversalStartContext
             {
                 TraversalPoint = traversalPoint,
-                Adapter = SublocationInput.ThirdPersonAdapter,
+                Adapter = ThirdPersonAdapter,
                 CharacterManager = GetHubCharacterManager(),
             };
 

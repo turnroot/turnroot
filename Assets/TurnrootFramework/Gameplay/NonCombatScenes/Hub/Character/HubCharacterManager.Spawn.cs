@@ -181,7 +181,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             return _hubManager;
         }
 
-        private HubThirdPersonAdapter GetThirdPersonAdapter() =>
-            GetHubManager()?.SublocationInput?.ThirdPersonAdapter;
+        private HubThirdPersonAdapter GetThirdPersonAdapter() => GetHubManager().ThirdPersonAdapter;
     }
 }
