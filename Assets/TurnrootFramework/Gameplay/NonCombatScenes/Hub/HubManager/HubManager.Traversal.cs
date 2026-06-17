@@ -69,9 +69,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )]
         public bool useThirdPersonWalkWhenUnzoomed = true;
 
-        [BoxGroup("Look/Traversal Settings")]
-        public HubThirdPersonAdapter ThirdPersonAdapter;
-
         [Tooltip(
             "Radius used when casting out of the camera. A larger value gives you a bigger forgiveness window around the centre of the view."
         )]
@@ -154,7 +151,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _isZoomed = false;
                 _wasZoomPressed = false;
                 SetTraversalFovImmediate(ExploreFOV);
-                ThirdPersonAdapter?.SetWalkMode(false);
+                SetWalkMode(false);
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
             }
@@ -170,7 +167,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool _wasRunPressed;
 
-        private void Awake() => hubManager = GetComponent<HubManager>();
+        private void Awake()
+        {
+            if (NavMeshAgent != null)
+            {
+                NavMeshAgent.updateRotation = false;
+                NavMeshAgent.updatePosition = true;
+                NavMeshAgent.speed = MoveSpeed;
+            }
+        }
 
         private void Update()
         {
@@ -181,24 +186,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (hubCamera == null)
             {
-                hubCamera = hubManager.GeneralCamera;
+                hubCamera = GeneralCamera;
             }
 
-            var cameraValidation = OperationResultGuards.RequireNotNull(
-                hubCamera,
-                nameof(hubCamera)
-            );
-            if (!cameraValidation.Success)
-            {
-                if (!_loggedMissingHubCamera)
-                {
-                    $"HubSubInput: Traversal input aborted. {cameraValidation.ErrorMessage}".LogError();
-                    _loggedMissingHubCamera = true;
-                }
-
-                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
-                return;
-            }
+            HandleWalk();
 
             UpdateZoomToggle();
 
@@ -228,12 +219,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void UpdateRunning(bool isRunning)
         {
-            if (ThirdPersonAdapter == null)
-            {
-                return;
-            }
-
-            ThirdPersonAdapter.SetRunning(isRunning);
+            SetRunning(isRunning);
         }
 
         private bool TryHandleThirdPersonMode(Vector2 moveInput, Vector2 lookInput)
@@ -242,33 +228,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!shouldUseThirdPersonWalk)
             {
-                if (ThirdPersonAdapter != null)
-                {
-                    ThirdPersonAdapter.SetWalkMode(false);
-                    ThirdPersonAdapter.SetInput(Vector2.zero, Vector2.zero);
+                SetWalkMode(false);
+                SetInput(Vector2.zero, Vector2.zero);
 
-                    if (_isZoomed)
-                    {
-                        ThirdPersonAdapter.ApplyLookOnly(lookInput);
-                    }
+                if (_isZoomed)
+                {
+                    ApplyLookOnly(lookInput);
                 }
 
                 return false;
             }
 
-            var adapterValidation = OperationResultGuards.RequireNotNull(
-                ThirdPersonAdapter,
-                nameof(ThirdPersonAdapter)
-            );
-            if (!adapterValidation.Success)
-            {
-                $"HubSubInput: Traversal cannot continue. {adapterValidation.ErrorMessage}".LogError();
-                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
-                return true;
-            }
-
-            ThirdPersonAdapter.SetWalkMode(true);
-            ThirdPersonAdapter.SetInput(moveInput, lookInput);
+            SetWalkMode(true);
+            SetInput(moveInput, lookInput);
 
             ClearCurrentPoiTarget();
             FocusOverlayFade?.Hide();

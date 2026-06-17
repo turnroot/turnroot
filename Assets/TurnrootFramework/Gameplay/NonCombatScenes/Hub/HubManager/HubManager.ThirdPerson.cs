@@ -1,15 +1,16 @@
+using NaughtyAttributes;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
-using BrainType = Turnroot.Gameplay.Brain.Brain;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    public class HubThirdPersonAdapter : MonoBehaviour
+    public partial class HubManager : MonoBehaviour
     {
+        [BoxGroup("Third Person Walk Mode")]
         public GameObject[] ObjectsToEnableInWalkMode;
 
-        [Header("Movement Rig")]
+        [BoxGroup("Third Person Walk Mode")]
         [Tooltip(
             "Persistent scene transform that drives traversal movement. The spawned avatar visual "
                 + "model is re-parented onto this transform when bound. NavMeshAgent must be on this "
@@ -20,53 +21,50 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip(
             "NavMeshAgent on MovementRig — the sole movement driver. Handles Y via navmesh projection."
         )]
+        [BoxGroup("Third Person Walk Mode")]
         public NavMeshAgent NavMeshAgent;
 
         [Header("Input Drive")]
-        public bool ConsumeHubInput = true;
+        [BoxGroup("Third Person Walk Mode")]
+        private bool ConsumeHubInput = true;
+
+        [BoxGroup("Third Person Walk Mode")]
         public float MoveSpeed = 3f;
+
+        [BoxGroup("Third Person Walk Mode")]
         public float RunSpeed = 5f;
+
+        [BoxGroup("Third Person Walk Mode")]
         private bool isRunning = false;
+
+        [BoxGroup("Third Person Walk Mode")]
         public float RotationLerp = 12f;
 
-        [Header("Animation (Reuse UnitAppearanceBrain)")]
+        [BoxGroup("Third Person Walk Mode")]
         public float WalkingInputThreshold = 0.05f;
 
-        [Header("Camera Yaw (Cinemachine target)")]
-        [Tooltip(
-            "Required for walk mode. Movement direction is derived from this transform's forward/right, "
+        [BoxGroup("Third Person Walk Mode")]
+        [InfoBox(
+            "Movement direction is derived from this transform's forward/right, "
                 + "and right-stick/mouse input rotates its yaw. Cinemachine's vcam should track this "
                 + "transform (e.g. as its Follow target) so the camera turns when this rotates."
         )]
         public Transform CameraYawRoot;
 
-        [Tooltip("If true, right-stick/mouse X input rotates CameraYawRoot's yaw.")]
+        [InfoBox("If true, right-stick/mouse X input rotates CameraYawRoot's yaw.")]
+        [BoxGroup("Third Person Walk Mode")]
         public bool ApplyLookYaw = true;
 
+        [BoxGroup("Third Person Walk Mode")]
         public float LookYawSpeed = 120f;
 
         private bool _walkMode;
         private Vector2 _moveInput;
         private Vector2 _lookInput;
         private bool _isWalking;
-        private BrainType _brain;
         private Transform _avatarRoot;
         private Animator _avatarAnimator;
         private bool _loggedOffNavMesh;
-
-        private void Awake()
-        {
-            _brain = FindFirstObjectByType<BrainType>();
-
-            if (NavMeshAgent != null)
-            {
-                // We drive rotation ourselves (facing movement direction) and position via Move(),
-                // so let the agent purely follow our calls without its own steering/rotation logic.
-                NavMeshAgent.updateRotation = false;
-                NavMeshAgent.updatePosition = true;
-                NavMeshAgent.speed = MoveSpeed;
-            }
-        }
 
         public void BindAvatar(GameObject avatarModel)
         {
@@ -189,7 +187,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             isRunning = running;
         }
 
-        private void Update()
+        private void HandleWalk()
         {
             if (!_walkMode || !ConsumeHubInput)
             {
