@@ -37,7 +37,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Look/Traversal Settings")]
         [Tooltip("Single traversal vcam used for both exploring and zooming")]
         public CinemachineVirtualCamera TraversalVcam;
-        private Camera hubCamera;
         private Collider targetCollider;
 
         [BoxGroup("Look/Traversal Settings")]
@@ -81,7 +80,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
         private float _cachedUpLimit;
         private float _cachedDownLimit;
-        private bool _loggedMissingHubCamera;
+        private bool _loggedMissingGeneralCamera;
         private Coroutine _zoomFovCoroutine;
 
         public void HandleSubLocationInput(string action)
@@ -134,9 +133,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_isLooking)
             {
-                if (hubCamera == null)
+                if (GeneralCamera == null)
                 {
-                    hubCamera = hubManager.GeneralCamera;
+                    GeneralCamera = hubManager.GeneralCamera;
                 }
 
                 SetTraversalFovImmediate(ExploreFOV);
@@ -157,7 +156,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             // Cinemachine should only drive the camera while look/traversal mode is active.
-            if (hubCamera != null && hubCamera.TryGetComponent<CinemachineBrain>(out var brain))
+            if (
+                GeneralCamera != null
+                && GeneralCamera.TryGetComponent<CinemachineBrain>(out var brain)
+            )
             {
                 brain.enabled = enabled;
             }
@@ -184,20 +186,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (hubCamera == null)
-            {
-                hubCamera = GeneralCamera;
-            }
-
             HandleWalk();
 
             UpdateZoomToggle();
 
             var runAction = UIInputActionDefaults.LeftStickClick;
-            if (runAction == null || !runAction.enabled)
-            {
-                return;
-            }
 
             bool runPressed = runAction.IsPressed();
             if (runPressed && !_wasRunPressed)
@@ -217,10 +210,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void UpdateRunning(bool isRunning)
-        {
-            SetRunning(isRunning);
-        }
+        private void UpdateRunning(bool isRunning) => SetRunning(isRunning);
 
         private bool TryHandleThirdPersonMode(Vector2 moveInput, Vector2 lookInput)
         {
@@ -257,7 +247,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (!_hasBaseRotation)
             {
                 var baseCam = hubManager._brain.cameraBrain;
-                _baseRotation = hubCamera.transform.localEulerAngles;
+                _baseRotation = GeneralCamera.transform.localEulerAngles;
                 _baseRotation.x = baseCam.NormalizeAngle(_baseRotation.x);
                 _baseRotation.y = baseCam.NormalizeAngle(_baseRotation.y);
                 _hasBaseRotation = true;
@@ -285,7 +275,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _lookCoroutine = StartCoroutine(
-                hubManager._brain.cameraBrain.SmoothLook(hubCamera, targetRotation, lookSmoothTime)
+                hubManager._brain.cameraBrain.SmoothLook(
+                    GeneralCamera,
+                    targetRotation,
+                    lookSmoothTime
+                )
             );
             UpdatePoiDetection();
         }
@@ -325,9 +319,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 TraversalVcam.m_Lens = lens;
             }
 
-            if (hubCamera != null)
+            if (GeneralCamera != null)
             {
-                hubCamera.fieldOfView = fov;
+                GeneralCamera.fieldOfView = fov;
             }
         }
 
@@ -390,7 +384,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void UpdatePoiDetection()
         {
-            if (hubCamera == null)
+            if (GeneralCamera == null)
             {
                 return;
             }
@@ -401,8 +395,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            Vector3 origin = hubCamera.transform.position;
-            Vector3 forward = hubCamera.transform.forward;
+            Vector3 origin = GeneralCamera.transform.position;
+            Vector3 forward = GeneralCamera.transform.forward;
 
             bool rayHit = Physics.Raycast(
                 origin,

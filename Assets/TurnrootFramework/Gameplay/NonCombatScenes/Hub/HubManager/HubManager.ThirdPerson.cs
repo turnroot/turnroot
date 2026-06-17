@@ -65,6 +65,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Transform _avatarRoot;
         private Animator _avatarAnimator;
         private bool _loggedOffNavMesh;
+        private bool _cachedWalkReadiness;
+        private bool _hasCachedWalkReadiness = false;
 
         public void BindAvatar(GameObject avatarModel)
         {
@@ -182,10 +184,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _lookInput = Vector2.ClampMagnitude(lookInput, 1f);
         }
 
-        public void SetRunning(bool running)
-        {
-            isRunning = running;
-        }
+        public void SetRunning(bool running) => isRunning = running;
 
         private void HandleWalk()
         {
@@ -194,10 +193,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            var readiness = ValidateWalkReadiness();
-            if (!readiness.Success)
+            var readiness = _cachedWalkReadiness && _hasCachedWalkReadiness;
+            if (!readiness)
             {
-                $"HubThirdPersonAdapter: Disabling walk mode. {readiness.ErrorMessage}".LogError();
+                _cachedWalkReadiness = ValidateWalkReadiness().Success;
+                _hasCachedWalkReadiness = true;
+            }
+            if (!_cachedWalkReadiness)
+            {
+                $"HubThirdPersonAdapter: Disabling walk mode.".LogError();
                 SetWalkMode(false);
                 return;
             }
@@ -207,12 +211,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 TryResolveAnimator();
             }
 
-            // Keep the yaw root glued to the rig's position so Cinemachine's framing
-            // follows movement. Rotation is left alone here — that's player/Cinemachine territory.
             CameraYawRoot.position = MovementRig.position;
 
-            // Apply look first so movement direction this frame is based on the
-            // up-to-date yaw root orientation.
             ApplyLook(_lookInput);
             ApplyMovement(_moveInput);
 
@@ -241,8 +241,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 desiredDirection.Normalize();
             }
 
-            // NavMeshAgent.Move projects the requested motion onto the navmesh surface,
-            // handling Y for us (slopes, steps within the agent's step height, etc.).
             if (isRunning)
             {
                 NavMeshAgent.Move(desiredDirection * RunSpeed * Time.deltaTime);
@@ -263,11 +261,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        /// <summary>
-        /// Rotates <see cref="CameraYawRoot"/>'s yaw based on right-stick/mouse X input.
-        /// This is the only rotation this script applies in response to look input — the
-        /// actual Camera transform is left untouched for Cinemachine to drive.
-        /// </summary>
         private void ApplyLook(Vector2 lookInput)
         {
             if (!ApplyLookYaw || Mathf.Abs(lookInput.x) < 0.01f)
