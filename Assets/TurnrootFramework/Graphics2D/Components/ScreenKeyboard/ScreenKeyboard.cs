@@ -45,7 +45,6 @@ namespace Turnroot.Graphics2D
         private Color pressedColor = new(0.3f, 0.5f, 0.9f);
         private static readonly string[][] keyboardLayout = new string[][]
         {
-            new string[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
             new string[] { "q", "w", "e", "r", "t", "y", "u", "i", "o", "p" },
             new string[] { "a", "s", "d", "f", "g", "h", "j", "k", "l", "-" },
             new string[] { "z", "x", "c", "v", "b", "n", "m", ".", "!", "?" },
