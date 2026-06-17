@@ -8,7 +8,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private struct TraversalStartContext
         {
             public UnityEngine.Transform TraversalPoint;
-            public HubThirdPersonAdapter Adapter;
             public Character.HubCharacterManager CharacterManager;
         }
 
@@ -180,7 +179,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var context = new TraversalStartContext
             {
                 TraversalPoint = traversalPoint,
-                Adapter = ThirdPersonAdapter,
                 CharacterManager = GetHubCharacterManager(),
             };
 
