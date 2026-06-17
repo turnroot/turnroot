@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    public partial class HubTeamLocations
+    public partial class HubManager
     {
         /// <summary>
         /// Returns the best-matching <see cref="HubCharacterLocation"/> for <paramref name="character"/>
@@ -49,22 +50,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             int maxPerLocation
         )
         {
-            // Build a pool of candidate locations, excluding Battlefields.
-            var pool = new System.Collections.Generic.List<HubCharacterSpawnArea>();
+            var pool = new List<HubCharacterSpawnArea>();
             if (spawnAreas != null)
             {
                 foreach (var loc in spawnAreas)
                 {
-                    if (loc != null && loc.LocationName != HubSublocationName.Battlefields)
+                    if (loc != null)
                     {
                         pool.Add(loc);
                     }
                 }
-            }
-
-            if (pool.Count == 0)
-            {
-                return HubSublocationName.Market;
             }
 
             int pickIndex = HubDayRandom.Range(0, pool.Count);
@@ -82,11 +77,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 attempts++;
             }
 
-            // All locations are full — return the first non-Battlefield.
             return pool[0].LocationName;
         }
 
-        private void AssignUnitToLocation(
+        private OperationResult AssignUnitToLocation(
             PlayerTeamRoster roster,
             int rosterIndex,
             Characters.Roster.UnitPlacement unit,
@@ -99,30 +93,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 spawnAreas,
                 l => l.LocationName == desiredLocation
             );
+
             if (assignedLocation == null)
             {
-                return;
+                return OperationResult.Failure(
+                    $"Desired location {desiredLocation} not found among spawn areas."
+                );
             }
 
             assignedLocation.CharactersPresent ??= new CharacterInstance[0];
             if (assignedLocation.CharactersPresent.Length >= maxPerLocation)
             {
-                return;
+                return OperationResult.Failure(
+                    $"Desired location {desiredLocation} is already at max capacity."
+                );
             }
 
             CharacterInstance ci = _charFactory?.CreateOrRecall(unit.CharacterData);
             if (ci == null)
             {
-                return;
+                return OperationResult.Failure(
+                    $"Failed to create or recall CharacterInstance for {unit.CharacterData?.DisplayName}."
+                );
             }
 
-            var list = new System.Collections.Generic.List<CharacterInstance>(
-                assignedLocation.CharactersPresent
-            )
-            {
-                ci,
-            };
+            var list = new List<CharacterInstance>(assignedLocation.CharactersPresent) { ci };
             assignedLocation.CharactersPresent = list.ToArray();
+            return OperationResult.Successful();
         }
 
         private HubSublocationName ResolveAssignedLocationOrRandom(
@@ -131,12 +128,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             int maxPerLocation
         )
         {
-            if (assignedArea != null)
-            {
-                return assignedArea.LocationName;
-            }
-
-            return PickRandomValidLocation(spawnAreas, maxPerLocation);
+            return assignedArea != null
+                ? assignedArea.LocationName
+                : PickRandomValidLocation(spawnAreas, maxPerLocation);
         }
     }
 }

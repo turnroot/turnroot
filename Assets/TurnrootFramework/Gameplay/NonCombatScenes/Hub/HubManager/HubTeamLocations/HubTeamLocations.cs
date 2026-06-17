@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
@@ -24,13 +25,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public bool IsRandomForThisChapter;
     }
 
-    [RequireComponent(typeof(HubManager))]
-    public partial class HubTeamLocations : MonoBehaviour
+    public partial class HubManager : MonoBehaviour
     {
-        private Brain.Brain _brain;
-        private HubManager _hubManager;
         private CharacterFactory _charFactory;
-        private readonly System.Collections.Generic.HashSet<string> _spawnedCharacterIds = new();
+        private readonly HashSet<string> _spawnedCharacterIds = new();
         public HubCharacterLocation[] HubCharacterLocations;
 
         [Tooltip(
@@ -38,10 +36,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )]
         public HubCharacterSpawnArea[] CharacterSpawnAreas;
 
-        public void Initialize(Brain.Brain brain)
+        public void InitializeTeamLocations()
         {
-            _hubManager = GetComponent<HubManager>();
-            _brain = brain;
             _charFactory = new CharacterFactory(_brain.ltm);
 
             CharacterSpawnAreas ??= Array.Empty<HubCharacterSpawnArea>();
@@ -93,7 +89,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (placementMap == null)
             {
-                placementMap = new System.Collections.Generic.Dictionary<int, HubSublocationName>();
+                placementMap = new Dictionary<int, HubSublocationName>();
                 changed = true;
             }
 
@@ -158,7 +154,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (changed)
             {
-                SavePlacement(roster, placementMap);
+                SavePlacement(placementMap);
             }
         }
 
@@ -177,10 +173,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 $"[HubDiag] SetNonRosterUnitsInHub: No saved placement map found — will generate fresh placements".LogInfo(
                     "HubTeamLocations"
                 );
-                placementMap = new System.Collections.Generic.Dictionary<
-                    string,
-                    HubSublocationName
-                >();
+                placementMap = new Dictionary<string, HubSublocationName>();
                 changed = true;
             }
             else
@@ -191,7 +184,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             // Iterate distinct characters, picking the best entry per chapter.
-            var seen = new System.Collections.Generic.HashSet<CharacterData>();
+            NonRosterUnitLocations(roster, placementMap, spawnAreas, maxPerLocation, ref changed);
+
+            if (changed)
+            {
+                SaveNonRosterPlacement(placementMap);
+            }
+        }
+
+        private void NonRosterUnitLocations(
+            PlayerTeamRoster roster,
+            Dictionary<string, HubSublocationName> placementMap,
+            HubCharacterSpawnArea[] spawnAreas,
+            int maxPerLocation,
+            ref bool changed
+        )
+        {
+            var seen = new HashSet<CharacterData>();
             foreach (var entry in HubCharacterLocations)
             {
                 if (entry.Character == null || !seen.Add(entry.Character))
@@ -278,18 +287,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                var list = new System.Collections.Generic.List<CharacterInstance>(
-                    location.CharactersPresent
-                )
-                {
-                    instance,
-                };
+                var list = new List<CharacterInstance>(location.CharactersPresent) { instance };
                 location.CharactersPresent = list.ToArray();
-            }
-
-            if (changed)
-            {
-                SaveNonRosterPlacement(placementMap);
             }
         }
     }

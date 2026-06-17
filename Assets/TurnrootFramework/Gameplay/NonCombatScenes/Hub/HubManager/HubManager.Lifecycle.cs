@@ -149,13 +149,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 var discoveredLocations = FindObjectsByType<HubCharacterSpawnArea>(
                     FindObjectsSortMode.None
                 );
-                var teamLocations = GetComponent<HubTeamLocations>();
-                teamLocations.CharacterSpawnAreas = discoveredLocations;
-                teamLocations.Initialize(_brain);
-            }
-            else
-            {
-                GetComponent<HubTeamLocations>().gameObject.SetActive(false);
+                CharacterSpawnAreas = discoveredLocations;
+                InitializeTeamLocations();
             }
 
             CacheSpawnPointHeights();

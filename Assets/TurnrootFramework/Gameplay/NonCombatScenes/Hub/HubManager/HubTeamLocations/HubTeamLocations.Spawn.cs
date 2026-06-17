@@ -4,19 +4,22 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    public partial class HubTeamLocations
+    public partial class HubManager
     {
-        public void SpawnCharactersForLocation(HubCharacterSpawnArea location, Brain.Brain brain)
+        private OperationResult ValidateSpawnability(
+            HubCharacterSpawnArea location,
+            Brain.Brain brain
+        )
         {
             if (location == null)
             {
-                return;
+                return OperationResult.Failure("Cannot spawn characters for a null location");
             }
 
             if (brain == null)
             {
                 $"HubCharacterSpawnArea {location.LocationName}: Cannot spawn characters because Brain is null".LogWarning();
-                return;
+                return OperationResult.Failure("Cannot spawn characters because Brain is null");
             }
 
             if (location.CharactersPresent == null || location.CharactersPresent.Length == 0)
@@ -32,12 +35,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     }
                 }
 
-                return;
+                return OperationResult.Failure("No characters assigned to this location");
             }
 
             if (location.UnitSpawnPoints == null || location.UnitSpawnPoints.Length == 0)
             {
                 $"HubCharacterSpawnArea {location.LocationName}: No spawn points set for this area".LogWarning();
+                return OperationResult.Failure("No spawn points set for this area");
+            }
+            return OperationResult.Successful();
+        }
+
+        public void SpawnCharactersForLocation(HubCharacterSpawnArea location, Brain.Brain brain)
+        {
+            if (!ValidateSpawnability(location, brain).Success)
+            {
                 return;
             }
 
@@ -62,9 +74,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     spawnPointIndices[i]
                 );
             }
-
-            var hubManager =
-                _hubManager != null ? _hubManager : FindFirstObjectByType<HubManager>();
 
             var usedSpawnPoints = new HashSet<Transform>();
 
