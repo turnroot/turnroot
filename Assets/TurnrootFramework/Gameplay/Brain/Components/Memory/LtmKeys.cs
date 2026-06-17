@@ -23,6 +23,12 @@ namespace Turnroot.Gameplay.Brain
             "CharactersBrain.AvatarSelectedHeadAccessory";
         public const string AvatarSelectedOutfit = "CharactersBrain.AvatarSelectedFullOutfit";
 
+        public const string AvatarSelectedVoice = "CharactersBrain.AvatarSelectedVoice";
+
+        public const string AvatarDisplayName = "CharactersBrain.AvatarDisplayName";
+        public const string AvatarFullName = "CharactersBrain.AvatarFullName";
+        public const string AvatarPronouns = "CharactersBrain.AvatarPronouns";
+
         #endregion
 
         #region StateBrain Keys
