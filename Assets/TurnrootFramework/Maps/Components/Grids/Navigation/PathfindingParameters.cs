@@ -43,7 +43,7 @@ namespace Turnroot.Gameplay.Maps
                     if (res.Success)
                     {
                         // Persist the updated character so future recalls include the class
-                        var brain = UnityEngine.Object.FindFirstObjectByType<Brain.Brain>();
+                        var brain = GetAndCacheBrain.GetBrain();
                         brain?.gamewideContextBrain?.PersistCharacter(
                             character,
                             updateIndex: false

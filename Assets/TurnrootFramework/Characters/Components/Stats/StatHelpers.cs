@@ -191,9 +191,6 @@ namespace Turnroot.Characters.Stats
                 current,
                 min;
         }
-
-        private static Brain GetBrain() => UnityEngine.Object.FindFirstObjectByType<Brain>();
-
         private static bool TryLoadBoundedFromLtm(
             BoundedStatType type,
             string templateId,
@@ -206,7 +203,7 @@ namespace Turnroot.Characters.Stats
                 return false;
             }
 
-            var cb = GetBrain()?.charactersBrain;
+            var cb = GetAndCacheBrain.GetBrain()?.charactersBrain;
             return cb?.TryGetTemplateBoundedDefault(templateId, type, out values) ?? false;
         }
 
@@ -221,7 +218,7 @@ namespace Turnroot.Characters.Stats
                 return;
             }
 
-            GetBrain()
+            GetAndCacheBrain.GetBrain()
                 ?.charactersBrain.SaveTemplateBoundedDefault(
                     templateId,
                     type,
@@ -241,7 +238,7 @@ namespace Turnroot.Characters.Stats
                 return false;
             }
 
-            var cb = GetBrain()?.charactersBrain;
+            var cb = GetAndCacheBrain.GetBrain()?.charactersBrain;
             return cb?.TryGetTemplateUnboundedDefault(templateId, type, out value) ?? false;
         }
 
@@ -256,7 +253,7 @@ namespace Turnroot.Characters.Stats
                 return;
             }
 
-            GetBrain()
+            GetAndCacheBrain.GetBrain()
                 ?.charactersBrain.SaveTemplateUnboundedDefault(templateId, type, stat.Current);
         }
         #endregion

@@ -25,7 +25,7 @@ namespace Turnroot.Characters.CharacterClass
                 );
             }
 
-            var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+            var brain = GetAndCacheBrain.GetBrain();
 
             foreach (var minimum in minimums)
             {

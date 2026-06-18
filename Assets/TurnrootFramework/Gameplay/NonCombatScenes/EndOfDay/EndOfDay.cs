@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 "EndOfDay: Weather reference is missing".LogError();
             }
 
-            var brain = FindFirstObjectByType<Brain.Brain>();
+            var brain = GetAndCacheBrain.GetBrain();
             if (brain != null)
             {
                 var date = brain.ltm.GetGameDate();

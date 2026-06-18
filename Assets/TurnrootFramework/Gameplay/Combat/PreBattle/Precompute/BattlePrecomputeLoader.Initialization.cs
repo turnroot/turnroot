@@ -32,7 +32,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 return;
             }
 
-            var brain = FindFirstObjectByType<Brain.Brain>();
+            var brain = GetAndCacheBrain.GetBrain();
             if (brain != null)
             {
                 var res = Initialize(brain);

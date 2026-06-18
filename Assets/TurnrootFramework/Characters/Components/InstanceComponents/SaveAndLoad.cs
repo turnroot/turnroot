@@ -57,7 +57,7 @@ namespace Turnroot.Characters
         {
             try
             {
-                var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
+                var brain = GetAndCacheBrain.GetBrain();
                 var ltm = brain?.ltm;
                 if (ltm == null)
                 {
@@ -368,7 +368,7 @@ namespace Turnroot.Characters
             {
                 try
                 {
-                    var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
+                    var brain = GetAndCacheBrain.GetBrain();
                     if (brain != null)
                     {
                         brain.OnLtmKeyCacheUpdated -= OnBrainLtmKeyCacheUpdated;
@@ -443,7 +443,7 @@ namespace Turnroot.Characters
 
             try
             {
-                var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
+                var brain = GetAndCacheBrain.GetBrain();
                 var ltm = brain?.GetComponent<LongTermMemory>();
                 if (ltm == null || !ltm.Initialized)
                 {
@@ -476,8 +476,8 @@ namespace Turnroot.Characters
 
             try
             {
-                var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
-                var ltm = brain?.GetComponent<LongTermMemory>();
+                var brain = GetAndCacheBrain.GetBrain();
+                var ltm = brain.ltm;
 
                 if (ltm == null || !ltm.Initialized)
                 {
@@ -524,7 +524,7 @@ namespace Turnroot.Characters
             {
                 try
                 {
-                    var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
+                    var brain = GetAndCacheBrain.GetBrain();
                     if (brain != null)
                     {
                         brain.OnLtmKeyCacheUpdated -= OnBrainLtmStatRestoreDeferred;

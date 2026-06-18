@@ -39,7 +39,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void Awake()
         {
-            _brain = FindFirstObjectByType<Brain.Brain>();
+            _brain = GetAndCacheBrain.GetBrain();
             _specificUiHandler = FindFirstObjectByType<SpecificUiHandler>();
 
             if (_specificUiHandler != null)

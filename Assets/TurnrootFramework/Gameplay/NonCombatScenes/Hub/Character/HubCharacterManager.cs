@@ -60,8 +60,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void Awake()
         {
-            _brain = FindFirstObjectByType<Brain.Brain>();
-            _audioBrain = _brain?.audioBrain;
+            _brain = GetAndCacheBrain.GetBrain();
+            _audioBrain = _brain.audioBrain;
             _hubManager = FindFirstObjectByType<HubManager>();
 
             if (CharacterInteraction == null)
