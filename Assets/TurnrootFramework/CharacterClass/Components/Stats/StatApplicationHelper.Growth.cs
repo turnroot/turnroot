@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters.Stats;
 using Turnroot.GameSettings;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass
@@ -26,7 +27,7 @@ namespace Turnroot.Characters.CharacterClass
             List<UnboundedStatModifier> classCaps = null
         )
         {
-            var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+            var brain = GetAndCacheBrain.GetBrain();
             var increasedStats = new List<UnboundedStatType>();
 
             if (character == null || baseGrowths == null)
