@@ -172,7 +172,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (traversalPoint == null)
             {
                 return OperationResult<TraversalStartContext>.Failure(
-                    "No traversal entry point is configured. Assign HubManager.TraversalStartAvatarPoint or a valid TeleportPoint."
+                    "No traversal entry point is configured. Assign TraversalStartAvatarPoint or a valid TeleportPoint."
                 );
             }
 

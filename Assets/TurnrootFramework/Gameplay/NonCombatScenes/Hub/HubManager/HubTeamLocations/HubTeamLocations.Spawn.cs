@@ -114,9 +114,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     $"HubCharacterSpawnArea {location.LocationName}: No HubPoiUi found on spawn point or children '{spawnPoint.name}'".LogWarning();
                 }
 
-                float spawnY =
-                    hubManager?.GetSpawnPointHeight(spawnPoint, spawnPoint.position.y)
-                    ?? spawnPoint.position.y;
+                float spawnY = GetSpawnPointHeight(spawnPoint, spawnPoint.position.y);
                 var spawnPosition = new Vector3(
                     spawnPoint.position.x,
                     spawnY,
