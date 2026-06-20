@@ -250,7 +250,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 GeneralCamera.fieldOfView = HubMainFov;
                 BackButtonFade.Hide();
 
-                if (returnPosition.HasValue)
+                if (returnPosition.HasValue && _avatarRoot != null)
                 {
                     _avatarRoot.transform.position = returnPosition.Value;
                 }
@@ -259,6 +259,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     int idx = UnityEngine.Random.Range(0, cameraPoints.Length);
                     Transform dest = cameraPoints[idx];
                     GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
+                }
+                else
+                {
+                    $"Nothing can be done".LogError("HugManager");
                 }
 
                 CurrentLocationName = null;
