@@ -149,14 +149,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
-            var adapter = GetThirdPersonAdapter();
-            if (adapter == null)
-            {
-                "HubCharacterManager: Adapter bind failed. HubSubInput.ThirdPersonAdapter is missing.".LogError();
-                return;
-            }
-
-            adapter.BindAvatar(model);
+            _hubManager.BindAvatar(model);
         }
 
         private void ClearThirdPersonAdapterAvatarIfMatches(GameObject model)
@@ -166,13 +159,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
-            var adapter = GetThirdPersonAdapter();
-            if (adapter == null)
-            {
-                return;
-            }
-
-            adapter.ClearAvatarBindingIfMatches(model);
+            _hubManager.ClearAvatarBindingIfMatches(model);
         }
 
         private HubManager GetHubManager()
@@ -180,8 +167,5 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             _hubManager ??= FindFirstObjectByType<HubManager>();
             return _hubManager;
         }
-
-        private HubThirdPersonAdapter GetThirdPersonAdapter() =>
-            GetHubManager()?.SublocationInput?.ThirdPersonAdapter;
     }
 }

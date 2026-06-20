@@ -26,7 +26,7 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+            var brain = GetAndCacheBrain.GetBrain();
 
             foreach (var modifier in modifiers)
             {

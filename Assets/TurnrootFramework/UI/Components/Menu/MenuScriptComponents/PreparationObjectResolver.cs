@@ -24,7 +24,7 @@ namespace Turnroot.UI.Components
 
         public void InitializeFromInspectorEvent()
         {
-            var brain = FindFirstObjectByType<Brain>();
+            var brain = GetAndCacheBrain.GetBrain();
             Initialize(brain);
         }
 

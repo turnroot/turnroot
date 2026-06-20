@@ -28,10 +28,7 @@ namespace Turnroot.UI
             int maxCount,
             Action onSelect,
             AudioSource navigationSound = null,
-            AudioClip navigationClip = null,
-            bool navigate2D = true,
-            Action on1DL = null,
-            Action on1DR = null
+            AudioClip navigationClip = null
         )
             where T : MonoBehaviour
         {
@@ -59,9 +56,7 @@ namespace Turnroot.UI
                 manager.SendMessage("Deselect", SendMessageOptions.DontRequireReceiver);
             }
 
-            if (
-                action is InputActionConstants.NavigateUp
-            )
+            if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateLeft)
             {
                 if (
                     navigationSound != null
@@ -74,7 +69,7 @@ namespace Turnroot.UI
                 currentIndex = (currentIndex - 1 + maxCount) % maxCount;
             }
             else if (
-                action is InputActionConstants.NavigateDown
+                action is InputActionConstants.NavigateDown or InputActionConstants.NavigateRight
             )
             {
                 if (
@@ -103,38 +98,6 @@ namespace Turnroot.UI
                 {
                     $"UiChoiceHandler onSelect threw: {ex}".LogWarning();
                 }
-                return;
-            }
-            else if (
-                (on1DL != null || on1DR != null)
-                && (
-                    action
-                    is InputActionConstants.NavigateLeft
-                        or InputActionConstants.NavigateRight
-                )
-                && !navigate2D
-            )
-            {
-                try
-                {
-                    if (action is InputActionConstants.NavigateLeft && on1DL != null)
-                    {
-                        on1DL.Invoke();
-                    }
-                    else if (action is InputActionConstants.NavigateRight && on1DR != null)
-                    {
-                        on1DR.Invoke();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    $"UiChoiceHandler on1DLR threw: {ex}".LogWarning();
-                }
-                return;
-            }
-            else
-            {
-                $"UiChoiceHandler: Unrecognized action {action}".LogWarning();
                 return;
             }
 

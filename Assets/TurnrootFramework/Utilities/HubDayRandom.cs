@@ -25,7 +25,7 @@ namespace Turnroot.Utilities
                 return;
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Brain>();
+            var brain = GetAndCacheBrain.GetBrain();
             if (brain == null || brain.ltm == null)
             {
                 return;

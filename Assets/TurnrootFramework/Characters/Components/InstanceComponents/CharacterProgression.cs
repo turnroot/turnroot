@@ -184,7 +184,7 @@ namespace Turnroot.Characters
         {
             try
             {
-                var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
+                var brain = GetAndCacheBrain.GetBrain();
                 var ltm = brain?.GetComponent<Gameplay.Brain.Components.LongTermMemory>();
                 if (ltm == null)
                 {
@@ -234,8 +234,8 @@ namespace Turnroot.Characters
         {
             try
             {
-                var brain = Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
-                var ltm = brain?.GetComponent<Gameplay.Brain.Components.LongTermMemory>();
+                var brain = GetAndCacheBrain.GetBrain();
+                var ltm = brain.ltm;
                 if (ltm == null)
                 {
                     return null;

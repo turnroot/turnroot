@@ -33,17 +33,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 case HubInputMode.Docks:
                 case HubInputMode.Training:
                 case HubInputMode.Traversal:
-                    var subInputValidation = OperationResultGuards.RequireNotNull(
-                        SublocationInput,
-                        nameof(SublocationInput)
-                    );
-                    if (!subInputValidation.Success)
-                    {
-                        $"HubManager: Cannot forward traversal input. {subInputValidation.ErrorMessage}".LogError();
-                        return;
-                    }
-
-                    SublocationInput.HandleSubLocationInput(action);
+                    HandleSubLocationInput(action);
                     break;
                 case HubInputMode.Battlefields:
                     BattleChoiceUi?.ForwardInput(action);
@@ -77,17 +67,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _ => false,
             };
 
-            var subInputValidation = OperationResultGuards.RequireNotNull(
-                SublocationInput,
-                nameof(SublocationInput)
-            );
-            if (!subInputValidation.Success)
-            {
-                $"HubManager: Failed to set input mode '{mode}'. {subInputValidation.ErrorMessage}".LogError();
-                return;
-            }
-
-            SublocationInput.SetLookEnabled(allowLook);
+            SetLookEnabled(allowLook);
         }
 
         public void RevertToPreviousInputMode()

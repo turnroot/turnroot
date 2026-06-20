@@ -8,7 +8,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private struct TraversalStartContext
         {
             public UnityEngine.Transform TraversalPoint;
-            public HubThirdPersonAdapter Adapter;
             public Character.HubCharacterManager CharacterManager;
         }
 
@@ -158,11 +157,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private OperationResult<TraversalStartContext> TryBuildTraversalStartContext()
         {
             var validation = OperationResultGuards.All(
-                OperationResultGuards.RequireNotNull(SublocationInput, nameof(SublocationInput)),
-                OperationResultGuards.RequireNotNull(
-                    SublocationInput?.ThirdPersonAdapter,
-                    "SublocationInput.ThirdPersonAdapter"
-                ),
                 OperationResultGuards.RequireNotNull(GeneralCamera, nameof(GeneralCamera)),
                 OperationResultGuards.RequireNotNull(
                     GetHubCharacterManager(),
@@ -178,14 +172,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (traversalPoint == null)
             {
                 return OperationResult<TraversalStartContext>.Failure(
-                    "No traversal entry point is configured. Assign HubManager.TraversalStartAvatarPoint or a valid TeleportPoint."
+                    "No traversal entry point is configured. Assign TraversalStartAvatarPoint or a valid TeleportPoint."
                 );
             }
 
             var context = new TraversalStartContext
             {
                 TraversalPoint = traversalPoint,
-                Adapter = SublocationInput.ThirdPersonAdapter,
                 CharacterManager = GetHubCharacterManager(),
             };
 
@@ -277,10 +270,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 "HubManager: No available next scene found in SceneFlowBrain".LogWarning();
                 return;
             }
-
-            // Fallback (not ideal, but preserves prior behavior).
-            var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-            UnityEngine.SceneManagement.SceneManager.LoadScene(currentScene);
         }
 
         private void OpenSettingsMenu()

@@ -1,27 +1,29 @@
 using System.Collections;
 using Cinemachine;
+using NaughtyAttributes;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-using static Turnroot.Gameplay.NonCombatScenes.Hub.HubManager;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    [RequireComponent(typeof(HubManager))]
-    public class HubSubInput : MonoBehaviour
+    public partial class HubManager : MonoBehaviour
     {
-        // Absolute degree limits from the default hub traversal camera base orientation; use positive values.
-        // World-space tilt is clamped to [default - up,down], even when returning from POI.
+        [BoxGroup("Look/Traversal Settings")]
         public float MaxTiltUp;
+
+        [BoxGroup("Look/Traversal Settings")]
         public float MaxTiltDown;
 
         [Tooltip("Time it takes to reach the target rotation (seconds)")]
+        [BoxGroup("Look/Traversal Settings")]
         public float lookSmoothTime = 0.15f;
         private Coroutine _lookCoroutine;
 
         // degrees per second movement when axis input is present.
+        [BoxGroup("Look/Traversal Settings")]
         public float lookStep = 10f;
 
         private Vector3 _baseRotation;
@@ -30,42 +32,44 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private float _pitchOffset;
         private float _yawOffset;
 
-        private HubManager hubManager;
-
-        [Header("Cameras")]
+        [BoxGroup("Look/Traversal Settings")]
         [Tooltip("Single traversal vcam used for both exploring and zooming")]
         public CinemachineVirtualCamera TraversalVcam;
-        private Camera hubCamera;
         private Collider targetCollider;
+
+        [BoxGroup("Look/Traversal Settings")]
         public float maxPoiDistance = 10f;
         private bool _isLooking;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
+        [BoxGroup("Look/Traversal Settings")]
         public LayerMask poiLayerMask;
 
         [UnityEngine.Serialization.FormerlySerializedAs("normalFov")]
+        [BoxGroup("Look/Traversal Settings")]
         public float ExploreFOV = 60f;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomedFov")]
+        [BoxGroup("Look/Traversal Settings")]
         public float ZoomFOV = 30f;
 
         [Tooltip("Seconds used to blend between ExploreFOV and ZoomFOV")]
+        [BoxGroup("Look/Traversal Settings")]
         public float zoomTime = 0.2f;
 
+        [BoxGroup("Look/Traversal Settings")]
         public UIFade FocusOverlayFade;
 
-        [Header("Third Person Walk (Phase 1)")]
+        [BoxGroup("Look/Traversal Settings")]
         [Tooltip(
             "When enabled, non-zoom input is routed into ThirdPersonAdapter instead of hub camera look."
         )]
         public bool useThirdPersonWalkWhenUnzoomed = true;
 
-        [Tooltip("Optional adapter that receives move/look from shared hub input actions.")]
-        public HubThirdPersonAdapter ThirdPersonAdapter;
-
         [Tooltip(
             "Radius used when casting out of the camera. A larger value gives you a bigger forgiveness window around the centre of the view."
         )]
+        [BoxGroup("Look/Traversal Settings")]
         public float zoomCastRadius = 0.25f;
         private bool _isPoiActive;
         private bool _isZoomed;
@@ -74,11 +78,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         // Tilt-limit magnitudes cached from inspector values on each SetLookEnabled(true).
         private float _cachedUpLimit;
         private float _cachedDownLimit;
-        private bool _loggedMissingHubCamera;
+        private bool _loggedMissingGeneralCamera;
         private Coroutine _zoomFovCoroutine;
 
         public void HandleSubLocationInput(string action)
         {
+            var currentWorldPosition = _avatarRoot.transform.position;
             if (
                 action
                 is InputActionConstants.Select
@@ -100,7 +105,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
-                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
+                // if we're exploring/walking/traversing, back should take us to the main hub menu with a random locatipn
+                // if we're in a POI menu, back should take us out of the menu and back to exploring/walking/traversing at the same location
+                // we can use DoTransitionBackToHub to go back to the main hub menu
+                // to go back to exploring/walking/traversing, we can just set the input mode back to Location, which will also hide any active POI
+                if (CurrentInputMode == HubInputMode.Location)
+                {
+                    TransitionBackToHub(fadeToBlack: HubFadeToBlack);
+                }
+                else
+                {
+                    SetInputMode(HubInputMode.Location);
+                    TransitionBackToHub(fadeToBlack: HubFadeToBlack, currentWorldPosition);
+                }
             }
         }
 
@@ -127,11 +144,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_isLooking)
             {
-                if (hubCamera == null)
-                {
-                    hubCamera = hubManager.GeneralCamera;
-                }
-
                 SetTraversalFovImmediate(ExploreFOV);
 
                 _hasBaseRotation = false;
@@ -144,13 +156,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _isZoomed = false;
                 _wasZoomPressed = false;
                 SetTraversalFovImmediate(ExploreFOV);
-                ThirdPersonAdapter?.SetWalkMode(false);
+                SetWalkMode(false);
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
             }
 
             // Cinemachine should only drive the camera while look/traversal mode is active.
-            if (hubCamera != null && hubCamera.TryGetComponent<CinemachineBrain>(out var brain))
+            if (
+                GeneralCamera != null
+                && GeneralCamera.TryGetComponent<CinemachineBrain>(out var brain)
+            )
             {
                 brain.enabled = enabled;
             }
@@ -160,7 +175,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool _wasRunPressed;
 
-        private void Awake() => hubManager = GetComponent<HubManager>();
+        private void Awake()
+        {
+            if (NavMeshAgent != null)
+            {
+                NavMeshAgent.updateRotation = false;
+                NavMeshAgent.updatePosition = true;
+                NavMeshAgent.speed = MoveSpeed;
+            }
+        }
 
         private void Update()
         {
@@ -169,34 +192,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (hubCamera == null)
-            {
-                hubCamera = hubManager.GeneralCamera;
-            }
-
-            var cameraValidation = OperationResultGuards.RequireNotNull(
-                hubCamera,
-                nameof(hubCamera)
-            );
-            if (!cameraValidation.Success)
-            {
-                if (!_loggedMissingHubCamera)
-                {
-                    $"HubSubInput: Traversal input aborted. {cameraValidation.ErrorMessage}".LogError();
-                    _loggedMissingHubCamera = true;
-                }
-
-                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
-                return;
-            }
+            HandleWalk();
 
             UpdateZoomToggle();
 
             var runAction = UIInputActionDefaults.LeftStickClick;
-            if (runAction == null || !runAction.enabled)
-            {
-                return;
-            }
 
             bool runPressed = runAction.IsPressed();
             if (runPressed && !_wasRunPressed)
@@ -216,15 +216,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void UpdateRunning(bool isRunning)
-        {
-            if (ThirdPersonAdapter == null)
-            {
-                return;
-            }
-
-            ThirdPersonAdapter.SetRunning(isRunning);
-        }
+        private void UpdateRunning(bool isRunning) => SetRunning(isRunning);
 
         private bool TryHandleThirdPersonMode(Vector2 moveInput, Vector2 lookInput)
         {
@@ -232,33 +224,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!shouldUseThirdPersonWalk)
             {
-                if (ThirdPersonAdapter != null)
-                {
-                    ThirdPersonAdapter.SetWalkMode(false);
-                    ThirdPersonAdapter.SetInput(Vector2.zero, Vector2.zero);
+                SetWalkMode(false);
+                SetInput(Vector2.zero, Vector2.zero);
 
-                    if (_isZoomed)
-                    {
-                        ThirdPersonAdapter.ApplyLookOnly(lookInput);
-                    }
+                if (_isZoomed)
+                {
+                    ApplyLookOnly(lookInput);
                 }
 
                 return false;
             }
 
-            var adapterValidation = OperationResultGuards.RequireNotNull(
-                ThirdPersonAdapter,
-                nameof(ThirdPersonAdapter)
-            );
-            if (!adapterValidation.Success)
-            {
-                $"HubSubInput: Traversal cannot continue. {adapterValidation.ErrorMessage}".LogError();
-                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
-                return true;
-            }
-
-            ThirdPersonAdapter.SetWalkMode(true);
-            ThirdPersonAdapter.SetInput(moveInput, lookInput);
+            SetWalkMode(true);
+            SetInput(moveInput, lookInput);
 
             ClearCurrentPoiTarget();
             FocusOverlayFade?.Hide();
@@ -274,8 +252,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!_hasBaseRotation)
             {
-                var baseCam = hubManager._brain.cameraBrain;
-                _baseRotation = hubCamera.transform.localEulerAngles;
+                var baseCam = _brain.cameraBrain;
+                _baseRotation = GeneralCamera.transform.localEulerAngles;
                 _baseRotation.x = baseCam.NormalizeAngle(_baseRotation.x);
                 _baseRotation.y = baseCam.NormalizeAngle(_baseRotation.y);
                 _hasBaseRotation = true;
@@ -284,7 +262,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             float h = lookInput.x;
             float v = lookInput.y;
 
-            var cam = hubManager._brain.cameraBrain;
+            var cam = _brain.cameraBrain;
 
             _yawOffset += h * lookStep * Time.deltaTime;
             _pitchOffset -= v * lookStep * Time.deltaTime;
@@ -303,7 +281,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _lookCoroutine = StartCoroutine(
-                hubManager._brain.cameraBrain.SmoothLook(hubCamera, targetRotation, lookSmoothTime)
+                _brain.cameraBrain.SmoothLook(GeneralCamera, targetRotation, lookSmoothTime)
             );
             UpdatePoiDetection();
         }
@@ -343,9 +321,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 TraversalVcam.m_Lens = lens;
             }
 
-            if (hubCamera != null)
+            if (GeneralCamera != null)
             {
-                hubCamera.fieldOfView = fov;
+                GeneralCamera.fieldOfView = fov;
             }
         }
 
@@ -400,8 +378,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            var poi = targetCollider.GetComponent<HubPoiUi>();
-            if (poi != null)
+            if (targetCollider.TryGetComponent<HubPoiUi>(out var poi))
             {
                 poi.Hide();
             }
@@ -409,19 +386,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void UpdatePoiDetection()
         {
-            if (hubCamera == null)
+            if (GeneralCamera == null)
             {
                 return;
             }
 
             // skip raycast if Location or Chosen
-            if (hubManager.CurrentInputMode is HubInputMode.Location or HubInputMode.Chosen)
+            if (CurrentInputMode is HubInputMode.Location or HubInputMode.Chosen)
             {
                 return;
             }
 
-            Vector3 origin = hubCamera.transform.position;
-            Vector3 forward = hubCamera.transform.forward;
+            Vector3 origin = GeneralCamera.transform.position;
+            Vector3 forward = GeneralCamera.transform.forward;
 
             bool rayHit = Physics.Raycast(
                 origin,

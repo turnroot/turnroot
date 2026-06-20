@@ -17,6 +17,7 @@ namespace Turnroot.UI
         public Color TextHighlightColor = Color.yellow;
         public Color originalTextColor;
         public TextMeshProUGUI DisplayText;
+        public Action<string> OnChange;
         // Note to self later
         // I'm using Select and Deselect here to move between rows like UIChoice using
         // UIChoiceHandler. Technically this is fully compatible with the UIChoiceHandler,
@@ -52,6 +53,7 @@ namespace Turnroot.UI
             var newIndex = (currentIndex - 1 + Choices.Length) % Choices.Length;
             SelectedChoice = Choices[newIndex];
             DisplayText.text = SelectedChoice;
+            OnChange?.Invoke(SelectedChoice);
         }
 
         public void ScrollRight()
@@ -65,6 +67,7 @@ namespace Turnroot.UI
             var newIndex = (currentIndex + 1) % Choices.Length;
             SelectedChoice = Choices[newIndex];
             DisplayText.text = SelectedChoice;
+            OnChange?.Invoke(SelectedChoice);
         }
 
         public void SetChoices(string[] choices, string defaultChoice = null, bool selected = false)

@@ -21,8 +21,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     }
 
     [RequireComponent(typeof(UiInputProvider))]
-    [RequireComponent(typeof(HubTeamLocations))]
-    [RequireComponent(typeof(HubSubInput))]
     [RequireComponent(typeof(SpecificUiHandler))]
     /// <remarks>
     /// This may need editing for your project, but if you aren't making major logic changes, you should
@@ -152,9 +150,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [HorizontalLine(color: EColor.Indigo)]
         [BoxGroup("Spawn Points")]
-        [InfoBox(
-            "Fallback avatar spawn point used when entering traversal without an active location traversal point."
-        )]
         public Transform TraversalStartAvatarPoint;
 
         [BoxGroup("Spawn Points")]
@@ -232,7 +227,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public void TransitionBackToHub(UIFade fadeToBlack = null)
+        public void TransitionBackToHub(UIFade fadeToBlack = null, Vector3? returnPosition = null)
         {
             void DoReturn()
             {
@@ -251,15 +246,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 GetHubCharacterManager()?.HandleHubOverviewEntered();
 
-                _brain.audioBrain.SetMusic(HubBackgroundMusic);
+                _brain.audioBrain.SetMusic(HubBackgroundMusic, fadeDuration: 1f);
                 GeneralCamera.fieldOfView = HubMainFov;
                 BackButtonFade.Hide();
 
-                if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
+                if (returnPosition.HasValue && _avatarRoot != null)
+                {
+                    _avatarRoot.transform.position = returnPosition.Value;
+                }
+                else if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
                 {
                     int idx = UnityEngine.Random.Range(0, cameraPoints.Length);
                     Transform dest = cameraPoints[idx];
                     GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
+                }
+                else
+                {
+                    $"Nothing can be done".LogError("HugManager");
                 }
 
                 CurrentLocationName = null;
@@ -316,8 +319,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 );
             }
         }
-
-        public HubSubInput SublocationInput => GetComponent<HubSubInput>();
 
         public SpecificUiHandler SpecificUiInputHandler => GetComponent<SpecificUiHandler>();
 

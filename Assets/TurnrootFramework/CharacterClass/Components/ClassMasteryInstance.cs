@@ -63,8 +63,8 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
-            brain?.PublishCharacterClassMasteryTargetUnlocked(owner, classData, 0, skill);
+            var brain = GetAndCacheBrain.GetBrain();
+            brain.PublishCharacterClassMasteryTargetUnlocked(owner, classData, 0, skill);
         }
 
         /// <summary>
@@ -123,8 +123,8 @@ namespace Turnroot.Characters.CharacterClass
 
             _progressPercent = Math.Clamp(_progressPercent + effectivePoints, 0, 100);
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
-            brain?.PublishCharacterClassMasteryProgressChanged(
+            var brain = GetAndCacheBrain.GetBrain();
+            brain.PublishCharacterClassMasteryProgressChanged(
                 owner,
                 classData,
                 0,

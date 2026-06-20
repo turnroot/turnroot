@@ -149,7 +149,7 @@ namespace Turnroot.Utilities.Weather
                     chosenIndex = HubDayRandom.Range(0, selectedSkyboxes.Length);
 
                     // Persist the chosen skybox index so it stays consistent across exits
-                    var brain = FindFirstObjectByType<Brain>();
+                    var brain = GetAndCacheBrain.GetBrain();
                     if (brain != null)
                     {
                         HubDayStateStore.SetSkyboxIndex(brain, chosenIndex);
@@ -357,7 +357,7 @@ namespace Turnroot.Utilities.Weather
                 InstantiateCelMaterialsForRenderers();
             }
 
-            _brain = FindFirstObjectByType<Brain>();
+            _brain = GetAndCacheBrain.GetBrain();
             if (_brain != null)
             {
                 // only the generic change event is needed; it fires after the new
@@ -433,7 +433,7 @@ namespace Turnroot.Utilities.Weather
                 _lastSceneName = sceneName;
 
                 // Prefer persisted weather for this date (so it's the same across play sessions).
-                var brain = FindFirstObjectByType<Brain>();
+                var brain = GetAndCacheBrain.GetBrain();
                 if (brain != null && HubDayStateStore.HasWeather)
                 {
                     CurrentWeatherType = HubDayStateStore.Weather;

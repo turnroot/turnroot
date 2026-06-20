@@ -63,8 +63,8 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
-            brain?.PublishCharacterClassBonusesApplied(character, classData);
+            var brain = GetAndCacheBrain.GetBrain();
+            brain.PublishCharacterClassBonusesApplied(character, classData);
 
             return OperationResult.Successful();
         }
@@ -103,8 +103,8 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            var brain = UnityEngine.Object.FindFirstObjectByType<Gameplay.Brain.Brain>();
-            brain?.PublishCharacterClassBonusesRemoved(character, classData);
+            var brain = GetAndCacheBrain.GetBrain();
+            brain.PublishCharacterClassBonusesRemoved(character, classData);
 
             return OperationResult.Successful();
         }
