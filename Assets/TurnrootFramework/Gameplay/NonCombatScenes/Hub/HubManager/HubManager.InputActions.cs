@@ -270,10 +270,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 "HubManager: No available next scene found in SceneFlowBrain".LogWarning();
                 return;
             }
-
-            // Fallback (not ideal, but preserves prior behavior).
-            var currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-            UnityEngine.SceneManagement.SceneManager.LoadScene(currentScene);
         }
 
         private void OpenSettingsMenu()

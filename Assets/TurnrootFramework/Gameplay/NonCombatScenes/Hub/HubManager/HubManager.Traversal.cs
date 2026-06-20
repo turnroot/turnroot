@@ -83,6 +83,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleSubLocationInput(string action)
         {
+            var currentWorldPosition = _avatarRoot.transform.position;
             if (
                 action
                 is InputActionConstants.Select
@@ -104,7 +105,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
-                TransitionBackToHub(HubFadeToBlack);
+                // if we're exploring/walking/traversing, back should take us to the main hub menu with a random locatipn
+                // if we're in a POI menu, back should take us out of the menu and back to exploring/walking/traversing at the same location
+                // we can use DoTransitionBackToHub to go back to the main hub menu
+                // to go back to exploring/walking/traversing, we can just set the input mode back to Location, which will also hide any active POI
+                if (CurrentInputMode == HubInputMode.Location)
+                {
+                    TransitionBackToHub(fadeToBlack: HubFadeToBlack);
+                }
+                else
+                {
+                    SetInputMode(HubInputMode.Location);
+                    TransitionBackToHub(fadeToBlack: HubFadeToBlack, currentWorldPosition);
+                }
             }
         }
 
@@ -268,11 +281,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _lookCoroutine = StartCoroutine(
-                _brain.cameraBrain.SmoothLook(
-                    GeneralCamera,
-                    targetRotation,
-                    lookSmoothTime
-                )
+                _brain.cameraBrain.SmoothLook(GeneralCamera, targetRotation, lookSmoothTime)
             );
             UpdatePoiDetection();
         }
