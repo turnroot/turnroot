@@ -32,8 +32,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private float _pitchOffset;
         private float _yawOffset;
 
-        private HubManager hubManager;
-
         [BoxGroup("Look/Traversal Settings")]
         [Tooltip("Single traversal vcam used for both exploring and zooming")]
         public CinemachineVirtualCamera TraversalVcam;
@@ -106,7 +104,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
-                hubManager.TransitionBackToHub(hubManager.HubFadeToBlack);
+                TransitionBackToHub(HubFadeToBlack);
             }
         }
 
@@ -133,11 +131,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_isLooking)
             {
-                if (GeneralCamera == null)
-                {
-                    GeneralCamera = hubManager.GeneralCamera;
-                }
-
                 SetTraversalFovImmediate(ExploreFOV);
 
                 _hasBaseRotation = false;
@@ -246,7 +239,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!_hasBaseRotation)
             {
-                var baseCam = hubManager._brain.cameraBrain;
+                var baseCam = _brain.cameraBrain;
                 _baseRotation = GeneralCamera.transform.localEulerAngles;
                 _baseRotation.x = baseCam.NormalizeAngle(_baseRotation.x);
                 _baseRotation.y = baseCam.NormalizeAngle(_baseRotation.y);
@@ -256,7 +249,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             float h = lookInput.x;
             float v = lookInput.y;
 
-            var cam = hubManager._brain.cameraBrain;
+            var cam = _brain.cameraBrain;
 
             _yawOffset += h * lookStep * Time.deltaTime;
             _pitchOffset -= v * lookStep * Time.deltaTime;
@@ -275,7 +268,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _lookCoroutine = StartCoroutine(
-                hubManager._brain.cameraBrain.SmoothLook(
+                _brain.cameraBrain.SmoothLook(
                     GeneralCamera,
                     targetRotation,
                     lookSmoothTime
@@ -390,7 +383,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             // skip raycast if Location or Chosen
-            if (hubManager.CurrentInputMode is HubInputMode.Location or HubInputMode.Chosen)
+            if (CurrentInputMode is HubInputMode.Location or HubInputMode.Chosen)
             {
                 return;
             }

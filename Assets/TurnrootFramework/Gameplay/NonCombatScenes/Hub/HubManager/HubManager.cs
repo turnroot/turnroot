@@ -150,9 +150,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [HorizontalLine(color: EColor.Indigo)]
         [BoxGroup("Spawn Points")]
-        [InfoBox(
-            "Fallback avatar spawn point used when entering traversal without an active location traversal point."
-        )]
         public Transform TraversalStartAvatarPoint;
 
         [BoxGroup("Spawn Points")]
