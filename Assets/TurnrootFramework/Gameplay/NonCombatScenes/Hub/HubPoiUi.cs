@@ -107,9 +107,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Texture ForbiddenBadgeTexture;
         private Texture _currentBadgeTexture;
 
-        [Tooltip("Optional particle effect GameObject to play when the POI is visible.")]
-        public GameObject Particles;
-
         [Tooltip("Toggle whether the badge is shown on this POI.")]
         public bool ShowBadge = false;
 
@@ -180,14 +177,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 poiVisual.SetActive(true);
             }
-            if (Particles != null)
-            {
-                Particles.SetActive(true);
-                if (Particles.TryGetComponent(out ParticleSystem ps))
-                {
-                    ps.Play();
-                }
-            }
 
             StartFade(1f);
             if (UiFx != null && PoiShowSound != null)
@@ -196,14 +185,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public void Hide()
-        {
-            StartFade(0f);
-            if (Particles != null)
-            {
-                Particles.SetActive(false);
-            }
-        }
+        public void Hide() => StartFade(.15f);
 
         #endregion
 
@@ -314,11 +296,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _currentBadgeTexture = BadgeMaterial.mainTexture;
                 SetBadgeTexture(BadgeTexture);
-            }
-
-            if (Particles != null)
-            {
-                Particles.SetActive(false);
             }
         }
 
