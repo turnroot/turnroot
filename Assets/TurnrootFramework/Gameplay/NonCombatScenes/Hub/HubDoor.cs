@@ -85,7 +85,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void OnTriggerExit(Collider other)
         {
             LockedWarningUi.Hide();
-            $"HubDoor: OnTriggerExit with {other.name}, open is {_open}, locked is {Locked}".LogInfo();
             if (other == PlayerCollider)
             {
                 if (_doorCoroutine != null)
@@ -102,16 +101,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private IEnumerator ApproachDoor()
         {
-            $"HubDoor: Approaching door".LogInfo();
             AudioSource.PlayOneShot(DoorOpenSfx);
             onDoorApproached.Invoke();
             // lerp door transform open
             float elapsed = 0f;
             while (elapsed < OpenSpeed)
             {
-                DoorTransformOpen.localRotation = Quaternion.Lerp(
-                    DoorTransformClosed.localRotation,
-                    DoorTransformOpen.localRotation,
+                gameObject.transform.rotation = Quaternion.Lerp(
+                    DoorTransformClosed.rotation,
+                    DoorTransformOpen.rotation,
                     elapsed / OpenSpeed
                 );
                 elapsed += Time.deltaTime;
@@ -139,9 +137,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             float elapsed = 0f;
             while (elapsed < OpenSpeed)
             {
-                DoorTransformOpen.localRotation = Quaternion.Lerp(
-                    DoorTransformOpen.localRotation,
-                    DoorTransformClosed.localRotation,
+                gameObject.transform.rotation = Quaternion.Lerp(
+                    DoorTransformOpen.rotation,
+                    DoorTransformClosed.rotation,
                     elapsed / OpenSpeed
                 );
                 elapsed += Time.deltaTime;
