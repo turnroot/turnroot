@@ -107,9 +107,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             float elapsed = 0f;
             while (elapsed < OpenSpeed)
             {
-                gameObject.transform.rotation = Quaternion.Lerp(
-                    DoorTransformClosed.rotation,
-                    DoorTransformOpen.rotation,
+                gameObject.transform.localRotation = Quaternion.Lerp(
+                    DoorTransformClosed.localRotation,
+                    DoorTransformOpen.localRotation,
                     elapsed / OpenSpeed
                 );
                 elapsed += Time.deltaTime;
@@ -137,9 +137,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             float elapsed = 0f;
             while (elapsed < OpenSpeed)
             {
-                gameObject.transform.rotation = Quaternion.Lerp(
-                    DoorTransformOpen.rotation,
-                    DoorTransformClosed.rotation,
+                gameObject.transform.localRotation = Quaternion.Lerp(
+                    DoorTransformOpen.localRotation,
+                    DoorTransformClosed.localRotation,
                     elapsed / OpenSpeed
                 );
                 elapsed += Time.deltaTime;

@@ -243,11 +243,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (isRunning)
             {
-                NavMeshAgent.Move(desiredDirection * RunSpeed * Time.deltaTime);
+                NavMeshAgent.Move(
+                    ApplyGameSpeedScale(desiredDirection * RunSpeed * Time.deltaTime)
+                );
             }
             else
             {
-                NavMeshAgent.Move(desiredDirection * MoveSpeed * Time.deltaTime);
+                NavMeshAgent.Move(
+                    ApplyGameSpeedScale(desiredDirection * MoveSpeed * Time.deltaTime)
+                );
             }
 
             if (desiredDirection.sqrMagnitude > 0.0001f)
