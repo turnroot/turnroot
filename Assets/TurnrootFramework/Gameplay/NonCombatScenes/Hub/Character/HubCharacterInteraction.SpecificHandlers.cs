@@ -183,7 +183,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             );
             SetUpActionsMenuChoices();
 
-            if (recruitmentOutcome == Turnroot.Gameplay.Brain.RecruitmentAttemptOutcome.Failure)
+            if (recruitmentOutcome == Brain.RecruitmentAttemptOutcome.Failure)
             {
                 var oneShot = CharacterManager.GetDailyOneShotForType(
                     ActiveCharacter,
@@ -198,10 +198,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
-            if (
-                recruitmentOutcome
-                == Turnroot.Gameplay.Brain.RecruitmentAttemptOutcome.NearlySucceeded
-            )
+            if (recruitmentOutcome == Brain.RecruitmentAttemptOutcome.NearlySucceeded)
             {
                 var oneShot = CharacterManager.GetDailyOneShotForType(
                     ActiveCharacter,
