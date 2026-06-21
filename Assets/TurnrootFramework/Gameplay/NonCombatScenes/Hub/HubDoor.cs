@@ -1,4 +1,5 @@
 using System.Collections;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.AI;
@@ -15,7 +16,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [SerializeField]
         private UnityEvent onDoorEntered;
-        private bool _open;
+        private bool _open = false;
 
         [SerializeField]
         public bool Locked;
@@ -58,6 +59,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnTriggerEnter(Collider other)
         {
+            $"HubDoor: OnTriggerEnter with {other.name}, open is {_open}, locked is {Locked}".LogInfo();
             if (Locked)
             {
                 if (other == PlayerCollider)
@@ -83,6 +85,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void OnTriggerExit(Collider other)
         {
             LockedWarningUi.Hide();
+            $"HubDoor: OnTriggerExit with {other.name}, open is {_open}, locked is {Locked}".LogInfo();
             if (other == PlayerCollider)
             {
                 if (_doorCoroutine != null)
@@ -99,6 +102,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private IEnumerator ApproachDoor()
         {
+            $"HubDoor: Approaching door".LogInfo();
             AudioSource.PlayOneShot(DoorOpenSfx);
             onDoorApproached.Invoke();
             // lerp door transform open
