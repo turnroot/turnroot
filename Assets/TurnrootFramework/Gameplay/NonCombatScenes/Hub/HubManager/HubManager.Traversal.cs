@@ -500,5 +500,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             return input;
         }
+
+        private float ApplyGameSpeedScaleFloat(float value)
+        {
+            var gameSpeed = GameplayPlayerSettings.Instance.SpeedSetting;
+
+            switch (gameSpeed)
+            {
+                case GameplayPlayerSettings.GameSpeed.Normal:
+                    break;
+                case GameplayPlayerSettings.GameSpeed.Fast:
+                    value *= 1.25f;
+                    break;
+                case GameplayPlayerSettings.GameSpeed.VeryFast:
+                    value *= 1.5f;
+                    break;
+            }
+
+            return value;
+        }
     }
 }

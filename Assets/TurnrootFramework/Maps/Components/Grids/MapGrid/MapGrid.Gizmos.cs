@@ -57,7 +57,7 @@ namespace Turnroot.Gameplay.Maps
                             Gizmos.color = Color.white;
 #if UNITY_EDITOR
                             UnityEditor.Handles.Label(
-                                p + (Vector3.up * s * 2f),
+                                p + (2f * s * Vector3.up),
                                 _single3dHeightMeshRaycastIndices != null
                                 && i < _single3dHeightMeshRaycastIndices.Length
                                     ? $"({_single3dHeightMeshRaycastIndices[i].x}, {_single3dHeightMeshRaycastIndices[i].y})"
@@ -132,7 +132,7 @@ namespace Turnroot.Gameplay.Maps
                             Gizmos.color = Color.white;
 #if UNITY_EDITOR
                             UnityEditor.Handles.Label(
-                                p + (Vector3.up * s * 2f),
+                                p + (2f * s * Vector3.up),
                                 $"({kv.Key.x}, {kv.Key.y})"
                             );
 #endif
