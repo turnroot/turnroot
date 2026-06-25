@@ -76,6 +76,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Material[] _materialInstances;
         private Camera _camera;
         private Coroutine _fadeCoroutine;
+        private float _activeFadeTarget = float.NaN;
 
         [Tooltip("Text element used to show the POI label.")]
         public TextMeshPro Label;
@@ -185,7 +186,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public void Hide() => StartFade(.15f);
+        public void Hide() => StartFade(0f);
 
         #endregion
 
@@ -240,6 +241,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _camera = Camera.main;
             }
+
+            if (poiVisual == null || _camera == null)
+            {
+                return;
+            }
+
             poiVisual.transform.rotation = Quaternion.LookRotation(
                 poiVisual.transform.position - _camera.transform.position
             );
@@ -353,13 +360,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void StartFade(float target)
         {
+            target = Mathf.Clamp01(target);
+
+            if (_fadeCoroutine != null && Mathf.Approximately(_activeFadeTarget, target))
+            {
+                return;
+            }
+
             if (_fadeCoroutine != null)
             {
                 StopCoroutine(_fadeCoroutine);
+                _fadeCoroutine = null;
             }
 
             if (_materialInstances == null || _materialInstances.Length == 0)
             {
+                if (Mathf.Approximately(target, 0f) && poiVisual != null)
+                {
+                    poiVisual.SetActive(false);
+                }
                 return;
             }
 
@@ -373,6 +392,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            _activeFadeTarget = target;
             float start = GetAlpha(_materialInstances[0]);
             _fadeCoroutine = StartCoroutine(FadeRoutine(start, target));
         }
@@ -404,6 +424,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _fadeCoroutine = null;
+            _activeFadeTarget = float.NaN;
         }
 
         private void SetAlpha(float a)
