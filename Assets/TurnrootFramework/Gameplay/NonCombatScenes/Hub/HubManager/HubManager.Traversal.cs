@@ -40,6 +40,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Look/Traversal Settings")]
         public float maxPoiDistance = 10f;
         private bool _isLooking;
+        private HubPoiUi _currentPoiUi;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
         [BoxGroup("Look/Traversal Settings")]
@@ -238,8 +239,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SetWalkMode(true);
             SetInput(moveInput, lookInput);
 
-            ClearCurrentPoiTarget();
-            FocusOverlayFade?.Hide();
+            // Avoid clearing every frame; only clear while unzoomed and a POI is currently active.
+            if (!_isZoomed && _isPoiActive)
+            {
+                ClearCurrentPoiTarget();
+                FocusOverlayFade?.Hide();
+            }
             return true;
         }
 
@@ -368,18 +373,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             HideCurrentPoiTarget();
 
             targetCollider = null;
+            _currentPoiUi = null;
             _isPoiActive = false;
         }
 
         private void HideCurrentPoiTarget()
         {
-            if (targetCollider == null)
+            if (_currentPoiUi != null)
             {
-                "No current POI target to hide".LogInfo();
+                $"Hiding POI {_currentPoiUi.name}".LogInfo();
+                _currentPoiUi.Hide();
                 return;
             }
 
-            if (targetCollider.TryGetComponent<HubPoiUi>(out var poi))
+            if (targetCollider != null && targetCollider.TryGetComponent<HubPoiUi>(out var poi))
             {
                 $"Hiding POI {poi.name}".LogInfo();
                 poi.Hide();
@@ -429,21 +436,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 newTarget = sphereInfo.collider;
             }
 
+            HubPoiUi newPoiUi = null;
             if (newTarget != null)
             {
-                if (!_isPoiActive || newTarget != targetCollider)
+                newPoiUi = newTarget.GetComponent<HubPoiUi>();
+                if (newPoiUi == null)
+                {
+                    newPoiUi = newTarget.GetComponentInParent<HubPoiUi>();
+                }
+            }
+
+            if (newPoiUi != null)
+            {
+                if (!_isPoiActive || newPoiUi != _currentPoiUi)
                 {
                     HideCurrentPoiTarget();
 
                     targetCollider = newTarget;
+                    _currentPoiUi = newPoiUi;
                     _isPoiActive = true;
 
-                    var poi = newTarget.GetComponent<HubPoiUi>();
-                    if (poi != null)
-                    {
-                        poi.Show();
-                        FocusOverlayFade?.Show();
-                    }
+                    newPoiUi.Show();
+                    FocusOverlayFade?.Show();
                 }
             }
             else if (_isPoiActive)
