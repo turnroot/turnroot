@@ -238,13 +238,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             SetWalkMode(true);
             SetInput(moveInput, lookInput);
-
-            // Avoid clearing every frame; only clear while unzoomed and a POI is currently active.
-            if (!_isZoomed && _isPoiActive)
-            {
-                ClearCurrentPoiTarget();
-                FocusOverlayFade?.Hide();
-            }
             return true;
         }
 
@@ -381,14 +374,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (_currentPoiUi != null)
             {
-                $"Hiding POI {_currentPoiUi.name}".LogInfo();
                 _currentPoiUi.Hide();
                 return;
             }
 
             if (targetCollider != null && targetCollider.TryGetComponent<HubPoiUi>(out var poi))
             {
-                $"Hiding POI {poi.name}".LogInfo();
                 poi.Hide();
             }
         }
@@ -403,6 +394,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // skip raycast if Location or Chosen
             if (CurrentInputMode is HubInputMode.Location or HubInputMode.Chosen)
             {
+                if (_isPoiActive)
+                {
+                    ClearCurrentPoiTarget();
+                    FocusOverlayFade?.Hide();
+                }
                 return;
             }
 
