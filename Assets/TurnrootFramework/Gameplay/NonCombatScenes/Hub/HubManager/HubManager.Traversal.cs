@@ -365,7 +365,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void ClearCurrentPoiTarget()
         {
-            "Clearing current POI target".LogInfo();
             HideCurrentPoiTarget();
 
             targetCollider = null;
@@ -374,14 +373,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HideCurrentPoiTarget()
         {
-            "Hiding current POI target".LogInfo();
             if (targetCollider == null)
             {
+                "No current POI target to hide".LogInfo();
                 return;
             }
 
             if (targetCollider.TryGetComponent<HubPoiUi>(out var poi))
             {
+                $"Hiding POI {poi.name}".LogInfo();
                 poi.Hide();
             }
         }
@@ -431,10 +431,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (newTarget != null)
             {
-                $"New POI target detected: {newTarget.name}".LogInfo();
                 if (!_isPoiActive || newTarget != targetCollider)
                 {
-                    $"Switching to new POI target: {newTarget.name}".LogInfo();
                     HideCurrentPoiTarget();
 
                     targetCollider = newTarget;
@@ -450,7 +448,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             else if (_isPoiActive)
             {
-                $"No POI target detected, clearing current target".LogInfo();
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
             }
