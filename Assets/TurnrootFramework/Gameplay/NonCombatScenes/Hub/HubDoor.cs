@@ -135,6 +135,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             AudioSource.PlayOneShot(DoorCloseSfx);
             // lerp door transform closed
             float elapsed = 0f;
+            while (elapsed < 1f)
+            {
+                // add a short delay to prevent door camera clipping
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            elapsed = 0f;
             while (elapsed < OpenSpeed)
             {
                 gameObject.transform.localRotation = Quaternion.Lerp(
