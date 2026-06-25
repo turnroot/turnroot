@@ -24,7 +24,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     }
 
     [RequireComponent(typeof(Collider))]
-    public class HubPoiUi : MonoBehaviour
+    public class HubPoiUi : HubFadableVisualBase
     {
         #region Inspector Fields
 
@@ -50,19 +50,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private Spa _spa;
 
-        [InfoBox(
-            "The root GameObject that contains all visual elements for the POI (icon, badge, etc.)."
-        )]
-        public GameObject poiVisual;
-
         [Tooltip("The target camera transform to move to when this POI is selected.")]
         public Transform CameraPoint;
 
         [Tooltip("If true, selecting this POI moves the camera to the CameraPoint.")]
         public bool MoveCameraOnSelect = true;
-
-        [Tooltip("How long the fade in/out should take.")]
-        public float fadeDuration = 0.25f;
 
         [Tooltip("AudioSource used to play UI sounds for this POI.")]
         public AudioSource UiFx;
@@ -72,11 +64,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [Tooltip("Sound played when this POI is selected.")]
         public AudioClip PoiSelectSound;
-        private Renderer[] _renderers;
-        private Material[] _materialInstances;
-        private Camera _camera;
-        private Coroutine _fadeCoroutine;
-        private float _activeFadeTarget = float.NaN;
 
         [Tooltip("Text element used to show the POI label.")]
         public TextMeshPro Label;
@@ -172,21 +159,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public void Show()
+        public override void Show()
         {
-            if (poiVisual)
-            {
-                poiVisual.SetActive(true);
-            }
-
-            StartFade(1f);
+            base.Show();
             if (UiFx != null && PoiShowSound != null)
             {
                 UiFx.PlayOneShot(PoiShowSound);
             }
         }
-
-        public void Hide() => StartFade(0f);
 
         #endregion
 
@@ -237,19 +217,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void Update()
         {
-            if (_camera == null)
-            {
-                _camera = Camera.main;
-            }
-
-            if (poiVisual == null || _camera == null)
-            {
-                return;
-            }
-
-            poiVisual.transform.rotation = Quaternion.LookRotation(
-                poiVisual.transform.position - _camera.transform.position
-            );
+            FaceCamera();
             if (ChildReferencesSet)
             {
                 return;
@@ -335,133 +303,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void InitializeVisualMaterials()
-        {
-            _renderers = poiVisual.GetComponentsInChildren<Renderer>();
-            if (_renderers == null || _renderers.Length == 0)
-            {
-                return;
-            }
-
-            _materialInstances = new Material[_renderers.Length];
-            for (int i = 0; i < _renderers.Length; i++)
-            {
-                Material baseMat = _renderers[i].sharedMaterial;
-                Material inst = baseMat != null ? Instantiate(baseMat) : null;
-                _materialInstances[i] = inst;
-                if (inst != null)
-                {
-                    _renderers[i].material = inst;
-                }
-            }
-
-            SetAlpha(0f);
-        }
-
-        private void StartFade(float target)
-        {
-            target = Mathf.Clamp01(target);
-
-            if (_fadeCoroutine != null && Mathf.Approximately(_activeFadeTarget, target))
-            {
-                return;
-            }
-
-            if (_fadeCoroutine != null)
-            {
-                StopCoroutine(_fadeCoroutine);
-                _fadeCoroutine = null;
-            }
-
-            if (_materialInstances == null || _materialInstances.Length == 0)
-            {
-                if (Mathf.Approximately(target, 0f) && poiVisual != null)
-                {
-                    poiVisual.SetActive(false);
-                }
-                return;
-            }
-
-            if (!gameObject.activeInHierarchy)
-            {
-                SetAlpha(target);
-                if (Mathf.Approximately(target, 0f) && poiVisual != null)
-                {
-                    poiVisual.SetActive(false);
-                }
-                return;
-            }
-
-            _activeFadeTarget = target;
-            float start = GetAlpha(_materialInstances[0]);
-            _fadeCoroutine = StartCoroutine(FadeRoutine(start, target));
-        }
-
-        private float GetAlpha(Material mat)
-        {
-            return mat == null ? 0f
-                : mat.HasProperty("_Color") ? mat.color.a
-                : mat.HasProperty("_FaceColor") ? mat.GetColor("_FaceColor").a
-                : mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor").a
-                : 1f;
-        }
-
-        private IEnumerator FadeRoutine(float from, float to)
-        {
-            float elapsed = 0f;
-            while (elapsed < fadeDuration)
-            {
-                elapsed += Time.deltaTime;
-                float a = Mathf.Lerp(from, to, elapsed / fadeDuration);
-                SetAlpha(a);
-                yield return null;
-            }
-            SetAlpha(to);
-
-            if (Mathf.Approximately(to, 0f) && poiVisual != null)
-            {
-                poiVisual.SetActive(false);
-            }
-
-            _fadeCoroutine = null;
-            _activeFadeTarget = float.NaN;
-        }
-
-        private void SetAlpha(float a)
-        {
-            if (_materialInstances == null)
-            {
-                return;
-            }
-
-            foreach (var mat in _materialInstances)
-            {
-                if (mat == null)
-                {
-                    continue;
-                }
-
-                if (mat.HasProperty("_Color"))
-                {
-                    Color c = mat.color;
-                    c.a = a;
-                    mat.color = c;
-                }
-                else if (mat.HasProperty("_FaceColor"))
-                {
-                    Color c = mat.GetColor("_FaceColor");
-                    c.a = a;
-                    mat.SetColor("_FaceColor", c);
-                }
-                else if (mat.HasProperty("_BaseColor"))
-                {
-                    Color c = mat.GetColor("_BaseColor");
-                    c.a = a;
-                    mat.SetColor("_BaseColor", c);
-                }
-            }
-        }
-
         #endregion
         #region Selection
         public void Select()
@@ -472,9 +313,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            UiFx?.PlayOneShot(PoiSelectSound);
+            UiFx.PlayOneShot(PoiSelectSound);
 
-            hubmanager?.SpecificUiInputHandler?.SetCurrentSelection(
+            hubmanager.SpecificUiInputHandler.SetCurrentSelection(
                 hubmanager.CurrentLocationName,
                 this
             );
@@ -500,7 +341,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (MoveCameraOnSelect)
                 {
                     if (
-                        hubmanager._brain?.cameraBrain != null
+                        hubmanager._brain.cameraBrain != null
                         && GameplayPlayerSettings.Instance.AnimatedCameraMovement
                     )
                     {
@@ -510,7 +351,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                             fadeDuration
                         );
                     }
-                    else if (hubmanager._brain?.cameraBrain != null)
+                    else if (hubmanager._brain.cameraBrain != null)
                     {
                         _ = hubmanager._brain.cameraBrain.MoveCameraInstant(
                             hubmanager.GeneralCamera,
@@ -522,7 +363,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     // fade to black, move, fade back in (use the same structure as the traversal transition)
                     if (
-                        hubmanager?.HubFadeToBlack != null
+                        hubmanager.HubFadeToBlack != null
                         && hubmanager.GeneralCamera != null
                         && CameraPoint != null
                     )
