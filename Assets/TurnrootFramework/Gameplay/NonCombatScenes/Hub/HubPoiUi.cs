@@ -379,17 +379,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private float GetAlpha(Material mat)
         {
-            if (mat == null)
-            {
-                return 0f;
-            }
-
-            if (mat.HasProperty("_Color"))
-            {
-                return mat.color.a;
-            }
-
-            return mat.HasProperty("_FaceColor") ? mat.GetColor("_FaceColor").a
+            return mat == null ? 0f
+                : mat.HasProperty("_Color") ? mat.color.a
+                : mat.HasProperty("_FaceColor") ? mat.GetColor("_FaceColor").a
                 : mat.HasProperty("_BaseColor") ? mat.GetColor("_BaseColor").a
                 : 1f;
         }
