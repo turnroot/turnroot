@@ -43,6 +43,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (AvatarPosition == null)
             {
+                $"HubSimpleInteraction on {gameObject.name} has no AvatarPosition assigned.".LogWarning();
                 if (HideWhenAvatarMissing && _isVisible)
                 {
                     Hide();
