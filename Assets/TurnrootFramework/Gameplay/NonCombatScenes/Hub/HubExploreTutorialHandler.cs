@@ -24,7 +24,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public TextMeshProUGUI ContentText;
     }
 
-    public class HubExploreTutorialHandler : MonoBehaviour, ISpecificUiTutorialHandler
+    public class HubExploreTutorialHandler : MonoBehaviour, IPageHandler
     {
         [Tooltip("Ordered list of UIFade panels to display as tutorial pages.")]
         public List<HubExploreTutorialPage> Pages = new();
@@ -37,6 +37,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool UsingGamepad = false;
 
+        public int CurrentPageIndex
+        {
+            get => _currentIndex;
+            set => _currentIndex = value;
+        }
+
+        public int PageCount => Pages?.Count ?? 0;
+
         private void Awake()
         {
             _brain = GetAndCacheBrain.GetBrain();
@@ -44,7 +52,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_specificUiHandler != null)
             {
-                _specificUiHandler.ActiveTutorialHandler = this;
+                _specificUiHandler.ActivePageHandler = this;
             }
             else
             {
@@ -61,8 +69,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _currentIndex = 0;
-            Pages[_currentIndex].Fade.Show();
+            this.BeginPageSequence();
         }
 
         private void OnEnable() => InputSystem.onDeviceChange += OnDeviceChange;
@@ -78,61 +85,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (
                 _specificUiHandler != null
-                && ReferenceEquals(_specificUiHandler.ActiveTutorialHandler, this)
+                && ReferenceEquals(_specificUiHandler.ActivePageHandler, this)
             )
             {
-                _specificUiHandler.ActiveTutorialHandler = null;
+                _specificUiHandler.ActivePageHandler = null;
             }
         }
 
-        public void HandleInput(string action)
-        {
-            if (
-                action
-                is InputActionConstants.Select
-                    or InputActionConstants.Start
-                    or InputActionConstants.Submit
-                    or InputActionConstants.Confirm
-            )
-            {
-                Advance();
-            }
-            else if (action is InputActionConstants.Back or InputActionConstants.Cancel)
-            {
-                GoBack();
-            }
-        }
+        public UIFade GetPageFade(int index) => Pages[index].Fade;
 
-        private void Advance()
-        {
-            if (_currentIndex < 0 || Pages == null || Pages.Count == 0)
-            {
-                return;
-            }
+        public void OnPageShown(int index) => SetupPage(index);
 
-            Pages[_currentIndex].Fade.Hide();
-            _currentIndex++;
-
-            if (_currentIndex >= Pages.Count)
-            {
-                Complete();
-                return;
-            }
-
-            SetupPage(_currentIndex);
-        }
-
-        private void GoBack()
-        {
-            if (_currentIndex <= 0)
-            {
-                return;
-            }
-
-            Pages[_currentIndex].Fade.Hide();
-            _currentIndex--;
-            SetupPage(_currentIndex);
-        }
+        public void OnPagesCompleted() => Complete();
 
         private void Complete()
         {

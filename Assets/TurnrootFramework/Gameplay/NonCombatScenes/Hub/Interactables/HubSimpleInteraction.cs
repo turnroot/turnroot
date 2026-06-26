@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    public class HubSimpleInteraction : HubFadableVisualBase
+    public class HubSimpleInteraction : HubFadableVisualBase, IDistanceVisibilityHandler
     {
         [Tooltip("Avatar transform used to decide whether this interaction should be visible.")]
         public Transform AvatarPosition;
@@ -18,6 +18,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public bool HideWhenAvatarMissing = true;
 
         private bool _isVisible;
+        private bool _missingAvatarWarningLogged;
+
+        public bool IsDistanceVisible
+        {
+            get => _isVisible;
+            set => _isVisible = value;
+        }
+
+        public bool MissingAvatarWarningLogged
+        {
+            get => _missingAvatarWarningLogged;
+            set => _missingAvatarWarningLogged = value;
+        }
+
+        Transform IDistanceVisibilityHandler.AvatarPosition => AvatarPosition;
+        float IDistanceVisibilityHandler.ShowDistance => ShowDistance;
+        float IDistanceVisibilityHandler.HideDistance => HideDistance;
+        bool IDistanceVisibilityHandler.HideWhenAvatarMissing => HideWhenAvatarMissing;
+
+        public Vector3 DistanceVisibilityPosition => transform.position;
+
+        public string DistanceVisibilityOwnerName => gameObject.name;
 
         private void Awake()
         {
@@ -36,44 +58,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void Update()
         {
             FaceCamera();
-            UpdateDistanceVisibility();
-        }
-
-        private void UpdateDistanceVisibility()
-        {
-            if (AvatarPosition == null)
-            {
-                if (HideWhenAvatarMissing && _isVisible)
-                {
-                    Hide();
-                    _isVisible = false;
-                }
-                return;
-            }
-
-            float showDistance = Mathf.Max(0f, ShowDistance);
-            float hideDistance = Mathf.Max(showDistance, HideDistance);
-            float sqrDistance = (transform.position - AvatarPosition.position).sqrMagnitude;
-
-            bool shouldShow = _isVisible
-                ? sqrDistance <= (hideDistance * hideDistance)
-                : sqrDistance <= (showDistance * showDistance);
-
-            if (shouldShow == _isVisible)
-            {
-                return;
-            }
-
-            if (shouldShow)
-            {
-                Show();
-            }
-            else
-            {
-                Hide();
-            }
-
-            _isVisible = shouldShow;
+            this.UpdateDistanceVisibility();
         }
     }
 }

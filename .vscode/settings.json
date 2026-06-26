@@ -259,6 +259,10 @@
         {
             "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\NonCombatScenes\\Hub\\BattleChoice\\BattleChoiceUI\\",
             "color": "foldercustomization.AnsiColor112"
+        },
+        {
+            "path": "fe-prototyping\\Assets\\TurnrootFramework\\Gameplay\\NonCombatScenes\\Hub\\Interactables\\",
+            "color": "foldercustomization.AnsiColor39"
         }
     ],
     "omnisharp.excludePaths": [
