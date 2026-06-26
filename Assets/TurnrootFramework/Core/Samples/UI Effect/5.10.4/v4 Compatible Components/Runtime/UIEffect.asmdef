@@ -1,5 +1,5 @@
 {
-    "name": "UIEffect",
+    "name": "TurnrootFramework.UIEffect.Samples",
     "rootNamespace": "",
     "references": [
         "GUID:735c8f008d0ad4caa9cdc4306f1c3042"
