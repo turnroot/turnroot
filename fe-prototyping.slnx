@@ -1,7 +1,5 @@
 ﻿<Solution>
   <Project Path="TurnrootFramework.Runtime.csproj" />
-  <Project Path="Unity.ShaderGraph.Editor.csproj" />
-  <Project Path="Unity.RenderPipelines.Universal.Editor.csproj" />
   <Project Path="TurnrootFramework.Editor.Characters.Components.csproj" />
   <Project Path="Mischief.MDV.Editor.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.Conditions.csproj" />
@@ -9,7 +7,6 @@
   <Project Path="TurnrootFramework.Editor.Utilities.CommonAncestors.csproj" />
   <Project Path="TurnrootFramework.Editor.Utilities.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.csproj" />
-  <Project Path="UIEffect.csproj" />
   <Project Path="TurnrootFramework.Editor.Maps.csproj" />
   <Project Path="TurnrootFramework.Editor.Core.FolderIcons.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.csproj" />
