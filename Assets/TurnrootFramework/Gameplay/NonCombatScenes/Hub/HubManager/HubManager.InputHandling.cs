@@ -18,7 +18,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (SpecificUiInputHandler.ActiveTutorialHandler != null)
+            if (SpecificUiInputHandler.ActivePageHandler != null)
             {
                 SpecificUiInputHandler.HandleInput(action);
                 return;

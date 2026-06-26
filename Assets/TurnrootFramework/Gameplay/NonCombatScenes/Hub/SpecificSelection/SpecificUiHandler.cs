@@ -30,10 +30,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool _waitingForShopExitDialogue;
 
         /// <summary>
-        /// Set by a tutorial handler when a first-visit or Explore tutorial is active.
-        /// Input is forwarded exclusively to the tutorial until it clears this reference.
+        /// Set by a page handler when an interaction's page sequence is active.
+        /// Input is forwarded exclusively to the page handler until it clears this reference.
         /// </summary>
-        public ISpecificUiTutorialHandler ActiveTutorialHandler { get; set; }
+        public IPageHandler ActivePageHandler { get; set; }
 
         // Stored reference so unsubscribe always targets the same object we subscribed to.
         private ConversationController _subscribedController;
@@ -146,9 +146,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleInput(string action)
         {
-            if (ActiveTutorialHandler != null)
+            if (ActivePageHandler != null)
             {
-                ActiveTutorialHandler.HandleInput(action);
+                ActivePageHandler.HandlePageInput(action);
                 return;
             }
 
