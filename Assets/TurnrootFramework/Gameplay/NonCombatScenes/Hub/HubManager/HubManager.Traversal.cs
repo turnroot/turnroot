@@ -35,12 +35,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Look/Traversal Settings")]
         [Tooltip("Single traversal vcam used for both exploring and zooming")]
         public CinemachineVirtualCamera TraversalVcam;
-        private Collider targetCollider;
 
         [BoxGroup("Look/Traversal Settings")]
         public float maxPoiDistance = 10f;
         private bool _isLooking;
-        private HubFadableVisualBase _currentPoiVisual;
+        private IHubSelectable _currentPoiVisual;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
         [BoxGroup("Look/Traversal Settings")]
@@ -93,10 +92,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     or InputActionConstants.Confirm
             )
             {
-                // check if there is a highlighted POI and can be selected
-                if (targetCollider != null)
+                // select whatever is currently highlighted
+                if (_currentPoiVisual != null && _currentPoiVisual.CanSelect)
                 {
-                    _ = TrySelectTarget(targetCollider);
+                    _currentPoiVisual.Select();
                 }
             }
 
@@ -359,26 +358,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void ClearCurrentPoiTarget()
         {
-            HideCurrentPoiTarget();
-
-            targetCollider = null;
+            _currentPoiVisual?.Hide();
             _currentPoiVisual = null;
             _isPoiActive = false;
-        }
-
-        private void HideCurrentPoiTarget()
-        {
-            if (_currentPoiVisual != null)
-            {
-                _currentPoiVisual.Hide();
-                return;
-            }
-
-            var target = GetPoiVisualTarget(targetCollider);
-            if (target != null)
-            {
-                target.Hide();
-            }
         }
 
         private void UpdatePoiDetection()
@@ -419,29 +401,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 poiLayerMask
             );
 
-            Collider newTarget = null;
-            if (rayHit)
-            {
-                newTarget = rayInfo.collider;
-            }
-            else if (sphereHit)
-            {
-                newTarget = sphereInfo.collider;
-            }
+            Collider colliderHit =
+                rayHit ? rayInfo.collider
+                : sphereHit ? sphereInfo.collider
+                : null;
+            float hitDistance =
+                rayHit ? rayInfo.distance
+                : sphereHit ? sphereInfo.distance
+                : 0f;
 
-            HubFadableVisualBase newPoiVisual = GetPoiVisualTarget(newTarget);
-
-            if (newPoiVisual != null)
+            IHubSelectable newTarget = null;
+            if (colliderHit != null && TryGetSelectableTarget(colliderHit, out var fromCollider))
             {
-                if (!_isPoiActive || newPoiVisual != _currentPoiVisual)
+                // ILookTargetable objects cap their own selectable range independently of maxPoiDistance.
+                bool inRange =
+                    fromCollider is not ILookTargetable lt || hitDistance <= lt.LookDistance;
+                if (inRange)
                 {
-                    HideCurrentPoiTarget();
+                    newTarget = fromCollider;
+                }
+            }
 
-                    targetCollider = newTarget;
-                    _currentPoiVisual = newPoiVisual;
+            if (newTarget != null)
+            {
+                if (!_isPoiActive || newTarget != _currentPoiVisual)
+                {
+                    ClearCurrentPoiTarget();
+                    _currentPoiVisual = newTarget;
                     _isPoiActive = true;
-
-                    newPoiVisual.Show();
+                    newTarget.Show();
                     FocusOverlayFade?.Show();
                 }
             }
@@ -452,82 +440,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private static HubFadableVisualBase GetPoiVisualTarget(Collider candidate)
+        private static bool TryGetSelectableTarget(
+            Collider candidate,
+            out IHubSelectable selectable
+        )
         {
-            if (candidate == null)
-            {
-                return null;
-            }
-
-            if (candidate.TryGetComponent<HubPoiUi>(out var poiUi))
-            {
-                return poiUi;
-            }
-
-            if (candidate.TryGetComponent<HubInformation>(out var information))
-            {
-                return information;
-            }
-
-            poiUi = candidate.GetComponentInParent<HubPoiUi>();
-            if (poiUi != null)
-            {
-                return poiUi;
-            }
-
-            information = candidate.GetComponentInParent<HubInformation>();
-            if (information != null)
-            {
-                return information;
-            }
-
-            return null;
-        }
-
-        private static bool TrySelectTarget(Collider candidate)
-        {
+            selectable = null;
             if (candidate == null)
             {
                 return false;
             }
 
-            if (candidate.TryGetComponent<HubPoiUi>(out var poiUi))
+            if (candidate.TryGetComponent<IHubSelectable>(out selectable))
             {
-                if (!poiUi.CanSelect)
-                {
-                    return false;
-                }
-
-                poiUi.Select();
                 return true;
             }
 
-            poiUi = candidate.GetComponentInParent<HubPoiUi>();
-            if (poiUi != null)
-            {
-                if (!poiUi.CanSelect)
-                {
-                    return false;
-                }
-
-                poiUi.Select();
-                return true;
-            }
-
-            if (candidate.TryGetComponent<HubInformation>(out var information))
-            {
-                information.Select();
-                return true;
-            }
-
-            information = candidate.GetComponentInParent<HubInformation>();
-            if (information != null)
-            {
-                information.Select();
-                return true;
-            }
-
-            return false;
+            selectable = candidate.GetComponentInParent<IHubSelectable>();
+            return selectable != null;
         }
 
         private Vector2 GetNavigateMoveInput()
