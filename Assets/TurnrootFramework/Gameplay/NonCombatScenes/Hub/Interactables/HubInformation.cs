@@ -5,48 +5,18 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    public class HubInformation : HubFadableVisualBase, IPageHandler, IDistanceVisibilityHandler
+    [RequireComponent(typeof(Collider))]
+    public class HubInformation : HubFadableVisualBase, ILookTargetable, IPageHandler
     {
-        [Tooltip("Avatar transform used to decide whether this interaction should be visible.")]
-        public Transform AvatarPosition;
-
-        [Tooltip("When hidden, show once the avatar gets within this distance.")]
-        public float ShowDistance = 8f;
-
-        [Tooltip("When visible, stay visible until the avatar exceeds this distance.")]
-        public float HideDistance = 10f;
-
-        [Tooltip("If true, hide this interaction when AvatarPosition is not assigned.")]
-        public bool HideWhenAvatarMissing = true;
-
         [Tooltip("Ordered list of UIFade panels to display as information pages.")]
         public List<UIFade> Pages = new();
 
-        private bool _isVisible;
-        private bool _missingAvatarWarningLogged;
+        [Tooltip("Maximum distance at which the player can highlight this node by looking at it.")]
+        public float LookDistance = 8f;
+
         private int _currentIndex = -1;
         private SpecificUiHandler _specificUiHandler;
-
-        public bool IsDistanceVisible
-        {
-            get => _isVisible;
-            set => _isVisible = value;
-        }
-
-        public bool MissingAvatarWarningLogged
-        {
-            get => _missingAvatarWarningLogged;
-            set => _missingAvatarWarningLogged = value;
-        }
-
-        Transform IDistanceVisibilityHandler.AvatarPosition => AvatarPosition;
-        float IDistanceVisibilityHandler.ShowDistance => ShowDistance;
-        float IDistanceVisibilityHandler.HideDistance => HideDistance;
-        bool IDistanceVisibilityHandler.HideWhenAvatarMissing => HideWhenAvatarMissing;
-
-        public Vector3 DistanceVisibilityPosition => transform.position;
-
-        public string DistanceVisibilityOwnerName => gameObject.name;
+        private HubManager _hubManager;
 
         public int CurrentPageIndex
         {
@@ -56,8 +26,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public int PageCount => Pages?.Count ?? 0;
 
+        public bool CanSelect => enabled && PageCount > 0;
+
+        float ILookTargetable.LookDistance => LookDistance;
+
         private void Awake()
         {
+            _hubManager = FindFirstObjectByType<HubManager>();
+
             if (poiVisual == null)
             {
                 $"HubInformation on {gameObject.name} has no poiVisual assigned, disabling.".LogWarning();
@@ -68,16 +44,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             EnsureSpecificUiHandler();
             InitializeVisualMaterials();
             Hide();
-            _isVisible = false;
-        }
-
-        private void Update()
-        {
-            FaceCamera();
-            this.UpdateDistanceVisibility();
         }
 
         private void OnDisable() => ClosePageSequence();
+
+        private void Update() => FaceCamera();
 
         public void Select()
         {
@@ -86,6 +57,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 "HubInformation: Could not find SpecificUiHandler in scene.".LogWarning();
                 return;
             }
+
+            if (!CanSelect)
+            {
+                $"HubInformation on {gameObject.name} has no pages assigned.".LogWarning();
+                return;
+            }
+
+            _hubManager?.SetInputMode(HubManager.HubInputMode.Chosen);
 
             _specificUiHandler.ActivePageHandler = this;
             this.BeginPageSequence();
@@ -120,6 +99,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _specificUiHandler.ActivePageHandler = null;
             }
+
+            _hubManager?.RevertToPreviousInputMode();
         }
     }
 }

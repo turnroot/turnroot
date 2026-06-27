@@ -24,7 +24,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     }
 
     [RequireComponent(typeof(Collider))]
-    public class HubPoiUi : HubFadableVisualBase
+    public class HubPoiUi : HubFadableVisualBase, IHubSelectable
     {
         #region Inspector Fields
 
@@ -100,6 +100,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [HideInInspector]
         public bool CanSelect = true;
+
+        bool IHubSelectable.CanSelect => CanSelect;
 
         private HubManager hubmanager;
 
