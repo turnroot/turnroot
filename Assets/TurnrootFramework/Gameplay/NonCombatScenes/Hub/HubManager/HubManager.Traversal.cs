@@ -40,7 +40,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Look/Traversal Settings")]
         public float maxPoiDistance = 10f;
         private bool _isLooking;
-        private HubPoiUi _currentPoiUi;
+        private HubFadableVisualBase _currentPoiVisual;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
         [BoxGroup("Look/Traversal Settings")]
@@ -96,11 +96,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 // check if there is a highlighted POI and can be selected
                 if (targetCollider != null)
                 {
-                    var poi = targetCollider.GetComponent<HubPoiUi>();
-                    if (poi != null && poi.CanSelect)
-                    {
-                        poi.Select();
-                    }
+                    _ = TrySelectTarget(targetCollider);
                 }
             }
 
@@ -366,21 +362,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             HideCurrentPoiTarget();
 
             targetCollider = null;
-            _currentPoiUi = null;
+            _currentPoiVisual = null;
             _isPoiActive = false;
         }
 
         private void HideCurrentPoiTarget()
         {
-            if (_currentPoiUi != null)
+            if (_currentPoiVisual != null)
             {
-                _currentPoiUi.Hide();
+                _currentPoiVisual.Hide();
                 return;
             }
 
-            if (targetCollider != null && targetCollider.TryGetComponent<HubPoiUi>(out var poi))
+            var target = GetPoiVisualTarget(targetCollider);
+            if (target != null)
             {
-                poi.Hide();
+                target.Hide();
             }
         }
 
@@ -432,27 +429,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 newTarget = sphereInfo.collider;
             }
 
-            HubPoiUi newPoiUi = null;
-            if (newTarget != null)
-            {
-                newPoiUi = newTarget.GetComponent<HubPoiUi>();
-                if (newPoiUi == null)
-                {
-                    newPoiUi = newTarget.GetComponentInParent<HubPoiUi>();
-                }
-            }
+            HubFadableVisualBase newPoiVisual = GetPoiVisualTarget(newTarget);
 
-            if (newPoiUi != null)
+            if (newPoiVisual != null)
             {
-                if (!_isPoiActive || newPoiUi != _currentPoiUi)
+                if (!_isPoiActive || newPoiVisual != _currentPoiVisual)
                 {
                     HideCurrentPoiTarget();
 
                     targetCollider = newTarget;
-                    _currentPoiUi = newPoiUi;
+                    _currentPoiVisual = newPoiVisual;
                     _isPoiActive = true;
 
-                    newPoiUi.Show();
+                    newPoiVisual.Show();
                     FocusOverlayFade?.Show();
                 }
             }
@@ -461,6 +450,84 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
             }
+        }
+
+        private static HubFadableVisualBase GetPoiVisualTarget(Collider candidate)
+        {
+            if (candidate == null)
+            {
+                return null;
+            }
+
+            if (candidate.TryGetComponent<HubPoiUi>(out var poiUi))
+            {
+                return poiUi;
+            }
+
+            if (candidate.TryGetComponent<HubInformation>(out var information))
+            {
+                return information;
+            }
+
+            poiUi = candidate.GetComponentInParent<HubPoiUi>();
+            if (poiUi != null)
+            {
+                return poiUi;
+            }
+
+            information = candidate.GetComponentInParent<HubInformation>();
+            if (information != null)
+            {
+                return information;
+            }
+
+            return null;
+        }
+
+        private static bool TrySelectTarget(Collider candidate)
+        {
+            if (candidate == null)
+            {
+                return false;
+            }
+
+            if (candidate.TryGetComponent<HubPoiUi>(out var poiUi))
+            {
+                if (!poiUi.CanSelect)
+                {
+                    return false;
+                }
+
+                poiUi.Select();
+                return true;
+            }
+
+            poiUi = candidate.GetComponentInParent<HubPoiUi>();
+            if (poiUi != null)
+            {
+                if (!poiUi.CanSelect)
+                {
+                    return false;
+                }
+
+                poiUi.Select();
+                return true;
+            }
+
+            if (candidate.TryGetComponent<HubInformation>(out var information))
+            {
+                information.Select();
+                return true;
+            }
+
+            information = candidate.GetComponentInParent<HubInformation>();
+            if (information != null)
+            {
+                information.Select();
+                return true;
+            }
+
+            return false;
         }
 
         private Vector2 GetNavigateMoveInput()
