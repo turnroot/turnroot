@@ -72,6 +72,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             PlayPoiSelectSound();
 
             _specificUiHandler.ActivePageHandler = this;
+            PreviousEnabledState = new bool[HideWhenVisible.Length];
             for (int i = 0; i < HideWhenVisible.Length; i++)
             {
                 if (HideWhenVisible[i] != null)
