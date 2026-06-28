@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
@@ -29,6 +30,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public bool CanSelect => enabled && PageCount > 0;
 
         float ILookTargetable.LookDistance => LookDistance;
+
+        public UIFade[] HideWhenVisible;
+        private bool[] PreviousEnabledState;
 
         private void Awake()
         {
@@ -65,8 +69,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _hubManager?.SetInputMode(HubManager.HubInputMode.Chosen);
+            PlayPoiSelectSound();
 
             _specificUiHandler.ActivePageHandler = this;
+            for (int i = 0; i < HideWhenVisible.Length; i++)
+            {
+                if (HideWhenVisible[i] != null)
+                {
+                    PreviousEnabledState[i] = HideWhenVisible[i].Visible;
+                    HideWhenVisible[i].Hide();
+                }
+            }
+
             this.BeginPageSequence();
         }
 
@@ -74,7 +88,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void OnPageShown(int index) { }
 
-        public void OnPagesCompleted() => ClosePageSequence();
+        public void OnPagesCompleted()
+        {
+            ClosePageSequence();
+            for (int i = 0; i < HideWhenVisible.Length; i++)
+            {
+                if (HideWhenVisible[i] != null)
+                {
+                    if (PreviousEnabledState[i])
+                    {
+                        HideWhenVisible[i].Show();
+                    }
+                    else
+                    {
+                        HideWhenVisible[i].Hide();
+                    }
+                }
+            }
+        }
 
         private bool EnsureSpecificUiHandler()
         {
