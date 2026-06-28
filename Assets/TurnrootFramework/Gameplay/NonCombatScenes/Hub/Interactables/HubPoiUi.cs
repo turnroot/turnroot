@@ -56,15 +56,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip("If true, selecting this POI moves the camera to the CameraPoint.")]
         public bool MoveCameraOnSelect = true;
 
-        [Tooltip("AudioSource used to play UI sounds for this POI.")]
-        public AudioSource UiFx;
-
-        [Tooltip("Sound played when the POI becomes visible.")]
-        public AudioClip PoiShowSound;
-
-        [Tooltip("Sound played when this POI is selected.")]
-        public AudioClip PoiSelectSound;
-
         [Tooltip("Text element used to show the POI label.")]
         public TextMeshPro Label;
 
@@ -146,8 +137,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     _badgeMaterialInstance = Instantiate(BadgeMaterial);
                     if (Badge != null)
                     {
-                        Renderer badgeRenderer = Badge.GetComponent<Renderer>();
-                        if (badgeRenderer != null)
+                        if (Badge.TryGetComponent<Renderer>(out var badgeRenderer))
                         {
                             badgeRenderer.material = _badgeMaterialInstance;
                         }
@@ -158,15 +148,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     _badgeMaterialInstance.mainTexture = texture;
                 }
-            }
-        }
-
-        public override void Show()
-        {
-            base.Show();
-            if (UiFx != null && PoiShowSound != null)
-            {
-                UiFx.PlayOneShot(PoiShowSound);
             }
         }
 
@@ -315,7 +296,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            UiFx.PlayOneShot(PoiSelectSound);
+            PlayPoiSelectSound();
 
             hubmanager.SpecificUiInputHandler.SetCurrentSelection(
                 hubmanager.CurrentLocationName,

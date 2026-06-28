@@ -13,6 +13,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip("How long the fade in/out should take.")]
         public float fadeDuration = 0.25f;
 
+        [Tooltip("AudioSource used to play UI sounds for this hub interaction.")]
+        public AudioSource UiFx;
+
+        [Tooltip("Sound played when the POI becomes visible.")]
+        public AudioClip PoiShowSound;
+
+        [Tooltip("Sound played when this POI is selected.")]
+        public AudioClip PoiSelectSound;
+
         protected Renderer[] _renderers;
         protected Material[] _materialInstances;
         private Camera _camera;
@@ -35,9 +44,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             StartFade(1f);
+            PlayPoiShowSound();
         }
 
         public virtual void Hide() => StartFade(0f);
+
+        protected void PlayPoiSelectSound()
+        {
+            if (UiFx != null && PoiSelectSound != null)
+            {
+                UiFx.PlayOneShot(PoiSelectSound);
+            }
+        }
+
+        protected void PlayPoiShowSound()
+        {
+            if (UiFx != null && PoiShowSound != null)
+            {
+                UiFx.PlayOneShot(PoiShowSound);
+            }
+        }
 
         public void FaceCamera()
         {
