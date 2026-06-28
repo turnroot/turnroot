@@ -64,7 +64,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 if (other == PlayerCollider)
                 {
-                    LockedWarningUi.Show();
+                    LockedWarningUi?.Show();
                 }
                 return;
             }
@@ -84,7 +84,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnTriggerExit(Collider other)
         {
-            LockedWarningUi.Hide();
+            LockedWarningUi?.Hide();
             if (other == PlayerCollider)
             {
                 if (_doorCoroutine != null)
@@ -132,7 +132,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private IEnumerator CloseDoor()
         {
-            AudioSource.PlayOneShot(DoorCloseSfx);
             // lerp door transform closed
             float elapsed = 0f;
             while (elapsed < 2f)
@@ -142,6 +141,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 yield return null;
             }
             elapsed = 0f;
+            AudioSource.PlayOneShot(DoorCloseSfx);
             while (elapsed < OpenSpeed)
             {
                 gameObject.transform.localRotation = Quaternion.Lerp(
