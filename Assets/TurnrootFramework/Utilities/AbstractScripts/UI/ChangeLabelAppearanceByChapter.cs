@@ -13,7 +13,8 @@ namespace Turnroot.Utilities.UI
         public Color ImageColor;
         public Sprite ImageSprite;
         public int Chapter;
-        public UIEffect UIEffect;
+        
+        public Gradient gradient;
     }
 
     public class ChangeLabelAppearanceByChapter : MonoBehaviour
@@ -22,18 +23,19 @@ namespace Turnroot.Utilities.UI
         public Image image;
         public TextMeshProUGUI text;
 
+        public UIEffect UIEffect;
+
         public void UpdateLabelAppearance(int chapter)
         {
             foreach (var appearance in LabelAppearances)
             {
-                appearance.UIEffect.enabled = false; // Disable all effects first
-                if (appearance.Chapter == chapter)
+                if (appearance.Chapter <= chapter)
                 {
                     text.color = appearance.TextColor;
                     text.font = appearance.FontAsset;
                     image.color = appearance.ImageColor;
                     image.sprite = appearance.ImageSprite;
-                    appearance.UIEffect.enabled = true;
+                    UIEffect.SetTransitionGradientKeys(appearance.gradient);
                     return;
                 }
             }
