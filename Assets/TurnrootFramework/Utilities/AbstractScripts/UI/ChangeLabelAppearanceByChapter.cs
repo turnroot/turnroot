@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace Turnroot.Utilities.UI
 {
+    [System.Serializable]
     public struct LabelAppearance
     {
         public Color TextColor;
