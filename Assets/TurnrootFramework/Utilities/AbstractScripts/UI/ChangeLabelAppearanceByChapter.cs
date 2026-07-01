@@ -13,7 +13,8 @@ namespace Turnroot.Utilities.UI
         public Color ImageColor;
         public Sprite ImageSprite;
         public int Chapter;
-        
+
+        [GradientUsage(true)]
         public Gradient gradient;
     }
 
