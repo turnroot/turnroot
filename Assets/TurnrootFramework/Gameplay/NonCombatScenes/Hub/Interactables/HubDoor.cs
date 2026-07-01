@@ -59,7 +59,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnTriggerEnter(Collider other)
         {
-            $"HubDoor: OnTriggerEnter with {other.name}, open is {_open}, locked is {Locked}".LogInfo();
             if (Locked)
             {
                 if (other == PlayerCollider)
