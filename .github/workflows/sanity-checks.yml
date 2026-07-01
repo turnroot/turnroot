@@ -41,6 +41,7 @@ jobs:
 
           failures = []   # namespace violations  → fail the job
           warnings = []   # serializable violations → warn only
+          allowed_warnings = 9
 
           # Matches a public struct declaration (covers partial structs too).
           # Does NOT match private/internal/protected structs.
@@ -136,6 +137,9 @@ jobs:
                          "Add [System.Serializable] directly, or [Serializable] with `using System;`")
                   gha_warning(cs_file, msg)
                   warnings.append(f"  ⚠ {cs_file}: {msg}")
+
+              if len(warnings) > allowed_warnings:
+                warnings.append("More structs than the known ones have failed. Add [System.Serializable] or update allowed_warnings")
 
           # ---------------------------------------------------------------
           # Report
