@@ -26,6 +26,8 @@ namespace Turnroot.Utilities.UI
 
         public UIEffect UIEffect;
 
+        private Gameplay.Brain.Brain _brain;
+
         public void UpdateLabelAppearance(int chapter)
         {
             $"ChangeLabelAppearanceByChapter: Updating label appearance for chapter {chapter}".LogInfo();
@@ -47,28 +49,63 @@ namespace Turnroot.Utilities.UI
         private void OnEnable()
         {
             $"ChangeLabelAppearanceByChapter: OnEnable called, subscribing to Brain.OnLongTermMemoryInitialized".LogInfo();
-            var brain = GetAndCacheBrain.GetBrain();
-            if (brain == null)
+            _brain = GetAndCacheBrain.GetBrain();
+            if (_brain == null)
             {
                 $"ChangeLabelAppearanceByChapter: Brain instance not found, cannot subscribe to OnLongTermMemoryInitialized".LogWarning();
                 return;
             }
-            brain.OnLongTermMemoryInitialized += () =>
+
+            if (_brain.ltm != null && _brain.ltm.Initialized)
             {
-                UpdateLabelAppearance(brain.saveFileBrain.ActiveSaveFile.ChapterNumber);
-            };
+                TryUpdateFromActiveSaveFile();
+            }
+            else
+            {
+                _brain.OnLongTermMemoryInitialized += HandleLongTermMemoryInitialized;
+            }
         }
 
         private void OnDisable()
         {
-            var brain = GetAndCacheBrain.GetBrain();
-            if (brain != null)
+            if (_brain != null)
             {
-                brain.OnLongTermMemoryInitialized -= () =>
-                {
-                    UpdateLabelAppearance(brain.saveFileBrain.ActiveSaveFile.ChapterNumber);
-                };
+                _brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
+                _brain = null;
             }
+        }
+
+        private void HandleLongTermMemoryInitialized()
+        {
+            if (_brain != null)
+            {
+                _brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
+            }
+
+            if (_brain == null)
+            {
+                $"ChangeLabelAppearanceByChapter: Brain instance is null in HandleLongTermMemoryInitialized".LogWarning();
+                return;
+            }
+
+            if (_brain.saveFileBrain == null)
+            {
+                $"ChangeLabelAppearanceByChapter: SaveFileBrain is null, cannot update label appearance".LogWarning();
+                return;
+            }
+
+            TryUpdateFromActiveSaveFile();
+        }
+
+        private void TryUpdateFromActiveSaveFile()
+        {
+            if (_brain == null || _brain.saveFileBrain == null)
+            {
+                return;
+            }
+
+            var activeSaveFile = _brain.saveFileBrain.ActiveSaveFile;
+            UpdateLabelAppearance(activeSaveFile.ChapterNumber);
         }
     }
 }
