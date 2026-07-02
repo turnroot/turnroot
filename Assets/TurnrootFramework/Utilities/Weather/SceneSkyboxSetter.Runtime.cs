@@ -219,39 +219,24 @@ namespace Turnroot.Utilities.Weather
 
         public void SetActiveParticles(int month)
         {
-            // Ensure only the current weather's particle systems are active.
-            SetParticlesActive(HeavyRainParticles, false);
-            SetParticlesActive(DrizzleParticles, false);
-            SetParticlesActive(SnowParticles, false);
-            SetParticlesActive(VolcanicAshParticles, false);
+            ApplyWeatherOverlayPreset(month);
+        }
 
-            if (CurrentWeatherType == WeatherType.Rainy)
+        private void ApplyWeatherOverlayPreset(int month)
+        {
+            if (WeatherOverlayController == null)
             {
-                SetParticlesActive(HeavyRainParticles, true);
+                return;
             }
-            else if (CurrentWeatherType == WeatherType.Cloudy)
+
+            WeatherType overlayWeather = CurrentWeatherType;
+            if (CurrentWeatherType == WeatherType.Stormy)
             {
-                SetParticlesActive(DrizzleParticles, true);
+                bool snowStorm = (month <= 2 || month >= 10) && SnowsHere;
+                overlayWeather = snowStorm ? WeatherType.Snowy : WeatherType.Rainy;
             }
-            else if (CurrentWeatherType == WeatherType.Snowy)
-            {
-                SetParticlesActive(SnowParticles, true);
-            }
-            else if (CurrentWeatherType == WeatherType.Volcanic)
-            {
-                SetParticlesActive(VolcanicAshParticles, true);
-            }
-            else if (CurrentWeatherType == WeatherType.Stormy)
-            {
-                if ((month <= 2 || month >= 10) && SnowsHere)
-                {
-                    SetParticlesActive(SnowParticles, true);
-                }
-                else
-                {
-                    SetParticlesActive(HeavyRainParticles, true);
-                }
-            }
+
+            WeatherOverlayController.ApplyPreset(overlayWeather);
         }
 
         public void Awake()
@@ -393,11 +378,6 @@ namespace Turnroot.Utilities.Weather
             }
 
             RestoreCelMaterials();
-
-            SetParticlesActive(HeavyRainParticles, false);
-            SetParticlesActive(DrizzleParticles, false);
-            SetParticlesActive(SnowParticles, false);
-            SetParticlesActive(VolcanicAshParticles, false);
         }
 
         private void HandleSceneChanged(string sceneName, string displayName)
@@ -420,12 +400,6 @@ namespace Turnroot.Utilities.Weather
 
         private void SetupForScene(string sceneName)
         {
-            // clear any leftover particles before applying the new weather
-            SetParticlesActive(HeavyRainParticles, false);
-            SetParticlesActive(DrizzleParticles, false);
-            SetParticlesActive(SnowParticles, false);
-            SetParticlesActive(VolcanicAshParticles, false);
-
             // if we already processed this scene once we don't reseed the weather
             bool newScene = sceneName != _lastSceneName;
             if (newScene)
@@ -460,12 +434,18 @@ namespace Turnroot.Utilities.Weather
 
             SetSkybox(CurrentWeatherType);
 
-            // always refresh particles after scene change
+            // Always refresh overlay weather after scene change.
             var ltm2 = FindFirstObjectByType<LongTermMemory>();
             if (ltm2 != null)
             {
                 var gd2 = ltm2.GetGameDate();
                 SetActiveParticles(gd2.month);
+            }
+            else
+            {
+                // Fall back to the current season estimate when date memory is unavailable.
+                int month = Mathf.Clamp(Mathf.FloorToInt(TimeOfYear * 12f) + 1, 1, 12);
+                SetActiveParticles(month);
             }
 
             // cache base water colors so we don't drift when blending
