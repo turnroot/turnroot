@@ -28,6 +28,7 @@ namespace Turnroot.Utilities.UI
 
         public void UpdateLabelAppearance(int chapter)
         {
+            $"ChangeLabelAppearanceByChapter: Updating label appearance for chapter {chapter}".LogInfo();
             foreach (var appearance in LabelAppearances)
             {
                 if (appearance.Chapter <= chapter)
