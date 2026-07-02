@@ -333,6 +333,26 @@ namespace Turnroot.Utilities.Weather
             SetFloatOverride(overrides, "_AshEnabled", 0f);
             SetFloatOverride(overrides, "_FogEnabled", 0f);
 
+            // Stylized flat palette.
+            SetColorOverride(overrides, "_RainColor", new Color(0.24f, 0.46f, 0.88f, 1f));
+            SetColorOverride(overrides, "_DrizzleColor", new Color(0.42f, 0.63f, 0.94f, 1f));
+            SetColorOverride(overrides, "_FogColor", new Color(0.70f, 0.78f, 0.84f, 1f));
+            SetColorOverride(overrides, "_SnowColor", new Color(0.93f, 0.96f, 1.0f, 1f));
+            SetColorOverride(overrides, "_AshColor", new Color(0.40f, 0.36f, 0.34f, 1f));
+
+            // Stylized shape defaults.
+            SetFloatOverride(overrides, "_RainFlatBody", 1f);
+            SetFloatOverride(overrides, "_DrizzleFlatBody", 1f);
+            SetFloatOverride(overrides, "_SnowDotEdgeSoftness", 0.06f);
+            SetFloatOverride(overrides, "_AshDotEdgeSoftness", 0.08f);
+            SetFloatOverride(overrides, "_FogBrushEnabled", 1f);
+            SetFloatOverride(overrides, "_FogBrushAngle", 22f);
+            SetFloatOverride(overrides, "_FogBrushDensity", 20f);
+            SetFloatOverride(overrides, "_FogBrushWidth", 0.24f);
+            SetFloatOverride(overrides, "_FogBrushJitter", 0.75f);
+            SetFloatOverride(overrides, "_FogBrushBreakup", 0.45f);
+            SetFloatOverride(overrides, "_FogBrushSoftness", 0.08f);
+
             switch (weatherType)
             {
                 case WeatherType.Sunny:
@@ -341,20 +361,30 @@ namespace Turnroot.Utilities.Weather
 
                 case WeatherType.Cloudy:
                     SetFloatOverride(overrides, "_DrizzleEnabled", 1f);
-                    SetFloatOverride(overrides, "_DrizzleIntensity", 0.45f);
-                    SetFloatOverride(overrides, "_DrizzleOpacity", 0.28f);
+                    SetFloatOverride(overrides, "_DrizzleIntensity", 0.65f);
+                    SetFloatOverride(overrides, "_DrizzleOpacity", 0.4f);
+                    SetFloatOverride(overrides, "_DrizzleDensity", 120f);
+                    SetFloatOverride(overrides, "_DrizzleWidth", 0.03f);
+                    SetFloatOverride(overrides, "_DrizzleLength", 0.72f);
+                    SetFloatOverride(overrides, "_DrizzleStreakTiling", 0.28f);
+                    SetFloatOverride(overrides, "_DrizzleSoftness", 0.045f);
+                    SetFloatOverride(overrides, "_DrizzleFallAngle", 14f);
                     SetFloatOverride(overrides, "_FogEnabled", 1f);
-                    SetFloatOverride(overrides, "_FogIntensity", 0.2f);
-                    SetFloatOverride(overrides, "_FogOpacity", 0.2f);
+                    SetFloatOverride(overrides, "_FogIntensity", 0.24f);
+                    SetFloatOverride(overrides, "_FogOpacity", 0.24f);
                     break;
 
                 case WeatherType.Rainy:
                     SetFloatOverride(overrides, "_RainEnabled", 1f);
-                    SetFloatOverride(overrides, "_RainIntensity", 1f);
-                    SetFloatOverride(overrides, "_RainOpacity", 0.55f);
-                    SetFloatOverride(overrides, "_RainSpeed", 10f);
-                    SetFloatOverride(overrides, "_RainDensity", 320f);
-                    SetFloatOverride(overrides, "_RainFallAngle", 18f);
+                    SetFloatOverride(overrides, "_RainIntensity", 1.15f);
+                    SetFloatOverride(overrides, "_RainOpacity", 0.62f);
+                    SetFloatOverride(overrides, "_RainSpeed", 11f);
+                    SetFloatOverride(overrides, "_RainDensity", 140f);
+                    SetFloatOverride(overrides, "_RainWidth", 0.04f);
+                    SetFloatOverride(overrides, "_RainLength", 0.86f);
+                    SetFloatOverride(overrides, "_RainStreakTiling", 0.22f);
+                    SetFloatOverride(overrides, "_RainSoftness", 0.05f);
+                    SetFloatOverride(overrides, "_RainFallAngle", 22f);
                     break;
 
                 case WeatherType.Snowy:
@@ -364,15 +394,20 @@ namespace Turnroot.Utilities.Weather
                     SetFloatOverride(overrides, "_SnowDensity", 55f);
                     SetFloatOverride(overrides, "_SnowDriftAmount", 0.5f);
                     SetFloatOverride(overrides, "_SnowFallAngle", 6f);
+                    SetFloatOverride(overrides, "_SnowDotEdgeSoftness", 0.05f);
                     break;
 
                 case WeatherType.Stormy:
                     SetFloatOverride(overrides, "_RainEnabled", 1f);
-                    SetFloatOverride(overrides, "_RainIntensity", 1.35f);
-                    SetFloatOverride(overrides, "_RainOpacity", 0.72f);
-                    SetFloatOverride(overrides, "_RainSpeed", 13f);
-                    SetFloatOverride(overrides, "_RainDensity", 460f);
-                    SetFloatOverride(overrides, "_RainFallAngle", 28f);
+                    SetFloatOverride(overrides, "_RainIntensity", 1.5f);
+                    SetFloatOverride(overrides, "_RainOpacity", 0.78f);
+                    SetFloatOverride(overrides, "_RainSpeed", 14.5f);
+                    SetFloatOverride(overrides, "_RainDensity", 180f);
+                    SetFloatOverride(overrides, "_RainWidth", 0.06f);
+                    SetFloatOverride(overrides, "_RainLength", 0.92f);
+                    SetFloatOverride(overrides, "_RainStreakTiling", 0.16f);
+                    SetFloatOverride(overrides, "_RainSoftness", 0.065f);
+                    SetFloatOverride(overrides, "_RainFallAngle", 30f);
                     SetFloatOverride(overrides, "_FogEnabled", 1f);
                     SetFloatOverride(overrides, "_FogIntensity", 0.33f);
                     SetFloatOverride(overrides, "_FogOpacity", 0.24f);
@@ -385,11 +420,12 @@ namespace Turnroot.Utilities.Weather
                     SetFloatOverride(overrides, "_AshDensity", 95f);
                     SetFloatOverride(overrides, "_AshDriftAmount", 0.78f);
                     SetFloatOverride(overrides, "_AshFallAngle", 14f);
-                    SetColorOverride(overrides, "_AshColor", new Color(0.44f, 0.42f, 0.4f, 1f));
+                    SetFloatOverride(overrides, "_AshDotEdgeSoftness", 0.07f);
                     SetFloatOverride(overrides, "_FogEnabled", 1f);
                     SetFloatOverride(overrides, "_FogIntensity", 0.4f);
                     SetFloatOverride(overrides, "_FogOpacity", 0.3f);
-                    SetColorOverride(overrides, "_FogColor", new Color(0.55f, 0.53f, 0.5f, 1f));
+                    SetFloatOverride(overrides, "_FogBrushDensity", 16f);
+                    SetFloatOverride(overrides, "_FogBrushWidth", 0.28f);
                     break;
             }
 

@@ -40,13 +40,15 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _RainColor ("Rain Color", Color) = (0.78,0.85,1,1)
         _RainDensity ("Rain Density", Range(10,900)) = 280
         _RainSpeed ("Rain Speed", Range(0,20)) = 9
-        _RainWidth ("Rain Width", Range(0.0002,0.03)) = 0.003
-        _RainLength ("Rain Length", Range(0.02,1.0)) = 0.35
+        _RainWidth ("Rain Width", Range(0.0002,0.25)) = 0.008
+        _RainLength ("Rain Length", Range(0.02,0.99)) = 0.62
+        _RainStreakTiling ("Rain Streak Tiling", Range(0.05,2.0)) = 0.35
+        _RainFlatBody ("Rain Flat Body", Range(0,1)) = 1
         _RainFallAngle ("Rain Fall Angle (deg)", Range(-80,80)) = 18
         _RainCameraYawInfluence ("Rain Camera Yaw Influence", Range(-1,1)) = 0.45
         _RainJitter ("Rain Horizontal Jitter", Range(0,1)) = 0.35
         _RainSpawn ("Rain Spawn Chance", Range(0,1)) = 0.78
-        _RainSoftness ("Rain Edge Softness", Range(0.0005,0.08)) = 0.012
+        _RainSoftness ("Rain Edge Softness", Range(0.0005,0.25)) = 0.018
 
         [Header(Drizzle)]
         _DrizzleEnabled ("Enable Drizzle", Float) = 0
@@ -55,13 +57,15 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _DrizzleColor ("Drizzle Color", Color) = (0.8,0.86,1,1)
         _DrizzleDensity ("Drizzle Density", Range(10,900)) = 180
         _DrizzleSpeed ("Drizzle Speed", Range(0,20)) = 4
-        _DrizzleWidth ("Drizzle Width", Range(0.0002,0.03)) = 0.002
-        _DrizzleLength ("Drizzle Length", Range(0.02,1.0)) = 0.16
+        _DrizzleWidth ("Drizzle Width", Range(0.0002,0.2)) = 0.006
+        _DrizzleLength ("Drizzle Length", Range(0.02,0.99)) = 0.4
+        _DrizzleStreakTiling ("Drizzle Streak Tiling", Range(0.05,2.0)) = 0.5
+        _DrizzleFlatBody ("Drizzle Flat Body", Range(0,1)) = 1
         _DrizzleFallAngle ("Drizzle Fall Angle (deg)", Range(-80,80)) = 8
         _DrizzleCameraYawInfluence ("Drizzle Camera Yaw Influence", Range(-1,1)) = 0.35
         _DrizzleJitter ("Drizzle Horizontal Jitter", Range(0,1)) = 0.4
         _DrizzleSpawn ("Drizzle Spawn Chance", Range(0,1)) = 0.62
-        _DrizzleSoftness ("Drizzle Edge Softness", Range(0.0005,0.08)) = 0.02
+        _DrizzleSoftness ("Drizzle Edge Softness", Range(0.0005,0.25)) = 0.03
 
         [Header(Snow)]
         _SnowEnabled ("Enable Snow", Float) = 0
@@ -77,6 +81,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _SnowFallAngle ("Snow Fall Angle (deg)", Range(-80,80)) = 5
         _SnowCameraYawInfluence ("Snow Camera Yaw Influence", Range(-1,1)) = 0.2
         _SnowSpawn ("Snow Spawn Chance", Range(0,1)) = 0.86
+        _SnowDotEdgeSoftness ("Snow Dot Edge Softness", Range(0.001,1)) = 0.08
 
         [Header(Ash)]
         _AshEnabled ("Enable Ash", Float) = 0
@@ -92,6 +97,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _AshFallAngle ("Ash Fall Angle (deg)", Range(-80,80)) = 12
         _AshCameraYawInfluence ("Ash Camera Yaw Influence", Range(-1,1)) = 0.3
         _AshSpawn ("Ash Spawn Chance", Range(0,1)) = 0.72
+        _AshDotEdgeSoftness ("Ash Dot Edge Softness", Range(0.001,1)) = 0.1
 
         [Header(Fog Mist)]
         _FogEnabled ("Enable Fog", Float) = 0
@@ -101,6 +107,13 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _FogScale ("Fog Scale", Range(0.1,10)) = 2.2
         _FogSpeed ("Fog Speed", Range(0,5)) = 0.3
         _FogContrast ("Fog Contrast", Range(0.2,4)) = 1.35
+        _FogBrushEnabled ("Fog Brush Mode", Float) = 1
+        _FogBrushAngle ("Fog Brush Angle (deg)", Range(-180,180)) = 22
+        _FogBrushDensity ("Fog Brush Density", Range(2,80)) = 20
+        _FogBrushWidth ("Fog Brush Width", Range(0.02,0.95)) = 0.22
+        _FogBrushJitter ("Fog Brush Jitter", Range(0,2)) = 0.75
+        _FogBrushBreakup ("Fog Brush Breakup", Range(0,1)) = 0.45
+        _FogBrushSoftness ("Fog Brush Softness", Range(0.0005,0.3)) = 0.08
 
         [Header(Depth Fade)]
         _VerticalFadeTop ("Top Fade", Range(0,1)) = 0
@@ -174,6 +187,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _RainSpeed;
                 float _RainWidth;
                 float _RainLength;
+                float _RainStreakTiling;
+                float _RainFlatBody;
                 float _RainFallAngle;
                 float _RainCameraYawInfluence;
                 float _RainJitter;
@@ -188,6 +203,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _DrizzleSpeed;
                 float _DrizzleWidth;
                 float _DrizzleLength;
+                float _DrizzleStreakTiling;
+                float _DrizzleFlatBody;
                 float _DrizzleFallAngle;
                 float _DrizzleCameraYawInfluence;
                 float _DrizzleJitter;
@@ -207,6 +224,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _SnowFallAngle;
                 float _SnowCameraYawInfluence;
                 float _SnowSpawn;
+                float _SnowDotEdgeSoftness;
 
                 float _AshEnabled;
                 float _AshIntensity;
@@ -221,6 +239,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _AshFallAngle;
                 float _AshCameraYawInfluence;
                 float _AshSpawn;
+                float _AshDotEdgeSoftness;
 
                 float _FogEnabled;
                 float _FogIntensity;
@@ -229,6 +248,13 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _FogScale;
                 float _FogSpeed;
                 float _FogContrast;
+                float _FogBrushEnabled;
+                float _FogBrushAngle;
+                float _FogBrushDensity;
+                float _FogBrushWidth;
+                float _FogBrushJitter;
+                float _FogBrushBreakup;
+                float _FogBrushSoftness;
 
                 float _VerticalFadeTop;
                 float _VerticalFadeBottom;
@@ -378,6 +404,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float speed,
                 float width,
                 float lengthNorm,
+                float streakTiling,
+                float flatBody,
                 float2 fallDir,
                 float jitter,
                 float spawn,
@@ -392,7 +420,10 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float2 suv = float2((uv.x - 0.5) * aspect + 0.5, uv.y);
 
                 float2 rot = float2(dot(suv, perp), dot(suv, fallDir));
-                float2 p = rot * max(density, 1.0);
+                float2 p = float2(
+                    rot.x * max(density, 1.0),
+                    rot.y * max(density, 1.0) * max(streakTiling, 0.01)
+                );
                 p.y += _Time.y * speed;
 
                 float2 cell = floor(p);
@@ -407,11 +438,14 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
 
                 // Raindrop segment in cell space.
                 float yHead = frac(p.y + h.x * 17.31);
-                float yMask = 1.0 - smoothstep(lengthNorm, lengthNorm + softness, yHead);
-                float headSoft = smoothstep(0.0, softness * 1.5, yHead);
+                float ySoft =
+                    (1.0 - smoothstep(lengthNorm, lengthNorm + softness, yHead))
+                    * smoothstep(0.0, softness * 1.5, yHead);
+                float yHard = step(yHead, lengthNorm);
+                float yMask = lerp(ySoft, yHard, saturate(flatBody));
 
                 float lineMask = 1.0 - smoothstep(width, width + softness, xDist);
-                return saturate(lineMask * yMask * headSoft * spawnMask);
+                return saturate(lineMask * yMask * spawnMask);
             }
 
             float SampleFlakeLayer(
@@ -424,6 +458,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float driftAmount,
                 float driftSpeed,
                 float spawn,
+                float edgeSoftness,
                 float seed
             )
             {
@@ -446,16 +481,52 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
 
                 float localSize = size * lerp(1.0 - sizeRandomness, 1.0 + sizeRandomness, rnd.y);
 
-                // Center offset and micro swirl for particle-like motion.
+                // Center offset for natural dot spacing.
                 float2 center = (rnd - 0.5) * 0.65;
-                center.x += sin(_Time.y * (driftSpeed * 0.8) + rnd.x * 11.3 + id.y * 0.09) * 0.18 * driftAmount;
-                center.y += cos(_Time.y * (driftSpeed * 0.6) + rnd.y * 9.1 + id.x * 0.07) * 0.1 * driftAmount;
 
                 float2 d = f - center;
                 float dist = length(d);
-                float disk = 1.0 - smoothstep(localSize, localSize * 1.8, dist);
+                float edge = max(edgeSoftness, 0.001);
+                float disk = 1.0 - smoothstep(localSize, localSize * (1.0 + edge), dist);
 
                 return saturate(disk * spawnMask);
+            }
+
+            float2 Rotate2D(float2 p, float angle)
+            {
+                float s = sin(angle);
+                float c = cos(angle);
+                return float2(c * p.x - s * p.y, s * p.x + c * p.y);
+            }
+
+            float SampleFogBrushLayer(
+                float2 uv,
+                float scale,
+                float speed,
+                float angleDeg,
+                float density,
+                float width,
+                float jitter,
+                float breakup,
+                float softness
+            )
+            {
+                float2 p = uv * scale;
+                p += float2(_Time.y * speed * 0.25, _Time.y * speed * 0.1);
+                p = Rotate2D(p, radians(angleDeg));
+
+                float n = FBM(p * 1.7 + float2(19.7, 3.3));
+                float strokeCoord = frac(p.y * max(density, 0.1) + (n - 0.5) * jitter);
+                float strokeDist = abs(strokeCoord - 0.5);
+
+                float halfWidth = saturate(width) * 0.5;
+                float stroke = 1.0 - smoothstep(halfWidth, halfWidth + softness, strokeDist);
+
+                float breakupNoise = FBM(p * 2.8 + float2(7.1, 11.9));
+                float breakupThreshold = lerp(0.0, 0.72, saturate(breakup));
+                float breakupMask = step(breakupThreshold, breakupNoise);
+
+                return saturate(stroke * breakupMask);
             }
 
             float3 ApplyColorGrade(float3 c)
@@ -491,6 +562,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _RainSpeed,
                         _RainWidth,
                         _RainLength,
+                        _RainStreakTiling,
+                        _RainFlatBody,
                         dir,
                         _RainJitter,
                         _RainSpawn,
@@ -505,6 +578,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _RainSpeed * 1.3,
                         _RainWidth * 0.65,
                         _RainLength * 0.75,
+                        _RainStreakTiling * 0.8,
+                        _RainFlatBody,
                         dir,
                         _RainJitter * 1.15,
                         saturate(_RainSpawn * 0.9),
@@ -524,6 +599,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _DrizzleSpeed,
                         _DrizzleWidth,
                         _DrizzleLength,
+                        _DrizzleStreakTiling,
+                        _DrizzleFlatBody,
                         dir,
                         _DrizzleJitter,
                         _DrizzleSpawn,
@@ -547,6 +624,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _SnowDriftAmount,
                         _SnowDriftSpeed,
                         _SnowSpawn,
+                        _SnowDotEdgeSoftness,
                         101.0
                     );
 
@@ -560,6 +638,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _SnowDriftAmount * 1.2,
                         _SnowDriftSpeed * 1.5,
                         saturate(_SnowSpawn * 0.9),
+                        _SnowDotEdgeSoftness,
                         131.0
                     );
 
@@ -580,6 +659,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _AshDriftAmount,
                         _AshDriftSpeed,
                         _AshSpawn,
+                        _AshDotEdgeSoftness,
                         181.0
                     );
 
@@ -593,6 +673,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _AshDriftAmount * 1.3,
                         _AshDriftSpeed * 1.6,
                         saturate(_AshSpawn * 0.92),
+                        _AshDotEdgeSoftness,
                         223.0
                     );
 
@@ -601,11 +682,30 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
 
                 if (_FogEnabled > 0.5)
                 {
-                    float2 p = uvFog * _FogScale;
-                    p += float2(_Time.y * _FogSpeed * 0.5, _Time.y * _FogSpeed * 0.2);
-                    float n = FBM(p);
-                    n = saturate(pow(n, _FogContrast));
-                    fog = n * _FogIntensity;
+                    float fogMask;
+                    if (_FogBrushEnabled > 0.5)
+                    {
+                        fogMask = SampleFogBrushLayer(
+                            uvFog,
+                            _FogScale,
+                            _FogSpeed,
+                            _FogBrushAngle,
+                            _FogBrushDensity,
+                            _FogBrushWidth,
+                            _FogBrushJitter,
+                            _FogBrushBreakup,
+                            _FogBrushSoftness
+                        );
+                    }
+                    else
+                    {
+                        float2 p = uvFog * _FogScale;
+                        p += float2(_Time.y * _FogSpeed * 0.5, _Time.y * _FogSpeed * 0.2);
+                        fogMask = FBM(p);
+                    }
+
+                    fogMask = saturate(pow(fogMask, _FogContrast));
+                    fog = fogMask * _FogIntensity;
                 }
 
                 float3 rgb = 0;
