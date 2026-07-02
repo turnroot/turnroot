@@ -409,28 +409,6 @@ namespace Turnroot.Utilities.Weather
             UpdateCelTintIfNeeded();
         }
 
-        private void SetParticlesActive(GameObject[] particleObjects, bool active)
-        {
-            if (particleObjects == null)
-            {
-                return;
-            }
-
-            foreach (var go in particleObjects)
-            {
-                if (go == null)
-                {
-                    continue;
-                }
-
-                go.SetActive(active);
-                if (active && go.TryGetComponent<ParticleSystem>(out var ps))
-                {
-                    ps.Play();
-                }
-            }
-        }
-
         #endregion
     }
 }

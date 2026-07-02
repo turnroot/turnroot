@@ -89,25 +89,13 @@ namespace Turnroot.Utilities.Weather
         public Light DirectionalLight;
 
         [HorizontalLine(2, EColor.Yellow)]
-        [Header("Scene Particles")]
-        [BoxGroup("Scene Particles")]
-        [Tooltip("Particle systems used for heavy rain.")]
-        public GameObject[] HeavyRainParticles;
+        [Header("Screen Space Weather Overlay")]
+        [BoxGroup("Weather Overlay")]
+        [Tooltip("Optional weather overlay controller on a fullscreen quad.")]
+        public WeatherOverlayController WeatherOverlayController;
 
-        [BoxGroup("Scene Particles")]
-        [Tooltip("Particle systems used for light drizzle.")]
-        public GameObject[] DrizzleParticles;
-
-        [BoxGroup("Scene Particles")]
-        [Tooltip("Particle systems used for snow.")]
-        public GameObject[] SnowParticles;
-
-        [BoxGroup("Scene Particles")]
-        [Tooltip("Particle systems used for volcanic ash.")]
-        public GameObject[] VolcanicAshParticles;
-
-        [BoxGroup("Scene Particles")]
-        [Tooltip("Whether snow should be used when stormy conditions occur in cold months.")]
+        [BoxGroup("Weather Overlay")]
+        [Tooltip("Whether snow should be used for stormy conditions during cold months.")]
         public bool SnowsHere = true;
 
         [HorizontalLine(2, EColor.Green)]
