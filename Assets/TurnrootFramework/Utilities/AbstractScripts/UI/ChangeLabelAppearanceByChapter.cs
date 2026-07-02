@@ -48,7 +48,6 @@ namespace Turnroot.Utilities.UI
 
         private void OnEnable()
         {
-            $"ChangeLabelAppearanceByChapter: OnEnable called, subscribing to Brain.OnLongTermMemoryInitialized".LogInfo();
             _brain = GetAndCacheBrain.GetBrain();
             if (_brain == null)
             {
