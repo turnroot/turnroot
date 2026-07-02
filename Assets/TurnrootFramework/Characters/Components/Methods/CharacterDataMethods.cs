@@ -110,20 +110,34 @@ namespace Turnroot.Characters
             return pref != null ? pref : StartingClass;
         }
 
-        private void OnEnable()
+        private void EnsureDefaultStatsInitialized()
         {
-            // Initialize stats from defaults if stats are empty
-            if (BoundedStats.Count == 0 && UnboundedStats.Count == 0)
+            BoundedStats ??= new List<BoundedCharacterStat>();
+            UnboundedStats ??= new List<CharacterStat>();
+
+            var gs = GameplayGeneralSettings.Instance;
+            if (gs == null)
             {
-                var gs = GameplayGeneralSettings.Instance;
-                if (gs != null)
-                {
-                    BoundedStats = gs.CreateDefaultBoundedStats();
-                    UnboundedStats = gs.CreateDefaultUnboundedStats();
-                }
+                return;
             }
 
+            if (BoundedStats.Count == 0)
+            {
+                BoundedStats = gs.CreateDefaultBoundedStats();
+            }
+
+            if (UnboundedStats.Count == 0)
+            {
+                UnboundedStats = gs.CreateDefaultUnboundedStats();
+            }
+        }
+
+        private void OnEnable()
+        {
+            EnsureDefaultStatsInitialized();
+
             // Initialize personal growth rates if empty (set all unbounded stats + HP to 0% growth)
+            PersonalGrowthRates ??= new List<UnboundedStatModifier>();
             if (PersonalGrowthRates.Count == 0)
             {
                 if (UnboundedStats.Count > 0)
@@ -140,6 +154,8 @@ namespace Turnroot.Characters
 
         private void OnValidate()
         {
+            EnsureDefaultStatsInitialized();
+
             // Reset cached portrait array so changes in the inspector are reflected
             _portraitArrayCache = null;
 
