@@ -28,6 +28,7 @@ namespace Turnroot.Utilities.UI
 
         public void UpdateLabelAppearance(int chapter)
         {
+            $"ChangeLabelAppearanceByChapter: Updating label appearance for chapter {chapter}".LogInfo();
             foreach (var appearance in LabelAppearances)
             {
                 if (appearance.Chapter <= chapter)
@@ -45,7 +46,13 @@ namespace Turnroot.Utilities.UI
 
         private void OnEnable()
         {
+            $"ChangeLabelAppearanceByChapter: OnEnable called, subscribing to Brain.OnLongTermMemoryInitialized".LogInfo();
             var brain = GetAndCacheBrain.GetBrain();
+            if (brain == null)
+            {
+                $"ChangeLabelAppearanceByChapter: Brain instance not found, cannot subscribe to OnLongTermMemoryInitialized".LogWarning();
+                return;
+            }
             brain.OnLongTermMemoryInitialized += () =>
             {
                 UpdateLabelAppearance(brain.saveFileBrain.ActiveSaveFile.ChapterNumber);
