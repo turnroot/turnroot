@@ -1,6 +1,6 @@
 // Turnroot/Weather/ScreenSpaceURP
 // Procedural screen-space weather overlay for URP.
-// Supports rain, drizzle, snow, ash, and optional fog/mist.
+// Supports rain, drizzle, snow, and ash.
 //
 // Intended usage:
 // 1) Full-screen quad parented to camera (recommended for quick setup), OR
@@ -31,7 +31,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _ParallaxDrizzle ("Parallax Drizzle", Range(0,4)) = 1.0
         _ParallaxSnow ("Parallax Snow", Range(0,4)) = 0.65
         _ParallaxAsh ("Parallax Ash", Range(0,4)) = 0.55
-        _ParallaxFog ("Parallax Fog", Range(0,4)) = 0.35
 
         [Header(Rain)]
         _RainEnabled ("Enable Rain", Float) = 1
@@ -74,7 +73,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _SnowColor ("Snow Color", Color) = (1,1,1,1)
         _SnowDensity ("Snow Density", Range(2,250)) = 50
         _SnowSpeed ("Snow Speed", Range(0,10)) = 1.3
-        _SnowSize ("Snow Size", Range(0.001,0.09)) = 0.016
+        _SnowSize ("Snow Size", Range(0.001,0.25)) = 0.05
         _SnowSizeRandomness ("Snow Size Randomness", Range(0,1)) = 0.65
         _SnowDriftAmount ("Snow Drift Amount", Range(0,1)) = 0.45
         _SnowDriftSpeed ("Snow Drift Speed", Range(0,8)) = 1.4
@@ -90,7 +89,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _AshColor ("Ash Color", Color) = (0.42,0.42,0.42,1)
         _AshDensity ("Ash Density", Range(2,250)) = 80
         _AshSpeed ("Ash Speed", Range(0,10)) = 0.9
-        _AshSize ("Ash Size", Range(0.001,0.09)) = 0.01
+        _AshSize ("Ash Size", Range(0.001,0.25)) = 0.04
         _AshSizeRandomness ("Ash Size Randomness", Range(0,1)) = 0.6
         _AshDriftAmount ("Ash Drift Amount", Range(0,1)) = 0.7
         _AshDriftSpeed ("Ash Drift Speed", Range(0,8)) = 2.2
@@ -98,22 +97,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _AshCameraYawInfluence ("Ash Camera Yaw Influence", Range(-1,1)) = 0.3
         _AshSpawn ("Ash Spawn Chance", Range(0,1)) = 0.72
         _AshDotEdgeSoftness ("Ash Dot Edge Softness", Range(0.001,1)) = 0.1
-
-        [Header(Fog Mist)]
-        _FogEnabled ("Enable Fog", Float) = 0
-        _FogIntensity ("Fog Intensity", Range(0,2)) = 0.35
-        _FogOpacity ("Fog Opacity", Range(0,1)) = 0.3
-        _FogColor ("Fog Color", Color) = (0.8,0.84,0.9,1)
-        _FogScale ("Fog Scale", Range(0.1,10)) = 2.2
-        _FogSpeed ("Fog Speed", Range(0,5)) = 0.3
-        _FogContrast ("Fog Contrast", Range(0.2,4)) = 1.35
-        _FogBrushEnabled ("Fog Brush Mode", Float) = 1
-        _FogBrushAngle ("Fog Brush Angle (deg)", Range(-180,180)) = 22
-        _FogBrushDensity ("Fog Brush Density", Range(2,80)) = 20
-        _FogBrushWidth ("Fog Brush Width", Range(0.02,0.95)) = 0.22
-        _FogBrushJitter ("Fog Brush Jitter", Range(0,2)) = 0.75
-        _FogBrushBreakup ("Fog Brush Breakup", Range(0,1)) = 0.45
-        _FogBrushSoftness ("Fog Brush Softness", Range(0.0005,0.3)) = 0.08
 
         [Header(Depth Fade)]
         _VerticalFadeTop ("Top Fade", Range(0,1)) = 0
@@ -177,7 +160,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _ParallaxDrizzle;
                 float _ParallaxSnow;
                 float _ParallaxAsh;
-                float _ParallaxFog;
 
                 float _RainEnabled;
                 float _RainIntensity;
@@ -240,21 +222,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _AshCameraYawInfluence;
                 float _AshSpawn;
                 float _AshDotEdgeSoftness;
-
-                float _FogEnabled;
-                float _FogIntensity;
-                float _FogOpacity;
-                float4 _FogColor;
-                float _FogScale;
-                float _FogSpeed;
-                float _FogContrast;
-                float _FogBrushEnabled;
-                float _FogBrushAngle;
-                float _FogBrushDensity;
-                float _FogBrushWidth;
-                float _FogBrushJitter;
-                float _FogBrushBreakup;
-                float _FogBrushSoftness;
 
                 float _VerticalFadeTop;
                 float _VerticalFadeBottom;
@@ -492,43 +459,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 return saturate(disk * spawnMask);
             }
 
-            float2 Rotate2D(float2 p, float angle)
-            {
-                float s = sin(angle);
-                float c = cos(angle);
-                return float2(c * p.x - s * p.y, s * p.x + c * p.y);
-            }
-
-            float SampleFogBrushLayer(
-                float2 uv,
-                float scale,
-                float speed,
-                float angleDeg,
-                float density,
-                float width,
-                float jitter,
-                float breakup,
-                float softness
-            )
-            {
-                float2 p = uv * scale;
-                p += float2(_Time.y * speed * 0.25, _Time.y * speed * 0.1);
-                p = Rotate2D(p, radians(angleDeg));
-
-                float n = FBM(p * 1.7 + float2(19.7, 3.3));
-                float strokeCoord = frac(p.y * max(density, 0.1) + (n - 0.5) * jitter);
-                float strokeDist = abs(strokeCoord - 0.5);
-
-                float halfWidth = saturate(width) * 0.5;
-                float stroke = 1.0 - smoothstep(halfWidth, halfWidth + softness, strokeDist);
-
-                float breakupNoise = FBM(p * 2.8 + float2(7.1, 11.9));
-                float breakupThreshold = lerp(0.0, 0.72, saturate(breakup));
-                float breakupMask = step(breakupThreshold, breakupNoise);
-
-                return saturate(stroke * breakupMask);
-            }
-
             float3 ApplyColorGrade(float3 c)
             {
                 c = (c - 0.5) * _Contrast + 0.5;
@@ -545,13 +475,11 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float2 uvDrizzle = uv + GetParallaxOffset(_ParallaxDrizzle);
                 float2 uvSnow = uv + GetParallaxOffset(_ParallaxSnow);
                 float2 uvAsh = uv + GetParallaxOffset(_ParallaxAsh);
-                float2 uvFog = uv + GetParallaxOffset(_ParallaxFog);
 
                 float rain = 0;
                 float drizzle = 0;
                 float snow = 0;
                 float ash = 0;
-                float fog = 0;
 
                 if (_RainEnabled > 0.5)
                 {
@@ -680,34 +608,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     ash *= _AshIntensity;
                 }
 
-                if (_FogEnabled > 0.5)
-                {
-                    float fogMask;
-                    if (_FogBrushEnabled > 0.5)
-                    {
-                        fogMask = SampleFogBrushLayer(
-                            uvFog,
-                            _FogScale,
-                            _FogSpeed,
-                            _FogBrushAngle,
-                            _FogBrushDensity,
-                            _FogBrushWidth,
-                            _FogBrushJitter,
-                            _FogBrushBreakup,
-                            _FogBrushSoftness
-                        );
-                    }
-                    else
-                    {
-                        float2 p = uvFog * _FogScale;
-                        p += float2(_Time.y * _FogSpeed * 0.5, _Time.y * _FogSpeed * 0.2);
-                        fogMask = FBM(p);
-                    }
-
-                    fogMask = saturate(pow(fogMask, _FogContrast));
-                    fog = fogMask * _FogIntensity;
-                }
-
                 float3 rgb = 0;
                 float alpha = 0;
 
@@ -715,15 +615,13 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float drizzleA = saturate(drizzle * _DrizzleOpacity);
                 float snowA = saturate(snow * _SnowOpacity);
                 float ashA = saturate(ash * _AshOpacity);
-                float fogA = saturate(fog * _FogOpacity);
 
                 rgb += _RainColor.rgb * rainA;
                 rgb += _DrizzleColor.rgb * drizzleA;
                 rgb += _SnowColor.rgb * snowA;
                 rgb += _AshColor.rgb * ashA;
-                rgb += _FogColor.rgb * fogA;
 
-                alpha = rainA + drizzleA + snowA + ashA + fogA;
+                alpha = rainA + drizzleA + snowA + ashA;
                 alpha = saturate(alpha) * _GlobalOpacity * edgeMask;
 
                 if (alpha > 1e-5)

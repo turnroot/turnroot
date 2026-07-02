@@ -118,10 +118,7 @@ namespace Turnroot.Utilities.Weather
             return preset != null;
         }
 
-        private void Awake()
-        {
-            EnsureMaterialBinding();
-        }
+        private void Awake() => EnsureMaterialBinding();
 
         private void OnEnable()
         {
@@ -306,6 +303,20 @@ namespace Turnroot.Utilities.Weather
                 }
             }
 
+            // Enforce larger stylized snow/ash particle sizes for existing presets too.
+            if (byType.TryGetValue(WeatherType.Snowy, out var snowyPreset) && snowyPreset != null)
+            {
+                EnsureMinFloatOverride(snowyPreset, "_SnowSize", 0.07f);
+            }
+
+            if (
+                byType.TryGetValue(WeatherType.Volcanic, out var volcanicPreset)
+                && volcanicPreset != null
+            )
+            {
+                EnsureMinFloatOverride(volcanicPreset, "_AshSize", 0.06f);
+            }
+
             if (changed || Presets == null || Presets.Length != types.Length)
             {
                 var rebuilt = new WeatherOverlayPreset[types.Length];
@@ -316,6 +327,56 @@ namespace Turnroot.Utilities.Weather
 
                 Presets = rebuilt;
             }
+        }
+
+        private static void EnsureMinFloatOverride(
+            WeatherOverlayPreset preset,
+            string property,
+            float minValue
+        )
+        {
+            if (preset == null)
+            {
+                return;
+            }
+
+            if (preset.Overrides == null)
+            {
+                preset.Overrides = new ShaderPropertyOverride[]
+                {
+                    new()
+                    {
+                        Property = property,
+                        ValueType = ShaderValueType.Float,
+                        FloatValue = minValue,
+                    },
+                };
+                return;
+            }
+
+            for (int i = 0; i < preset.Overrides.Length; i++)
+            {
+                var ov = preset.Overrides[i];
+                if (
+                    ov != null
+                    && ov.ValueType == ShaderValueType.Float
+                    && string.Equals(ov.Property, property, StringComparison.Ordinal)
+                )
+                {
+                    ov.FloatValue = Mathf.Max(ov.FloatValue, minValue);
+                    return;
+                }
+            }
+
+            var extended = new ShaderPropertyOverride[preset.Overrides.Length + 1];
+            Array.Copy(preset.Overrides, extended, preset.Overrides.Length);
+            extended[^1] = new ShaderPropertyOverride
+            {
+                Property = property,
+                ValueType = ShaderValueType.Float,
+                FloatValue = minValue,
+            };
+            preset.Overrides = extended;
         }
 
         private WeatherOverlayPreset CreateTestPreset(WeatherType weatherType)
@@ -331,27 +392,20 @@ namespace Turnroot.Utilities.Weather
             SetFloatOverride(overrides, "_DrizzleEnabled", 0f);
             SetFloatOverride(overrides, "_SnowEnabled", 0f);
             SetFloatOverride(overrides, "_AshEnabled", 0f);
-            SetFloatOverride(overrides, "_FogEnabled", 0f);
 
             // Stylized flat palette.
             SetColorOverride(overrides, "_RainColor", new Color(0.24f, 0.46f, 0.88f, 1f));
             SetColorOverride(overrides, "_DrizzleColor", new Color(0.42f, 0.63f, 0.94f, 1f));
-            SetColorOverride(overrides, "_FogColor", new Color(0.70f, 0.78f, 0.84f, 1f));
             SetColorOverride(overrides, "_SnowColor", new Color(0.93f, 0.96f, 1.0f, 1f));
             SetColorOverride(overrides, "_AshColor", new Color(0.40f, 0.36f, 0.34f, 1f));
 
             // Stylized shape defaults.
             SetFloatOverride(overrides, "_RainFlatBody", 1f);
             SetFloatOverride(overrides, "_DrizzleFlatBody", 1f);
+            SetFloatOverride(overrides, "_SnowSize", 0.07f);
+            SetFloatOverride(overrides, "_AshSize", 0.06f);
             SetFloatOverride(overrides, "_SnowDotEdgeSoftness", 0.06f);
             SetFloatOverride(overrides, "_AshDotEdgeSoftness", 0.08f);
-            SetFloatOverride(overrides, "_FogBrushEnabled", 1f);
-            SetFloatOverride(overrides, "_FogBrushAngle", 22f);
-            SetFloatOverride(overrides, "_FogBrushDensity", 20f);
-            SetFloatOverride(overrides, "_FogBrushWidth", 0.24f);
-            SetFloatOverride(overrides, "_FogBrushJitter", 0.75f);
-            SetFloatOverride(overrides, "_FogBrushBreakup", 0.45f);
-            SetFloatOverride(overrides, "_FogBrushSoftness", 0.08f);
 
             switch (weatherType)
             {
@@ -369,9 +423,6 @@ namespace Turnroot.Utilities.Weather
                     SetFloatOverride(overrides, "_DrizzleStreakTiling", 0.28f);
                     SetFloatOverride(overrides, "_DrizzleSoftness", 0.045f);
                     SetFloatOverride(overrides, "_DrizzleFallAngle", 14f);
-                    SetFloatOverride(overrides, "_FogEnabled", 1f);
-                    SetFloatOverride(overrides, "_FogIntensity", 0.24f);
-                    SetFloatOverride(overrides, "_FogOpacity", 0.24f);
                     break;
 
                 case WeatherType.Rainy:
@@ -394,6 +445,7 @@ namespace Turnroot.Utilities.Weather
                     SetFloatOverride(overrides, "_SnowDensity", 55f);
                     SetFloatOverride(overrides, "_SnowDriftAmount", 0.5f);
                     SetFloatOverride(overrides, "_SnowFallAngle", 6f);
+                    SetFloatOverride(overrides, "_SnowSize", 0.08f);
                     SetFloatOverride(overrides, "_SnowDotEdgeSoftness", 0.05f);
                     break;
 
@@ -408,9 +460,6 @@ namespace Turnroot.Utilities.Weather
                     SetFloatOverride(overrides, "_RainStreakTiling", 0.16f);
                     SetFloatOverride(overrides, "_RainSoftness", 0.065f);
                     SetFloatOverride(overrides, "_RainFallAngle", 30f);
-                    SetFloatOverride(overrides, "_FogEnabled", 1f);
-                    SetFloatOverride(overrides, "_FogIntensity", 0.33f);
-                    SetFloatOverride(overrides, "_FogOpacity", 0.24f);
                     break;
 
                 case WeatherType.Volcanic:
@@ -420,12 +469,8 @@ namespace Turnroot.Utilities.Weather
                     SetFloatOverride(overrides, "_AshDensity", 95f);
                     SetFloatOverride(overrides, "_AshDriftAmount", 0.78f);
                     SetFloatOverride(overrides, "_AshFallAngle", 14f);
+                    SetFloatOverride(overrides, "_AshSize", 0.07f);
                     SetFloatOverride(overrides, "_AshDotEdgeSoftness", 0.07f);
-                    SetFloatOverride(overrides, "_FogEnabled", 1f);
-                    SetFloatOverride(overrides, "_FogIntensity", 0.4f);
-                    SetFloatOverride(overrides, "_FogOpacity", 0.3f);
-                    SetFloatOverride(overrides, "_FogBrushDensity", 16f);
-                    SetFloatOverride(overrides, "_FogBrushWidth", 0.28f);
                     break;
             }
 
