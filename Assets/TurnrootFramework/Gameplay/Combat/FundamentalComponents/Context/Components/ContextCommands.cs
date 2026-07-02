@@ -84,6 +84,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             ObjectItemInstance weaponItem = null
         )
         {
+            attacker?.RecordTargetAttackedThisTurn(target);
+
             // If a weapon was not explicitly provided, use the currently equipped weapon
             weaponItem ??= attacker.GetEquippedWeapon();
 
