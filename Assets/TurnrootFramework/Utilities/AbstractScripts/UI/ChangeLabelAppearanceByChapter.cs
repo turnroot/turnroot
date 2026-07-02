@@ -46,7 +46,13 @@ namespace Turnroot.Utilities.UI
 
         private void OnEnable()
         {
+            $"ChangeLabelAppearanceByChapter: OnEnable called, subscribing to Brain.OnLongTermMemoryInitialized".LogInfo();
             var brain = GetAndCacheBrain.GetBrain();
+            if (brain == null)
+            {
+                $"ChangeLabelAppearanceByChapter: Brain instance not found, cannot subscribe to OnLongTermMemoryInitialized".LogWarning();
+                return;
+            }
             brain.OnLongTermMemoryInitialized += () =>
             {
                 UpdateLabelAppearance(brain.saveFileBrain.ActiveSaveFile.ChapterNumber);
