@@ -25,10 +25,15 @@ namespace Turnroot.Characters
         [NonSerialized]
         private int _combatsThisTurn = 0;
 
+        [NonSerialized]
+        private readonly HashSet<string> _targetsAttackedThisTurn = new();
+
         public int TotalKills => _totalKills;
         public int TotalBattles => _totalBattles;
         public int TurnsAliveThisBattle => _turnsAliveThisBattle;
         public int CombatsThisTurn => _combatsThisTurn;
+        public int TargetsAttackedThisTurnCount => _targetsAttackedThisTurn.Count;
+        public bool HasAttackedTargetThisTurn => _targetsAttackedThisTurn.Count > 0;
 
         [field: NonSerialized]
         public CharacterInstance LastAttacker { get; private set; }
@@ -71,9 +76,20 @@ namespace Turnroot.Characters
 
         public void IncrementCombatCount() => _combatsThisTurn++;
 
+        public void RecordTargetAttackedThisTurn(CharacterInstance target)
+        {
+            if (target == null || string.IsNullOrEmpty(target.Id))
+            {
+                return;
+            }
+
+            _targetsAttackedThisTurn.Add(target.Id);
+        }
+
         public void ResetTurnStats()
         {
             _combatsThisTurn = 0;
+            _targetsAttackedThisTurn.Clear();
             // Clear per-turn flags so they're only true for the turn in which they occurred
             LastTurnKilledEnemy = false;
             LastTurnCollectedTreasure = false;
@@ -247,6 +263,7 @@ namespace Turnroot.Characters
         {
             _turnsAliveThisBattle = 0;
             _combatsThisTurn = 0;
+            _targetsAttackedThisTurn.Clear();
             ClearActivePassiveSkills();
         }
 
