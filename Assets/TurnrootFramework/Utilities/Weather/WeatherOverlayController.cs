@@ -44,13 +44,7 @@ namespace Turnroot.Utilities.Weather
             public float ParallaxRain = 1.2f;
 
             [Range(0f, 4f)]
-            public float ParallaxDrizzle = 1f;
-
-            [Range(0f, 4f)]
             public float ParallaxSnow = 0.65f;
-
-            [Range(0f, 4f)]
-            public float ParallaxAsh = 0.55f;
 
             [Header("Layer Parallax")]
             [Range(0f, 6f)]
@@ -122,6 +116,12 @@ namespace Turnroot.Utilities.Weather
             [Range(-1f, 1f)]
             public float RainCameraYawInfluence = 0.45f;
 
+            [Range(-89f, 89f)]
+            public float RainAngleClampMin = -70f;
+
+            [Range(-89f, 89f)]
+            public float RainAngleClampMax = 70f;
+
             [Range(0f, 1f)]
             public float RainJitter = 0.35f;
 
@@ -130,55 +130,6 @@ namespace Turnroot.Utilities.Weather
 
             [Range(0.0005f, 0.25f)]
             public float RainSoftness = 0.05f;
-
-            [Header("Drizzle")]
-            public bool DrizzleEnabled = false;
-
-            [Range(0f, 2f)]
-            public float DrizzleIntensity = 0.65f;
-
-            [Range(0f, 1f)]
-            public float DrizzleOpacity = 0.4f;
-            public Color DrizzleColor = new(0.42f, 0.63f, 0.94f, 1f);
-
-            [Range(10f, 900f)]
-            public float DrizzleDensity = 120f;
-
-            [Range(0f, 20f)]
-            public float DrizzleSpeed = 4f;
-
-            [Range(0.0002f, 0.2f)]
-            public float DrizzleWidth = 0.03f;
-
-            [Range(0.02f, 0.99f)]
-            public float DrizzleLength = 0.72f;
-
-            [Range(0f, 1f)]
-            public float DrizzleWidthRandomness = 0.25f;
-
-            [Range(0f, 1f)]
-            public float DrizzleLengthRandomness = 0.3f;
-
-            [Range(0.05f, 2f)]
-            public float DrizzleStreakTiling = 0.28f;
-
-            [Range(0f, 1f)]
-            public float DrizzleFlatBody = 1f;
-
-            [Range(-80f, 80f)]
-            public float DrizzleFallAngle = 14f;
-
-            [Range(-1f, 1f)]
-            public float DrizzleCameraYawInfluence = 0.35f;
-
-            [Range(0f, 1f)]
-            public float DrizzleJitter = 0.4f;
-
-            [Range(0f, 1f)]
-            public float DrizzleSpawn = 0.68f;
-
-            [Range(0.0005f, 0.25f)]
-            public float DrizzleSoftness = 0.045f;
 
             [Header("Snow")]
             public bool SnowEnabled = false;
@@ -220,46 +171,6 @@ namespace Turnroot.Utilities.Weather
             [Range(0.001f, 1f)]
             public float SnowDotEdgeSoftness = 0.05f;
 
-            [Header("Ash")]
-            public bool AshEnabled = false;
-
-            [Range(0f, 2f)]
-            public float AshIntensity = 1f;
-
-            [Range(0f, 1f)]
-            public float AshOpacity = 0.72f;
-            public Color AshColor = new(0.40f, 0.36f, 0.34f, 1f);
-
-            [Range(2f, 250f)]
-            public float AshDensity = 95f;
-
-            [Range(0f, 10f)]
-            public float AshSpeed = 0.9f;
-
-            [Range(0.001f, 0.25f)]
-            public float AshSize = 0.07f;
-
-            [Range(0f, 1f)]
-            public float AshSizeRandomness = 0.6f;
-
-            [Range(0f, 1f)]
-            public float AshDriftAmount = 0.78f;
-
-            [Range(0f, 8f)]
-            public float AshDriftSpeed = 2.2f;
-
-            [Range(-80f, 80f)]
-            public float AshFallAngle = 14f;
-
-            [Range(-1f, 1f)]
-            public float AshCameraYawInfluence = 0.3f;
-
-            [Range(0f, 1f)]
-            public float AshSpawn = 0.72f;
-
-            [Range(0.001f, 1f)]
-            public float AshDotEdgeSoftness = 0.07f;
-
             [Header("Depth Fade")]
             [Range(0f, 1f)]
             public float VerticalFadeTop = 0f;
@@ -291,9 +202,7 @@ namespace Turnroot.Utilities.Weather
                 SetFloat(material, "_ParallaxYawAmount", ParallaxYawAmount);
                 SetFloat(material, "_ParallaxPitchAmount", ParallaxPitchAmount);
                 SetFloat(material, "_ParallaxRain", ParallaxRain);
-                SetFloat(material, "_ParallaxDrizzle", ParallaxDrizzle);
                 SetFloat(material, "_ParallaxSnow", ParallaxSnow);
-                SetFloat(material, "_ParallaxAsh", ParallaxAsh);
 
                 SetFloat(material, "_LayerBackParallax", LayerBackParallax);
                 SetFloat(material, "_LayerMidParallax", LayerMidParallax);
@@ -319,27 +228,11 @@ namespace Turnroot.Utilities.Weather
                 SetFloat(material, "_RainFlatBody", RainFlatBody);
                 SetFloat(material, "_RainFallAngle", RainFallAngle);
                 SetFloat(material, "_RainCameraYawInfluence", RainCameraYawInfluence);
+                SetFloat(material, "_RainAngleClampMin", RainAngleClampMin);
+                SetFloat(material, "_RainAngleClampMax", RainAngleClampMax);
                 SetFloat(material, "_RainJitter", RainJitter);
                 SetFloat(material, "_RainSpawn", RainSpawn);
                 SetFloat(material, "_RainSoftness", RainSoftness);
-
-                SetFloat(material, "_DrizzleEnabled", DrizzleEnabled ? 1f : 0f);
-                SetFloat(material, "_DrizzleIntensity", DrizzleIntensity);
-                SetFloat(material, "_DrizzleOpacity", DrizzleOpacity);
-                SetColor(material, "_DrizzleColor", DrizzleColor);
-                SetFloat(material, "_DrizzleDensity", DrizzleDensity);
-                SetFloat(material, "_DrizzleSpeed", DrizzleSpeed);
-                SetFloat(material, "_DrizzleWidth", DrizzleWidth);
-                SetFloat(material, "_DrizzleLength", DrizzleLength);
-                SetFloat(material, "_DrizzleWidthRandomness", DrizzleWidthRandomness);
-                SetFloat(material, "_DrizzleLengthRandomness", DrizzleLengthRandomness);
-                SetFloat(material, "_DrizzleStreakTiling", DrizzleStreakTiling);
-                SetFloat(material, "_DrizzleFlatBody", DrizzleFlatBody);
-                SetFloat(material, "_DrizzleFallAngle", DrizzleFallAngle);
-                SetFloat(material, "_DrizzleCameraYawInfluence", DrizzleCameraYawInfluence);
-                SetFloat(material, "_DrizzleJitter", DrizzleJitter);
-                SetFloat(material, "_DrizzleSpawn", DrizzleSpawn);
-                SetFloat(material, "_DrizzleSoftness", DrizzleSoftness);
 
                 SetFloat(material, "_SnowEnabled", SnowEnabled ? 1f : 0f);
                 SetFloat(material, "_SnowIntensity", SnowIntensity);
@@ -356,21 +249,6 @@ namespace Turnroot.Utilities.Weather
                 SetFloat(material, "_SnowSpawn", SnowSpawn);
                 SetFloat(material, "_SnowDotEdgeSoftness", SnowDotEdgeSoftness);
 
-                SetFloat(material, "_AshEnabled", AshEnabled ? 1f : 0f);
-                SetFloat(material, "_AshIntensity", AshIntensity);
-                SetFloat(material, "_AshOpacity", AshOpacity);
-                SetColor(material, "_AshColor", AshColor);
-                SetFloat(material, "_AshDensity", AshDensity);
-                SetFloat(material, "_AshSpeed", AshSpeed);
-                SetFloat(material, "_AshSize", AshSize);
-                SetFloat(material, "_AshSizeRandomness", AshSizeRandomness);
-                SetFloat(material, "_AshDriftAmount", AshDriftAmount);
-                SetFloat(material, "_AshDriftSpeed", AshDriftSpeed);
-                SetFloat(material, "_AshFallAngle", AshFallAngle);
-                SetFloat(material, "_AshCameraYawInfluence", AshCameraYawInfluence);
-                SetFloat(material, "_AshSpawn", AshSpawn);
-                SetFloat(material, "_AshDotEdgeSoftness", AshDotEdgeSoftness);
-
                 SetFloat(material, "_VerticalFadeTop", VerticalFadeTop);
                 SetFloat(material, "_VerticalFadeBottom", VerticalFadeBottom);
                 SetFloat(material, "_HorizontalFadeLeft", HorizontalFadeLeft);
@@ -383,9 +261,7 @@ namespace Turnroot.Utilities.Weather
                 {
                     WeatherType = weatherType,
                     RainEnabled = false,
-                    DrizzleEnabled = false,
                     SnowEnabled = false,
-                    AshEnabled = false,
                 };
 
                 switch (weatherType)
@@ -395,15 +271,18 @@ namespace Turnroot.Utilities.Weather
                         break;
 
                     case WeatherType.Cloudy:
-                        preset.DrizzleEnabled = true;
-                        preset.DrizzleIntensity = 0.65f;
-                        preset.DrizzleOpacity = 0.4f;
-                        preset.DrizzleDensity = 120f;
-                        preset.DrizzleWidth = 0.03f;
-                        preset.DrizzleLength = 0.72f;
-                        preset.DrizzleLengthRandomness = 0.35f;
-                        preset.DrizzleWidthRandomness = 0.25f;
-                        preset.DrizzleStreakTiling = 0.28f;
+                        // Cloudy now uses lighter rain (merged drizzle behavior).
+                        preset.RainEnabled = true;
+                        preset.RainIntensity = 0.65f;
+                        preset.RainOpacity = 0.4f;
+                        preset.RainDensity = 120f;
+                        preset.RainWidth = 0.03f;
+                        preset.RainLength = 0.72f;
+                        preset.RainLengthRandomness = 0.35f;
+                        preset.RainWidthRandomness = 0.25f;
+                        preset.RainStreakTiling = 0.28f;
+                        preset.RainFallAngle = 14f;
+                        preset.RainCameraYawInfluence = 0.35f;
                         break;
 
                     case WeatherType.Rainy:
@@ -441,13 +320,15 @@ namespace Turnroot.Utilities.Weather
                         break;
 
                     case WeatherType.Volcanic:
-                        preset.AshEnabled = true;
-                        preset.AshIntensity = 1f;
-                        preset.AshOpacity = 0.72f;
-                        preset.AshDensity = 95f;
-                        preset.AshSize = 0.075f;
-                        preset.AshSizeRandomness = 0.75f;
-                        preset.AshDriftAmount = 0.82f;
+                        // Volcanic now uses snow channel (merged ash behavior) with ash-like color.
+                        preset.SnowEnabled = true;
+                        preset.SnowIntensity = 1f;
+                        preset.SnowOpacity = 0.72f;
+                        preset.SnowColor = new Color(0.40f, 0.36f, 0.34f, 1f);
+                        preset.SnowDensity = 95f;
+                        preset.SnowSize = 0.075f;
+                        preset.SnowSizeRandomness = 0.75f;
+                        preset.SnowDriftAmount = 0.82f;
                         break;
                 }
 
