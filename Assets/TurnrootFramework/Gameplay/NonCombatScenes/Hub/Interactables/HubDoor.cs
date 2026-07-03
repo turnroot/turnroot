@@ -134,10 +134,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     goingInside?.Invoke();
                 }
-                else
-                {
-                    goingOutside?.Invoke();
-                }
 
                 while (DoorCollider.bounds.Intersects(PlayerCollider.bounds))
                 {
@@ -173,6 +169,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // after lerp enable NavMeshObstacle
             DoorObstacle.enabled = true;
             _open = false;
+            if (!_goingInside)
+            {
+                goingOutside?.Invoke();
+            }
         }
     }
 }
