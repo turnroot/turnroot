@@ -409,7 +409,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float2 rot = float2(dot(suv, perp), dot(suv, fallDir));
                 float2 p = rot * max(baseGrid, 1.0);
 
-                p.y += _Time.y * fallSpeed;
+                p.y -= _Time.y * fallSpeed;
                 p.x += sin(_Time.y * driftSpeed + p.y * 0.12 + seed) * driftAmount;
 
                 float2 id = floor(p);
