@@ -282,14 +282,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // Prevent hub navigation while the settings menu is active
             BeginSettingsMenu();
 
-            var settingsLocation = _brain.uiBrain?.uiSettings?.GetGameSettingsMenu();
-            if (settingsLocation != null)
+            if (
+                ValidationHelper.ValidateNotNull(
+                    _brain.uiBrain.uiSettings,
+                    "UI Brain is not assigned."
+                )
+            )
             {
-                _brain.uiBrain.TransitionToSubmenu(null, settingsLocation);
-            }
-            else
-            {
-                "HubManager: GameSettingsMenu location not found".LogWarning();
+                var settingsLocation = _brain.uiBrain.uiSettings.GetGameSettingsMenu();
+                if (settingsLocation != null)
+                {
+                    _brain.uiBrain.TransitionToSubmenu(null, settingsLocation);
+                }
+                else
+                {
+                    "HubManager: GameSettingsMenu location not found".LogWarning();
+                }
             }
         }
 
