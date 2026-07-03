@@ -39,6 +39,8 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Settings menu routes
             _menuActionRoutes[MenuRouteNames.Graphics] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsGraphicsLocation);
+            _menuActionRoutes[MenuRouteNames.Explore] = _ => 
+                TransitionToSubmenu(_brain.gameSettingsExploreLocation);
             _menuActionRoutes[MenuRouteNames.Gameplay] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsGameplayLocation);
             _menuActionRoutes[MenuRouteNames.Audio] = _ =>

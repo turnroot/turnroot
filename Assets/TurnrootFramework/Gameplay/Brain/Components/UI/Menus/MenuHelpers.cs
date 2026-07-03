@@ -31,6 +31,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Validate all menu locations
             GetValidatedMenuLocation(() => settingsMenuLocation, "Game settings");
             GetValidatedMenuLocation(() => gameSettingsGraphicsLocation, "Game settings graphics");
+            GetValidatedMenuLocation(() => gameSettingsExploreLocation, "Game settings explore");
             GetValidatedMenuLocation(() => gameSettingsGameplayLocation, "Game settings gameplay");
             GetValidatedMenuLocation(() => gameSettingsAudioLocation, "Game settings audio");
 

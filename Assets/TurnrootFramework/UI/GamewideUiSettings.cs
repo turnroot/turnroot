@@ -29,6 +29,7 @@ namespace Turnroot.GameSettings
         SaveFileMenu,
         GameSettingsMenu,
         GraphicsMenu,
+        ExploreMenu,
         AudioMenu,
         ControlsMenu,
         GameplayMenu,
@@ -178,6 +179,8 @@ namespace Turnroot.GameSettings
         public MenuEntry GetGameSettingsMenu() => GetMenuEntry(MenuName.GameSettingsMenu);
 
         public MenuEntry GetGameSettingsAudioMenu() => GetMenuEntry(MenuName.AudioMenu);
+
+        public MenuEntry GetGameSettingsExploreMenu() => GetMenuEntry(MenuName.ExploreMenu);
 
         public MenuEntry GetGameSettingsControlsMenu() => GetMenuEntry(MenuName.ControlsMenu);
 

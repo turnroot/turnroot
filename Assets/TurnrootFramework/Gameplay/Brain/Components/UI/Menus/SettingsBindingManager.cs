@@ -45,6 +45,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                 { "startunitsetting", settings => settings.StartUnitSetting },
                 { "preferredbattlemusic", settings => settings.PreferredBattleMusic },
                 { "preferredinputcontrol", settings => settings.PreferredInputControl },
+                { "exploremousesensitivity", settings => settings.ExploreMouseSensitivity },
+                { "invertexploremouse", settings => settings.InvertExploreMouse },
+                { "exploremousespeed", settings => settings.ExploreMouseSpeed },
             };
 
             RegisterDefaultBinders();

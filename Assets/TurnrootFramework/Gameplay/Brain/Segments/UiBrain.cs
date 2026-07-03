@@ -30,6 +30,9 @@ namespace Turnroot.Gameplay.Brain.Segments
         public MenuEntry gameSettingsGraphicsLocation;
 
         [HideInInspector]
+        public MenuEntry gameSettingsExploreLocation;
+
+        [HideInInspector]
         public MenuEntry gameSettingsGameplayLocation;
 
         [HideInInspector]
@@ -98,6 +101,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 settingsMenuLocation = uiSettings.GetGameSettingsMenu();
                 gameSettingsGraphicsLocation = uiSettings.GetGameSettingsGraphicsMenu();
                 gameSettingsGameplayLocation = uiSettings.GetGameSettingsGameplayMenu();
+                gameSettingsExploreLocation = uiSettings.GetGameSettingsExploreMenu();
                 gameSettingsAudioLocation = uiSettings.GetGameSettingsAudioMenu();
                 gameSettingsControlsLocation = uiSettings.GetGameSettingsControlsMenu();
                 prebattleMapMenuLocation = uiSettings.GetPrebattleMapMenu();

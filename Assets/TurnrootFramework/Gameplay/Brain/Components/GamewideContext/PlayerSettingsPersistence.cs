@@ -332,6 +332,24 @@ namespace Turnroot.Gameplay.Brain
                             _brain.CentralBrain?.PublishInputControlTypeChanged(inputControl);
                         }
                         break;
+                    case "exploremousesensitivity":
+                        if (value is float exploreMouseSensitivity)
+                        {
+                            PlayerSettings.ExploreMouseSensitivity = exploreMouseSensitivity;
+                        }
+                        break;
+                    case "invertexploremouse":
+                        if (value is bool invertExploreMouse)
+                        {
+                            PlayerSettings.InvertExploreMouse = invertExploreMouse;
+                        }
+                        break;
+                    case "exploremousespeed":
+                        if (value is float exploreMouseSpeed)
+                        {
+                            PlayerSettings.ExploreMouseSpeed = exploreMouseSpeed;
+                        }
+                        break;
                     default:
                         return;
                 }
