@@ -42,7 +42,9 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _RainEnabled ("Enable Rain", Float) = 1
         _RainIntensity ("Rain Intensity", Range(0,2)) = 0.8
         _RainOpacity ("Rain Opacity", Range(0,1)) = 0.55
-        _RainColor ("Rain Color", Color) = (0.78,0.85,1,1)
+        _RainColor1 ("Rain Color 1", Color) = (0.78,0.85,1,1)
+        _RainColor2 ("Rain Color 2", Color) = (0.62,0.72,0.92,1)
+        _RainColor1Chance ("Rain Color 1 Chance", Range(0,1)) = 1
         _RainDensity ("Rain Density", Range(10,900)) = 280
         _RainSpeed ("Rain Speed", Range(0,20)) = 9
         _RainWidth ("Rain Width", Range(0.0002,0.25)) = 0.008
@@ -63,7 +65,9 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _SnowEnabled ("Enable Snow", Float) = 0
         _SnowIntensity ("Snow Intensity", Range(0,2)) = 0.7
         _SnowOpacity ("Snow Opacity", Range(0,1)) = 0.8
-        _SnowColor ("Snow Color", Color) = (1,1,1,1)
+        _SnowColor1 ("Snow Color 1", Color) = (1,1,1,1)
+        _SnowColor2 ("Snow Color 2", Color) = (0.88,0.94,1,1)
+        _SnowColor1Chance ("Snow Color 1 Chance", Range(0,1)) = 1
         _SnowDensity ("Snow Density", Range(2,250)) = 50
         _SnowSpeed ("Snow Speed", Range(0,10)) = 1.3
         _SnowSize ("Snow Size", Range(0.001,0.25)) = 0.05
@@ -151,7 +155,9 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _RainEnabled;
                 float _RainIntensity;
                 float _RainOpacity;
-                float4 _RainColor;
+                float4 _RainColor1;
+                float4 _RainColor2;
+                float _RainColor1Chance;
                 float _RainDensity;
                 float _RainSpeed;
                 float _RainWidth;
@@ -171,7 +177,9 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _SnowEnabled;
                 float _SnowIntensity;
                 float _SnowOpacity;
-                float4 _SnowColor;
+                float4 _SnowColor1;
+                float4 _SnowColor2;
+                float _SnowColor1Chance;
                 float _SnowDensity;
                 float _SnowSpeed;
                 float _SnowSize;
@@ -324,7 +332,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 return saturate(top * bottom * left * right);
             }
 
-            float SampleRainLayer(
+            float2 SampleRainLayer(
                 float2 uv,
                 float density,
                 float baseGrid,
@@ -339,6 +347,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float2 fallDir,
                 float jitter,
                 float spawn,
+                float color1Chance,
                 float softness,
                 float seed
             )
@@ -381,10 +390,15 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float yMask = lerp(ySoft, yFlat, saturate(flatBody));
 
                 float lineMask = 1.0 - smoothstep(localWidth, localWidth + lineSoftness, xDist);
-                return saturate(lineMask * yMask * spawnMask);
+                float particleMask = saturate(lineMask * yMask * spawnMask);
+
+                float colorRnd = Hash11(h.x * 53.17 + seed * 0.37);
+                float type1 = particleMask * step(colorRnd, saturate(color1Chance));
+                float type2 = particleMask - type1;
+                return float2(type1, type2);
             }
 
-            float SampleFlakeLayer(
+            float2 SampleFlakeLayer(
                 float2 uv,
                 float density,
                 float baseGrid,
@@ -396,6 +410,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float driftAmount,
                 float driftSpeed,
                 float spawn,
+                float color1Chance,
                 float edgeSoftness,
                 float seed
             )
@@ -427,8 +442,12 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float dist = length(d);
                 float edge = max(edgeSoftness, 0.001);
                 float disk = 1.0 - smoothstep(localSize, localSize * (1.0 + edge), dist);
+                float particleMask = saturate(disk * spawnMask);
 
-                return saturate(disk * spawnMask);
+                float colorRnd = Hash11(rnd.x * 71.91 + seed * 0.19);
+                float type1 = particleMask * step(colorRnd, saturate(color1Chance));
+                float type2 = particleMask - type1;
+                return float2(type1, type2);
             }
 
             float3 ApplyColorGrade(float3 c)
@@ -446,14 +465,16 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float2 uvRain = uv + GetParallaxOffset(_ParallaxRain);
                 float2 uvSnow = uv + GetParallaxOffset(_ParallaxSnow);
 
-                float rain = 0;
-                float snow = 0;
+                float rain1 = 0;
+                float rain2 = 0;
+                float snow1 = 0;
+                float snow2 = 0;
 
                 if (_RainEnabled > 0.5)
                 {
                     float2 dir = GetRainFallDirection();
 
-                    float rainBack = SampleRainLayer(
+                    float2 rainBack = SampleRainLayer(
                         uv + GetParallaxOffset(_ParallaxRain * _LayerBackParallax),
                         _RainDensity * _LayerBackDensity,
                         240.0,
@@ -468,10 +489,11 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         dir,
                         _RainJitter,
                         _RainSpawn,
+                        _RainColor1Chance,
                         _RainSoftness,
                         11.0
                     );
-                    float rainMid = SampleRainLayer(
+                    float2 rainMid = SampleRainLayer(
                         uvRain,
                         _RainDensity * _LayerMidDensity,
                         240.0,
@@ -486,10 +508,11 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         dir,
                         _RainJitter,
                         _RainSpawn,
+                        _RainColor1Chance,
                         _RainSoftness,
                         29.0
                     );
-                    float rainFore = SampleRainLayer(
+                    float2 rainFore = SampleRainLayer(
                         uv + GetParallaxOffset(_ParallaxRain * _LayerForeParallax),
                         _RainDensity * _LayerForeDensity,
                         240.0,
@@ -504,18 +527,20 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         dir,
                         _RainJitter * 1.1,
                         saturate(_RainSpawn * 0.92),
+                        _RainColor1Chance,
                         _RainSoftness,
                         47.0
                     );
 
-                    rain = (rainBack * 0.6 + rainMid + rainFore * 0.8) * _RainIntensity;
+                    rain1 = (rainBack.x * 0.6 + rainMid.x + rainFore.x * 0.8) * _RainIntensity;
+                    rain2 = (rainBack.y * 0.6 + rainMid.y + rainFore.y * 0.8) * _RainIntensity;
                 }
 
                 if (_SnowEnabled > 0.5)
                 {
                     float2 dir = GetFallDirection(_SnowFallAngle, _SnowCameraYawInfluence);
 
-                    float snowBack = SampleFlakeLayer(
+                    float2 snowBack = SampleFlakeLayer(
                         uv + GetParallaxOffset(_ParallaxSnow * _LayerBackParallax),
                         _SnowDensity * _LayerBackDensity,
                         110.0,
@@ -527,10 +552,11 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _SnowDriftAmount,
                         _SnowDriftSpeed,
                         _SnowSpawn,
+                        _SnowColor1Chance,
                         _SnowDotEdgeSoftness,
                         131.0
                     );
-                    float snowMid = SampleFlakeLayer(
+                    float2 snowMid = SampleFlakeLayer(
                         uvSnow,
                         _SnowDensity * _LayerMidDensity,
                         110.0,
@@ -542,10 +568,11 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _SnowDriftAmount,
                         _SnowDriftSpeed,
                         _SnowSpawn,
+                        _SnowColor1Chance,
                         _SnowDotEdgeSoftness,
                         149.0
                     );
-                    float snowFore = SampleFlakeLayer(
+                    float2 snowFore = SampleFlakeLayer(
                         uv + GetParallaxOffset(_ParallaxSnow * _LayerForeParallax),
                         _SnowDensity * _LayerForeDensity,
                         110.0,
@@ -557,18 +584,26 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         _SnowDriftAmount * 1.1,
                         _SnowDriftSpeed * 1.2,
                         saturate(_SnowSpawn * 0.95),
+                        _SnowColor1Chance,
                         _SnowDotEdgeSoftness,
                         167.0
                     );
 
-                    snow = (snowBack * 0.65 + snowMid + snowFore * 0.85) * _SnowIntensity;
+                    snow1 = (snowBack.x * 0.65 + snowMid.x + snowFore.x * 0.85) * _SnowIntensity;
+                    snow2 = (snowBack.y * 0.65 + snowMid.y + snowFore.y * 0.85) * _SnowIntensity;
                 }
 
-                float rainA = saturate(rain * _RainOpacity);
-                float snowA = saturate(snow * _SnowOpacity);
+                float rainA1 = saturate(rain1 * _RainOpacity);
+                float rainA2 = saturate(rain2 * _RainOpacity);
+                float snowA1 = saturate(snow1 * _SnowOpacity);
+                float snowA2 = saturate(snow2 * _SnowOpacity);
 
-                float alpha = saturate(rainA + snowA) * _GlobalOpacity * edgeMask;
-                float3 rgb = _RainColor.rgb * rainA + _SnowColor.rgb * snowA;
+                float alpha = saturate(rainA1 + rainA2 + snowA1 + snowA2) * _GlobalOpacity * edgeMask;
+                float3 rgb =
+                    _RainColor1.rgb * rainA1
+                    + _RainColor2.rgb * rainA2
+                    + _SnowColor1.rgb * snowA1
+                    + _SnowColor2.rgb * snowA2;
 
                 if (alpha > 1e-5)
                 {

@@ -84,7 +84,11 @@ namespace Turnroot.Utilities.Weather
 
             [Range(0f, 1f)]
             public float RainOpacity = 0.62f;
-            public Color RainColor = new(0.24f, 0.46f, 0.88f, 1f);
+            public Color RainColor1 = new(0.24f, 0.46f, 0.88f, 1f);
+            public Color RainColor2 = new(0.18f, 0.34f, 0.70f, 1f);
+
+            [Range(0f, 1f)]
+            public float RainColor1Chance = 1f;
 
             [Range(10f, 900f)]
             public float RainDensity = 140f;
@@ -139,7 +143,11 @@ namespace Turnroot.Utilities.Weather
 
             [Range(0f, 1f)]
             public float SnowOpacity = 0.8f;
-            public Color SnowColor = new(0.93f, 0.96f, 1f, 1f);
+            public Color SnowColor1 = new(0.93f, 0.96f, 1f, 1f);
+            public Color SnowColor2 = new(0.80f, 0.86f, 0.95f, 1f);
+
+            [Range(0f, 1f)]
+            public float SnowColor1Chance = 1f;
 
             [Range(2f, 250f)]
             public float SnowDensity = 55f;
@@ -217,7 +225,9 @@ namespace Turnroot.Utilities.Weather
                 SetFloat(material, "_RainEnabled", RainEnabled ? 1f : 0f);
                 SetFloat(material, "_RainIntensity", RainIntensity);
                 SetFloat(material, "_RainOpacity", RainOpacity);
-                SetColor(material, "_RainColor", RainColor);
+                SetColor(material, "_RainColor1", RainColor1);
+                SetColor(material, "_RainColor2", RainColor2);
+                SetFloat(material, "_RainColor1Chance", RainColor1Chance);
                 SetFloat(material, "_RainDensity", RainDensity);
                 SetFloat(material, "_RainSpeed", RainSpeed);
                 SetFloat(material, "_RainWidth", RainWidth);
@@ -237,7 +247,9 @@ namespace Turnroot.Utilities.Weather
                 SetFloat(material, "_SnowEnabled", SnowEnabled ? 1f : 0f);
                 SetFloat(material, "_SnowIntensity", SnowIntensity);
                 SetFloat(material, "_SnowOpacity", SnowOpacity);
-                SetColor(material, "_SnowColor", SnowColor);
+                SetColor(material, "_SnowColor1", SnowColor1);
+                SetColor(material, "_SnowColor2", SnowColor2);
+                SetFloat(material, "_SnowColor1Chance", SnowColor1Chance);
                 SetFloat(material, "_SnowDensity", SnowDensity);
                 SetFloat(material, "_SnowSpeed", SnowSpeed);
                 SetFloat(material, "_SnowSize", SnowSize);
@@ -324,7 +336,9 @@ namespace Turnroot.Utilities.Weather
                         preset.SnowEnabled = true;
                         preset.SnowIntensity = 1f;
                         preset.SnowOpacity = 0.72f;
-                        preset.SnowColor = new Color(0.40f, 0.36f, 0.34f, 1f);
+                        preset.SnowColor1 = new Color(0.40f, 0.36f, 0.34f, 1f);
+                        preset.SnowColor2 = new Color(0.32f, 0.29f, 0.27f, 1f);
+                        preset.SnowColor1Chance = 0.7f;
                         preset.SnowDensity = 95f;
                         preset.SnowSize = 0.075f;
                         preset.SnowSizeRandomness = 0.75f;
