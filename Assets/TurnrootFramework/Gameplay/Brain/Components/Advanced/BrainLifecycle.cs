@@ -13,6 +13,65 @@ namespace Turnroot.Gameplay.Brain
     {
         private bool _awake = false;
 
+        private void MakeInitialConnections()
+        {
+            // populate remaining core components
+            stateBrain = GetComponent<StateBrain>();
+            conversationalBrain = GetComponent<ConversationalBrain>();
+            gamewideContextBrain = GetComponent<GamewideContextBrain>();
+            battleBrain = GetComponent<BattleBrain>();
+            charactersBrain = GetComponent<CharactersBrain>();
+            inventoryBrain = GetComponent<InventoryBrain>();
+            storehouseBrain = GetComponent<StorehouseBrain>();
+            battleInputControllerBrain = GetComponent<BattleInputControllerBrain>();
+            uiBrain = GetComponent<UiBrain>();
+            volumeBrain = GetComponent<VolumeBrain>();
+            audioBrain = GetComponent<AudioBrain>();
+            cameraBrain = GetComponent<CameraBrain>();
+            cursorBrain = GetComponent<CursorBrain>();
+            positioningInputControllerBrain = GetComponent<PositioningInputController>();
+            unitAppearanceBrain = GetComponent<UnitAppearanceBrain>();
+            saveFileBrain = GetComponent<SaveFileBrain>();
+            sceneFlowBrain = GetComponent<SceneFlowBrain>();
+
+            ValidationHelper.ValidateNotNull(stateBrain, "stateBrain");
+            ValidationHelper.ValidateNotNull(conversationalBrain, "conversationalBrain");
+            ValidationHelper.ValidateNotNull(gamewideContextBrain, "gamewideContextBrain");
+            ValidationHelper.ValidateNotNull(battleBrain, "battleBrain");
+            ValidationHelper.ValidateNotNull(charactersBrain, "charactersBrain");
+            ValidationHelper.ValidateNotNull(inventoryBrain, "inventoryBrain");
+            ValidationHelper.ValidateNotNull(storehouseBrain, "storehouseBrain");
+            ValidationHelper.ValidateNotNull(
+                battleInputControllerBrain,
+                "battleInputControllerBrain"
+            );
+            ValidationHelper.ValidateNotNull(uiBrain, "uiBrain");
+            ValidationHelper.ValidateNotNull(volumeBrain, "volumeBrain");
+            ValidationHelper.ValidateNotNull(audioBrain, "audioBrain");
+            ValidationHelper.ValidateNotNull(cameraBrain, "cameraBrain");
+            ValidationHelper.ValidateNotNull(cursorBrain, "cursorBrain");
+            ValidationHelper.ValidateNotNull(
+                positioningInputControllerBrain,
+                "positioningInputControllerBrain"
+            );
+            ValidationHelper.ValidateNotNull(unitAppearanceBrain, "unitAppearanceBrain");
+            ValidationHelper.ValidateNotNull(saveFileBrain, "saveFileBrain");
+            ValidationHelper.ValidateNotNull(sceneFlowBrain, "sceneFlowBrain");
+
+            // Find all DynamicSceneFlows in other scenes and set their .brain to this
+            var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);
+            foreach (var sceneFlow in allSceneFlows)
+            {
+                if (sceneFlow.gameObject.scene != gameObject.scene)
+                {
+                    sceneFlow.brain = this;
+                }
+            }
+            _awake = true;
+
+            PublishBrainReady(this);
+        }
+
         public void Awake()
         {
             if (!_awake)
@@ -21,38 +80,7 @@ namespace Turnroot.Gameplay.Brain
                 InitializeModules();
                 InitializeAdvancedSystems();
                 TryLinkConversationController();
-
-                // populate remaining core components
-                stateBrain = GetComponent<StateBrain>();
-                conversationalBrain = GetComponent<ConversationalBrain>();
-                gamewideContextBrain = GetComponent<GamewideContextBrain>();
-                battleBrain = GetComponent<BattleBrain>();
-                charactersBrain = GetComponent<CharactersBrain>();
-                inventoryBrain = GetComponent<InventoryBrain>();
-                storehouseBrain = GetComponent<StorehouseBrain>();
-                battleInputControllerBrain = GetComponent<BattleInputControllerBrain>();
-                uiBrain = GetComponent<UiBrain>();
-                volumeBrain = GetComponent<VolumeBrain>();
-                audioBrain = GetComponent<AudioBrain>();
-                cameraBrain = GetComponent<CameraBrain>();
-                cursorBrain = GetComponent<CursorBrain>();
-                positioningInputControllerBrain = GetComponent<PositioningInputController>();
-                unitAppearanceBrain = GetComponent<UnitAppearanceBrain>();
-                saveFileBrain = GetComponent<SaveFileBrain>();
-                sceneFlowBrain = GetComponent<SceneFlowBrain>();
-
-                // Find all DynamicSceneFlows in other scenes and set their .brain to this
-                var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);
-                foreach (var sceneFlow in allSceneFlows)
-                {
-                    if (sceneFlow.gameObject.scene != gameObject.scene)
-                    {
-                        sceneFlow.brain = this;
-                    }
-                }
-                _awake = true;
-
-                PublishBrainReady(this);
+                MakeInitialConnections();
             }
         }
 

@@ -328,7 +328,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void OnMenuDepthChanged()
         {
-            var currentState = Brain?.stateBrain.CurrentState?.Name ?? string.Empty;
+            var currentState = Brain?.stateBrain?.CurrentState?.Name ?? string.Empty;
             HandleButtonsForState(currentState);
         }
 
