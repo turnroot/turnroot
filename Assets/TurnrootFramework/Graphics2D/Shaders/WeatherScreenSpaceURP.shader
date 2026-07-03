@@ -435,7 +435,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     rot.x * max(baseGrid, 1.0),
                     rot.y * max(baseGrid, 1.0) * max(streakTiling, 0.01)
                 );
-                p.y += _Time.y * speed;
+                // Negative time scroll makes angle=0 fall downward on screen.
+                p.y -= _Time.y * speed;
 
                 float2 cell = floor(p);
                 float2 f = frac(p) - 0.5;
@@ -458,8 +459,9 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float ySoft =
                     (1.0 - smoothstep(localLength, localLength + softness, yHead))
                     * smoothstep(0.0, softness * 1.5, yHead);
-                float yHard = step(yHead, localLength);
-                float yMask = lerp(ySoft, yHard, saturate(flatBody));
+                float flatEdgeSoftness = max(softness * 0.5, 1e-4);
+                float yFlat = 1.0 - smoothstep(localLength, localLength + flatEdgeSoftness, yHead);
+                float yMask = lerp(ySoft, yFlat, saturate(flatBody));
 
                 float lineMask = 1.0 - smoothstep(localWidth, localWidth + lineSoftness, xDist);
                 return saturate(lineMask * yMask * spawnMask);
