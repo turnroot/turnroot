@@ -1,9 +1,5 @@
 namespace Turnroot.Gameplay.Brain.Segments
 {
-    /// <summary>
-    /// Centralized constant names for menu routes and related tags. Avoids hardcoding strings
-    /// when wiring up the menu routing dictionary.
-    /// </summary>
     public static class MenuRouteNames
     {
         // pre-battle
@@ -19,6 +15,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         // settings submenu
         public const string Graphics = "Graphics";
+        public const string Explore = "Explore";
         public const string Gameplay = "Gameplay";
         public const string Audio = "Audio";
 

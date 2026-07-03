@@ -1,4 +1,5 @@
 using NaughtyAttributes;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
@@ -267,12 +268,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void ApplyLook(Vector2 lookInput)
         {
-            if (!ApplyLookYaw || Mathf.Abs(lookInput.x) < 0.01f)
+            var threshold =
+                0.01f + (0.1f - (GameplayPlayerSettings.Instance.ExploreMouseSensitivity * 0.1f));
+            if (!ApplyLookYaw || Mathf.Abs(lookInput.x) < threshold)
             {
                 return;
             }
 
-            CameraYawRoot.Rotate(0f, lookInput.x * LookYawSpeed * Time.deltaTime, 0f, Space.World);
+            var rotateAmount = lookInput.x * LookYawSpeed * Time.deltaTime;
+            rotateAmount *= GameplayPlayerSettings.Instance.ExploreMouseSensitivity;
+            if (GameplayPlayerSettings.Instance.InvertExploreMouse)
+            {
+                rotateAmount *= -1f;
+            }
+
+            CameraYawRoot.Rotate(0f, rotateAmount, 0f, Space.World);
         }
 
         private OperationResult ValidateWalkReadiness()
