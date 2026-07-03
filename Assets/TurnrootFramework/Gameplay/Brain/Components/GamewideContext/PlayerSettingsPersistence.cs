@@ -332,7 +332,7 @@ namespace Turnroot.Gameplay.Brain
                             _brain.CentralBrain?.PublishInputControlTypeChanged(inputControl);
                         }
                         break;
-                    case "exploremousesensitivity":
+                    case "mousesensitivity":
                         if (value is float exploreMouseSensitivity)
                         {
                             PlayerSettings.ExploreMouseSensitivity = exploreMouseSensitivity;
@@ -344,10 +344,16 @@ namespace Turnroot.Gameplay.Brain
                             PlayerSettings.InvertExploreMouse = invertExploreMouse;
                         }
                         break;
-                    case "exploremousespeed":
+                    case "mousespeed":
                         if (value is float exploreMouseSpeed)
                         {
                             PlayerSettings.ExploreMouseSpeed = exploreMouseSpeed;
+                        }
+                        break;
+                    case "movementspeed":
+                        if (value is float movementSpeed)
+                        {
+                            PlayerSettings.ExploreMovementSpeed = movementSpeed;
                         }
                         break;
                     default:

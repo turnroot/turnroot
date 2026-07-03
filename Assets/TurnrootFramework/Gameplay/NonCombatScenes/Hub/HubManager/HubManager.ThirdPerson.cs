@@ -236,7 +236,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             forward.Normalize();
             right.Normalize();
 
-            Vector3 desiredDirection = (forward * moveInput.y + right * moveInput.x);
+            Vector3 desiredDirection = (forward * moveInput.y) + (right * moveInput.x);
             if (desiredDirection.sqrMagnitude > 1f)
             {
                 desiredDirection.Normalize();
@@ -245,13 +245,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (isRunning)
             {
                 NavMeshAgent.Move(
-                    ApplyGameSpeedScaleFloat(RunSpeed) * Time.deltaTime * desiredDirection
+                    ApplyGameSpeedScaleFloat(RunSpeed)
+                        * GameplayPlayerSettings.Instance.ExploreMovementSpeed
+                        * Time.deltaTime
+                        * desiredDirection
                 );
             }
             else
             {
                 NavMeshAgent.Move(
-                    ApplyGameSpeedScaleFloat(MoveSpeed) * Time.deltaTime * desiredDirection
+                    ApplyGameSpeedScaleFloat(MoveSpeed)
+                        * GameplayPlayerSettings.Instance.ExploreMovementSpeed
+                        * Time.deltaTime
+                        * desiredDirection
                 );
             }
 
