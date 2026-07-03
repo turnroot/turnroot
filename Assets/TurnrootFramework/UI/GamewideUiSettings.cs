@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Gameplay.Objects.Components;
+using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -137,19 +138,15 @@ namespace Turnroot.GameSettings
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            // Ensure we have a list to work with (prevents null ref errors elsewhere)
             MenuPrefabs ??= new List<MenuPrefabBinding>();
-
-            // Clear the cache when the asset is reloaded
             _menuEntryCache.Clear();
         }
 
-        // Helper methods to find menu entries
         public MenuEntry GetMenuEntry(MenuName menuName)
         {
             if (menuName == MenuName.None)
             {
+                $"Menu entry for {menuName} not found.".LogError();
                 return null;
             }
 
