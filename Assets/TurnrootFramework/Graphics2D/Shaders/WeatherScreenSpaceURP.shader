@@ -1,13 +1,6 @@
 // Turnroot/Weather/ScreenSpaceURP
 // Procedural screen-space weather overlay for URP.
-// Supports rain, drizzle, snow, and ash.
-//
-// Intended usage:
-// 1) Full-screen quad parented to camera (recommended for quick setup), OR
-// 2) URP Full Screen Pass Renderer Feature using this material.
-//
-// This shader is transparent and overlays the scene.
-// It does not require a RenderTexture unless you specifically need camera stacking/compositing workflows.
+// Supports rain and snow (snow can be used as ash via preset color/behavior).
 
 Shader "Turnroot/Weather/ScreenSpaceURP"
 {
@@ -28,9 +21,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _ParallaxYawAmount ("Parallax Yaw Influence", Range(0,2)) = 1
         _ParallaxPitchAmount ("Parallax Pitch Influence", Range(0,2)) = 1
         _ParallaxRain ("Parallax Rain", Range(0,4)) = 1.2
-        _ParallaxDrizzle ("Parallax Drizzle", Range(0,4)) = 1.0
         _ParallaxSnow ("Parallax Snow", Range(0,4)) = 0.65
-        _ParallaxAsh ("Parallax Ash", Range(0,4)) = 0.55
 
         [Header(Layer Parallax)]
         _LayerBackParallax ("Back Layer Parallax", Range(0,6)) = 0.35
@@ -62,28 +53,11 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _RainFlatBody ("Rain Flat Body", Range(0,1)) = 1
         _RainFallAngle ("Rain Fall Angle (deg)", Range(-80,80)) = 18
         _RainCameraYawInfluence ("Rain Camera Yaw Influence", Range(-1,1)) = 0.45
+        _RainAngleClampMin ("Rain Angle Clamp Min", Range(-89,89)) = -70
+        _RainAngleClampMax ("Rain Angle Clamp Max", Range(-89,89)) = 70
         _RainJitter ("Rain Horizontal Jitter", Range(0,1)) = 0.35
         _RainSpawn ("Rain Spawn Chance", Range(0,1)) = 0.78
         _RainSoftness ("Rain Edge Softness", Range(0.0005,0.25)) = 0.018
-
-        [Header(Drizzle)]
-        _DrizzleEnabled ("Enable Drizzle", Float) = 0
-        _DrizzleIntensity ("Drizzle Intensity", Range(0,2)) = 0.6
-        _DrizzleOpacity ("Drizzle Opacity", Range(0,1)) = 0.35
-        _DrizzleColor ("Drizzle Color", Color) = (0.8,0.86,1,1)
-        _DrizzleDensity ("Drizzle Density", Range(10,900)) = 180
-        _DrizzleSpeed ("Drizzle Speed", Range(0,20)) = 4
-        _DrizzleWidth ("Drizzle Width", Range(0.0002,0.2)) = 0.006
-        _DrizzleLength ("Drizzle Length", Range(0.02,0.99)) = 0.4
-        _DrizzleWidthRandomness ("Drizzle Width Randomness", Range(0,1)) = 0.25
-        _DrizzleLengthRandomness ("Drizzle Length Randomness", Range(0,1)) = 0.3
-        _DrizzleStreakTiling ("Drizzle Streak Tiling", Range(0.05,2.0)) = 0.5
-        _DrizzleFlatBody ("Drizzle Flat Body", Range(0,1)) = 1
-        _DrizzleFallAngle ("Drizzle Fall Angle (deg)", Range(-80,80)) = 8
-        _DrizzleCameraYawInfluence ("Drizzle Camera Yaw Influence", Range(-1,1)) = 0.35
-        _DrizzleJitter ("Drizzle Horizontal Jitter", Range(0,1)) = 0.4
-        _DrizzleSpawn ("Drizzle Spawn Chance", Range(0,1)) = 0.62
-        _DrizzleSoftness ("Drizzle Edge Softness", Range(0.0005,0.25)) = 0.03
 
         [Header(Snow)]
         _SnowEnabled ("Enable Snow", Float) = 0
@@ -100,22 +74,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
         _SnowCameraYawInfluence ("Snow Camera Yaw Influence", Range(-1,1)) = 0.2
         _SnowSpawn ("Snow Spawn Chance", Range(0,1)) = 0.86
         _SnowDotEdgeSoftness ("Snow Dot Edge Softness", Range(0.001,1)) = 0.08
-
-        [Header(Ash)]
-        _AshEnabled ("Enable Ash", Float) = 0
-        _AshIntensity ("Ash Intensity", Range(0,2)) = 0.8
-        _AshOpacity ("Ash Opacity", Range(0,1)) = 0.7
-        _AshColor ("Ash Color", Color) = (0.42,0.42,0.42,1)
-        _AshDensity ("Ash Density", Range(2,250)) = 80
-        _AshSpeed ("Ash Speed", Range(0,10)) = 0.9
-        _AshSize ("Ash Size", Range(0.001,0.25)) = 0.04
-        _AshSizeRandomness ("Ash Size Randomness", Range(0,1)) = 0.6
-        _AshDriftAmount ("Ash Drift Amount", Range(0,1)) = 0.7
-        _AshDriftSpeed ("Ash Drift Speed", Range(0,8)) = 2.2
-        _AshFallAngle ("Ash Fall Angle (deg)", Range(-80,80)) = 12
-        _AshCameraYawInfluence ("Ash Camera Yaw Influence", Range(-1,1)) = 0.3
-        _AshSpawn ("Ash Spawn Chance", Range(0,1)) = 0.72
-        _AshDotEdgeSoftness ("Ash Dot Edge Softness", Range(0.001,1)) = 0.1
 
         [Header(Depth Fade)]
         _VerticalFadeTop ("Top Fade", Range(0,1)) = 0
@@ -176,9 +134,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _ParallaxYawAmount;
                 float _ParallaxPitchAmount;
                 float _ParallaxRain;
-                float _ParallaxDrizzle;
                 float _ParallaxSnow;
-                float _ParallaxAsh;
 
                 float _LayerBackParallax;
                 float _LayerMidParallax;
@@ -206,27 +162,11 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _RainFlatBody;
                 float _RainFallAngle;
                 float _RainCameraYawInfluence;
+                float _RainAngleClampMin;
+                float _RainAngleClampMax;
                 float _RainJitter;
                 float _RainSpawn;
                 float _RainSoftness;
-
-                float _DrizzleEnabled;
-                float _DrizzleIntensity;
-                float _DrizzleOpacity;
-                float4 _DrizzleColor;
-                float _DrizzleDensity;
-                float _DrizzleSpeed;
-                float _DrizzleWidth;
-                float _DrizzleLength;
-                float _DrizzleWidthRandomness;
-                float _DrizzleLengthRandomness;
-                float _DrizzleStreakTiling;
-                float _DrizzleFlatBody;
-                float _DrizzleFallAngle;
-                float _DrizzleCameraYawInfluence;
-                float _DrizzleJitter;
-                float _DrizzleSpawn;
-                float _DrizzleSoftness;
 
                 float _SnowEnabled;
                 float _SnowIntensity;
@@ -242,21 +182,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float _SnowCameraYawInfluence;
                 float _SnowSpawn;
                 float _SnowDotEdgeSoftness;
-
-                float _AshEnabled;
-                float _AshIntensity;
-                float _AshOpacity;
-                float4 _AshColor;
-                float _AshDensity;
-                float _AshSpeed;
-                float _AshSize;
-                float _AshSizeRandomness;
-                float _AshDriftAmount;
-                float _AshDriftSpeed;
-                float _AshFallAngle;
-                float _AshCameraYawInfluence;
-                float _AshSpawn;
-                float _AshDotEdgeSoftness;
 
                 float _VerticalFadeTop;
                 float _VerticalFadeBottom;
@@ -291,37 +216,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
             {
                 float n = Hash21(p);
                 return float2(n, Hash11(n * 97.13));
-            }
-
-            float Noise(float2 p)
-            {
-                float2 i = floor(p);
-                float2 f = frac(p);
-                float2 u = f * f * (3.0 - 2.0 * f);
-
-                float a = Hash21(i + float2(0, 0));
-                float b = Hash21(i + float2(1, 0));
-                float c = Hash21(i + float2(0, 1));
-                float d = Hash21(i + float2(1, 1));
-
-                return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y);
-            }
-
-            float FBM(float2 p)
-            {
-                float value = 0;
-                float amp = 0.5;
-                float2 shift = float2(123.7, 271.9);
-
-                [unroll]
-                for (int i = 0; i < 4; i++)
-                {
-                    value += amp * Noise(p);
-                    p = p * 2.03 + shift;
-                    amp *= 0.5;
-                }
-
-                return value;
             }
 
             float2 GetCameraForwardXZ()
@@ -383,7 +277,34 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
 
                 float angle = radians(baseAngleDeg + _GlobalWindAngle) + relativeYaw * cameraYawInfluence;
 
-                // 0 deg means falling straight down screen.
+                float2 dir = float2(sin(angle), -cos(angle));
+                return normalize(dir);
+            }
+
+            float2 GetRainFallDirection()
+            {
+                float2 camXZ = GetCameraForwardXZ();
+                float camYaw = atan2(camXZ.y, camXZ.x);
+
+                float2 refXZ = _WorldForwardXZ.xy;
+                if (length(refXZ) < 1e-5)
+                {
+                    refXZ = float2(1.0, 0.0);
+                }
+                else
+                {
+                    refXZ = normalize(refXZ);
+                }
+
+                float refYaw = atan2(refXZ.y, refXZ.x);
+                float relativeYaw = camYaw - refYaw;
+                float angleDeg = _RainFallAngle + _GlobalWindAngle + degrees(relativeYaw * _RainCameraYawInfluence);
+
+                float minAngle = min(_RainAngleClampMin, _RainAngleClampMax);
+                float maxAngle = max(_RainAngleClampMin, _RainAngleClampMax);
+                angleDeg = clamp(angleDeg, minAngle, maxAngle);
+
+                float angle = radians(angleDeg);
                 float2 dir = float2(sin(angle), -cos(angle));
                 return normalize(dir);
             }
@@ -426,7 +347,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float density01 = saturate(density / max(densityMax, 1.0));
                 float effectiveSpawn = saturate(spawn * (0.1 + density01 * 1.8));
 
-                // Keep density visually similar on different aspect ratios.
                 float aspect = _ScreenParams.x / _ScreenParams.y;
                 float2 suv = float2((uv.x - 0.5) * aspect + 0.5, uv.y);
 
@@ -435,7 +355,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     rot.x * max(baseGrid, 1.0),
                     rot.y * max(baseGrid, 1.0) * max(streakTiling, 0.01)
                 );
-                // Negative time scroll makes angle=0 fall downward on screen.
                 p.y -= _Time.y * speed;
 
                 float2 cell = floor(p);
@@ -446,7 +365,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float widthRand = lerp(1.0 - widthRandomness, 1.0 + widthRandomness, h.y);
                 float lenRand = lerp(1.0 - lengthRandomness, 1.0 + lengthRandomness, Hash11(h.x * 31.7));
 
-                // Random left-right offset per cell.
                 float xOffset = (h.y - 0.5) * jitter;
                 float xDist = abs(f.x + xOffset);
 
@@ -454,7 +372,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float lineSoftness = max(softness, 1e-4);
                 float localLength = saturate(lengthNorm * lenRand);
 
-                // Raindrop segment in cell space.
                 float yHead = frac(p.y + h.x * 17.31);
                 float ySoft =
                     (1.0 - smoothstep(localLength, localLength + softness, yHead))
@@ -492,7 +409,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float2 rot = float2(dot(suv, perp), dot(suv, fallDir));
                 float2 p = rot * max(baseGrid, 1.0);
 
-                // Time is applied in rotated/fall space to preserve directional movement.
                 p.y += _Time.y * fallSpeed;
                 p.x += sin(_Time.y * driftSpeed + p.y * 0.12 + seed) * driftAmount;
 
@@ -505,7 +421,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float localSize = size * lerp(1.0 - sizeRandomness, 1.0 + sizeRandomness, rnd.y);
                 localSize = min(localSize, 0.49);
 
-                // Center offset for natural dot spacing.
                 float2 center = (rnd - 0.5) * 0.65;
 
                 float2 d = f - center;
@@ -529,18 +444,15 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float edgeMask = EdgeMask(uv);
 
                 float2 uvRain = uv + GetParallaxOffset(_ParallaxRain);
-                float2 uvDrizzle = uv + GetParallaxOffset(_ParallaxDrizzle);
                 float2 uvSnow = uv + GetParallaxOffset(_ParallaxSnow);
-                float2 uvAsh = uv + GetParallaxOffset(_ParallaxAsh);
 
                 float rain = 0;
-                float drizzle = 0;
                 float snow = 0;
-                float ash = 0;
 
                 if (_RainEnabled > 0.5)
                 {
-                    float2 dir = GetFallDirection(_RainFallAngle, _RainCameraYawInfluence);
+                    float2 dir = GetRainFallDirection();
+
                     float rainBack = SampleRainLayer(
                         uv + GetParallaxOffset(_ParallaxRain * _LayerBackParallax),
                         _RainDensity * _LayerBackDensity,
@@ -596,71 +508,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         47.0
                     );
 
-                    rain += rainBack * 0.6 + rainMid + rainFore * 0.8;
-
-                    rain *= _RainIntensity;
-                }
-
-                if (_DrizzleEnabled > 0.5)
-                {
-                    float2 dir = GetFallDirection(_DrizzleFallAngle, _DrizzleCameraYawInfluence);
-                    float drizzleBack = SampleRainLayer(
-                        uv + GetParallaxOffset(_ParallaxDrizzle * _LayerBackParallax),
-                        _DrizzleDensity * _LayerBackDensity,
-                        170.0,
-                        900.0,
-                        _DrizzleSpeed * 0.9,
-                        _DrizzleWidth * _LayerBackSize,
-                        _DrizzleLength * _LayerBackSize,
-                        _DrizzleWidthRandomness,
-                        _DrizzleLengthRandomness,
-                        _DrizzleStreakTiling,
-                        _DrizzleFlatBody,
-                        dir,
-                        _DrizzleJitter,
-                        _DrizzleSpawn,
-                        _DrizzleSoftness,
-                        71.0
-                    );
-                    float drizzleMid = SampleRainLayer(
-                        uvDrizzle,
-                        _DrizzleDensity * _LayerMidDensity,
-                        170.0,
-                        900.0,
-                        _DrizzleSpeed,
-                        _DrizzleWidth * _LayerMidSize,
-                        _DrizzleLength * _LayerMidSize,
-                        _DrizzleWidthRandomness,
-                        _DrizzleLengthRandomness,
-                        _DrizzleStreakTiling,
-                        _DrizzleFlatBody,
-                        dir,
-                        _DrizzleJitter,
-                        _DrizzleSpawn,
-                        _DrizzleSoftness,
-                        89.0
-                    );
-                    float drizzleFore = SampleRainLayer(
-                        uv + GetParallaxOffset(_ParallaxDrizzle * _LayerForeParallax),
-                        _DrizzleDensity * _LayerForeDensity,
-                        170.0,
-                        900.0,
-                        _DrizzleSpeed * 1.1,
-                        _DrizzleWidth * _LayerForeSize,
-                        _DrizzleLength * _LayerForeSize,
-                        _DrizzleWidthRandomness,
-                        _DrizzleLengthRandomness,
-                        _DrizzleStreakTiling,
-                        _DrizzleFlatBody,
-                        dir,
-                        _DrizzleJitter * 1.1,
-                        _DrizzleSpawn,
-                        _DrizzleSoftness,
-                        107.0
-                    );
-
-                    drizzle += drizzleBack * 0.55 + drizzleMid + drizzleFore * 0.7;
-                    drizzle *= _DrizzleIntensity;
+                    rain = (rainBack * 0.6 + rainMid + rainFore * 0.8) * _RainIntensity;
                 }
 
                 if (_SnowEnabled > 0.5)
@@ -713,81 +561,14 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                         167.0
                     );
 
-                    snow += snowBack * 0.65 + snowMid + snowFore * 0.85;
-
-                    snow *= _SnowIntensity;
+                    snow = (snowBack * 0.65 + snowMid + snowFore * 0.85) * _SnowIntensity;
                 }
-
-                if (_AshEnabled > 0.5)
-                {
-                    float2 dir = GetFallDirection(_AshFallAngle, _AshCameraYawInfluence);
-
-                    float ashBack = SampleFlakeLayer(
-                        uv + GetParallaxOffset(_ParallaxAsh * _LayerBackParallax),
-                        _AshDensity * _LayerBackDensity,
-                        110.0,
-                        250.0,
-                        _AshSpeed * 0.9,
-                        _AshSize * _LayerBackSize,
-                        _AshSizeRandomness,
-                        dir,
-                        _AshDriftAmount,
-                        _AshDriftSpeed,
-                        _AshSpawn,
-                        _AshDotEdgeSoftness,
-                        191.0
-                    );
-                    float ashMid = SampleFlakeLayer(
-                        uvAsh,
-                        _AshDensity * _LayerMidDensity,
-                        110.0,
-                        250.0,
-                        _AshSpeed,
-                        _AshSize * _LayerMidSize,
-                        _AshSizeRandomness,
-                        dir,
-                        _AshDriftAmount,
-                        _AshDriftSpeed,
-                        _AshSpawn,
-                        _AshDotEdgeSoftness,
-                        223.0
-                    );
-                    float ashFore = SampleFlakeLayer(
-                        uv + GetParallaxOffset(_ParallaxAsh * _LayerForeParallax),
-                        _AshDensity * _LayerForeDensity,
-                        110.0,
-                        250.0,
-                        _AshSpeed * 1.12,
-                        _AshSize * _LayerForeSize,
-                        _AshSizeRandomness,
-                        dir,
-                        _AshDriftAmount * 1.15,
-                        _AshDriftSpeed * 1.2,
-                        saturate(_AshSpawn * 0.94),
-                        _AshDotEdgeSoftness,
-                        251.0
-                    );
-
-                    ash += ashBack * 0.7 + ashMid + ashFore * 0.8;
-
-                    ash *= _AshIntensity;
-                }
-
-                float3 rgb = 0;
-                float alpha = 0;
 
                 float rainA = saturate(rain * _RainOpacity);
-                float drizzleA = saturate(drizzle * _DrizzleOpacity);
                 float snowA = saturate(snow * _SnowOpacity);
-                float ashA = saturate(ash * _AshOpacity);
 
-                rgb += _RainColor.rgb * rainA;
-                rgb += _DrizzleColor.rgb * drizzleA;
-                rgb += _SnowColor.rgb * snowA;
-                rgb += _AshColor.rgb * ashA;
-
-                alpha = rainA + drizzleA + snowA + ashA;
-                alpha = saturate(alpha) * _GlobalOpacity * edgeMask;
+                float alpha = saturate(rainA + snowA) * _GlobalOpacity * edgeMask;
+                float3 rgb = _RainColor.rgb * rainA + _SnowColor.rgb * snowA;
 
                 if (alpha > 1e-5)
                 {
@@ -795,7 +576,6 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 }
 
                 rgb = ApplyColorGrade(rgb);
-
                 return half4(rgb, alpha);
             }
             ENDHLSL
