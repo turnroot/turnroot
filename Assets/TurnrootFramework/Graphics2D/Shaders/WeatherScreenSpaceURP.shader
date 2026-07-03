@@ -406,6 +406,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
             float SampleRainLayer(
                 float2 uv,
                 float density,
+                float baseGrid,
+                float densityMax,
                 float speed,
                 float width,
                 float lengthNorm,
@@ -421,6 +423,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
             )
             {
                 float2 perp = float2(-fallDir.y, fallDir.x);
+                float density01 = saturate(density / max(densityMax, 1.0));
+                float effectiveSpawn = saturate(spawn * (0.1 + density01 * 1.8));
 
                 // Keep density visually similar on different aspect ratios.
                 float aspect = _ScreenParams.x / _ScreenParams.y;
@@ -428,8 +432,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
 
                 float2 rot = float2(dot(suv, perp), dot(suv, fallDir));
                 float2 p = float2(
-                    rot.x * max(density, 1.0),
-                    rot.y * max(density, 1.0) * max(streakTiling, 0.01)
+                    rot.x * max(baseGrid, 1.0),
+                    rot.y * max(baseGrid, 1.0) * max(streakTiling, 0.01)
                 );
                 p.y += _Time.y * speed;
 
@@ -437,7 +441,7 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float2 f = frac(p) - 0.5;
 
                 float2 h = Hash22(cell + seed);
-                float spawnMask = step(1.0 - spawn, h.x);
+                float spawnMask = step(1.0 - effectiveSpawn, h.x);
                 float widthRand = lerp(1.0 - widthRandomness, 1.0 + widthRandomness, h.y);
                 float lenRand = lerp(1.0 - lengthRandomness, 1.0 + lengthRandomness, Hash11(h.x * 31.7));
 
@@ -445,10 +449,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float xOffset = (h.y - 0.5) * jitter;
                 float xDist = abs(f.x + xOffset);
 
-                // Scale line thickness by density so density changes count/spacing, not apparent size.
-                float densityScale = max(density, 1.0);
-                float localWidth = width * widthRand * densityScale;
-                float lineSoftness = max(softness * densityScale, 1e-4);
+                float localWidth = width * widthRand;
+                float lineSoftness = max(softness, 1e-4);
                 float localLength = saturate(lengthNorm * lenRand);
 
                 // Raindrop segment in cell space.
@@ -466,6 +468,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
             float SampleFlakeLayer(
                 float2 uv,
                 float density,
+                float baseGrid,
+                float densityMax,
                 float fallSpeed,
                 float size,
                 float sizeRandomness,
@@ -478,11 +482,13 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
             )
             {
                 float2 perp = float2(-fallDir.y, fallDir.x);
+                float density01 = saturate(density / max(densityMax, 1.0));
+                float effectiveSpawn = saturate(spawn * (0.1 + density01 * 1.8));
                 float aspect = _ScreenParams.x / _ScreenParams.y;
                 float2 suv = float2((uv.x - 0.5) * aspect + 0.5, uv.y);
 
                 float2 rot = float2(dot(suv, perp), dot(suv, fallDir));
-                float2 p = rot * max(density, 1.0);
+                float2 p = rot * max(baseGrid, 1.0);
 
                 // Time is applied in rotated/fall space to preserve directional movement.
                 p.y += _Time.y * fallSpeed;
@@ -492,11 +498,9 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                 float2 f = frac(p) - 0.5;
 
                 float2 rnd = Hash22(id + seed);
-                float spawnMask = step(1.0 - spawn, rnd.x);
+                float spawnMask = step(1.0 - effectiveSpawn, rnd.x);
 
-                // Scale particle radius by density so density changes count/spacing, not apparent size.
-                float densityScale = max(density, 1.0);
-                float localSize = size * densityScale * lerp(1.0 - sizeRandomness, 1.0 + sizeRandomness, rnd.y);
+                float localSize = size * lerp(1.0 - sizeRandomness, 1.0 + sizeRandomness, rnd.y);
                 localSize = min(localSize, 0.49);
 
                 // Center offset for natural dot spacing.
@@ -538,6 +542,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float rainBack = SampleRainLayer(
                         uv + GetParallaxOffset(_ParallaxRain * _LayerBackParallax),
                         _RainDensity * _LayerBackDensity,
+                        240.0,
+                        900.0,
                         _RainSpeed * 0.9,
                         _RainWidth * _LayerBackSize,
                         _RainLength * _LayerBackSize,
@@ -554,6 +560,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float rainMid = SampleRainLayer(
                         uvRain,
                         _RainDensity * _LayerMidDensity,
+                        240.0,
+                        900.0,
                         _RainSpeed,
                         _RainWidth * _LayerMidSize,
                         _RainLength * _LayerMidSize,
@@ -570,6 +578,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float rainFore = SampleRainLayer(
                         uv + GetParallaxOffset(_ParallaxRain * _LayerForeParallax),
                         _RainDensity * _LayerForeDensity,
+                        240.0,
+                        900.0,
                         _RainSpeed * 1.15,
                         _RainWidth * _LayerForeSize,
                         _RainLength * _LayerForeSize,
@@ -595,6 +605,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float drizzleBack = SampleRainLayer(
                         uv + GetParallaxOffset(_ParallaxDrizzle * _LayerBackParallax),
                         _DrizzleDensity * _LayerBackDensity,
+                        170.0,
+                        900.0,
                         _DrizzleSpeed * 0.9,
                         _DrizzleWidth * _LayerBackSize,
                         _DrizzleLength * _LayerBackSize,
@@ -611,6 +623,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float drizzleMid = SampleRainLayer(
                         uvDrizzle,
                         _DrizzleDensity * _LayerMidDensity,
+                        170.0,
+                        900.0,
                         _DrizzleSpeed,
                         _DrizzleWidth * _LayerMidSize,
                         _DrizzleLength * _LayerMidSize,
@@ -627,6 +641,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float drizzleFore = SampleRainLayer(
                         uv + GetParallaxOffset(_ParallaxDrizzle * _LayerForeParallax),
                         _DrizzleDensity * _LayerForeDensity,
+                        170.0,
+                        900.0,
                         _DrizzleSpeed * 1.1,
                         _DrizzleWidth * _LayerForeSize,
                         _DrizzleLength * _LayerForeSize,
@@ -652,6 +668,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float snowBack = SampleFlakeLayer(
                         uv + GetParallaxOffset(_ParallaxSnow * _LayerBackParallax),
                         _SnowDensity * _LayerBackDensity,
+                        110.0,
+                        250.0,
                         _SnowSpeed * 0.9,
                         _SnowSize * _LayerBackSize,
                         _SnowSizeRandomness,
@@ -665,6 +683,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float snowMid = SampleFlakeLayer(
                         uvSnow,
                         _SnowDensity * _LayerMidDensity,
+                        110.0,
+                        250.0,
                         _SnowSpeed,
                         _SnowSize * _LayerMidSize,
                         _SnowSizeRandomness,
@@ -678,6 +698,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float snowFore = SampleFlakeLayer(
                         uv + GetParallaxOffset(_ParallaxSnow * _LayerForeParallax),
                         _SnowDensity * _LayerForeDensity,
+                        110.0,
+                        250.0,
                         _SnowSpeed * 1.08,
                         _SnowSize * _LayerForeSize,
                         _SnowSizeRandomness,
@@ -701,6 +723,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float ashBack = SampleFlakeLayer(
                         uv + GetParallaxOffset(_ParallaxAsh * _LayerBackParallax),
                         _AshDensity * _LayerBackDensity,
+                        110.0,
+                        250.0,
                         _AshSpeed * 0.9,
                         _AshSize * _LayerBackSize,
                         _AshSizeRandomness,
@@ -714,6 +738,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float ashMid = SampleFlakeLayer(
                         uvAsh,
                         _AshDensity * _LayerMidDensity,
+                        110.0,
+                        250.0,
                         _AshSpeed,
                         _AshSize * _LayerMidSize,
                         _AshSizeRandomness,
@@ -727,6 +753,8 @@ Shader "Turnroot/Weather/ScreenSpaceURP"
                     float ashFore = SampleFlakeLayer(
                         uv + GetParallaxOffset(_ParallaxAsh * _LayerForeParallax),
                         _AshDensity * _LayerForeDensity,
+                        110.0,
+                        250.0,
                         _AshSpeed * 1.12,
                         _AshSize * _LayerForeSize,
                         _AshSizeRandomness,
