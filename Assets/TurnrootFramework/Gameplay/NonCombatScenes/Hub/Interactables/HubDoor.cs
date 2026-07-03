@@ -1,6 +1,7 @@
 using System.Collections;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
+using Turnroot.Utilities.Weather;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
@@ -16,7 +17,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [SerializeField]
         private UnityEvent onDoorEntered;
+
+        [SerializeField]
+        private UnityEvent goingInside;
+
+        [SerializeField]
+        private UnityEvent goingOutside;
         private bool _open = false;
+
+        private bool _goingInside = false;
 
         [SerializeField]
         public bool Locked;
@@ -120,6 +129,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // once player collider is no longer colliding with door collider lerp closed if AutoCloseBehindPlayer is true
             if (AutoCloseBehindPlayer)
             {
+                _goingInside = !_goingInside;
+                if (_goingInside)
+                {
+                    goingInside?.Invoke();
+                }
+                else
+                {
+                    goingOutside?.Invoke();
+                }
+
                 while (DoorCollider.bounds.Intersects(PlayerCollider.bounds))
                 {
                     yield return null;
