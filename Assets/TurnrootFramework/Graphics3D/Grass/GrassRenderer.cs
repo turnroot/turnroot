@@ -30,7 +30,9 @@ namespace Turnroot.Graphics3D
         public ComputeShader computeShader;
         public Material grassMaterial;
 
-        [Tooltip("The ground mesh this grass sits on. Used by AlignGroundTexture to map _GroundTex over the full ground footprint.")]
+        [Tooltip(
+            "The ground mesh this grass sits on. Used by AlignGroundTexture to map _GroundTex over the full ground footprint."
+        )]
         public MeshFilter groundSource;
 
         [Tooltip("Culling camera. Falls back to Camera.main, then any active camera.")]
@@ -107,6 +109,7 @@ namespace Turnroot.Graphics3D
         private int _cullKernel;
         private Bounds _drawBounds;
         private float _logTimer;
+        private UnityEngine.Camera _resolvedCamera;
 
         // Indirect args layout: [indexCount, instanceCount, startIndex, baseVertex, startInstance]
         private readonly uint[] _args = new uint[5];

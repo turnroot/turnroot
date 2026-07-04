@@ -60,21 +60,31 @@ namespace Turnroot.Graphics3D
         {
             if (targetCamera != null && targetCamera.isActiveAndEnabled)
             {
+                _resolvedCamera = targetCamera;
                 return targetCamera;
+            }
+
+            if (_resolvedCamera != null && _resolvedCamera.isActiveAndEnabled)
+            {
+                return _resolvedCamera;
             }
 
             if (UnityEngine.Camera.main != null)
             {
-                return UnityEngine.Camera.main;
+                _resolvedCamera = UnityEngine.Camera.main;
+                return _resolvedCamera;
             }
 
             foreach (var c in UnityEngine.Camera.allCameras)
             {
                 if (c.isActiveAndEnabled)
                 {
-                    return c;
+                    _resolvedCamera = c;
+                    return _resolvedCamera;
                 }
             }
+
+            _resolvedCamera = null;
 
             return null;
         }
