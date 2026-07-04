@@ -69,6 +69,7 @@ namespace Turnroot.Gameplay.PlayerSettings
         public bool InvertExploreMouse = false;
         public float ExploreMouseSpeed = .5f;
         public float ExploreMovementSpeed = .5f;
+        public float InputEasing = 0.1f;
 
         public enum LogicalAction
         {

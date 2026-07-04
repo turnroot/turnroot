@@ -112,6 +112,7 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.ExploreMouseSpeed = data.ExploreMouseSpeed;
             PlayerSettings.ExploreMovementSpeed = data.ExploreMovementSpeed;
             PlayerSettings.InvertExploreMouse = data.InvertExploreMouse;
+            PlayerSettings.InputEasing = data.InputEasing;
         }
 
         public OperationResult SavePlayerSettings()
@@ -154,7 +155,8 @@ namespace Turnroot.Gameplay.Brain
                     ExploreMouseSensitivity = PlayerSettings.ExploreMouseSensitivity,
                     ExploreMouseSpeed = PlayerSettings.ExploreMouseSpeed,
                     ExploreMovementSpeed = PlayerSettings.ExploreMovementSpeed,
-                    InvertExploreMouse = PlayerSettings.InvertExploreMouse
+                    InvertExploreMouse = PlayerSettings.InvertExploreMouse,
+                    InputEasing = PlayerSettings.InputEasing,
                 };
 
                 var encode = GamewideContextBrainHelpers.EncodeInstanceToString(_brain, saveData);
@@ -364,6 +366,12 @@ namespace Turnroot.Gameplay.Brain
                             PlayerSettings.ExploreMovementSpeed = movementSpeed;
                         }
                         break;
+                    case "inputeasing":
+                        if (value is float inputEasing)
+                        {
+                            PlayerSettings.InputEasing = inputEasing;
+                        }
+                        break;
                     default:
                         return;
                 }
@@ -434,10 +442,10 @@ namespace Turnroot.Gameplay.Brain
         public float SfxVolume = 0.8f;
         public float VoiceVolume = 0.8f;
         public SongChoice PreferredBattleMusic = SongChoice.Default;
-
         public float ExploreMouseSensitivity = 1.0f;
         public float ExploreMouseSpeed = 1.0f;
         public float ExploreMovementSpeed = 1.0f;
         public bool InvertExploreMouse = false;
+        public float InputEasing = 0.1f;
     }
 }
