@@ -50,6 +50,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 { "mousespeed", settings => settings.ExploreMouseSpeed },
                 { "movementspeed", settings => settings.ExploreMovementSpeed },
                 { "inputeasing", settings => settings.InputEasing },
+                { "exploreverticaltilt", settings => settings.ExploreVerticalTilt },
             };
 
             RegisterDefaultBinders();

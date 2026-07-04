@@ -58,10 +58,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [BoxGroup("Third Person Walk Mode")]
         public float LookYawSpeed = 120f;
-
-        [InfoBox("If true, right-stick/mouse Y input tilts CameraYawRoot pitch.")]
-        [BoxGroup("Third Person Walk Mode")]
-        public bool ApplyLookPitch = true;
+        private bool ApplyLookPitch = GameplayPlayerSettings.Instance.ExploreVerticalTilt;
 
         [BoxGroup("Third Person Walk Mode")]
         public float LookPitchSpeed = 120f;
