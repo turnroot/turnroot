@@ -66,6 +66,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )]
         public bool useThirdPersonWalkWhenUnzoomed = true;
 
+        [BoxGroup("Look/Traversal Settings")]
+        [Tooltip(
+            "Locks and hides the cursor while look mode is enabled so mouse delta never gets clamped by screen edges."
+        )]
+        public bool lockCursorWhileLooking = true;
+
         [Tooltip(
             "Radius used when casting out of the camera. A larger value gives you a bigger forgiveness window around the centre of the view."
         )]
@@ -80,6 +86,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private float _cachedDownLimit;
         private bool _loggedMissingGeneralCamera;
         private Coroutine _zoomFovCoroutine;
+        private CursorLockMode _savedCursorLockMode;
+        private bool _savedCursorVisible;
+        private bool _hasSavedCursorState;
 
         public void HandleSubLocationInput(string action)
         {
@@ -146,6 +155,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _pitchOffset = _yawOffset = 0f;
                 _cachedUpLimit = Mathf.Abs(MaxTiltUp);
                 _cachedDownLimit = Mathf.Abs(MaxTiltDown);
+                ApplyLookCursorState();
             }
             else
             {
@@ -155,6 +165,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 SetWalkMode(false);
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
+                RestoreLookCursorState();
             }
 
             // Cinemachine should only drive the camera while look/traversal mode is active.
@@ -508,6 +519,34 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             return input;
+        }
+
+        private void ApplyLookCursorState()
+        {
+            if (!_hasSavedCursorState)
+            {
+                _savedCursorLockMode = Cursor.lockState;
+                _savedCursorVisible = Cursor.visible;
+                _hasSavedCursorState = true;
+            }
+
+            if (lockCursorWhileLooking)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
+
+        private void RestoreLookCursorState()
+        {
+            if (!_hasSavedCursorState)
+            {
+                return;
+            }
+
+            Cursor.lockState = _savedCursorLockMode;
+            Cursor.visible = _savedCursorVisible;
+            _hasSavedCursorState = false;
         }
 
         private float ApplyGameSpeedScaleFloat(float value)
