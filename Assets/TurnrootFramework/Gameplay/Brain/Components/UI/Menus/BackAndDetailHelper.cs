@@ -30,11 +30,13 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             bool inSubmenu = (_menuTracker?.CurrentDepth ?? 0) > 1;
 
-            // Also show Back button at depth 1 when in the hub with a menu open,
-            // so the special-case close logic in HandleBackButtonPressed can be reached.
-            bool atHubRootMenu = IsInHubState() && (_menuTracker?.CurrentDepth ?? 0) == 1;
+            // Also show Back button at depth 1 when the root settings menu is active,
+            // so settings opened from hub can always be closed even if state info is transient.
+            bool atRootSettingsMenu =
+                (_menuTracker?.CurrentDepth ?? 0) == 1
+                && _menuTracker?.CurrentMenu == uiSettings?.GetGameSettingsMenu();
 
-            bool needsBackButton = stateNeedsMenus || inSubmenu || atHubRootMenu;
+            bool needsBackButton = stateNeedsMenus || inSubmenu || atRootSettingsMenu;
 
             if (needsBackButton)
             {
@@ -311,7 +313,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return;
             }
 
-            var currentState = Brain?.stateBrain.CurrentState?.Name;
+            var currentState = Brain?.stateBrain?.CurrentState?.Name;
 
             // TODO: Implement root level back behavior based on state
             switch (currentState)
