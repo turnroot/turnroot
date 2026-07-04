@@ -61,6 +61,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UIFade FocusOverlayFade;
 
         [BoxGroup("Look/Traversal Settings")]
+        [Tooltip("These fades are hidden while exploring and shown whenever not in explore mode.")]
+        public UIFade[] exploreModeFades;
+
+        [BoxGroup("Look/Traversal Settings")]
         [Tooltip(
             "When enabled, non-zoom input is routed into ThirdPersonAdapter instead of hub camera look."
         )]
@@ -71,6 +75,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             "Locks and hides the cursor while look mode is enabled so mouse delta never gets clamped by screen edges."
         )]
         public bool lockCursorWhileLooking = true;
+
+        [BoxGroup("Look/Traversal Settings")]
+        [Tooltip("Seconds used to ease movement and look input in/out.")]
+        public float inputEaseDuration = 0.15f;
 
         [Tooltip(
             "Radius used when casting out of the camera. A larger value gives you a bigger forgiveness window around the centre of the view."
@@ -89,6 +97,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private CursorLockMode _savedCursorLockMode;
         private bool _savedCursorVisible;
         private bool _hasSavedCursorState;
+        private Vector2 _smoothedMoveInput;
+        private Vector2 _smoothedLookInput;
+        private Vector2 _moveInputVelocity;
+        private Vector2 _lookInputVelocity;
 
         public void HandleSubLocationInput(string action)
         {
@@ -150,11 +162,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (_isLooking)
             {
                 SetTraversalFovImmediate(ExploreFOV);
+                ApplyExploreModeFades(isExploreMode: true);
 
                 _hasBaseRotation = false;
                 _pitchOffset = _yawOffset = 0f;
                 _cachedUpLimit = Mathf.Abs(MaxTiltUp);
                 _cachedDownLimit = Mathf.Abs(MaxTiltDown);
+                ResetSmoothedTraversalInput();
                 ApplyLookCursorState();
             }
             else
@@ -162,9 +176,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _isZoomed = false;
                 _wasZoomPressed = false;
                 SetTraversalFovImmediate(ExploreFOV);
+                ApplyExploreModeFades(isExploreMode: true);
                 SetWalkMode(false);
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();
+                ResetSmoothedTraversalInput();
                 RestoreLookCursorState();
             }
 
@@ -244,6 +260,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             SetWalkMode(true);
             SetInput(moveInput, lookInput);
+
+            // Third-person adapter currently handles yaw only; route vertical look through traversal pitch
+            if (!_isZoomed && Mathf.Abs(lookInput.y) > 0.0001f)
+            {
+                UpdateInspectLook(new Vector2(0f, lookInput.y));
+            }
+
             return true;
         }
 
@@ -305,6 +328,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 float targetFov = _isZoomed ? ZoomFOV : ExploreFOV;
                 StartTraversalFovTween(targetFov);
+                ApplyExploreModeFades(isExploreMode: !_isZoomed);
 
                 if (!_isZoomed)
                 {
@@ -462,7 +486,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return false;
             }
 
-            if (candidate.TryGetComponent<IHubSelectable>(out selectable))
+            if (candidate.TryGetComponent(out selectable))
             {
                 return true;
             }
@@ -473,20 +497,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private Vector2 GetNavigateMoveInput()
         {
+            Vector2 target = Vector2.zero;
             if (UIInputActionDefaults.Navigate != null && UIInputActionDefaults.Navigate.enabled)
             {
                 Vector2 value = UIInputActionDefaults.Navigate.ReadValue<Vector2>();
                 if (value.sqrMagnitude > 0.0001f)
                 {
-                    return Vector2.ClampMagnitude(value, 1f);
+                    target = Vector2.ClampMagnitude(value, 1f);
                 }
             }
 
-            return Vector2.zero;
+            _smoothedMoveInput = SmoothTraversalInput(
+                _smoothedMoveInput,
+                target,
+                ref _moveInputVelocity
+            );
+            return _smoothedMoveInput;
         }
 
         private Vector2 GetRightStickLookInput()
         {
+            Vector2 target = Vector2.zero;
             if (
                 UIInputActionDefaults.RightStickMove != null
                 && UIInputActionDefaults.RightStickMove.enabled
@@ -495,11 +526,78 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 Vector2 analog = UIInputActionDefaults.RightStickMove.ReadValue<Vector2>();
                 if (analog.sqrMagnitude > 0.0001f)
                 {
-                    return ApplyGameSpeedScale(Vector2.ClampMagnitude(analog, 1f));
+                    target = ApplyGameSpeedScale(Vector2.ClampMagnitude(analog, 1f));
                 }
             }
 
-            return Vector2.zero;
+            _smoothedLookInput = SmoothTraversalInput(
+                _smoothedLookInput,
+                target,
+                ref _lookInputVelocity
+            );
+            return _smoothedLookInput;
+        }
+
+        private Vector2 SmoothTraversalInput(Vector2 current, Vector2 target, ref Vector2 velocity)
+        {
+            float duration = Mathf.Max(0f, inputEaseDuration);
+            if (duration <= 0.0001f)
+            {
+                velocity = Vector2.zero;
+                return target;
+            }
+
+            Vector2 smoothed = Vector2.SmoothDamp(
+                current,
+                target,
+                ref velocity,
+                duration,
+                Mathf.Infinity,
+                Time.deltaTime
+            );
+
+            // Snap tiny trailing values so the avatar/camera can settle to a true zero input.
+            if (target.sqrMagnitude <= 0.000001f && smoothed.sqrMagnitude <= 0.000001f)
+            {
+                velocity = Vector2.zero;
+                return Vector2.zero;
+            }
+
+            return smoothed;
+        }
+
+        private void ResetSmoothedTraversalInput()
+        {
+            _smoothedMoveInput = Vector2.zero;
+            _smoothedLookInput = Vector2.zero;
+            _moveInputVelocity = Vector2.zero;
+            _lookInputVelocity = Vector2.zero;
+        }
+
+        private void ApplyExploreModeFades(bool isExploreMode)
+        {
+            if (exploreModeFades == null || exploreModeFades.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < exploreModeFades.Length; i++)
+            {
+                var fade = exploreModeFades[i];
+                if (fade == null)
+                {
+                    continue;
+                }
+
+                if (isExploreMode)
+                {
+                    fade.Hide();
+                }
+                else
+                {
+                    fade.Show();
+                }
+            }
         }
 
         private Vector2 ApplyGameSpeedScale(Vector2 input)
