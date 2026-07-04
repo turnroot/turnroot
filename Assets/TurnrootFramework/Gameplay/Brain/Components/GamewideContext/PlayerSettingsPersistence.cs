@@ -113,6 +113,7 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.ExploreMovementSpeed = data.ExploreMovementSpeed;
             PlayerSettings.InvertExploreMouse = data.InvertExploreMouse;
             PlayerSettings.InputEasing = data.InputEasing;
+            PlayerSettings.ExploreVerticalTilt = data.ExploreVerticalTilt;
         }
 
         public OperationResult SavePlayerSettings()
@@ -157,6 +158,7 @@ namespace Turnroot.Gameplay.Brain
                     ExploreMovementSpeed = PlayerSettings.ExploreMovementSpeed,
                     InvertExploreMouse = PlayerSettings.InvertExploreMouse,
                     InputEasing = PlayerSettings.InputEasing,
+                    ExploreVerticalTilt = PlayerSettings.ExploreVerticalTilt,
                 };
 
                 var encode = GamewideContextBrainHelpers.EncodeInstanceToString(_brain, saveData);
@@ -372,6 +374,12 @@ namespace Turnroot.Gameplay.Brain
                             PlayerSettings.InputEasing = inputEasing;
                         }
                         break;
+                    case "exploreverticaltilt":
+                        if (value is bool exploreVerticalTilt)
+                        {
+                            PlayerSettings.ExploreVerticalTilt = exploreVerticalTilt;
+                        }
+                        break;
                     default:
                         return;
                 }
@@ -447,5 +455,6 @@ namespace Turnroot.Gameplay.Brain
         public float ExploreMovementSpeed = 1.0f;
         public bool InvertExploreMouse = false;
         public float InputEasing = 0.1f;
+        public bool ExploreVerticalTilt = true;
     }
 }
