@@ -24,10 +24,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (InputProvider != null)
             {
                 InputProvider.OnInput -= HandleInput;
-                return;
+            }
+            else
+            {
+                "HubManager: InputProvider is missing on disable; nothing to unsubscribe.".LogWarning();
             }
 
-            "HubManager: InputProvider is missing on disable; nothing to unsubscribe.".LogWarning();
+            // Reset cursor state in case look mode was active when this component disabled.
+            RestoreLookCursorState();
         }
 
         private bool _hubInitialized = false;
