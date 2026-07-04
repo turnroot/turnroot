@@ -108,6 +108,10 @@ namespace Turnroot.Gameplay.Brain
             PlayerSettings.SfxVolume = data.SfxVolume;
             PlayerSettings.VoiceVolume = data.VoiceVolume;
             PlayerSettings.PreferredBattleMusic = data.PreferredBattleMusic;
+            PlayerSettings.ExploreMouseSensitivity = data.ExploreMouseSensitivity;
+            PlayerSettings.ExploreMouseSpeed = data.ExploreMouseSpeed;
+            PlayerSettings.ExploreMovementSpeed = data.ExploreMovementSpeed;
+            PlayerSettings.InvertExploreMouse = data.InvertExploreMouse;
         }
 
         public OperationResult SavePlayerSettings()
@@ -147,6 +151,10 @@ namespace Turnroot.Gameplay.Brain
                     SfxVolume = PlayerSettings.SfxVolume,
                     VoiceVolume = PlayerSettings.VoiceVolume,
                     PreferredBattleMusic = PlayerSettings.PreferredBattleMusic,
+                    ExploreMouseSensitivity = PlayerSettings.ExploreMouseSensitivity,
+                    ExploreMouseSpeed = PlayerSettings.ExploreMouseSpeed,
+                    ExploreMovementSpeed = PlayerSettings.ExploreMovementSpeed,
+                    InvertExploreMouse = PlayerSettings.InvertExploreMouse
                 };
 
                 var encode = GamewideContextBrainHelpers.EncodeInstanceToString(_brain, saveData);
@@ -426,5 +434,10 @@ namespace Turnroot.Gameplay.Brain
         public float SfxVolume = 0.8f;
         public float VoiceVolume = 0.8f;
         public SongChoice PreferredBattleMusic = SongChoice.Default;
+
+        public float ExploreMouseSensitivity = 1.0f;
+        public float ExploreMouseSpeed = 1.0f;
+        public float ExploreMovementSpeed = 1.0f;
+        public bool InvertExploreMouse = false;
     }
 }
