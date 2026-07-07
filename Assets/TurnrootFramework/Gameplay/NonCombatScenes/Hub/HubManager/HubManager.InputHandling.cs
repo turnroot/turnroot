@@ -8,13 +8,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleInput(string action)
         {
-            var specificUiValidation = OperationResultGuards.RequireNotNull(
-                SpecificUiInputHandler,
-                nameof(SpecificUiInputHandler)
-            );
-            if (!specificUiValidation.Success)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(HandleInput),
+                    (SpecificUiInputHandler, nameof(SpecificUiInputHandler))
+                )
+            )
             {
-                $"HubManager: Input handling failed. {specificUiValidation.ErrorMessage}".LogError();
                 return;
             }
 
@@ -82,13 +82,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void IncrementGameDateForHubLoad()
         {
-            var validation = OperationResultGuards.All(
-                OperationResultGuards.RequireNotNull(_brain, nameof(_brain)),
-                OperationResultGuards.RequireNotNull(_brain?.ltm, "_brain.ltm")
-            );
-            if (!validation.Success)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(IncrementGameDateForHubLoad),
+                    (_brain, nameof(_brain)),
+                    (_brain?.ltm, "_brain.ltm")
+                )
+            )
             {
-                $"HubManager: Failed to increment game date. {validation.ErrorMessage}".LogError();
                 return;
             }
 
