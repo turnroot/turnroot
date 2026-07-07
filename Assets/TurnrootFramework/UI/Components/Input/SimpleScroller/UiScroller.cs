@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using Coffee.UIEffects;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Turnroot.UI
 {

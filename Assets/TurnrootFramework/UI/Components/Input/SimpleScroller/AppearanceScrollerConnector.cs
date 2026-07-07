@@ -1,17 +1,8 @@
-using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
-using Turnroot.Characters;
-using Turnroot.Characters.Subclasses;
-using Turnroot.Gameplay.Brain;
 using Turnroot.GameSettings;
-using Turnroot.Graphics2D;
-using Turnroot.UI;
 using Turnroot.Utilities;
-using Turnroot.Utilities.AbstractScripts;
-using Turnroot.Utilities.SceneFlows;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Turnroot.UI
 {

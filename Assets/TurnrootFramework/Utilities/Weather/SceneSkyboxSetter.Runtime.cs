@@ -217,11 +217,6 @@ namespace Turnroot.Utilities.Weather
             UpdateEventAudio();
         }
 
-        public void SetActiveParticles(int month)
-        {
-            ApplyWeatherOverlayPreset(month);
-        }
-
         private void ApplyWeatherOverlayPreset(int month)
         {
             if (WeatherOverlayController == null)
@@ -398,21 +393,12 @@ namespace Turnroot.Utilities.Weather
 
         public void SetupForScene(string sceneName)
         {
-            if (
-                sceneName == _brain.sceneFlowBrain.sceneFlowGraph.startingScene.sceneName
-                || sceneName == _brain.sceneFlowBrain.sceneFlowGraph.startingScene.displayName
-            )
-            {
-                // skip game start
-                return;
-            }
-            // if we already processed this scene once we don't reseed the weather
             bool newScene = sceneName != _lastSceneName;
             if (newScene)
             {
                 _lastSceneName = sceneName;
 
-                // Prefer persisted weather for this date (so it's the same across play sessions).
+                // Prefer persisted weather for this date (so it's the same across play sessions)
                 var brain = GetAndCacheBrain.GetBrain();
                 if (brain != null && HubDayStateStore.HasWeather)
                 {
@@ -430,7 +416,6 @@ namespace Turnroot.Utilities.Weather
                 }
             }
 
-            // orientation may not be correct until light exists but set anyway
             if (DirectionalLight != null)
             {
                 DirectionalLight.transform.rotation = Quaternion.Euler(
@@ -440,21 +425,20 @@ namespace Turnroot.Utilities.Weather
 
             SetSkybox(CurrentWeatherType);
 
-            // Always refresh overlay weather after scene change.
+            // Always refresh overlay weather after scene change
             var ltm2 = FindFirstObjectByType<LongTermMemory>();
             if (ltm2 != null)
             {
                 var gd2 = ltm2.GetGameDate();
-                SetActiveParticles(gd2.month);
+                ApplyWeatherOverlayPreset(gd2.month);
             }
             else
             {
-                // Fall back to the current season estimate when date memory is unavailable.
+                // Fall back to the current season estimate when date memory is unavailable
                 int month = Mathf.Clamp(Mathf.FloorToInt(TimeOfYear * 12f) + 1, 1, 12);
-                SetActiveParticles(month);
+                ApplyWeatherOverlayPreset(month);
             }
 
-            // cache base water colors so we don't drift when blending
             var mat = GetActiveWaterMaterial();
             if (mat != null)
             {
@@ -489,7 +473,7 @@ namespace Turnroot.Utilities.Weather
                     }
                 }
 
-                // Ensure we modify runtime instances rather than the shared assets.
+                // Ensure we modify runtime instances rather than the shared assets
                 InstantiateCelMaterialsForRenderers();
             }
         }
