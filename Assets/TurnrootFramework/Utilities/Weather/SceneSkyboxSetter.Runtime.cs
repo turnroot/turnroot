@@ -396,10 +396,16 @@ namespace Turnroot.Utilities.Weather
             SetupForScene(sceneName);
         }
 
-        public void SetupForScenePublic(string sceneName) => SetupForScene(sceneName);
-
-        private void SetupForScene(string sceneName)
+        public void SetupForScene(string sceneName)
         {
+            if (
+                sceneName == _brain.sceneFlowBrain.sceneFlowGraph.startingScene.sceneName
+                || sceneName == _brain.sceneFlowBrain.sceneFlowGraph.startingScene.displayName
+            )
+            {
+                // skip game start
+                return;
+            }
             // if we already processed this scene once we don't reseed the weather
             bool newScene = sceneName != _lastSceneName;
             if (newScene)
