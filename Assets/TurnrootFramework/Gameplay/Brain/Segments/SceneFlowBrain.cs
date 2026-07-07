@@ -139,7 +139,9 @@ namespace Turnroot.Utilities.SceneFlows
         private void LoadFlagsFromLtm()
         {
             if (_ltm == null || !_ltm.Initialized)
+            {
                 return;
+            }
 
             var keys = _ltm.RecallKeysByPrefix(LtmFlagPrefix);
             foreach (var ltmKey in keys)
@@ -304,7 +306,10 @@ namespace Turnroot.Utilities.SceneFlows
         private void ApplySceneArrivalSideEffects(SceneNode scene)
         {
             if (scene == null || _lastSideEffectsSceneId == scene.id)
+            {
                 return;
+            }
+
             _lastSideEffectsSceneId = scene.id;
 
             // Advance or set the game date when the scene metadata requires it.

@@ -190,34 +190,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         /// </summary>
         private bool IsAnyForcedBattleAtDayLimit()
         {
-            if (AllGameBattlesTable.Instance == null || _brain?.sceneFlowBrain == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(IsAnyForcedBattleAtDayLimit),
+                    (AllGameBattlesTable.Instance, "AllGameBattlesTable.Instance")
+                )
+            )
             {
                 return false;
             }
 
-            var availableScenes = _brain.sceneFlowBrain.GetAvailableScenes();
-            if (availableScenes == null)
+            if (
+                !TryBuildAvailableBattleNames(
+                    nameof(IsAnyForcedBattleAtDayLimit),
+                    out var availableBattleNames
+                )
+            )
             {
                 return false;
-            }
-
-            var graph = _brain.sceneFlowBrain.sceneFlowGraph;
-            if (graph == null)
-            {
-                return false;
-            }
-
-            var battleSceneNames = new HashSet<string>(
-                graph.GetBattleScenes().Select(n => n.sceneName)
-            );
-
-            var availableBattleNames = new HashSet<string>();
-            foreach (var opt in availableScenes)
-            {
-                if (battleSceneNames.Contains(opt.sceneName))
-                {
-                    availableBattleNames.Add(opt.sceneName);
-                }
             }
 
             foreach (var battle in AllGameBattlesTable.Instance.Battles)
@@ -232,12 +222,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                if (!availableBattleNames.Contains(battle.BattleScene.SceneName))
+                var battleSceneName = battle.BattleScene.SceneName;
+                if (!availableBattleNames.Contains(battleSceneName))
                 {
                     continue;
                 }
 
-                int spent = GetForcedBattleDaysSpent(battle.BattleScene.SceneName);
+                int spent = GetForcedBattleDaysSpent(battleSceneName);
                 if (spent >= battle.MaxHubDaysBeforeBattle)
                 {
                     return true;
@@ -260,47 +251,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         /// </summary>
         public void IncrementForcedBattleDaysSpent()
         {
-            var validation = OperationResultGuards.All(
-                OperationResultGuards.RequireNotNull(
-                    AllGameBattlesTable.Instance,
-                    "AllGameBattlesTable.Instance"
-                ),
-                OperationResultGuards.RequireNotNull(_brain, nameof(_brain)),
-                OperationResultGuards.RequireNotNull(
-                    _brain?.sceneFlowBrain,
-                    "_brain.sceneFlowBrain"
-                ),
-                OperationResultGuards.RequireNotNull(_brain?.ltm, "_brain.ltm")
-            );
-            if (!validation.Success)
-            {
-                $"HubManager: Failed to increment forced-battle day counters. {validation.ErrorMessage}".LogError();
-                return;
-            }
-
-            var availableScenes = _brain.sceneFlowBrain.GetAvailableScenes();
-            if (availableScenes == null)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(IncrementForcedBattleDaysSpent),
+                    (AllGameBattlesTable.Instance, "AllGameBattlesTable.Instance"),
+                    (_brain, nameof(_brain)),
+                    (_brain?.sceneFlowBrain, "_brain.sceneFlowBrain"),
+                    (_brain?.ltm, "_brain.ltm")
+                )
+            )
             {
                 return;
             }
 
-            var graph = _brain.sceneFlowBrain.sceneFlowGraph;
-            if (graph == null)
+            if (
+                !TryBuildAvailableBattleNames(
+                    nameof(IncrementForcedBattleDaysSpent),
+                    out var availableBattleNames
+                )
+            )
             {
                 return;
-            }
-
-            var battleSceneNames = new HashSet<string>(
-                graph.GetBattleScenes().Select(n => n.sceneName)
-            );
-
-            var availableBattleNames = new HashSet<string>();
-            foreach (var opt in availableScenes)
-            {
-                if (battleSceneNames.Contains(opt.sceneName))
-                {
-                    availableBattleNames.Add(opt.sceneName);
-                }
             }
 
             foreach (var battle in AllGameBattlesTable.Instance.Battles)
@@ -315,17 +286,64 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                if (!availableBattleNames.Contains(battle.BattleScene.SceneName))
+                var battleSceneName = battle.BattleScene.SceneName;
+                if (!availableBattleNames.Contains(battleSceneName))
                 {
                     continue;
                 }
 
-                int current = GetForcedBattleDaysSpent(battle.BattleScene.SceneName);
+                int current = GetForcedBattleDaysSpent(battleSceneName);
                 _brain.ltm.Remember(
-                    ForcedBattleDaysLtmKeyPrefix + battle.BattleScene.SceneName,
+                    ForcedBattleDaysLtmKeyPrefix + battleSceneName,
                     (current + 1).ToString()
                 );
             }
+        }
+
+        private bool TryBuildAvailableBattleNames(
+            string context,
+            out HashSet<string> availableBattleNames
+        )
+        {
+            availableBattleNames = new HashSet<string>();
+
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    context,
+                    (_brain?.sceneFlowBrain, "_brain.sceneFlowBrain")
+                )
+            )
+            {
+                return false;
+            }
+
+            var availableScenes = _brain.sceneFlowBrain.GetAvailableScenes();
+            if (
+                !ValidationHelper.ValidateNotNull(availableScenes, nameof(availableScenes), context)
+            )
+            {
+                return false;
+            }
+
+            var graph = _brain.sceneFlowBrain.sceneFlowGraph;
+            if (!ValidationHelper.ValidateNotNull(graph, nameof(graph), context))
+            {
+                return false;
+            }
+
+            var battleSceneNames = new HashSet<string>(
+                graph.GetBattleScenes().Select(n => n.sceneName)
+            );
+
+            foreach (var opt in availableScenes)
+            {
+                if (battleSceneNames.Contains(opt.sceneName))
+                {
+                    availableBattleNames.Add(opt.sceneName);
+                }
+            }
+
+            return true;
         }
 
         #endregion

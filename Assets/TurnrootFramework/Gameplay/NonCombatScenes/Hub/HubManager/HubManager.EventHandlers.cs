@@ -11,6 +11,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleGameDateChanged(int year, int month, int day)
         {
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(HandleGameDateChanged),
+                    (_brain, nameof(_brain)),
+                    (_brain?.charactersBrain, "_brain.charactersBrain")
+                )
+            )
+            {
+                return;
+            }
+
             gameDate = new GameDate(year, month, day);
             _brain.charactersBrain.CheckBirthdays();
             $"HubManager: Game date changed to {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
@@ -18,6 +29,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleCharacterBirthdayThisWeek(CharacterInstance character, GameDate date)
         {
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(HandleCharacterBirthdayThisWeek),
+                    (character, nameof(character)),
+                    (character?.CharacterTemplate, "character.CharacterTemplate")
+                )
+            )
+            {
+                return;
+            }
+
             int bdDay = character.CharacterTemplate.BirthdayDay;
             int bdMonth = character.CharacterTemplate.BirthdayMonth;
 
@@ -29,22 +51,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 message = $"Today is <b>{character.CharacterTemplate.DisplayName}</b>'s birthday!";
             }
 
-            notifications.SetMessage(message);
-            foreach (var type in notifications.types)
-            {
-                if (
-                    type.category.ToLower() == birthdayNotificationTypeName
-                    || type.name.ToLower() == birthdayNotificationTypeName
-                )
-                {
-                    notifications.Send(System.Array.IndexOf(notifications.types, type));
-                    break;
-                }
-            }
+            SendTypedNotification(
+                message,
+                birthdayNotificationTypeName,
+                nameof(HandleCharacterBirthdayThisWeek)
+            );
         }
 
         public void CheckShipsDocked()
         {
+            if (!ValidationHelper.ValidateNotNull(dock, nameof(dock), nameof(CheckShipsDocked)))
+            {
+                return;
+            }
+
             dock.RefreshShipsForNewDay(gameDate);
 
             var statuses = dock.PublishDockedShipStatuses();
@@ -95,7 +115,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void CheckRareItems()
         {
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(CheckRareItems),
+                    (shopsManager, nameof(shopsManager))
+                )
+            )
+            {
+                return;
+            }
+
             var rareItemStrings = shopsManager.RefreshShopsForNewDay(gameDate);
+            if (rareItemStrings == null || rareItemStrings.Length == 0)
+            {
+                return;
+            }
 
             foreach (var message in rareItemStrings)
             {
@@ -103,18 +137,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     continue;
                 }
-                notifications.SetMessage(message);
-                foreach (var type in notifications.types)
-                {
-                    if (
-                        type.category.ToLower() == itemNotificationTypeName
-                        || type.name.ToLower() == itemNotificationTypeName
-                    )
-                    {
-                        notifications.Send(System.Array.IndexOf(notifications.types, type));
-                        break;
-                    }
-                }
+
+                SendTypedNotification(message, itemNotificationTypeName, nameof(CheckRareItems));
             }
         }
 
@@ -158,17 +182,47 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void SendShipNotification(string shipName, bool isDocked)
         {
             string action = isDocked ? "docked at" : "left";
-            notifications.SetMessage($"<i>{shipName}</i> has {action} the harbor");
+            SendTypedNotification(
+                $"<i>{shipName}</i> has {action} the harbor",
+                shipNotificationTypeName,
+                nameof(SendShipNotification)
+            );
+        }
 
-            foreach (var type in notifications.types)
+        private void SendTypedNotification(string message, string typeName, string context)
+        {
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    context,
+                    (notifications, nameof(notifications)),
+                    (notifications?.types, "notifications.types")
+                )
+            )
             {
+                return;
+            }
+
+            notifications.SetMessage(message);
+
+            for (int i = 0; i < notifications.types.Length; i++)
+            {
+                var type = notifications.types[i];
+                if (type == null)
+                {
+                    continue;
+                }
+
                 if (
-                    type.category.ToLower() == shipNotificationTypeName
-                    || type.name.ToLower() == shipNotificationTypeName
+                    string.Equals(
+                        type.category,
+                        typeName,
+                        System.StringComparison.OrdinalIgnoreCase
+                    )
+                    || string.Equals(type.name, typeName, System.StringComparison.OrdinalIgnoreCase)
                 )
                 {
-                    notifications.Send(System.Array.IndexOf(notifications.types, type));
-                    break;
+                    notifications.Send(i);
+                    return;
                 }
             }
         }
