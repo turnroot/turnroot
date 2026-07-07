@@ -25,9 +25,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
-            Weather.SetupForScenePublic(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
-            );
+            Weather.SetupForScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
     }
 }

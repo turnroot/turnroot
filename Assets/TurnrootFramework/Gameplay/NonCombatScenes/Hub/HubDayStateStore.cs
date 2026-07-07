@@ -36,27 +36,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public static bool HasSkyboxIndex =>
             _currentState != null && _currentState.SkyboxIndex >= 0;
 
-        public static bool HasSeenExploreTutorial(Brain.Brain brain) => brain?.ltm != null && brain.ltm.RecallBool(ExploreTutorialSeenKey);
+        public static bool HasSeenExploreTutorial(Brain.Brain brain)
+        {
+            return TryGetLongTermMemory(brain, nameof(HasSeenExploreTutorial), out var ltm)
+                && ltm.RecallBool(ExploreTutorialSeenKey);
+        }
 
         public static void MarkExploreTutorialSeen(Brain.Brain brain)
         {
-            if (brain?.ltm == null)
+            if (!TryGetLongTermMemory(brain, nameof(MarkExploreTutorialSeen), out var ltm))
             {
                 return;
             }
 
-            brain.ltm.RememberBool(ExploreTutorialSeenKey, true);
+            ltm.RememberBool(ExploreTutorialSeenKey, true);
         }
 
         public static void SetSkyboxIndex(Brain.Brain brain, int index)
         {
-            if (brain?.ltm == null || _currentState == null)
+            if (!TryGetMutableState(brain, nameof(SetSkyboxIndex), out var ltm))
             {
                 return;
             }
 
             _currentState.SkyboxIndex = index;
-            SaveState(brain);
+            SaveState(brain, ltm);
         }
 
         public static void SetShopItemQuantity(
@@ -66,7 +70,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             int quantity
         )
         {
-            if (brain?.ltm == null || _currentState == null)
+            if (!TryGetMutableState(brain, nameof(SetShopItemQuantity), out var ltm))
             {
                 return;
             }
@@ -95,7 +99,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 );
             }
 
-            SaveState(brain);
+            SaveState(brain, ltm);
         }
 
         public static int GetShopItemQuantity(
@@ -131,85 +135,55 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public static void MarkDailyUpdatesProcessed(Brain.Brain brain)
         {
-            if (brain?.ltm == null || _currentState == null)
+            if (!TryGetMutableState(brain, nameof(MarkDailyUpdatesProcessed), out var ltm))
             {
                 return;
             }
 
             _currentState.HasProcessedDailyUpdates = true;
-            SaveState(brain);
+            SaveState(brain, ltm);
         }
 
         public static bool HasInteractionHappenedToday(string characterFullName) =>
-            _currentState?.InteractionDoneIds != null
-            && _currentState.InteractionDoneIds.Contains(characterFullName);
+            HasRecordedToday(_currentState?.InteractionDoneIds, characterFullName);
 
         public static void MarkInteractionHappenedToday(Brain.Brain brain, string characterFullName)
         {
-            if (
-                brain?.ltm == null
-                || _currentState == null
-                || string.IsNullOrEmpty(characterFullName)
-            )
-            {
-                return;
-            }
-
-            _currentState.InteractionDoneIds ??= new List<string>();
-            if (!_currentState.InteractionDoneIds.Contains(characterFullName))
-            {
-                _currentState.InteractionDoneIds.Add(characterFullName);
-                SaveState(brain);
-            }
+            MarkRecordedToday(
+                brain,
+                nameof(MarkInteractionHappenedToday),
+                characterFullName,
+                ref _currentState.InteractionDoneIds
+            );
         }
 
         public static bool HasChitChatHappenedToday(string characterFullName) =>
-            _currentState?.ChitChatDoneIds != null
-            && _currentState.ChitChatDoneIds.Contains(characterFullName);
+            HasRecordedToday(_currentState?.ChitChatDoneIds, characterFullName);
 
         public static void MarkChitChatHappenedToday(Brain.Brain brain, string characterFullName)
         {
-            if (
-                brain?.ltm == null
-                || _currentState == null
-                || string.IsNullOrEmpty(characterFullName)
-            )
-            {
-                return;
-            }
-
-            _currentState.ChitChatDoneIds ??= new List<string>();
-            if (!_currentState.ChitChatDoneIds.Contains(characterFullName))
-            {
-                _currentState.ChitChatDoneIds.Add(characterFullName);
-                SaveState(brain);
-            }
+            MarkRecordedToday(
+                brain,
+                nameof(MarkChitChatHappenedToday),
+                characterFullName,
+                ref _currentState.ChitChatDoneIds
+            );
         }
 
         public static bool HasRecruitmentAttemptHappenedToday(string characterFullName) =>
-            _currentState?.RecruitAttemptDoneIds != null
-            && _currentState.RecruitAttemptDoneIds.Contains(characterFullName);
+            HasRecordedToday(_currentState?.RecruitAttemptDoneIds, characterFullName);
 
         public static void MarkRecruitmentAttemptHappenedToday(
             Brain.Brain brain,
             string characterFullName
         )
         {
-            if (
-                brain?.ltm == null
-                || _currentState == null
-                || string.IsNullOrEmpty(characterFullName)
-            )
-            {
-                return;
-            }
-
-            _currentState.RecruitAttemptDoneIds ??= new List<string>();
-            if (!_currentState.RecruitAttemptDoneIds.Contains(characterFullName))
-            {
-                _currentState.RecruitAttemptDoneIds.Add(characterFullName);
-                SaveState(brain);
-            }
+            MarkRecordedToday(
+                brain,
+                nameof(MarkRecruitmentAttemptHappenedToday),
+                characterFullName,
+                ref _currentState.RecruitAttemptDoneIds
+            );
         }
 
         public static bool HasTeamPlacements() =>
@@ -225,7 +199,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Dictionary<int, HubSublocationName> map
         )
         {
-            if (brain.ltm == null || _currentState == null || map == null)
+            if (!TryGetMutableState(brain, nameof(SaveTeamPlacements), out var ltm) || map == null)
             {
                 return;
             }
@@ -237,7 +211,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 })
                 .ToList();
 
-            SaveState(brain);
+            SaveState(brain, ltm);
         }
 
         public static bool HasNonRosterPlacements() =>
@@ -259,7 +233,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Dictionary<string, HubSublocationName> map
         )
         {
-            if (brain?.ltm == null || _currentState == null || map == null)
+            if (
+                !TryGetMutableState(brain, nameof(SaveNonRosterPlacements), out var ltm)
+                || map == null
+            )
             {
                 return;
             }
@@ -271,28 +248,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 })
                 .ToList();
 
-            SaveState(brain);
+            SaveState(brain, ltm);
         }
 
         public static void SetWeather(Brain.Brain brain, WeatherType weather)
         {
-            if (brain?.ltm == null || _currentState == null)
+            if (!TryGetMutableState(brain, nameof(SetWeather), out var ltm))
             {
                 return;
             }
 
             _currentState.Weather = weather;
             _currentState.HasWeather = true;
-            SaveState(brain);
+            SaveState(brain, ltm);
         }
 
-        private static void SaveState(Brain.Brain brain)
+        private static void SaveState(Brain.Brain brain, LongTermMemory ltm)
         {
-            if (brain?.ltm == null || _currentState == null)
-            {
-                return;
-            }
-
             string key = GetKey(
                 new GameDate
                 {
@@ -301,18 +273,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     day = _currentState.Day,
                 }
             );
-            brain.ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(_currentState)));
+            ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(_currentState)));
         }
 
         public static void Initialize(Brain.Brain brain, GameDate date)
         {
-            if (brain?.ltm == null)
+            if (!TryGetLongTermMemory(brain, nameof(Initialize), out var ltm))
             {
                 return;
             }
 
             string key = GetKey(date);
-            string json = brain.ltm.Recall(key);
+            string json = ltm.Recall(key);
 
             if (!string.IsNullOrEmpty(json))
             {
@@ -367,8 +339,68 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     "HubDayStateStore.Initialize"
                 );
                 string outJson = brain.EncodeString(JsonUtility.ToJson(_currentState));
-                brain.ltm.Remember(key, outJson);
+                ltm.Remember(key, outJson);
             }
+        }
+
+        private static bool TryGetLongTermMemory(
+            Brain.Brain brain,
+            string context,
+            out LongTermMemory ltm
+        )
+        {
+            ltm = null;
+
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    context,
+                    (brain, nameof(brain)),
+                    (brain?.ltm, "brain.ltm")
+                )
+            )
+            {
+                return false;
+            }
+
+            ltm = brain.ltm;
+            return true;
+        }
+
+        private static bool TryGetMutableState(
+            Brain.Brain brain,
+            string context,
+            out LongTermMemory ltm
+        )
+        {
+            ltm = null;
+
+            return TryGetLongTermMemory(brain, context, out ltm)
+                && ValidationHelper.ValidateNotNull(_currentState, nameof(_currentState), context);
+        }
+
+        private static bool HasRecordedToday(List<string> values, string key) =>
+            values != null && values.Contains(key);
+
+        private static void MarkRecordedToday(
+            Brain.Brain brain,
+            string context,
+            string key,
+            ref List<string> values
+        )
+        {
+            if (!TryGetMutableState(brain, context, out var ltm) || string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+
+            values ??= new List<string>();
+            if (values.Contains(key))
+            {
+                return;
+            }
+
+            values.Add(key);
+            SaveState(brain, ltm);
         }
 
         private static string GetKey(GameDate date) =>

@@ -9,12 +9,9 @@ namespace Turnroot.Utilities
     {
         public static bool CharacterDataMatches(CharacterData a, CharacterData b)
         {
-            if (a == b)
-            {
-                return true;
-            }
-
-            return a == null || b == null
+            return a == b
+                ? true
+                : a == null || b == null
                 ? false
                 : !string.IsNullOrEmpty(a.FullName)
                 && !string.IsNullOrEmpty(b.FullName)
