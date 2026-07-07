@@ -313,8 +313,7 @@ namespace Turnroot.Gameplay.Brain.Components
 
         private void OnDestroy()
         {
-            var brain = GetComponent<Brain>();
-            if (brain != null)
+            if (TryGetComponent<Brain>(out var brain))
             {
                 brain.OnLongTermMemorySubfolderSet -= HandleSubfolderSet;
             }

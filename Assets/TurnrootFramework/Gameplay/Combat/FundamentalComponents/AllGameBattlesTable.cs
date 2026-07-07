@@ -126,18 +126,15 @@ namespace Turnroot.Gameplay.Combat
         /// </summary>
         public ExploredStatus GetInitialStatus(string battleSceneName)
         {
-            if (TryGetBattle(battleSceneName, out var entry))
-            {
-                return new ExploredStatus
+            return TryGetBattle(battleSceneName, out var entry)
+                ? new ExploredStatus
                 {
                     TopLeft = entry.InitialTopLeft,
                     TopRight = entry.InitialTopRight,
                     BottomLeft = entry.InitialBottomLeft,
                     BottomRight = entry.InitialBottomRight,
-                };
-            }
-
-            return default;
+                }
+                : default;
         }
 
         /// <summary>

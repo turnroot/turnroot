@@ -25,19 +25,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 spawnPoint,
                 nameof(spawnPoint)
             );
-            if (!spawnValidation.Success)
-            {
-                return spawnValidation;
-            }
-
-            if (_activeCharacter != null)
-            {
-                return OperationResult.Failure(
-                    "Cannot enter traversal while a character interaction is active."
-                );
-            }
-
-            return OperationResult.Successful();
+            return !spawnValidation.Success ? spawnValidation
+                : _activeCharacter != null
+                    ? OperationResult.Failure(
+                        "Cannot enter traversal while a character interaction is active."
+                    )
+                : OperationResult.Successful();
         }
 
         public void HandleHubOverviewEntered()

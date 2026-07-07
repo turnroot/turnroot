@@ -60,8 +60,7 @@ namespace Turnroot.UI.Components
             }
 
             // MenuBase is on the ListMenuContainer GameObject, not on this GameObject
-            var menuBase = ListMenuContainer.GetComponent<Menu.MenuBase>();
-            if (menuBase != null)
+            if (ListMenuContainer.TryGetComponent<Menu.MenuBase>(out var menuBase))
             {
                 menuBase.menuItems.Clear();
                 menuBase.ResetSelection();

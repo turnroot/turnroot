@@ -59,31 +59,43 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             var choice = _navigableChoices[currentIndex];
 
-            if (ExploreChoice != null && choice == ExploreChoice)
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(OnNavigateSelect),
+                    (ExploreChoice, nameof(ExploreChoice)),
+                    (BattlefieldsChoice, nameof(BattlefieldsChoice)),
+                    (EndDay, nameof(EndDay)),
+                    (Settings, nameof(Settings)),
+                    (Exit, nameof(Exit))
+                )
+            )
+            {
+                return;
+            }
+
+            if (choice == ExploreChoice)
             {
                 OpenExploreTraversal();
                 return;
             }
 
-            if (BattlefieldsChoice != null && choice == BattlefieldsChoice)
+            switch (choice)
             {
-                OpenBattleChoice();
-                return;
+                case var _ when choice == BattlefieldsChoice:
+                    OpenBattleChoice();
+                    return;
+                case var _ when choice == EndDay:
+                    HandleEndDaySelected();
+                    return;
+                case var _ when choice == Settings:
+                    OpenSettingsMenu();
+                    return;
+                case var _ when choice == Exit:
+                    _brain.sceneFlowBrain.ReturnToGameStartScreen();
+                    return;
             }
 
-            if (EndDay != null && choice == EndDay)
-            {
-                HandleEndDaySelected();
-                return;
-            }
-
-            if (Settings != null && choice == Settings)
-            {
-                OpenSettingsMenu();
-                return;
-            }
-
-            $"HubManager: Selected choice '{choice?.name}' is not mapped to a hub action.".LogWarning();
+            $"HubManager: Selected choice '{choice.name}' is not mapped to a hub action.".LogWarning();
         }
 
         public void OpenExploreTraversal()
@@ -108,8 +120,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             var instance = Instantiate(ExploreTutorialPrefab);
-            var handler = instance.GetComponent<HubExploreTutorialHandler>();
-            if (handler == null)
+            if (!instance.TryGetComponent<HubExploreTutorialHandler>(out var handler))
             {
                 "HubManager: ExploreTutorialPrefab does not contain a HubExploreTutorialHandler component.".LogWarning();
                 Destroy(instance);
@@ -197,7 +208,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return CurrentTraversalAvatarPoint;
             }
 
-            if (TeleportPoints == null || TeleportPoints.Length == 0)
+            if (
+                !ValidationHelper.ValidateNotNullOrEmpty(
+                    TeleportPoints,
+                    nameof(TeleportPoints),
+                    nameof(ResolveTraversalEntryPoint)
+                )
+            )
             {
                 return null;
             }
@@ -205,7 +222,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             for (int i = 0; i < TeleportPoints.Length; i++)
             {
                 var teleportPoint = TeleportPoints[i];
-                if (teleportPoint.Point == null)
+                if (
+                    !ValidationHelper.ValidateNotNull(
+                        teleportPoint.Point,
+                        $"{nameof(TeleportPoints)}[{i}].Point",
+                        nameof(ResolveTraversalEntryPoint)
+                    )
+                )
                 {
                     continue;
                 }
@@ -321,7 +344,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             var tracker = _brain?.uiBrain?.GetMenuTracker();
-            if (tracker != null)
+            if (ValidationHelper.ValidateNotNull(tracker, "MenuTracker", nameof(BeginSettingsMenu)))
             {
                 // Unsubscribe any existing handler to prevent leaks from double-open.
                 if (_menuDepthChangedHandler != null)

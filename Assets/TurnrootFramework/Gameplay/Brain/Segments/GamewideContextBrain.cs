@@ -83,8 +83,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void RestoreAvatarProfileFromLtm()
         {
-            var ltm = GetComponent<LongTermMemory>();
-            if (ltm == null)
+            if (!TryGetComponent<LongTermMemory>(out var ltm))
             {
                 return;
             }

@@ -49,8 +49,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             else if (_activeBlacksmith != null)
             {
-                var blacksmithUi = _activeBlacksmith.GetComponent<BlacksmithUi>();
-                if (blacksmithUi != null)
+                if (_activeBlacksmith.TryGetComponent<BlacksmithUi>(out var blacksmithUi))
                 {
                     blacksmithUi.HandleNavigateRightInput(action);
                     blacksmithUi.HandleNavigateLeftInput(action);

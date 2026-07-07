@@ -58,6 +58,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UiChoice EndDay;
 
         [BoxGroup("Navigation Choices")]
+        public UiChoice Exit;
+
+        [BoxGroup("Battles")]
         [InfoBox(
             "Activated when a required battle's day limit has been reached and End Day is disabled."
         )]

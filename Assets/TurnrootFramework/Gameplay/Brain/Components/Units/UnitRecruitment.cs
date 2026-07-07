@@ -146,12 +146,9 @@ namespace Turnroot.Gameplay.Brain
                 ?.Instances?.Where(i => i != null)
                 .Select(i => i.CurrentLevel)
                 .ToArray();
-            if (levels == null || levels.Length == 0)
-            {
-                return 1;
-            }
-
-            return Mathf.Max(1, Mathf.FloorToInt((float)levels.Average()));
+            return levels == null || levels.Length == 0
+                ? 1
+                : Mathf.Max(1, Mathf.FloorToInt((float)levels.Average()));
         }
 
         public RecruitmentAttemptOutcome GetRecruitmentAttemptOutcome(CharacterInstance character)
@@ -193,17 +190,13 @@ namespace Turnroot.Gameplay.Brain
                 out supportNearMiss
             );
 
-            if (experienceMet && supportMet)
-            {
-                return RecruitmentAttemptOutcome.Success;
-            }
-
-            return experienceNearMiss || supportNearMiss
-                ? RecruitmentAttemptOutcome.NearlySucceeded
+            return experienceMet && supportMet ? RecruitmentAttemptOutcome.Success
+                : experienceNearMiss || supportNearMiss ? RecruitmentAttemptOutcome.NearlySucceeded
                 : RecruitmentAttemptOutcome.Failure;
         }
 
-        public bool CanRecruit(CharacterInstance character) => GetRecruitmentAttemptOutcome(character) == RecruitmentAttemptOutcome.Success;
+        public bool CanRecruit(CharacterInstance character) =>
+            GetRecruitmentAttemptOutcome(character) == RecruitmentAttemptOutcome.Success;
 
         public OperationResult Recruit(CharacterInstance character)
         {
