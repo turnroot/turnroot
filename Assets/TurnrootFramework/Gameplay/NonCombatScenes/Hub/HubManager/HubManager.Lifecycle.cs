@@ -10,24 +10,30 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnEnable()
         {
-            if (InputProvider != null)
+            if (
+                ValidationHelper.ValidateNotNull(
+                    InputProvider,
+                    nameof(InputProvider),
+                    nameof(OnEnable)
+                )
+            )
             {
                 InputProvider.OnInput += HandleInput;
                 return;
             }
-
-            "HubManager: InputProvider is missing on enable; hub input will not be received.".LogError();
         }
 
         private void OnDisable()
         {
-            if (InputProvider != null)
+            if (
+                ValidationHelper.ValidateNotNull(
+                    InputProvider,
+                    nameof(InputProvider),
+                    nameof(OnDisable)
+                )
+            )
             {
                 InputProvider.OnInput -= HandleInput;
-            }
-            else
-            {
-                "HubManager: InputProvider is missing on disable; nothing to unsubscribe.".LogWarning();
             }
 
             // Reset cursor state in case look mode was active when this component disabled.
@@ -42,9 +48,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _brain = FindFirstObjectByType<Brain.Brain>();
 
-            if (_brain == null)
+            if (!ValidationHelper.ValidateNotNull(_brain, nameof(_brain), nameof(Start)))
             {
-                "HubManager: No Brain found".LogError();
                 return;
             }
 
@@ -118,6 +123,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void Initialize()
         {
+            if (
+                !ValidationHelper.ValidateNotNull(
+                    nameof(Initialize),
+                    (_brain, nameof(_brain)),
+                    (_brain?.charactersBrain, "_brain.charactersBrain"),
+                    (_brain?.audioBrain, "_brain.audioBrain"),
+                    (_brain?.saveFileBrain, "_brain.saveFileBrain")
+                )
+            )
+            {
+                return;
+            }
+
             _brain.OnGameDateChanged += HandleGameDateChanged;
             _brain.OnCharacterBirthdayThisWeek += HandleCharacterBirthdayThisWeek;
             UpdateDateText();

@@ -91,7 +91,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     OpenSettingsMenu();
                     return;
                 case var _ when choice == Exit:
-                    _brain.sceneFlowBrain.ReturnToGameStartScreen();
+                    _ = HandleExitSelected();
                     return;
             }
 
@@ -292,6 +292,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 "HubManager: No available next scene found in SceneFlowBrain".LogWarning();
                 return;
+            }
+        }
+
+        private OperationResult HandleExitSelected()
+        {
+            try
+            {
+                LoadingScreen?.Show();
+                _brain.sceneFlowBrain.TransitionToScene(
+                    _brain.sceneFlowBrain.sceneFlowGraph.StartingSceneId
+                );
+                return OperationResult.Successful();
+            }
+            catch
+            {
+                return OperationResult.Failure("Failed to transition to starting scene");
             }
         }
 

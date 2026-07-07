@@ -46,7 +46,9 @@ namespace Turnroot.Utilities.SceneFlows
             // Scene.GetHashCode() returns the internal scene handle, which is unique per instance.
             var sceneHandlesBeforeLoad = new HashSet<int>();
             for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
                 sceneHandlesBeforeLoad.Add(SceneManager.GetSceneAt(i).GetHashCode());
+            }
 
             // Start loading the scene additively to preserve Brain scene
             var asyncLoad = SceneManager.LoadSceneAsync(
@@ -81,23 +83,36 @@ namespace Turnroot.Utilities.SceneFlows
                 bool isNew = !sceneHandlesBeforeLoad.Contains(hash);
 
                 if (isNew && !newScene.IsValid() && s.name == targetScene.sceneName)
+                {
                     newScene = s;
+                }
                 else if (!isNew && !oldScene.IsValid() && s.name == previousSceneName)
+                {
                     oldScene = s;
+                }
             }
             // Fallback for the edge case where the scene was already unloaded or renamed.
             if (!newScene.IsValid())
+            {
                 newScene = SceneManager.GetSceneByName(targetScene.sceneName);
+            }
+
             if (!oldScene.IsValid() && !string.IsNullOrEmpty(previousSceneName))
+            {
                 oldScene = SceneManager.GetSceneByName(previousSceneName);
+            }
 
             if (newScene.IsValid())
+            {
                 SceneManager.SetActiveScene(newScene);
+            }
 
             // Disable duplicate singleton components (EventSystem, AudioListener) in the old
             // scene before it is unloaded, to suppress Unity warnings while both are loaded.
             if (oldScene.IsValid() && previousSceneName != BrainSceneName)
+            {
                 DisableDuplicateComponents(oldScene);
+            }
 
             // Fake progress steps up to 95% - DON'T report 100% yet
             float[] fakeProgressSteps =

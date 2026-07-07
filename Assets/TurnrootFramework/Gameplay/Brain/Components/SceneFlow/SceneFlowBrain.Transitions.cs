@@ -145,7 +145,9 @@ namespace Turnroot.Utilities.SceneFlows
                 var id = _sceneHistory.Pop();
                 previousScene = sceneFlowGraph?.GetScene(id);
                 if (previousScene == null)
+                {
                     $"SceneFlowBrain: History entry '{id}' no longer in graph — skipping.".LogWarning();
+                }
             }
 
             if (previousScene == null)
@@ -180,7 +182,9 @@ namespace Turnroot.Utilities.SceneFlows
 
             // Already at a hub — nothing to do.
             if (_currentScene?.isHub == true)
+            {
                 return;
+            }
 
             // With multiple hub instances, the correct hub for the current game period is the
             // most recently visited one in navigation history.
@@ -198,9 +202,13 @@ namespace Turnroot.Utilities.SceneFlows
             // Fall back to the first hub in the graph.
             var hubScene = sceneFlowGraph.scenes?.FirstOrDefault(s => s.isHub);
             if (hubScene != null)
+            {
                 TransitionToScene(hubScene.id, bypassConditions: true);
+            }
             else
+            {
                 "SceneFlowBrain: No hub scene found in graph!".LogError();
+            }
         }
 
         /// <summary>
@@ -234,9 +242,13 @@ namespace Turnroot.Utilities.SceneFlows
             // Fall back to any EOHD scene in the graph
             var eohdScene = sceneFlowGraph.scenes?.FirstOrDefault(s => s.isEndOfHubDay);
             if (eohdScene != null)
+            {
                 TransitionToScene(eohdScene.id, bypassConditions: true);
+            }
             else
+            {
                 "SceneFlowBrain: No End Of Hub Day scene found in graph!".LogError();
+            }
         }
 
         #endregion
@@ -252,12 +264,17 @@ namespace Turnroot.Utilities.SceneFlows
         private void ApplyTransitionBrainState(SceneTransition transition, bool isReverse)
         {
             if (transition == null)
+            {
                 return;
+            }
+
             var targetState = isReverse
                 ? transition.targetBrainStateReverse
                 : transition.targetBrainState;
             if (string.IsNullOrEmpty(targetState))
+            {
                 return;
+            }
 
             var stateBrain = Brain?.stateBrain;
             if (stateBrain == null)
@@ -376,7 +393,10 @@ namespace Turnroot.Utilities.SceneFlows
         {
             _customFlags[key] = value;
             if (_ltm != null && _ltm.Initialized)
+            {
                 _ltm.RememberBool(LtmFlagPrefix + key, value);
+            }
+
             $"SceneFlowBrain: Set flag '{key}' = {value}".LogInfo();
         }
 
