@@ -110,8 +110,7 @@ namespace Turnroot.UI.Components.RadialMenu
                 var instance = Instantiate(contentPrefab, transform);
                 if (instance != null)
                 {
-                    var rt = instance.GetComponent<RectTransform>();
-                    if (rt != null)
+                    if (instance.TryGetComponent<RectTransform>(out var rt))
                     {
                         rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
                         rt.pivot = new Vector2(0.5f, 0.5f);
@@ -251,8 +250,7 @@ namespace Turnroot.UI.Components.RadialMenu
             if (contentPrefab != null)
             {
                 var instance = Instantiate(contentPrefab, transform);
-                var rt = instance.GetComponent<RectTransform>();
-                if (rt != null)
+                if (instance.TryGetComponent<RectTransform>(out var rt))
                 {
                     rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
                     rt.pivot = new Vector2(0.5f, 0.5f);

@@ -499,17 +499,7 @@ namespace Turnroot.Utilities.Weather
 
         private Material GetTargetMaterial()
         {
-            if (SharedWeatherMaterial != null)
-            {
-                return SharedWeatherMaterial;
-            }
-
-            if (OverlayRenderer != null)
-            {
-                return OverlayRenderer.sharedMaterial;
-            }
-
-            return null;
+            return SharedWeatherMaterial != null ? SharedWeatherMaterial : OverlayRenderer != null ? OverlayRenderer.sharedMaterial : null;
         }
 
         private void EnsureMaterialBinding()

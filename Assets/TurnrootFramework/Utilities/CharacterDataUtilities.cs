@@ -14,21 +14,13 @@ namespace Turnroot.Utilities
                 return true;
             }
 
-            if (a == null || b == null)
-            {
-                return false;
-            }
-
-            if (
-                !string.IsNullOrEmpty(a.FullName)
+            return a == null || b == null
+                ? false
+                : !string.IsNullOrEmpty(a.FullName)
                 && !string.IsNullOrEmpty(b.FullName)
                 && string.Equals(a.FullName, b.FullName, StringComparison.Ordinal)
-            )
-            {
-                return true;
-            }
-
-            return !string.IsNullOrEmpty(a.name)
+                ? true
+                : !string.IsNullOrEmpty(a.name)
                 && !string.IsNullOrEmpty(b.name)
                 && string.Equals(a.name, b.name, StringComparison.Ordinal);
         }

@@ -171,8 +171,7 @@ namespace Turnroot.UI.Components.RadialMenu
         public override void EnsureContentOnTop()
         {
             // Ensure our own image sits on top if used as a standalone item
-            var rt = GetComponent<RectTransform>();
-            if (rt != null)
+            if (TryGetComponent<RectTransform>(out var rt))
             {
                 rt.SetAsLastSibling();
                 rt.localPosition = new Vector3(rt.localPosition.x, rt.localPosition.y, 0f);

@@ -191,8 +191,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             decalObj.name = name;
             decalObj.transform.SetParent(transform);
 
-            var decal = decalObj.GetComponent<DecalProjector>();
-            if (decal != null)
+            if (decalObj.TryGetComponent<DecalProjector>(out var decal))
             {
                 decal.size = new Vector3(_mapGrid.GridScale, _mapGrid.GridScale, _projectionDepth);
             }

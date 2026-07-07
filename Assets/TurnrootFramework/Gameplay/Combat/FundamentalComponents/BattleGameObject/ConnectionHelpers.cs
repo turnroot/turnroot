@@ -176,8 +176,7 @@ namespace Turnroot.Gameplay.Combat
                 Brain.PublishBattleMapReady(mapGridToUse);
                 TileHighlighter.Initialize(Brain, mapGridToUse);
 
-                var loader = GetComponent<BattlePrecomputeLoader>();
-                if (loader != null)
+                if (TryGetComponent<BattlePrecomputeLoader>(out var loader))
                 {
                     var initRes = loader.Initialize(Brain, Context);
                     if (!initRes.Success)

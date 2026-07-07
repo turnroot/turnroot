@@ -231,6 +231,8 @@ namespace Turnroot.Utilities.SceneFlows
             Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
         }
 
+        public void ReturnToGameStartScreen() => SetCurrentScene(sceneFlowGraph.StartingSceneId);
+
         #endregion
 
         #region Date Helpers

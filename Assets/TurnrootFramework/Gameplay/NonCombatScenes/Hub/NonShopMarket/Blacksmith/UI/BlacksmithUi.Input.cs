@@ -284,8 +284,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 return;
             }
 
-            var refs = chosen.gameObject.GetComponent<BlacksmithItemRefs>();
-            if (refs == null)
+            if (!chosen.gameObject.TryGetComponent<BlacksmithItemRefs>(out var refs))
             {
                 "BlacksmithUi.UpdateCurrentItemUiWithSelectionCount: BlacksmithItemRefs missing on selected UiChoice".LogWarning();
                 return;

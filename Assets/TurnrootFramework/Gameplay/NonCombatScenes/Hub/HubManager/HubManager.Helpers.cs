@@ -98,6 +98,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 list.Add(Settings);
             }
 
+            if (Exit != null)
+            {
+                list.Add(Exit);
+            }
+
             _navigableChoices = list.ToArray();
         }
 
@@ -126,17 +131,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 OperationResultGuards.RequireNotNull(list, nameof(list)),
                 OperationResultGuards.RequireNotNull(choice, nameof(choice))
             );
-            if (!validation.Success)
-            {
-                return validation;
-            }
-
-            if (list.Contains(choice))
-            {
-                return OperationResult.Failure("Choice already exists in navigable list.");
-            }
-
-            return OperationResult.Successful();
+            return !validation.Success ? validation
+                : list.Contains(choice)
+                    ? OperationResult.Failure("Choice already exists in navigable list.")
+                : OperationResult.Successful();
         }
 
         private void UpdateChoiceSelection()
