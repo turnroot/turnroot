@@ -1,7 +1,5 @@
 using System.Collections;
-using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
-using Turnroot.Utilities.Weather;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;

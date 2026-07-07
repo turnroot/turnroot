@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Coffee.UIEffects;
 using TMPro;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components;

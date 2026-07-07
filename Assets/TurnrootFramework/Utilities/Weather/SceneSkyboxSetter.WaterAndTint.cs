@@ -82,32 +82,24 @@ namespace Turnroot.Utilities.Weather
 
         private int GetSkyboxSampleCount(int qualityStep)
         {
-            switch (qualityStep)
+            return qualityStep switch
             {
-                case 3:
-                    return 20;
-                case 2:
-                    return 10;
-                case 1:
-                    return 5;
-                default:
-                    return 0;
-            }
+                3 => 20,
+                2 => 10,
+                1 => 5,
+                _ => 0,
+            };
         }
 
         private float GetSkyboxSampleCooldown(int qualityStep)
         {
-            switch (qualityStep)
+            return qualityStep switch
             {
-                case 3:
-                    return 0.5f; // fastest updates
-                case 2:
-                    return 1.0f;
-                case 1:
-                    return 2.0f;
-                default:
-                    return 3.0f;
-            }
+                3 => 0.5f, // fastest updates
+                2 => 1.0f,
+                1 => 2.0f,
+                _ => 3.0f,
+            };
         }
 
         private float _targetNightFactor = -1f;
@@ -302,17 +294,13 @@ namespace Turnroot.Utilities.Weather
 
         private float GetCelTintCooldown(int qualityStep)
         {
-            switch (qualityStep)
+            return qualityStep switch
             {
-                case 3:
-                    return 0.5f;
-                case 2:
-                    return 1.0f;
-                case 1:
-                    return 2.0f;
-                default:
-                    return float.MaxValue;
-            }
+                3 => 0.5f,
+                2 => 1.0f,
+                1 => 2.0f,
+                _ => float.MaxValue,
+            };
         }
 
         private Material GetActiveWaterMaterial() => _waterMaterialInstance ?? WaterMaterial;

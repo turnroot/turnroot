@@ -283,7 +283,6 @@ namespace Turnroot.Utilities.Weather
                         break;
 
                     case WeatherType.Cloudy:
-                        // Cloudy now uses lighter rain (merged drizzle behavior).
                         preset.RainEnabled = true;
                         preset.RainIntensity = 0.65f;
                         preset.RainOpacity = 0.4f;
@@ -332,7 +331,6 @@ namespace Turnroot.Utilities.Weather
                         break;
 
                     case WeatherType.Volcanic:
-                        // Volcanic now uses snow channel (merged ash behavior) with ash-like color.
                         preset.SnowEnabled = true;
                         preset.SnowIntensity = 1f;
                         preset.SnowOpacity = 0.72f;
@@ -499,7 +497,9 @@ namespace Turnroot.Utilities.Weather
 
         private Material GetTargetMaterial()
         {
-            return SharedWeatherMaterial != null ? SharedWeatherMaterial : OverlayRenderer != null ? OverlayRenderer.sharedMaterial : null;
+            return SharedWeatherMaterial != null ? SharedWeatherMaterial
+                : OverlayRenderer != null ? OverlayRenderer.sharedMaterial
+                : null;
         }
 
         private void EnsureMaterialBinding()
