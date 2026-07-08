@@ -8,6 +8,12 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
+    [System.Serializable]
+    public struct ExploreModeFade
+    {
+        public UIFade fade;
+        public bool showInExploreMode;
+    }
     public partial class HubManager : MonoBehaviour
     {
         [BoxGroup("Look/Traversal Settings")]
@@ -60,20 +66,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UIFade FocusOverlayFade;
 
         [BoxGroup("Look/Traversal Settings")]
-        [Tooltip("These fades are hidden while exploring and shown whenever not in explore mode.")]
-        public UIFade[] exploreModeFades;
-
-        [BoxGroup("Look/Traversal Settings")]
-        [Tooltip(
-            "When enabled, non-zoom input is routed into ThirdPersonAdapter instead of hub camera look."
-        )]
-        public bool useThirdPersonWalkWhenUnzoomed = true;
-
-        [BoxGroup("Look/Traversal Settings")]
-        [Tooltip(
-            "Locks and hides the cursor while look mode is enabled so mouse delta never gets clamped by screen edges."
-        )]
-        public bool lockCursorWhileLooking = true;
+        public ExploreModeFade[] exploreModeFades;
+        private bool useThirdPersonWalkWhenUnzoomed = true;
+        private bool lockCursorWhileLooking = true;
 
         [HideInInspector]
         public float InputEaseDuration => GameplayPlayerSettings.Instance.InputEasing;
