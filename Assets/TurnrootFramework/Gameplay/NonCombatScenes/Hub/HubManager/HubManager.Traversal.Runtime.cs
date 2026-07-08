@@ -321,18 +321,32 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             for (int i = 0; i < exploreModeFades.Length; i++)
             {
                 var fade = exploreModeFades[i];
-                if (fade == null)
+                if (fade.fade == null)
                 {
                     continue;
                 }
 
                 if (isExploreMode)
                 {
-                    fade.Hide();
+                    if (fade.showInExploreMode == false)
+                    {
+                        fade.fade.Hide();
+                    }
+                    else
+                    {
+                        fade.fade.Show();
+                    }
                 }
                 else
                 {
-                    fade.Show();
+                    if (fade.showInExploreMode == false)
+                    {
+                        fade.fade.Show();
+                    }
+                    else
+                    {
+                        fade.fade.Hide();
+                    }
                 }
             }
         }
