@@ -14,6 +14,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UIFade fade;
         public bool showInExploreMode;
     }
+
     public partial class HubManager : MonoBehaviour
     {
         [BoxGroup("Look/Traversal Settings")]
@@ -97,6 +98,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleSubLocationInput(string action)
         {
+            if (TryHandleFastTravelInput(action))
+            {
+                return;
+            }
+
             var currentWorldPosition = _avatarRoot.transform.position;
             if (
                 action
@@ -169,7 +175,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _isZoomed = false;
                 _wasZoomPressed = false;
                 SetTraversalFovImmediate(ExploreFOV);
-                ApplyExploreModeFades(isExploreMode: true);
+                ApplyExploreModeFades(isExploreMode: false);
                 SetWalkMode(false);
                 ClearCurrentPoiTarget();
                 FocusOverlayFade?.Hide();

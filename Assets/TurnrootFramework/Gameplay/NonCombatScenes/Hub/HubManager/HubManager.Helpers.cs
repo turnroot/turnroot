@@ -76,7 +76,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void BuildNavigableChoices()
         {
-            var list = new List<UiChoice>();
+            var list = new List<UiChoice>(5);
 
             if (ExploreChoice != null)
             {

@@ -54,6 +54,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CurrentInputMode = mode;
             currentIndex = 0;
 
+            HandleFastTravelModeChanged(mode);
+
             bool allowLook = mode switch
             {
                 HubInputMode.Location => false,
