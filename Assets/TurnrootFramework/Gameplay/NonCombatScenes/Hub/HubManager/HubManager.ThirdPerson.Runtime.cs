@@ -43,6 +43,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void ApplyMovement(Vector2 moveInput)
         {
+            if (_isTraversalMovementLocked)
+            {
+                SetWalkingState(false);
+                return;
+            }
+
             if (moveInput.sqrMagnitude < 0.0001f)
             {
                 return;

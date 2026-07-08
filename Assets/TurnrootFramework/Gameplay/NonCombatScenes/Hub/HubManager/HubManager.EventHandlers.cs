@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Utilities;
@@ -89,15 +90,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             bool anyChange = false;
 
+            var previousByShipName = new Dictionary<string, bool>(pastShipDockedStatuses.Length);
+            for (int i = 0; i < pastShipDockedStatuses.Length; i++)
+            {
+                var previous = pastShipDockedStatuses[i];
+                if (string.IsNullOrEmpty(previous.ShipName))
+                {
+                    continue;
+                }
+
+                previousByShipName[previous.ShipName] = previous.IsDocked;
+            }
+
             for (int i = 0; i < statuses.Length; i++)
             {
                 var current = statuses[i];
-                var previous = System.Array.Find(
-                    pastShipDockedStatuses,
-                    s => s.ShipName == current.ShipName
-                );
-
-                bool wasDocked = previous.ShipName != null && previous.IsDocked;
+                bool wasDocked =
+                    !string.IsNullOrEmpty(current.ShipName)
+                    && previousByShipName.TryGetValue(current.ShipName, out var previousDocked)
+                    && previousDocked;
 
                 if (current.IsDocked != wasDocked)
                 {
