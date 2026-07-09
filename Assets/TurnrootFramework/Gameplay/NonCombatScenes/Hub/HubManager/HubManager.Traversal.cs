@@ -98,7 +98,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void HandleSubLocationInput(string action)
         {
-            if (TryHandleFastTravelInput(action))
+            if (TryHandleFastTravelInput(action).Success)
             {
                 return;
             }
