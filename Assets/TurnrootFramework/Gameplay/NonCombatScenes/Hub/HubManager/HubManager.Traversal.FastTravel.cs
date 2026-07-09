@@ -72,7 +72,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (_isFastTravelInProgress)
             {
-                return OperationResult.Failure("Fast travel is already in progress.");
+                return OperationResult.Successful();
             }
 
             if (!_fastTravelMenuOpen)
