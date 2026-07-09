@@ -11,6 +11,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Helpers
 
+        private static bool ValidateRequired(
+            string context,
+            params (object Value, string Name)[] values
+        ) => ValidationHelper.ValidateNotNull(context, values);
+
+        private static bool ValidateRequired(object value, string valueName, string context) =>
+            ValidationHelper.ValidateNotNull(value, valueName, context);
+
+        private static bool ValidateRequired(object value, string valueNameOrMessage) =>
+            ValidationHelper.ValidateNotNull(value, valueNameOrMessage);
+
+        private static bool ValidateRequiredNotNullOrEmpty<T>(
+            T[] values,
+            string valueName,
+            string context
+        ) => ValidationHelper.ValidateNotNullOrEmpty(values, valueName, context);
+
         private void CacheSpawnPointHeights()
         {
             _spawnPointHeights.Clear();
@@ -191,7 +208,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool IsAnyForcedBattleAtDayLimit()
         {
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     nameof(IsAnyForcedBattleAtDayLimit),
                     (AllGameBattlesTable.Instance, "AllGameBattlesTable.Instance")
                 )
@@ -252,7 +269,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void IncrementForcedBattleDaysSpent()
         {
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     nameof(IncrementForcedBattleDaysSpent),
                     (AllGameBattlesTable.Instance, "AllGameBattlesTable.Instance"),
                     (_brain, nameof(_brain)),
@@ -307,26 +324,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             availableBattleNames = new HashSet<string>();
 
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    context,
-                    (_brain?.sceneFlowBrain, "_brain.sceneFlowBrain")
-                )
-            )
+            if (!ValidateRequired(context, (_brain?.sceneFlowBrain, "_brain.sceneFlowBrain")))
             {
                 return false;
             }
 
             var availableScenes = _brain.sceneFlowBrain.GetAvailableScenes();
-            if (
-                !ValidationHelper.ValidateNotNull(availableScenes, nameof(availableScenes), context)
-            )
+            if (!ValidateRequired(availableScenes, nameof(availableScenes), context))
             {
                 return false;
             }
 
             var graph = _brain.sceneFlowBrain.sceneFlowGraph;
-            if (!ValidationHelper.ValidateNotNull(graph, nameof(graph), context))
+            if (!ValidateRequired(graph, nameof(graph), context))
             {
                 return false;
             }

@@ -13,7 +13,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void HandleGameDateChanged(int year, int month, int day)
         {
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     nameof(HandleGameDateChanged),
                     (_brain, nameof(_brain)),
                     (_brain?.charactersBrain, "_brain.charactersBrain")
@@ -31,7 +31,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void HandleCharacterBirthdayThisWeek(CharacterInstance character, GameDate date)
         {
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     nameof(HandleCharacterBirthdayThisWeek),
                     (character, nameof(character)),
                     (character?.CharacterTemplate, "character.CharacterTemplate")
@@ -61,7 +61,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void CheckShipsDocked()
         {
-            if (!ValidationHelper.ValidateNotNull(dock, nameof(dock), nameof(CheckShipsDocked)))
+            if (!ValidateRequired(dock, nameof(dock), nameof(CheckShipsDocked)))
             {
                 return;
             }
@@ -126,12 +126,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void CheckRareItems()
         {
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    nameof(CheckRareItems),
-                    (shopsManager, nameof(shopsManager))
-                )
-            )
+            if (!ValidateRequired(nameof(CheckRareItems), (shopsManager, nameof(shopsManager))))
             {
                 return;
             }
@@ -203,7 +198,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void SendTypedNotification(string message, string typeName, string context)
         {
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     context,
                     (notifications, nameof(notifications)),
                     (notifications?.types, "notifications.types")

@@ -60,7 +60,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var choice = _navigableChoices[currentIndex];
 
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     nameof(OnNavigateSelect),
                     (ExploreChoice, nameof(ExploreChoice)),
                     (BattlefieldsChoice, nameof(BattlefieldsChoice)),
@@ -167,12 +167,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private OperationResult<TraversalStartContext> TryBuildTraversalStartContext()
         {
+            var characterManager = GetHubCharacterManager();
             var validation = OperationResultGuards.All(
                 OperationResultGuards.RequireNotNull(GeneralCamera, nameof(GeneralCamera)),
-                OperationResultGuards.RequireNotNull(
-                    GetHubCharacterManager(),
-                    "HubCharacterManager"
-                )
+                OperationResultGuards.RequireNotNull(characterManager, "HubCharacterManager")
             );
             if (!validation.Success)
             {
@@ -190,7 +188,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var context = new TraversalStartContext
             {
                 TraversalPoint = traversalPoint,
-                CharacterManager = GetHubCharacterManager(),
+                CharacterManager = characterManager,
             };
 
             return OperationResult<TraversalStartContext>.SuccessResult(context);
@@ -209,7 +207,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             if (
-                !ValidationHelper.ValidateNotNullOrEmpty(
+                !ValidateRequiredNotNullOrEmpty(
                     TeleportPoints,
                     nameof(TeleportPoints),
                     nameof(ResolveTraversalEntryPoint)
@@ -223,7 +221,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 var teleportPoint = TeleportPoints[i];
                 if (
-                    !ValidationHelper.ValidateNotNull(
+                    !ValidateRequired(
                         teleportPoint.Point,
                         $"{nameof(TeleportPoints)}[{i}].Point",
                         nameof(ResolveTraversalEntryPoint)
@@ -297,18 +295,27 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private OperationResult HandleExitSelected()
         {
-            try
+            var validation = OperationResultGuards.All(
+                OperationResultGuards.RequireNotNull(_brain, nameof(_brain)),
+                OperationResultGuards.RequireNotNull(
+                    _brain?.sceneFlowBrain,
+                    "_brain.sceneFlowBrain"
+                ),
+                OperationResultGuards.RequireNotNull(
+                    _brain?.sceneFlowBrain?.sceneFlowGraph,
+                    "_brain.sceneFlowBrain.sceneFlowGraph"
+                )
+            );
+            if (!validation.Success)
             {
-                LoadingScreen?.Show();
-                _brain.sceneFlowBrain.TransitionToScene(
-                    _brain.sceneFlowBrain.sceneFlowGraph.StartingSceneId
-                );
-                return OperationResult.Successful();
+                return validation;
             }
-            catch
-            {
-                return OperationResult.Failure("Failed to transition to starting scene");
-            }
+
+            LoadingScreen?.Show();
+            _brain.sceneFlowBrain.TransitionToScene(
+                _brain.sceneFlowBrain.sceneFlowGraph.StartingSceneId
+            );
+            return OperationResult.Successful();
         }
 
         private void OpenSettingsMenu()
@@ -321,12 +328,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // Prevent hub navigation while the settings menu is active
             BeginSettingsMenu();
 
-            if (
-                ValidationHelper.ValidateNotNull(
-                    _brain.uiBrain.uiSettings,
-                    "UI Brain is not assigned."
-                )
-            )
+            if (ValidateRequired(_brain.uiBrain.uiSettings, "UI Brain is not assigned."))
             {
                 var settingsLocation = _brain.uiBrain.uiSettings.GetGameSettingsMenu();
                 if (settingsLocation != null)
@@ -360,7 +362,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             var tracker = _brain?.uiBrain?.GetMenuTracker();
-            if (ValidationHelper.ValidateNotNull(tracker, "MenuTracker", nameof(BeginSettingsMenu)))
+            if (ValidateRequired(tracker, "MenuTracker", nameof(BeginSettingsMenu)))
             {
                 // Unsubscribe any existing handler to prevent leaks from double-open.
                 if (_menuDepthChangedHandler != null)
