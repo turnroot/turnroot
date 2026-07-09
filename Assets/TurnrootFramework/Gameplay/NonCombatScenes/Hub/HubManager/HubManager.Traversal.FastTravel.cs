@@ -51,10 +51,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip("SFX played when fast travel begins.")]
         public AudioClip FastTravelDepartureClip;
 
-        [BoxGroup("Traversal Fast Travel")]
-        [Tooltip("SFX played after arrival teleport completes.")]
-        public AudioClip FastTravelArrivalClip;
-
         private UiChoice[] _fastTravelNavigableChoices;
         private HubFastTravelOption[] _fastTravelNavigableOptions;
         private int _fastTravelChoiceIndex;
@@ -284,7 +280,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _isFastTravelInProgress = true;
             _isTraversalMovementLocked = true;
-            OperationResult sequenceResult = OperationResult.Successful();
 
             SetInput(Vector2.zero, _lookInput);
             SetWalkingState(false);
@@ -301,14 +296,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 yield return new WaitForSeconds(FastTravelTeleportDelay);
             }
 
-            sequenceResult = PerformFastTravelTeleport(destination);
+            OperationResult sequenceResult = PerformFastTravelTeleport(destination);
             if (!sequenceResult.Success)
             {
                 CompleteFastTravelOperation(sequenceResult, "teleport");
                 yield break;
             }
 
-            PlayFastTravelSfx(FastTravelArrivalClip);
             SpawnAndPlayFastTravelFx(FastTravelArrivalFxPrefab);
 
             if (FastTravelRecoveryDelay > 0f)
