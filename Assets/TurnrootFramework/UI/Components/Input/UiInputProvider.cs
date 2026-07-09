@@ -41,6 +41,8 @@ namespace Turnroot.UI
         private InputAction _subscribedScrollRight;
         private InputAction _subscribedLeftStickClick;
 
+        private InputAction _subscribedToggleDetails;
+
         private readonly Dictionary<string, Coroutine> _repeatCoroutines = new();
 
         private void Awake()
@@ -75,6 +77,7 @@ namespace Turnroot.UI
                     && _subscribedScrollLeft == UiChoice.ScrollLeftAction
                     && _subscribedScrollRight == UiChoice.ScrollRightAction
                     && _subscribedRightStickMove == UIInputActionDefaults.RightStickMove
+                    && _subscribedToggleDetails == UiChoice.ToggleDetailsAction
                 )
                 {
                     return;
@@ -126,7 +129,7 @@ namespace Turnroot.UI
             _subscribedScrollLeft = UiChoice.ScrollLeftAction;
             _subscribedScrollRight = UiChoice.ScrollRightAction;
             _subscribedRightStickMove = UIInputActionDefaults.RightStickMove;
-
+            _subscribedToggleDetails = UiChoice.ToggleDetailsAction;
             if (_subscribedSelect != null)
             {
                 _subscribedSelect.performed += HandleSelect;
@@ -176,6 +179,10 @@ namespace Turnroot.UI
                 _subscribedRightStickMove.started += HandleRightStickMove;
                 _subscribedRightStickMove.performed += HandleRightStickMove;
                 _subscribedRightStickMove.canceled += HandleRightStickMove;
+            }
+            if (_subscribedToggleDetails != null)
+            {
+                _subscribedToggleDetails.performed += HandleToggleDetails;
             }
         }
 
@@ -249,6 +256,11 @@ namespace Turnroot.UI
                 UIInputActionDefaults.RemoveInitializedHandler(Subscribe);
                 _initializedHandlerRegistered = false;
             }
+            if (_subscribedToggleDetails != null)
+            {
+                _subscribedToggleDetails.performed -= HandleToggleDetails;
+                _subscribedToggleDetails = null;
+            }
         }
 
         private void HandleSelect(InputAction.CallbackContext ctx) =>
@@ -256,6 +268,9 @@ namespace Turnroot.UI
 
         private void HandleBack(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke(InputActionConstants.Cancel);
+
+        private void HandleToggleDetails(InputAction.CallbackContext ctx) =>
+            OnInput?.Invoke(InputActionConstants.ToggleDetails);
 
         private void HandleNavigateUp(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke(InputActionConstants.NavigateUp);
