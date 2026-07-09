@@ -106,7 +106,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return OperationResult.Successful();
             }
 
-            return OperationResult.Failure("Unhandled fast travel input.");
+            return OperationResult.Failure($"Unhandled fast travel input {action}");
         }
 
         private void OpenFastTravelMenu()
