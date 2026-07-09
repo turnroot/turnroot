@@ -9,7 +9,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void HandleInput(string action)
         {
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     nameof(HandleInput),
                     (SpecificUiInputHandler, nameof(SpecificUiInputHandler))
                 )
@@ -85,7 +85,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void IncrementGameDateForHubLoad()
         {
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     nameof(IncrementGameDateForHubLoad),
                     (_brain, nameof(_brain)),
                     (_brain?.ltm, "_brain.ltm")

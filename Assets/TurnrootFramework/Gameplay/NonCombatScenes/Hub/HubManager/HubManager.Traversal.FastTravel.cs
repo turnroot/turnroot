@@ -75,36 +75,36 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return OperationResult.Failure("Fast travel is already in progress.");
             }
 
-            if (_fastTravelMenuOpen)
+            if (!_fastTravelMenuOpen)
             {
-                if (action is InputActionConstants.Back or InputActionConstants.Cancel)
+                if (action == InputActionConstants.ToggleDetails)
                 {
-                    CloseFastTravelMenu();
-                    return OperationResult.Successful();
+                    OpenFastTravelMenu();
                 }
 
-                if (_fastTravelNavigableChoices == null || _fastTravelNavigableChoices.Length == 0)
-                {
-                    return OperationResult.Failure("No fast travel options available.");
-                }
-
-                UiChoiceHandler.HandleNavigation(
-                    action,
-                    _fastTravelNavigableChoices,
-                    ref _fastTravelChoiceIndex,
-                    _fastTravelNavigableChoices.Length,
-                    OnFastTravelChoiceSelected
-                );
-
-                UpdateFastTravelChoiceSelection();
                 return OperationResult.Successful();
             }
 
-            if (action == InputActionConstants.ToggleDetails)
+            if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
-                OpenFastTravelMenu();
+                CloseFastTravelMenu();
                 return OperationResult.Successful();
             }
+
+            if (_fastTravelNavigableChoices == null || _fastTravelNavigableChoices.Length == 0)
+            {
+                return OperationResult.Failure("No fast travel options available.");
+            }
+
+            UiChoiceHandler.HandleNavigation(
+                action,
+                _fastTravelNavigableChoices,
+                ref _fastTravelChoiceIndex,
+                _fastTravelNavigableChoices.Length,
+                OnFastTravelChoiceSelected
+            );
+
+            UpdateFastTravelChoiceSelection();
 
             return OperationResult.Successful();
         }
@@ -112,16 +112,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void OpenFastTravelMenu()
         {
             if (_isFastTravelInProgress || _fastTravelMenuOpen)
-            {
-                return;
-            }
-
-            if (
-                !ValidationHelper.ValidateNotNull(
-                    nameof(OpenFastTravelMenu),
-                    (FastTravelChoicesFade, nameof(FastTravelChoicesFade))
-                )
-            )
             {
                 return;
             }
@@ -263,20 +253,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            var option = _fastTravelNavigableOptions[_fastTravelChoiceIndex];
-            var destination = option.TeleportPoint;
-            var destinationValidation = OperationResultGuards.RequireNotNull(
-                destination.Point,
-                $"{nameof(HubFastTravelOption)}.{nameof(HubFastTravelOption.TeleportPoint)}.{nameof(HubTeleportPoint.Point)}"
-            );
-            if (!destinationValidation.Success)
-            {
-                $"HubManager: Cannot start fast travel. {destinationValidation.ErrorMessage}".LogWarning();
-                return;
-            }
-
             CloseFastTravelMenu();
-            StartFastTravel(destination);
+            StartFastTravel(_fastTravelNavigableOptions[_fastTravelChoiceIndex].TeleportPoint);
         }
 
         private void StartFastTravel(HubTeleportPoint destination)
@@ -306,58 +284,55 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _isFastTravelInProgress = true;
             _isTraversalMovementLocked = true;
+            OperationResult sequenceResult = OperationResult.Successful();
 
-            try
+            SetInput(Vector2.zero, _lookInput);
+            SetWalkingState(false);
+            if (NavMeshAgent != null)
             {
-                SetInput(Vector2.zero, _lookInput);
-                SetWalkingState(false);
-                if (NavMeshAgent != null)
-                {
-                    NavMeshAgent.velocity = Vector3.zero;
-                }
-
-                SpawnAndPlayFastTravelFx(FastTravelDepartureFxPrefab);
-                PlayFastTravelSfx(FastTravelDepartureClip);
-
-                if (FastTravelTeleportDelay > 0f)
-                {
-                    yield return new WaitForSeconds(FastTravelTeleportDelay);
-                }
-
-                var teleportResult = PerformFastTravelTeleport(destination);
-                if (!teleportResult.Success)
-                {
-                    $"HubManager: Fast travel teleport step failed. {teleportResult.ErrorMessage}".LogWarning();
-                    yield break;
-                }
-
-                PlayFastTravelSfx(FastTravelArrivalClip);
-                SpawnAndPlayFastTravelFx(FastTravelArrivalFxPrefab);
-
-                if (FastTravelRecoveryDelay > 0f)
-                {
-                    yield return new WaitForSeconds(FastTravelRecoveryDelay);
-                }
+                NavMeshAgent.velocity = Vector3.zero;
             }
-            finally
+
+            SpawnAndPlayFastTravelFx(FastTravelDepartureFxPrefab);
+            PlayFastTravelSfx(FastTravelDepartureClip);
+
+            if (FastTravelTeleportDelay > 0f)
             {
-                _isTraversalMovementLocked = false;
-                _isFastTravelInProgress = false;
-                _fastTravelRoutine = null;
+                yield return new WaitForSeconds(FastTravelTeleportDelay);
             }
+
+            sequenceResult = PerformFastTravelTeleport(destination);
+            if (!sequenceResult.Success)
+            {
+                CompleteFastTravelOperation(sequenceResult, "teleport");
+                yield break;
+            }
+
+            PlayFastTravelSfx(FastTravelArrivalClip);
+            SpawnAndPlayFastTravelFx(FastTravelArrivalFxPrefab);
+
+            if (FastTravelRecoveryDelay > 0f)
+            {
+                yield return new WaitForSeconds(FastTravelRecoveryDelay);
+            }
+
+            CompleteFastTravelOperation(sequenceResult, "complete");
+        }
+
+        private void CompleteFastTravelOperation(OperationResult result, string stage)
+        {
+            if (!result.Success)
+            {
+                $"HubManager: Fast travel {stage} failed. {result.ErrorMessage}".LogWarning();
+            }
+
+            _isTraversalMovementLocked = false;
+            _isFastTravelInProgress = false;
+            _fastTravelRoutine = null;
         }
 
         private OperationResult PerformFastTravelTeleport(HubTeleportPoint destination)
         {
-            var destinationValidation = OperationResultGuards.RequireNotNull(
-                destination.Point,
-                "destination.Point"
-            );
-            if (!destinationValidation.Success)
-            {
-                return destinationValidation;
-            }
-
             var traversalRoot = MovementRig != null ? MovementRig : _avatarRoot;
             if (traversalRoot == null)
             {
@@ -431,7 +406,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return null;
             }
 
-            var fx = Instantiate(prefab, anchor.position, anchor.rotation, anchor);
+            // particles up and down
+            Quaternion rotationStraightUp = Quaternion.Euler(90f, 0f, 0f);
+
+            var fx = Instantiate(prefab, anchor.position, rotationStraightUp, anchor);
             fx.Play();
 
             float cleanupDelay = GetFxCleanupDelay(fx);
@@ -479,27 +457,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private OperationResult ValidateFastTravelStart(HubTeleportPoint destination)
         {
             var validation = OperationResultGuards.All(
-                OperationResultGuards.RequireNotNull(destination.Point, "destination.Point"),
-                OperationResultGuards.RequireNotNull(
-                    FastTravelDepartureFxPrefab,
-                    nameof(FastTravelDepartureFxPrefab)
-                ),
-                OperationResultGuards.RequireNotNull(
-                    FastTravelArrivalFxPrefab,
-                    nameof(FastTravelArrivalFxPrefab)
-                ),
-                OperationResultGuards.RequireNotNull(
-                    FastTravelAudioSource,
-                    nameof(FastTravelAudioSource)
-                ),
-                OperationResultGuards.RequireNotNull(
-                    FastTravelDepartureClip,
-                    nameof(FastTravelDepartureClip)
-                ),
-                OperationResultGuards.RequireNotNull(
-                    FastTravelArrivalClip,
-                    nameof(FastTravelArrivalClip)
-                )
+                OperationResultGuards.RequireNotNull(destination.Point, "destination.Point")
             );
             return !validation.Success ? validation
                 : CurrentInputMode != HubInputMode.Traversal

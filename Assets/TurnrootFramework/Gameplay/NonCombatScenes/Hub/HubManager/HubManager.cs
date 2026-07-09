@@ -221,7 +221,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             CurrentLocationPoint = teleportPoint.Point;
             CurrentTraversalAvatarPoint = teleportPoint.Point;
 
-            if (GeneralCamera != null && teleportPoint.Point != null)
+            if (GeneralCamera != null)
             {
                 GeneralCamera.transform.SetPositionAndRotation(
                     teleportPoint.Point.position,

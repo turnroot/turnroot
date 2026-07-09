@@ -10,28 +10,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void OnEnable()
         {
-            if (
-                ValidationHelper.ValidateNotNull(
-                    InputProvider,
-                    nameof(InputProvider),
-                    nameof(OnEnable)
-                )
-            )
+            if (ValidateRequired(InputProvider, nameof(InputProvider), nameof(OnEnable)))
             {
                 InputProvider.OnInput += HandleInput;
-                return;
             }
         }
 
         private void OnDisable()
         {
-            if (
-                ValidationHelper.ValidateNotNull(
-                    InputProvider,
-                    nameof(InputProvider),
-                    nameof(OnDisable)
-                )
-            )
+            if (ValidateRequired(InputProvider, nameof(InputProvider), nameof(OnDisable)))
             {
                 InputProvider.OnInput -= HandleInput;
             }
@@ -48,7 +35,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _brain = FindFirstObjectByType<Brain.Brain>();
 
-            if (!ValidationHelper.ValidateNotNull(_brain, nameof(_brain), nameof(Start)))
+            if (!ValidateRequired(_brain, nameof(_brain), nameof(Start)))
             {
                 return;
             }
@@ -124,7 +111,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void Initialize()
         {
             if (
-                !ValidationHelper.ValidateNotNull(
+                !ValidateRequired(
                     nameof(Initialize),
                     (_brain, nameof(_brain)),
                     (_brain?.charactersBrain, "_brain.charactersBrain"),

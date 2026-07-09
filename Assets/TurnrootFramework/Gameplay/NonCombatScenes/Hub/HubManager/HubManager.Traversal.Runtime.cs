@@ -326,27 +326,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                if (isExploreMode)
+                bool shouldShow = isExploreMode ? fade.showInExploreMode : !fade.showInExploreMode;
+                if (shouldShow)
                 {
-                    if (fade.showInExploreMode == false)
-                    {
-                        fade.fade.Hide();
-                    }
-                    else
-                    {
-                        fade.fade.Show();
-                    }
+                    fade.fade.Show();
                 }
                 else
                 {
-                    if (fade.showInExploreMode == false)
-                    {
-                        fade.fade.Show();
-                    }
-                    else
-                    {
-                        fade.fade.Hide();
-                    }
+                    fade.fade.Hide();
                 }
             }
         }
