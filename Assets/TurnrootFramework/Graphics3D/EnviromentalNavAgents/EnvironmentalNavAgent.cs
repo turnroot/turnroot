@@ -76,7 +76,14 @@ namespace Turnroot.Graphics3D
             PickNewDestination();
             if (randomizeStartPosition)
             {
-                RandomizePosition();
+                if (TryGetComponent<RandomizePosition>(out var randomizer))
+                {
+                    randomizer.SetPosition();
+                }
+                else
+                {
+                    "Cannot randomize start position- add a RandomizePosition component".LogWarning();
+                }
             }
             EnterIdle();
         }
@@ -123,29 +130,6 @@ namespace Turnroot.Graphics3D
                 _currentIdleIndex = Random.Range(0, idleClips.Length);
                 PlayClip(idleClips[_currentIdleIndex]);
             }
-        }
-
-        private void RandomizePosition()
-        {
-            // pick a random location but go there immediately (unlike the other wander)
-            float noiseTime = Time.time * noiseSpeed + _noiseOffset;
-            float lateral =
-                (Mathf.PerlinNoise(noiseTime, noiseTime * noiseFrequency) - 0.5f)
-                * 2f
-                * noiseAmount;
-
-            Vector3 toTarget = (_wanderTarget - transform.position).normalized;
-            Vector3 right = Vector3.Cross(Vector3.up, toTarget);
-            Vector3 noisyTarget = _wanderTarget + (right * lateral);
-
-            agent.transform.position = NavMesh.SamplePosition(
-                noisyTarget,
-                out NavMeshHit hit,
-                noiseAmount * 2f,
-                NavMesh.AllAreas
-            )
-                ? hit.position
-                : _wanderTarget;
         }
 
         private void EnterWalking()
