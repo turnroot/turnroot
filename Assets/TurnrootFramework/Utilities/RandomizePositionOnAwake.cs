@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace Turnroot.Utilities
 {
-    public class RandomizePositionOnAwake : MonoBehaviour
+    public class RandomizePosition : MonoBehaviour
     {
         public Transform[] choices;
 
-        private void Awake()
+        public void SetPosition()
         {
             if (choices != null && choices.Length > 0)
             {
