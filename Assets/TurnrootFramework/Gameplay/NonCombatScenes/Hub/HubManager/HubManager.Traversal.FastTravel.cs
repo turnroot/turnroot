@@ -64,11 +64,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private const float MinimumFxCleanupDelaySeconds = 1f;
         private const float FxCleanupSafetyBufferSeconds = 0.25f;
 
-        private OperationResult TryHandleFastTravelInput(string action)
+        private bool TryHandleFastTravelInput(string action)
         {
             if (_isFastTravelInProgress)
             {
-                return OperationResult.Successful();
+                return true;
             }
 
             if (!_fastTravelMenuOpen)
@@ -76,20 +76,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (action == InputActionConstants.ToggleDetails)
                 {
                     OpenFastTravelMenu();
+                    return true;
                 }
 
-                return OperationResult.Successful();
+                return false;
             }
 
             if (action is InputActionConstants.Back or InputActionConstants.Cancel)
             {
                 CloseFastTravelMenu();
-                return OperationResult.Successful();
+                return true;
             }
 
             if (_fastTravelNavigableChoices == null || _fastTravelNavigableChoices.Length == 0)
             {
-                return OperationResult.Failure("No fast travel options available.");
+                return true;
             }
 
             UiChoiceHandler.HandleNavigation(
@@ -102,7 +103,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             UpdateFastTravelChoiceSelection();
 
-            return OperationResult.Successful();
+            return true;
         }
 
         private void OpenFastTravelMenu()
