@@ -19,37 +19,37 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
     public partial class HubManager : MonoBehaviour
     {
-        [Foldout("Traversal/Fast Travel UI")]
+        [Foldout("Fast Travel")]
         [InfoBox("UI fade shown when opening the traversal fast-travel location list.")]
         public UIFade FastTravelChoicesFade;
 
-        [Foldout("Traversal/Fast Travel UI")]
+        [Foldout("Fast Travel")]
         [InfoBox("Ordered options shown when ToggleDetails opens fast travel.")]
         public HubFastTravelOption[] FastTravelOptions;
 
-        [Foldout("Traversal/Fast Travel Timing")]
+        [Foldout("Fast Travel")]
         [Min(0f)]
         [Tooltip("Delay between starting travel FX and the actual teleport.")]
         public float FastTravelTeleportDelay = 0.65f;
 
-        [Foldout("Traversal/Fast Travel Timing")]
+        [Foldout("Fast Travel")]
         [Min(0f)]
         [Tooltip("Small delay after arrival FX before movement is restored.")]
         public float FastTravelRecoveryDelay = 0.2f;
 
-        [Foldout("Traversal/Fast Travel FX")]
+        [Foldout("Fast Travel")]
         [InfoBox("Particle prefab spawned on the avatar model before teleport.")]
         public ParticleSystem FastTravelDepartureFxPrefab;
 
-        [Foldout("Traversal/Fast Travel FX")]
+        [Foldout("Fast Travel")]
         [InfoBox("Particle prefab spawned on the avatar model after teleport.")]
         public ParticleSystem FastTravelArrivalFxPrefab;
 
-        [Foldout("Traversal/Fast Travel FX")]
+        [Foldout("Fast Travel")]
         [InfoBox("Audio source used for fast-travel SFX.")]
         public AudioSource FastTravelAudioSource;
 
-        [Foldout("Traversal/Fast Travel FX")]
+        [Foldout("Fast Travel")]
         [Tooltip("SFX played when fast travel begins.")]
         public AudioClip FastTravelDepartureClip;
 
