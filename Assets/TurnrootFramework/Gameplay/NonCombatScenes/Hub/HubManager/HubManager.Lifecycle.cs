@@ -151,6 +151,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _brain.saveFileBrain.ActiveSaveFile.ChapterNumber,
                 _brain.saveFileBrain.ActiveSaveFile.ChapterName
             );
+            InvokeChapterHubEvents(_brain.saveFileBrain.ActiveSaveFile.ChapterNumber);
             SetInputMode(HubInputMode.Location);
 
             if (GameplayGeneralSettings.Instance.HubHasTeamLocations)
@@ -195,6 +196,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Transform dest = cameraPoints[idx];
             GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
             OnHubInitialize?.Invoke();
+        }
+
+        private void InvokeChapterHubEvents(int currentChapter)
+        {
+            if (DoThingsAtChapters == null || DoThingsAtChapters.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < DoThingsAtChapters.Length; i++)
+            {
+                var entry = DoThingsAtChapters[i];
+                if (entry.Chapter != currentChapter || entry.Event == null)
+                {
+                    continue;
+                }
+
+                entry.Event.Invoke();
+            }
         }
 
         public void OnDestroy()

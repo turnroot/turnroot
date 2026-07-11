@@ -3,6 +3,7 @@ using NaughtyAttributes;
 using TMPro;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
+using Turnroot.NonCombatScenes.Abstract;
 using Turnroot.UI;
 using Turnroot.UI.Components.Notifications;
 using Turnroot.Utilities;
@@ -20,8 +21,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Transform Point;
     }
 
+    [Serializable]
+    public struct DoThingAtChapter
+    {
+        public int Chapter;
+        public UnityEvent Event;
+    }
+
     [RequireComponent(typeof(UiInputProvider))]
     [RequireComponent(typeof(SpecificUiHandler))]
+    [RequireComponent(typeof(FastTravelManager))]
     /// <remarks>
     /// This may need editing for your project, but if you aren't making major logic changes, you should
     /// be able to wrangle it to work for you just with UI changes and inspector stuff
@@ -33,6 +42,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [BoxGroup("Core")]
         [HideInInspector]
         public Brain.Brain _brain;
+
+        [BoxGroup("Core")]
+        [InfoBox("Events that occur in the hub at specific chapters.")]
+        public DoThingAtChapter[] DoThingsAtChapters;
 
         [BoxGroup("Core")]
         [InfoBox("Input provider used for navigating hub choices.")]

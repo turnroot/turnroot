@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using NaughtyAttributes;
+using Turnroot.NonCombatScenes.Abstract;
 using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
@@ -13,6 +14,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         public UiChoice Choice;
         public HubTeleportPoint TeleportPoint;
+        public bool available;
     }
 
     public partial class HubManager : MonoBehaviour
@@ -58,6 +60,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool _isFastTravelInProgress;
         private bool _isTraversalMovementLocked;
         private Coroutine _fastTravelRoutine;
+        private FastTravelManager _fastTravelManager;
 
         private const float DefaultFxCleanupDelaySeconds = 2f;
         private const float LoopingFxMinimumLifetimeSeconds = 3f;
@@ -148,10 +151,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return OperationResult.Failure("No FastTravelOptions are configured.");
             }
 
+            _fastTravelManager ??= GetComponent<FastTravelManager>();
+
             int validCount = 0;
             for (int i = 0; i < FastTravelOptions.Length; i++)
             {
-                if (FastTravelOptions[i].Choice != null)
+                var option = FastTravelOptions[i];
+                option.available = IsFastTravelOptionAvailable(option);
+                FastTravelOptions[i] = option;
+
+                if (option.Choice != null && option.available)
                 {
                     validCount++;
                 }
@@ -171,7 +180,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 for (int i = 0; i < FastTravelOptions.Length; i++)
                 {
                     var option = FastTravelOptions[i];
-                    if (option.Choice == null)
+                    if (option.Choice == null || !option.available)
                     {
                         continue;
                     }
@@ -185,7 +194,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (_fastTravelNavigableChoices.Length == 0)
             {
                 return OperationResult.Failure(
-                    "FastTravelOptions are configured, but none have a valid UiChoice."
+                    "FastTravelOptions are configured, but none are both unlocked and mapped to a valid UiChoice."
                 );
             }
 
@@ -198,6 +207,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             return OperationResult.Successful();
+        }
+
+        private bool IsFastTravelOptionAvailable(HubFastTravelOption option)
+        {
+            if (option.TeleportPoint.Point == null || _fastTravelManager == null)
+            {
+                return false;
+            }
+
+            return _fastTravelManager.IsLocationAvailable(option.TeleportPoint.Point);
         }
 
         private void UpdateFastTravelChoiceSelection()
