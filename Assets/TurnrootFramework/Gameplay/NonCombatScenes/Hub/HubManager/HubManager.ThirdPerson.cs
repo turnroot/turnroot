@@ -8,10 +8,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubManager : MonoBehaviour
     {
-        [Foldout("Traversal/Movement Rig")]
+        [Foldout("Explore/Movement")]
         public GameObject[] ObjectsToEnableInWalkMode;
 
-        [Foldout("Traversal/Movement Rig")]
+        [Foldout("Explore/Movement")]
         [Tooltip(
             "Persistent scene transform that drives traversal movement. The spawned avatar visual "
                 + "model is re-parented onto this transform when bound. NavMeshAgent must be on this "
@@ -22,28 +22,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip(
             "NavMeshAgent on MovementRig — the sole movement driver. Handles Y via navmesh projection."
         )]
-        [Foldout("Traversal/Movement Rig")]
+        [Foldout("Explore/Movement")]
         public NavMeshAgent NavMeshAgent;
 
-        [Foldout("Traversal/Movement Input")]
+        [Foldout("Explore/Movement")]
         private bool ConsumeHubInput = true;
 
-        [Foldout("Traversal/Movement Input")]
+        [Foldout("Explore/Movement")]
         public float MoveSpeed = 3f;
 
-        [Foldout("Traversal/Movement Input")]
+        [Foldout("Explore/Movement")]
         public float RunSpeed = 5f;
 
-        [Foldout("Traversal/Movement Input")]
+        [Foldout("Explore/Movement")]
         private bool isRunning = false;
 
-        [Foldout("Traversal/Movement Input")]
+        [Foldout("Explore/Movement")]
         public float RotationLerp = 12f;
 
-        [Foldout("Traversal/Movement Input")]
+        [Foldout("Explore/Movement")]
         public float WalkingInputThreshold = 0.05f;
 
-        [Foldout("Traversal/Look Drive")]
+        [Foldout("Explore/Movement")]
         [InfoBox(
             "Movement direction is derived from this transform's forward/right, "
                 + "and right-stick/mouse input rotates its yaw. Cinemachine's vcam should track this "
@@ -52,14 +52,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Transform CameraYawRoot;
 
         [InfoBox("If true, right-stick/mouse X input rotates CameraYawRoot's yaw.")]
-        [Foldout("Traversal/Look Drive")]
+        [Foldout("Explore/Movement")]
         public bool ApplyLookYaw = true;
 
-        [Foldout("Traversal/Look Drive")]
+        [Foldout("Explore/Movement")]
         public float LookYawSpeed = 120f;
         private bool ApplyLookPitch = GameplayPlayerSettings.Instance.ExploreVerticalTilt;
 
-        [Foldout("Traversal/Look Drive")]
+        [Foldout("Explore/Movement")]
         public float LookPitchSpeed = 120f;
 
         private bool _walkMode;

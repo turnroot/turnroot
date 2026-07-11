@@ -15,13 +15,6 @@ using UnityEngine.Events;
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [Serializable]
-    public struct HubTeleportPoint
-    {
-        public HubSublocationName Name;
-        public Transform Point;
-    }
-
-    [Serializable]
     public struct DoThingAtChapter
     {
         public int Chapter;
@@ -67,31 +60,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public TextMeshProUGUI dateText;
 
         [HorizontalLine(color: EColor.Red)]
-        [Foldout("Navigation Choices")]
+        [Foldout("UI")]
         public UiChoice EndDay;
 
-        [Foldout("Navigation Choices")]
+        [Foldout("UI")]
         public UiChoice Exit;
 
-        [Foldout("Battles")]
+        [Foldout("UI")]
         [InfoBox(
             "Activated when a required battle's day limit has been reached and End Day is disabled."
         )]
         public GameObject ForcedBattleIndicator;
 
-        [Foldout("Navigation Choices")]
+        [Foldout("UI")]
         public UiChoice Settings;
 
-        [Foldout("Navigation Choices")]
+        [Foldout("UI")]
         [InfoBox("UiChoice for the Explore entry in the main hub menu.")]
         public UiChoice ExploreChoice;
 
-        [Foldout("Navigation Choices")]
+        [Foldout("UI")]
         [InfoBox("UiChoice for the Battlefields entry in the main hub menu.")]
         public UiChoice BattlefieldsChoice;
 
         [HorizontalLine(color: EColor.Orange)]
-        [Foldout("Battles")]
+        [Foldout("UI")]
         [InfoBox("The BattleChoiceUI component used to display and navigate available battles.")]
         public BattleChoiceUI BattleChoiceUi;
 
@@ -102,11 +95,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private SceneSkyboxSetter _sceneSkyboxSetter;
 
         [HorizontalLine(color: EColor.Yellow)]
-        [Foldout("Locations")]
-        [InfoBox("Teleport destinations used by hub traversal flows.")]
-        public HubTeleportPoint[] TeleportPoints;
-
-        [Foldout("Locations")]
+        [Foldout("Explore/UI")]
         [InfoBox("Tutorial shown the first time Explore is entered.")]
         public GameObject ExploreTutorialPrefab;
 
@@ -117,11 +106,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Dock dock;
 
         [HorizontalLine(color: EColor.Green)]
-        [Foldout("Chapter Display")]
+        [Foldout("UI")]
         [InfoBox("UI text used to show the current chapter number and name.")]
         public TextMeshProUGUI ChapterNumberAndNameText;
 
-        [Foldout("Chapter Display")]
+        [Foldout("UI")]
         [InfoBox("Format string for chapter display. {0} = chapter number, {1} = chapter name.")]
         public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
 
@@ -130,49 +119,49 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public GameDate gameDate;
 
         [HorizontalLine(color: EColor.Blue)]
-        [Foldout("Camera & Fades")]
+        [Foldout("Cameras")]
         [InfoBox("Fade used when returning from traversal/POI interaction back to the hub.")]
         public UIFade HubFadeToBlack;
 
-        [Foldout("Camera & Fades")]
+        [Foldout("Cameras")]
         [InfoBox(
             "The main overlay/HUD to hide when opening any vendor UI and restore when closing it."
         )]
         public UIFade MainOverlayUiFade;
 
-        [Foldout("Camera & Fades")]
+        [Foldout("Cameras")]
         [InfoBox("Fade used to show/hide the hub action UI.")]
         public UIFade HubActionsFade;
 
-        [Foldout("Camera & Fades")]
+        [Foldout("Cameras")]
         [InfoBox("Fade used to show/hide the back button UI.")]
         public UIFade BackButtonFade;
 
-        [Foldout("Camera & Fades")]
+        [Foldout("Cameras")]
         [InfoBox("Field of view used for the hub camera when not in traversal zoom/POI focus.")]
         public float HubMainFov;
 
-        [Foldout("Camera & Fades")]
+        [Foldout("Cameras")]
         [InfoBox("Possible camera positions for randomising the hub camera on load.")]
         public Transform[] cameraPoints;
 
-        [Foldout("Camera & Fades")]
+        [Foldout("Cameras")]
         public Camera GeneralCamera;
 
         [HorizontalLine(color: EColor.Indigo)]
-        [Foldout("Spawn Points")]
+        [Foldout("Explore/Movement")]
         public Transform TraversalStartAvatarPoint;
 
-        [Foldout("Spawn Points")]
+        [Foldout("Characters")]
         [InfoBox("Collider used to sample terrain height for unit spawn points.")]
         public MeshCollider SpawnGroundCollider;
 
-        [Foldout("Spawn Points")]
+        [Foldout("Characters")]
         [InfoBox("Raycast distance used when sampling spawn-point height.")]
         public float SpawnPointRaycastDistance = 20f;
 
         [HorizontalLine(color: EColor.Violet)]
-        [Foldout("Notifications")]
+        [Foldout("UI")]
         public NotificationsHelper notifications;
 
         private DockShipStatus[] pastShipDockedStatuses;
@@ -213,31 +202,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Transform,
             float
         > _spawnPointHeights = new();
-
-        public void SetCurrentLocation(HubTeleportPoint teleportPoint)
-        {
-            var validation = OperationResultGuards.RequireNotNull(
-                teleportPoint.Point,
-                "teleportPoint.Point"
-            );
-            if (!validation.Success)
-            {
-                $"HubManager: Cannot set current location '{teleportPoint.Name}'. {validation.ErrorMessage}".LogError();
-                return;
-            }
-
-            CurrentLocationName = teleportPoint.Name;
-            CurrentLocationPoint = teleportPoint.Point;
-            CurrentTraversalAvatarPoint = teleportPoint.Point;
-
-            if (GeneralCamera != null)
-            {
-                GeneralCamera.transform.SetPositionAndRotation(
-                    teleportPoint.Point.position,
-                    teleportPoint.Point.rotation
-                );
-            }
-        }
 
         public void TransitionBackToHub(UIFade fadeToBlack = null, Vector3? returnPosition = null)
         {
