@@ -15,13 +15,6 @@ using UnityEngine.Events;
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [Serializable]
-    public struct HubTeleportPoint
-    {
-        public HubSublocationName Name;
-        public Transform Point;
-    }
-
-    [Serializable]
     public struct DoThingAtChapter
     {
         public int Chapter;
@@ -66,13 +59,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [InfoBox("Text element used to display the current hub date (day/month/year).")]
         public TextMeshProUGUI dateText;
 
+        [HorizontalLine(color: EColor.Red)]
         [Foldout("UI")]
         public UiChoice EndDay;
 
         [Foldout("UI")]
         public UiChoice Exit;
 
-        [Foldout("Battles")]
+        [Foldout("UI")]
         [InfoBox(
             "Activated when a required battle's day limit has been reached and End Day is disabled."
         )]
@@ -89,7 +83,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [InfoBox("UiChoice for the Battlefields entry in the main hub menu.")]
         public UiChoice BattlefieldsChoice;
 
-        [Foldout("Battles")]
+        [HorizontalLine(color: EColor.Orange)]
+        [Foldout("UI")]
         [InfoBox("The BattleChoiceUI component used to display and navigate available battles.")]
         public BattleChoiceUI BattleChoiceUi;
 
@@ -99,11 +94,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Character.HubCharacterManager _hubCharacterManager;
         private SceneSkyboxSetter _sceneSkyboxSetter;
 
-        [Foldout("Locations")]
-        [InfoBox("Teleport destinations used by hub traversal flows.")]
-        public HubTeleportPoint[] TeleportPoints;
-
-        [Foldout("Locations")]
+        [HorizontalLine(color: EColor.Yellow)]
+        [Foldout("Explore/UI")]
         [InfoBox("Tutorial shown the first time Explore is entered.")]
         public GameObject ExploreTutorialPrefab;
 
@@ -113,6 +105,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Foldout("Locations")]
         public Dock dock;
 
+        [HorizontalLine(color: EColor.Green)]
         [Foldout("UI")]
         [InfoBox("UI text used to show the current chapter number and name.")]
         public TextMeshProUGUI ChapterNumberAndNameText;
@@ -121,10 +114,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [InfoBox("Format string for chapter display. {0} = chapter number, {1} = chapter name.")]
         public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
 
-        [Foldout("Core")]
+        [Foldout("Runtime")]
         [HideInInspector]
         public GameDate gameDate;
 
+        [HorizontalLine(color: EColor.Blue)]
         [Foldout("Cameras")]
         [InfoBox("Fade used when returning from traversal/POI interaction back to the hub.")]
         public UIFade HubFadeToBlack;
@@ -154,17 +148,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Foldout("Cameras")]
         public Camera GeneralCamera;
 
+        [HorizontalLine(color: EColor.Indigo)]
         [Foldout("Explore/Movement")]
         public Transform TraversalStartAvatarPoint;
 
-        [Foldout("Locations")]
+        [Foldout("Characters")]
         [InfoBox("Collider used to sample terrain height for unit spawn points.")]
         public MeshCollider SpawnGroundCollider;
 
-        [Foldout("Locations")]
+        [Foldout("Characters")]
         [InfoBox("Raycast distance used when sampling spawn-point height.")]
         public float SpawnPointRaycastDistance = 20f;
 
+        [HorizontalLine(color: EColor.Violet)]
         [Foldout("UI")]
         public NotificationsHelper notifications;
 
@@ -178,7 +174,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public DockShipStatus[] statuses;
         }
 
-        [Foldout("Core")]
+        [Foldout("Runtime")]
         [HideInInspector]
         public HubInputMode CurrentInputMode = HubInputMode.None;
 
@@ -206,31 +202,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Transform,
             float
         > _spawnPointHeights = new();
-
-        public void SetCurrentLocation(HubTeleportPoint teleportPoint)
-        {
-            var validation = OperationResultGuards.RequireNotNull(
-                teleportPoint.Point,
-                "teleportPoint.Point"
-            );
-            if (!validation.Success)
-            {
-                $"HubManager: Cannot set current location '{teleportPoint.Name}'. {validation.ErrorMessage}".LogError();
-                return;
-            }
-
-            CurrentLocationName = teleportPoint.Name;
-            CurrentLocationPoint = teleportPoint.Point;
-            CurrentTraversalAvatarPoint = teleportPoint.Point;
-
-            if (GeneralCamera != null)
-            {
-                GeneralCamera.transform.SetPositionAndRotation(
-                    teleportPoint.Point.position,
-                    teleportPoint.Point.rotation
-                );
-            }
-        }
 
         public void TransitionBackToHub(UIFade fadeToBlack = null, Vector3? returnPosition = null)
         {

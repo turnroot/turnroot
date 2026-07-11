@@ -10,10 +10,17 @@ using UnityEngine;
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [Serializable]
+    public struct HubFastTravelPoint
+    {
+        public HubSublocationName Name;
+        public Transform Point;
+    }
+
+    [Serializable]
     public struct HubFastTravelOption
     {
         public UiChoice Choice;
-        public HubTeleportPoint TeleportPoint;
+        public HubFastTravelPoint TeleportPoint;
         public bool available;
     }
 
@@ -270,10 +277,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             CloseFastTravelMenu();
-            StartFastTravel(_fastTravelNavigableOptions[_fastTravelChoiceIndex].TeleportPoint);
+            StartFastTravel(_fastTravelNavigableOptions[_fastTravelChoiceIndex]);
         }
 
-        private void StartFastTravel(HubTeleportPoint destination)
+        private void StartFastTravel(HubFastTravelOption destination)
         {
             if (_isFastTravelInProgress)
             {
@@ -296,7 +303,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _fastTravelRoutine = StartCoroutine(RunFastTravelSequence(destination));
         }
 
-        private IEnumerator RunFastTravelSequence(HubTeleportPoint destination)
+        private IEnumerator RunFastTravelSequence(HubFastTravelOption destination)
         {
             _isFastTravelInProgress = true;
             _isTraversalMovementLocked = true;
@@ -345,7 +352,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _fastTravelRoutine = null;
         }
 
-        private OperationResult PerformFastTravelTeleport(HubTeleportPoint destination)
+        private OperationResult PerformFastTravelTeleport(HubFastTravelOption destination)
         {
             var traversalRoot = MovementRig != null ? MovementRig : _avatarRoot;
             if (traversalRoot == null)
@@ -356,7 +363,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             Vector3 previousPosition = traversalRoot.position;
-            Vector3 targetPosition = destination.Point.position;
+            Vector3 targetPosition = destination.TeleportPoint.Point.position;
 
             if (NavMeshAgent != null && NavMeshAgent.enabled)
             {
@@ -372,7 +379,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (MovementRig != null)
             {
-                MovementRig.rotation = Quaternion.Euler(0f, destination.Point.eulerAngles.y, 0f);
+                MovementRig.rotation = Quaternion.Euler(
+                    0f,
+                    destination.TeleportPoint.Point.eulerAngles.y,
+                    0f
+                );
             }
 
             if (CameraYawRoot != null)
@@ -380,9 +391,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 CameraYawRoot.position = traversalRoot.position;
             }
 
-            CurrentLocationName = destination.Name;
-            CurrentLocationPoint = destination.Point;
-            CurrentTraversalAvatarPoint = destination.Point;
+            CurrentLocationName = destination.TeleportPoint.Name;
+            CurrentLocationPoint = destination.TeleportPoint.Point;
+            CurrentTraversalAvatarPoint = destination.TeleportPoint.Point;
 
             Vector3 delta = traversalRoot.position - previousPosition;
             if (TraversalVcam != null && delta.sqrMagnitude > 0.0001f)
@@ -468,10 +479,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _isTraversalMovementLocked = false;
         }
 
-        private OperationResult ValidateFastTravelStart(HubTeleportPoint destination)
+        private OperationResult ValidateFastTravelStart(HubFastTravelOption destination)
         {
             var validation = OperationResultGuards.All(
-                OperationResultGuards.RequireNotNull(destination.Point, "destination.Point")
+                OperationResultGuards.RequireNotNull(
+                    destination.TeleportPoint.Point,
+                    "destination.TeleportPoint.Point"
+                )
             );
             return !validation.Success ? validation
                 : CurrentInputMode != HubInputMode.Traversal

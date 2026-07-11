@@ -181,7 +181,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (traversalPoint == null)
             {
                 return OperationResult<TraversalStartContext>.Failure(
-                    "No traversal entry point is configured. Assign TraversalStartAvatarPoint or a valid TeleportPoint."
+                    "No traversal entry point is configured. Assign TraversalStartAvatarPoint or a valid FastTravelOptions destination point."
                 );
             }
 
@@ -208,8 +208,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (
                 !ValidateRequiredNotNullOrEmpty(
-                    TeleportPoints,
-                    nameof(TeleportPoints),
+                    FastTravelOptions,
+                    nameof(FastTravelOptions),
                     nameof(ResolveTraversalEntryPoint)
                 )
             )
@@ -217,13 +217,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return null;
             }
 
-            for (int i = 0; i < TeleportPoints.Length; i++)
+            for (int i = 0; i < FastTravelOptions.Length; i++)
             {
-                var teleportPoint = TeleportPoints[i];
+                var option = FastTravelOptions[i];
                 if (
                     !ValidateRequired(
-                        teleportPoint.Point,
-                        $"{nameof(TeleportPoints)}[{i}].Point",
+                        option.TeleportPoint.Point,
+                        $"{nameof(FastTravelOptions)}[{i}].TeleportPoint.Point",
                         nameof(ResolveTraversalEntryPoint)
                     )
                 )
@@ -231,8 +231,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                SetCurrentLocation(teleportPoint);
-                return teleportPoint.Point;
+                CurrentLocationName = option.TeleportPoint.Name;
+                CurrentLocationPoint = option.TeleportPoint.Point;
+                CurrentTraversalAvatarPoint = option.TeleportPoint.Point;
+                return option.TeleportPoint.Point;
             }
 
             return null;

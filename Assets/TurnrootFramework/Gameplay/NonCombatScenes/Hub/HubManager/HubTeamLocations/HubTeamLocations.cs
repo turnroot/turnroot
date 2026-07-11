@@ -29,8 +29,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         private CharacterFactory _charFactory;
         private readonly HashSet<string> _spawnedCharacterIds = new();
+
+        [Foldout("Characters")]
         public HubCharacterLocation[] HubCharacterLocations;
 
+        [Foldout("Characters")]
         [Tooltip(
             "Spawn areas used for assigning and placing team and non-roster characters in hub."
         )]
