@@ -39,59 +39,59 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Fields
 
-        [BoxGroup("Core")]
+        [Foldout("Core")]
         [HideInInspector]
         public Brain.Brain _brain;
 
-        [BoxGroup("Core")]
+        [Foldout("Core")]
         [InfoBox("Events that occur in the hub at specific chapters.")]
         public DoThingAtChapter[] DoThingsAtChapters;
 
-        [BoxGroup("Core")]
+        [Foldout("Core")]
         [InfoBox("Input provider used for navigating hub choices.")]
         public UiInputProvider InputProvider;
 
-        [BoxGroup("Core")]
+        [Foldout("Core")]
         [InfoBox("Loading screen controller used during scene transitions.")]
         public LoadingScreenController LoadingScreen;
 
-        [BoxGroup("Core")]
+        [Foldout("Core")]
         [InfoBox("Prefab containing the menu canvas used while settings is open.")]
         public GameObject MenuCanvasPrefab;
 
-        [BoxGroup("Core")]
+        [Foldout("Core")]
         public AudioClip HubBackgroundMusic;
 
-        [BoxGroup("Core")]
+        [Foldout("Core")]
         [InfoBox("Text element used to display the current hub date (day/month/year).")]
         public TextMeshProUGUI dateText;
 
         [HorizontalLine(color: EColor.Red)]
-        [BoxGroup("Navigation Choices")]
+        [Foldout("Navigation Choices")]
         public UiChoice EndDay;
 
-        [BoxGroup("Navigation Choices")]
+        [Foldout("Navigation Choices")]
         public UiChoice Exit;
 
-        [BoxGroup("Battles")]
+        [Foldout("Battles")]
         [InfoBox(
             "Activated when a required battle's day limit has been reached and End Day is disabled."
         )]
         public GameObject ForcedBattleIndicator;
 
-        [BoxGroup("Navigation Choices")]
+        [Foldout("Navigation Choices")]
         public UiChoice Settings;
 
-        [BoxGroup("Navigation Choices")]
+        [Foldout("Navigation Choices")]
         [InfoBox("UiChoice for the Explore entry in the main hub menu.")]
         public UiChoice ExploreChoice;
 
-        [BoxGroup("Navigation Choices")]
+        [Foldout("Navigation Choices")]
         [InfoBox("UiChoice for the Battlefields entry in the main hub menu.")]
         public UiChoice BattlefieldsChoice;
 
         [HorizontalLine(color: EColor.Orange)]
-        [BoxGroup("Battles")]
+        [Foldout("Battles")]
         [InfoBox("The BattleChoiceUI component used to display and navigate available battles.")]
         public BattleChoiceUI BattleChoiceUi;
 
@@ -102,82 +102,77 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private SceneSkyboxSetter _sceneSkyboxSetter;
 
         [HorizontalLine(color: EColor.Yellow)]
-        [BoxGroup("Locations")]
+        [Foldout("Locations")]
         [InfoBox("Teleport destinations used by hub traversal flows.")]
         public HubTeleportPoint[] TeleportPoints;
 
-        [BoxGroup("Locations")]
+        [Foldout("Locations")]
         [InfoBox("Tutorial shown the first time Explore is entered.")]
         public GameObject ExploreTutorialPrefab;
 
-        [BoxGroup("Locations")]
+        [Foldout("Locations")]
         public ShopsManager shopsManager;
 
-        [BoxGroup("Locations")]
+        [Foldout("Locations")]
         public Dock dock;
 
         [HorizontalLine(color: EColor.Green)]
-        [BoxGroup("Chapter Display")]
+        [Foldout("Chapter Display")]
         [InfoBox("UI text used to show the current chapter number and name.")]
         public TextMeshProUGUI ChapterNumberAndNameText;
 
-        [BoxGroup("Chapter Display")]
+        [Foldout("Chapter Display")]
         [InfoBox("Format string for chapter display. {0} = chapter number, {1} = chapter name.")]
         public string ChapterNumberAndNameFormat = "Chapter {0}: {1}";
 
+        [Foldout("Runtime")]
         [HideInInspector]
         public GameDate gameDate;
 
         [HorizontalLine(color: EColor.Blue)]
-        [BoxGroup("Camera & Fades")]
-        public UnityEvent OnHubStartInitialize;
-
-        [BoxGroup("Camera & Fades")]
-        public UnityEvent OnHubInitialize;
-
-        [BoxGroup("Camera & Fades")]
+        [Foldout("Camera & Fades")]
         [InfoBox("Fade used when returning from traversal/POI interaction back to the hub.")]
         public UIFade HubFadeToBlack;
 
-        [BoxGroup("Camera & Fades")]
+        [Foldout("Camera & Fades")]
         [InfoBox(
             "The main overlay/HUD to hide when opening any vendor UI and restore when closing it."
         )]
         public UIFade MainOverlayUiFade;
 
-        [BoxGroup("Camera & Fades")]
+        [Foldout("Camera & Fades")]
         [InfoBox("Fade used to show/hide the hub action UI.")]
         public UIFade HubActionsFade;
 
-        [BoxGroup("Camera & Fades")]
+        [Foldout("Camera & Fades")]
         [InfoBox("Fade used to show/hide the back button UI.")]
         public UIFade BackButtonFade;
 
-        [BoxGroup("Camera & Fades")]
+        [Foldout("Camera & Fades")]
         [InfoBox("Field of view used for the hub camera when not in traversal zoom/POI focus.")]
         public float HubMainFov;
 
-        [BoxGroup("Camera & Fades")]
+        [Foldout("Camera & Fades")]
         [InfoBox("Possible camera positions for randomising the hub camera on load.")]
         public Transform[] cameraPoints;
 
-        [BoxGroup("Camera & Fades")]
+        [Foldout("Camera & Fades")]
         public Camera GeneralCamera;
 
         [HorizontalLine(color: EColor.Indigo)]
-        [BoxGroup("Spawn Points")]
+        [Foldout("Spawn Points")]
         public Transform TraversalStartAvatarPoint;
 
-        [BoxGroup("Spawn Points")]
+        [Foldout("Spawn Points")]
         [InfoBox("Collider used to sample terrain height for unit spawn points.")]
         public MeshCollider SpawnGroundCollider;
 
-        [BoxGroup("Spawn Points")]
+        [Foldout("Spawn Points")]
         [InfoBox("Raycast distance used when sampling spawn-point height.")]
         public float SpawnPointRaycastDistance = 20f;
 
         [HorizontalLine(color: EColor.Violet)]
-        [BoxGroup("Notifications")]
+        [Foldout("Notifications")]
         public NotificationsHelper notifications;
 
         private DockShipStatus[] pastShipDockedStatuses;
@@ -190,6 +185,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public DockShipStatus[] statuses;
         }
 
+        [Foldout("Runtime")]
         [HideInInspector]
         public HubInputMode CurrentInputMode = HubInputMode.None;
 

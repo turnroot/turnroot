@@ -139,10 +139,11 @@ namespace Turnroot.Graphics3D
         {
             _extraGroups = new List<ExtraGroup>();
 
-            bool hasUnmasked =
-                extraMaterials != null && extraMaterials.Count > 0 && unmaskedExtraDensity > 0f;
-            bool hasMasked = maskedExtraMaterial != null && maskedExtraDensity > 0f;
-            if (!hasUnmasked && !hasMasked)
+            bool hasMixins =
+                grassMixinMaterials != null
+                && grassMixinMaterials.Count > 0
+                && grassMixinDensity > 0f;
+            if (!hasMixins)
             {
                 return;
             }
@@ -156,73 +157,50 @@ namespace Turnroot.Graphics3D
 
             int triCount = tris.Length / 3;
 
-            if (hasUnmasked)
+            bool hasGrassMask = maskTexture != null && maskTexture.isReadable;
+            Predicate<Vector2> reject = hasGrassMask
+                ? uv =>
+                {
+                    float raw = maskTexture.GetPixelBilinear(uv.x, uv.y).grayscale;
+                    float maskVal = Mathf.Clamp01(
+                        (raw - maskFloor) / Mathf.Max(1f - maskFloor, 0.0001f)
+                    );
+                    return maskVal <= 0f;
+                }
+                : (Predicate<Vector2>)null;
+
+            int poolCount = Mathf.RoundToInt(
+                totalArea * grassMixinDensity * grassMixinMaterials.Count
+            );
+            var pool = ScatterBlades(
+                poolCount,
+                cdf,
+                triCount,
+                tris,
+                verts,
+                normals,
+                uvs,
+                reject,
+                grassMixinSize
+            );
+
+            var rng2 = new System.Random(98765);
+            var bins = new List<BladeData>[grassMixinMaterials.Count];
+            for (int i = 0; i < bins.Length; i++)
             {
-                bool hasGrassMask = maskTexture != null && maskTexture.isReadable;
-                Predicate<Vector2> reject = hasGrassMask
-                    ? uv => maskTexture.GetPixelBilinear(uv.x, uv.y).grayscale < maskFloor
-                    : (Predicate<Vector2>)null;
-
-                int poolCount = Mathf.RoundToInt(
-                    totalArea * unmaskedExtraDensity * extraMaterials.Count
-                );
-                var pool = ScatterBlades(
-                    poolCount,
-                    cdf,
-                    triCount,
-                    tris,
-                    verts,
-                    normals,
-                    uvs,
-                    reject,
-                    unmaskedExtraSize
-                );
-
-                var rng2 = new System.Random(98765);
-                var bins = new List<BladeData>[extraMaterials.Count];
-                for (int i = 0; i < bins.Length; i++)
-                {
-                    bins[i] = new List<BladeData>();
-                }
-
-                foreach (var b in pool)
-                {
-                    bins[rng2.Next(bins.Length)].Add(b);
-                }
-
-                for (int i = 0; i < extraMaterials.Count; i++)
-                {
-                    if (extraMaterials[i] != null && bins[i].Count > 0)
-                    {
-                        CreateExtraGroup(extraMaterials[i], bins[i]);
-                    }
-                }
+                bins[i] = new List<BladeData>();
             }
 
-            if (hasMasked)
+            foreach (var b in pool)
             {
-                bool hasMaskTex = maskedExtraMask != null && maskedExtraMask.isReadable;
-                Predicate<Vector2> reject = hasMaskTex
-                    ? uv =>
-                        maskedExtraMask.GetPixelBilinear(uv.x, uv.y).grayscale
-                        < maskedExtraThreshold
-                    : (Predicate<Vector2>)null;
+                bins[rng2.Next(bins.Length)].Add(b);
+            }
 
-                int count = Mathf.RoundToInt(totalArea * maskedExtraDensity);
-                var blades = ScatterBlades(
-                    count,
-                    cdf,
-                    triCount,
-                    tris,
-                    verts,
-                    normals,
-                    uvs,
-                    reject,
-                    maskedExtraSize
-                );
-                if (blades.Count > 0)
+            for (int i = 0; i < grassMixinMaterials.Count; i++)
+            {
+                if (grassMixinMaterials[i] != null && bins[i].Count > 0)
                 {
-                    CreateExtraGroup(maskedExtraMaterial, blades);
+                    CreateExtraGroup(grassMixinMaterials[i], bins[i]);
                 }
             }
         }
@@ -266,13 +244,19 @@ namespace Turnroot.Graphics3D
                     continue;
                 }
 
+                float clampedMaxMixinSize = Mathf.Max(0.1f, maxGrassMixinSize);
+                Vector2 clampedPlaneSize = new Vector2(
+                    Mathf.Clamp(planeSize.x, 0f, clampedMaxMixinSize),
+                    Mathf.Clamp(planeSize.y, 0f, clampedMaxMixinSize)
+                );
+
                 list.Add(
                     new BladeData
                     {
                         position = pos,
                         normal = normal,
-                        height = planeSize.y,
-                        width = planeSize.x,
+                        height = clampedPlaneSize.y,
+                        width = clampedPlaneSize.x,
                         phase = (float)(rng.NextDouble() * Math.PI * 2.0),
                         facingAngle = (float)(rng.NextDouble() * Math.PI * 2.0),
                     }

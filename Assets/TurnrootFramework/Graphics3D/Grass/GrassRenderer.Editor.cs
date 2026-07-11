@@ -112,13 +112,15 @@ namespace Turnroot.Graphics3D
         {
             minHeight = Mathf.Min(minHeight, maxHeight);
             minWidth = Mathf.Min(minWidth, maxWidth);
+            density = Mathf.Clamp(density, 1f, 400f);
             maxDistance = Mathf.Max(0f, maxDistance);
             fadeStartDistance = Mathf.Clamp(fadeStartDistance, 0f, maxDistance);
-            unmaskedExtraDensity = Mathf.Clamp01(unmaskedExtraDensity);
-            maskedExtraDensity = Mathf.Clamp01(maskedExtraDensity);
-            maskedExtraThreshold = Mathf.Clamp01(maskedExtraThreshold);
-            unmaskedExtraSize = Vector2.Max(unmaskedExtraSize, Vector2.zero);
-            maskedExtraSize = Vector2.Max(maskedExtraSize, Vector2.zero);
+            grassMixinDensity = Mathf.Clamp01(grassMixinDensity);
+            maxGrassMixinSize = Mathf.Max(0.1f, maxGrassMixinSize);
+            grassMixinSize = Vector2.Min(
+                Vector2.Max(grassMixinSize, Vector2.zero),
+                Vector2.one * maxGrassMixinSize
+            );
         }
 #endif
     }
