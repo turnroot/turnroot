@@ -8,10 +8,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubManager : MonoBehaviour
     {
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Rig")]
         public GameObject[] ObjectsToEnableInWalkMode;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Rig")]
         [Tooltip(
             "Persistent scene transform that drives traversal movement. The spawned avatar visual "
                 + "model is re-parented onto this transform when bound. NavMeshAgent must be on this "
@@ -22,29 +22,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip(
             "NavMeshAgent on MovementRig — the sole movement driver. Handles Y via navmesh projection."
         )]
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Rig")]
         public NavMeshAgent NavMeshAgent;
 
-        [Header("Input Drive")]
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Input")]
         private bool ConsumeHubInput = true;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Input")]
         public float MoveSpeed = 3f;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Input")]
         public float RunSpeed = 5f;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Input")]
         private bool isRunning = false;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Input")]
         public float RotationLerp = 12f;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Movement Input")]
         public float WalkingInputThreshold = 0.05f;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Look Drive")]
         [InfoBox(
             "Movement direction is derived from this transform's forward/right, "
                 + "and right-stick/mouse input rotates its yaw. Cinemachine's vcam should track this "
@@ -53,14 +52,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public Transform CameraYawRoot;
 
         [InfoBox("If true, right-stick/mouse X input rotates CameraYawRoot's yaw.")]
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Look Drive")]
         public bool ApplyLookYaw = true;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Look Drive")]
         public float LookYawSpeed = 120f;
         private bool ApplyLookPitch = GameplayPlayerSettings.Instance.ExploreVerticalTilt;
 
-        [BoxGroup("Third Person Walk Mode")]
+        [Foldout("Traversal/Look Drive")]
         public float LookPitchSpeed = 120f;
 
         private bool _walkMode;
