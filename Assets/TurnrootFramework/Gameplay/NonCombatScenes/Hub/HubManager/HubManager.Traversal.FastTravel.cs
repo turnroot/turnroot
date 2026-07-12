@@ -211,12 +211,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool IsFastTravelOptionAvailable(HubFastTravelOption option)
         {
-            if (option.TeleportPoint.Point == null || _fastTravelManager == null)
-            {
-                return false;
-            }
-
-            return _fastTravelManager.IsLocationAvailable(option.TeleportPoint.Point);
+            return option.UnlockableLocation != null
+                && _fastTravelManager != null
+                && _fastTravelManager.IsLocationAvailable(option.UnlockableLocation);
         }
 
         private void UpdateFastTravelChoiceSelection()
