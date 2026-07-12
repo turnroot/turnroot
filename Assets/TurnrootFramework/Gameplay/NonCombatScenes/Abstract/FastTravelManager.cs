@@ -6,12 +6,7 @@ namespace Turnroot.NonCombatScenes.Abstract
     {
         public bool IsLocationAvailable(UnlockableWorldLocation location)
         {
-            if (location == null || location.fastTravelPoint == null)
-            {
-                return false;
-            }
-
-            return location.isUnlocked;
+            return location != null && location.fastTravelPoint != null && location.isUnlocked;
         }
     }
 }

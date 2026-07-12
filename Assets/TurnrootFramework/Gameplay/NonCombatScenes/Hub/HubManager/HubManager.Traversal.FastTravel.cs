@@ -152,6 +152,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 option.available = IsFastTravelOptionAvailable(option);
                 FastTravelLocations[i] = option;
 
+                if (option.Choice != null)
+                {
+                    option.Choice.gameObject.SetActive(option.available);
+                }
+
                 if (option.Choice != null && option.available)
                 {
                     validCount++;
@@ -177,6 +182,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         continue;
                     }
 
+                    option.Choice.gameObject.SetActive(true);
+
                     _fastTravelNavigableChoices[writeIndex] = option.Choice;
                     _fastTravelNavigableOptions[writeIndex] = option;
                     writeIndex++;
@@ -186,7 +193,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (_fastTravelNavigableChoices.Length == 0)
             {
                 return OperationResult.Failure(
-                    "FastTravelLocations are configured, but none are both unlocked and mapped to a valid UiChoice."
+                    "FastTravelOptions are configured, but none are both unlocked and mapped to a valid UiChoice."
                 );
             }
 
@@ -203,12 +210,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool IsFastTravelOptionAvailable(UnlockableWorldLocationOption option)
         {
-            if (option.UnlockableLocation == null || _fastTravelManager == null)
-            {
-                return false;
-            }
-
-            return _fastTravelManager.IsLocationAvailable(option.UnlockableLocation);
+            return option.UnlockableLocation != null
+                && _fastTravelManager != null
+                && _fastTravelManager.IsLocationAvailable(option.UnlockableLocation);
         }
 
         private void UpdateFastTravelChoiceSelection()

@@ -14,6 +14,7 @@ namespace Turnroot.NonCombatScenes.Abstract
     }
 
     [RequireComponent(typeof(CapsuleCollider))]
+    [RequireComponent(typeof(Rigidbody))]
     public class UnlockableWorldLocation : MonoBehaviour
     {
         public Collider playerCollider;
@@ -39,6 +40,14 @@ namespace Turnroot.NonCombatScenes.Abstract
             for (int i = 0; i < worldVisuals.disabledWhenLocked.Length; i++)
             {
                 worldVisuals.disabledWhenLocked[i].SetActive(true);
+            }
+            if (TryGetComponent<Rigidbody>(out var rb))
+            {
+                rb.isKinematic = true;
+            }
+            else
+            {
+                Debug.LogWarning("UnlockableWorldLocation: No Rigidbody component found.");
             }
         }
 

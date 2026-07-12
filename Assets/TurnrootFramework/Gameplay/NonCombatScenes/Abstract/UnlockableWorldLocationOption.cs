@@ -14,6 +14,8 @@ namespace Turnroot.NonCombatScenes.Abstract
         [Tooltip("Location name used to update CurrentLocationName on travel.")]
         public HubSublocationName LocationName;
         public UnlockableWorldLocation UnlockableLocation;
+
+        [HideInInspector]
         public bool available;
     }
 }
