@@ -181,7 +181,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (traversalPoint == null)
             {
                 return OperationResult<TraversalStartContext>.Failure(
-                    "No traversal entry point is configured. Assign TraversalStartAvatarPoint or a valid TeleportPoint."
+                    "No traversal entry point is configured. Assign TraversalStartAvatarPoint or a valid FastTravelLocations unlockable location."
                 );
             }
 
@@ -208,8 +208,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (
                 !ValidateRequiredNotNullOrEmpty(
-                    TeleportPoints,
-                    nameof(TeleportPoints),
+                    FastTravelLocations,
+                    nameof(FastTravelLocations),
                     nameof(ResolveTraversalEntryPoint)
                 )
             )
@@ -217,13 +217,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return null;
             }
 
-            for (int i = 0; i < TeleportPoints.Length; i++)
+            for (int i = 0; i < FastTravelLocations.Length; i++)
             {
-                var teleportPoint = TeleportPoints[i];
+                var option = FastTravelLocations[i];
                 if (
                     !ValidateRequired(
-                        teleportPoint.Point,
-                        $"{nameof(TeleportPoints)}[{i}].Point",
+                        option.UnlockableLocation != null
+                            ? option.UnlockableLocation.fastTravelPoint
+                            : null,
+                        $"{nameof(FastTravelLocations)}[{i}].UnlockableLocation.fastTravelPoint",
                         nameof(ResolveTraversalEntryPoint)
                     )
                 )
@@ -231,8 +233,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
-                SetCurrentLocation(teleportPoint);
-                return teleportPoint.Point;
+                CurrentLocationName = option.LocationName;
+                CurrentLocationPoint = option.UnlockableLocation.fastTravelPoint;
+                CurrentTraversalAvatarPoint = option.UnlockableLocation.fastTravelPoint;
+                return option.UnlockableLocation.fastTravelPoint;
             }
 
             return null;

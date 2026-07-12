@@ -9,52 +9,44 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    [Serializable]
-    public struct HubFastTravelOption
-    {
-        public UiChoice Choice;
-        public HubTeleportPoint TeleportPoint;
-        public bool available;
-    }
-
     public partial class HubManager : MonoBehaviour
     {
-        [BoxGroup("Traversal Fast Travel")]
+        [Foldout("Fast Travel")]
         [InfoBox("UI fade shown when opening the traversal fast-travel location list.")]
         public UIFade FastTravelChoicesFade;
 
-        [BoxGroup("Traversal Fast Travel")]
-        [InfoBox("Ordered options shown when ToggleDetails opens fast travel.")]
-        public HubFastTravelOption[] FastTravelOptions;
+        [Foldout("Fast Travel")]
+        [InfoBox("Ordered locations shown when ToggleDetails opens fast travel.")]
+        public UnlockableWorldLocationOption[] FastTravelLocations;
 
-        [BoxGroup("Traversal Fast Travel")]
+        [Foldout("Fast Travel")]
         [Min(0f)]
         [Tooltip("Delay between starting travel FX and the actual teleport.")]
         public float FastTravelTeleportDelay = 0.65f;
 
-        [BoxGroup("Traversal Fast Travel")]
+        [Foldout("Fast Travel")]
         [Min(0f)]
         [Tooltip("Small delay after arrival FX before movement is restored.")]
         public float FastTravelRecoveryDelay = 0.2f;
 
-        [BoxGroup("Traversal Fast Travel")]
+        [Foldout("Fast Travel")]
         [InfoBox("Particle prefab spawned on the avatar model before teleport.")]
         public ParticleSystem FastTravelDepartureFxPrefab;
 
-        [BoxGroup("Traversal Fast Travel")]
+        [Foldout("Fast Travel")]
         [InfoBox("Particle prefab spawned on the avatar model after teleport.")]
         public ParticleSystem FastTravelArrivalFxPrefab;
 
-        [BoxGroup("Traversal Fast Travel")]
+        [Foldout("Fast Travel")]
         [InfoBox("Audio source used for fast-travel SFX.")]
         public AudioSource FastTravelAudioSource;
 
-        [BoxGroup("Traversal Fast Travel")]
+        [Foldout("Fast Travel")]
         [Tooltip("SFX played when fast travel begins.")]
         public AudioClip FastTravelDepartureClip;
 
         private UiChoice[] _fastTravelNavigableChoices;
-        private HubFastTravelOption[] _fastTravelNavigableOptions;
+        private UnlockableWorldLocationOption[] _fastTravelNavigableOptions;
         private int _fastTravelChoiceIndex;
         private bool _fastTravelMenuOpen;
         private bool _isFastTravelInProgress;
@@ -144,21 +136,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private OperationResult BuildFastTravelOptions()
         {
-            if (FastTravelOptions == null || FastTravelOptions.Length == 0)
+            if (FastTravelLocations == null || FastTravelLocations.Length == 0)
             {
                 _fastTravelNavigableChoices = Array.Empty<UiChoice>();
-                _fastTravelNavigableOptions = Array.Empty<HubFastTravelOption>();
-                return OperationResult.Failure("No FastTravelOptions are configured.");
+                _fastTravelNavigableOptions = Array.Empty<UnlockableWorldLocationOption>();
+                return OperationResult.Failure("No FastTravelLocations are configured.");
             }
 
             _fastTravelManager ??= GetComponent<FastTravelManager>();
 
             int validCount = 0;
-            for (int i = 0; i < FastTravelOptions.Length; i++)
+            for (int i = 0; i < FastTravelLocations.Length; i++)
             {
-                var option = FastTravelOptions[i];
+                var option = FastTravelLocations[i];
                 option.available = IsFastTravelOptionAvailable(option);
-                FastTravelOptions[i] = option;
+                FastTravelLocations[i] = option;
+
+                if (option.Choice != null)
+                {
+                    option.Choice.gameObject.SetActive(option.available);
+                }
 
                 if (option.Choice != null && option.available)
                 {
@@ -169,21 +166,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (validCount == 0)
             {
                 _fastTravelNavigableChoices = Array.Empty<UiChoice>();
-                _fastTravelNavigableOptions = Array.Empty<HubFastTravelOption>();
+                _fastTravelNavigableOptions = Array.Empty<UnlockableWorldLocationOption>();
             }
             else
             {
                 _fastTravelNavigableChoices = new UiChoice[validCount];
-                _fastTravelNavigableOptions = new HubFastTravelOption[validCount];
+                _fastTravelNavigableOptions = new UnlockableWorldLocationOption[validCount];
 
                 int writeIndex = 0;
-                for (int i = 0; i < FastTravelOptions.Length; i++)
+                for (int i = 0; i < FastTravelLocations.Length; i++)
                 {
-                    var option = FastTravelOptions[i];
+                    var option = FastTravelLocations[i];
                     if (option.Choice == null || !option.available)
                     {
                         continue;
                     }
+
+                    option.Choice.gameObject.SetActive(true);
 
                     _fastTravelNavigableChoices[writeIndex] = option.Choice;
                     _fastTravelNavigableOptions[writeIndex] = option;
@@ -209,7 +208,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             return OperationResult.Successful();
         }
 
-        private bool IsFastTravelOptionAvailable(HubFastTravelOption option)
+        private bool IsFastTravelOptionAvailable(UnlockableWorldLocationOption option)
         {
             return option.UnlockableLocation != null
                 && _fastTravelManager != null
@@ -267,10 +266,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             CloseFastTravelMenu();
-            StartFastTravel(_fastTravelNavigableOptions[_fastTravelChoiceIndex].TeleportPoint);
+            StartFastTravel(_fastTravelNavigableOptions[_fastTravelChoiceIndex]);
         }
 
-        private void StartFastTravel(HubTeleportPoint destination)
+        private void StartFastTravel(UnlockableWorldLocationOption destination)
         {
             if (_isFastTravelInProgress)
             {
@@ -293,7 +292,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _fastTravelRoutine = StartCoroutine(RunFastTravelSequence(destination));
         }
 
-        private IEnumerator RunFastTravelSequence(HubTeleportPoint destination)
+        private IEnumerator RunFastTravelSequence(UnlockableWorldLocationOption destination)
         {
             _isFastTravelInProgress = true;
             _isTraversalMovementLocked = true;
@@ -342,7 +341,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _fastTravelRoutine = null;
         }
 
-        private OperationResult PerformFastTravelTeleport(HubTeleportPoint destination)
+        private OperationResult PerformFastTravelTeleport(UnlockableWorldLocationOption destination)
         {
             var traversalRoot = MovementRig != null ? MovementRig : _avatarRoot;
             if (traversalRoot == null)
@@ -353,7 +352,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             Vector3 previousPosition = traversalRoot.position;
-            Vector3 targetPosition = destination.Point.position;
+            Vector3 targetPosition = destination.UnlockableLocation.fastTravelPoint.position;
 
             if (NavMeshAgent != null && NavMeshAgent.enabled)
             {
@@ -369,7 +368,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (MovementRig != null)
             {
-                MovementRig.rotation = Quaternion.Euler(0f, destination.Point.eulerAngles.y, 0f);
+                MovementRig.rotation = Quaternion.Euler(
+                    0f,
+                    destination.UnlockableLocation.fastTravelPoint.eulerAngles.y,
+                    0f
+                );
             }
 
             if (CameraYawRoot != null)
@@ -377,9 +380,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 CameraYawRoot.position = traversalRoot.position;
             }
 
-            CurrentLocationName = destination.Name;
-            CurrentLocationPoint = destination.Point;
-            CurrentTraversalAvatarPoint = destination.Point;
+            CurrentLocationName = destination.LocationName;
+            CurrentLocationPoint = destination.UnlockableLocation.fastTravelPoint;
+            CurrentTraversalAvatarPoint = destination.UnlockableLocation.fastTravelPoint;
 
             Vector3 delta = traversalRoot.position - previousPosition;
             if (TraversalVcam != null && delta.sqrMagnitude > 0.0001f)
@@ -465,10 +468,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _isTraversalMovementLocked = false;
         }
 
-        private OperationResult ValidateFastTravelStart(HubTeleportPoint destination)
+        private OperationResult ValidateFastTravelStart(UnlockableWorldLocationOption destination)
         {
             var validation = OperationResultGuards.All(
-                OperationResultGuards.RequireNotNull(destination.Point, "destination.Point")
+                OperationResultGuards.RequireNotNull(
+                    destination.UnlockableLocation,
+                    "destination.UnlockableLocation"
+                ),
+                OperationResultGuards.RequireNotNull(
+                    destination.UnlockableLocation != null
+                        ? destination.UnlockableLocation.fastTravelPoint
+                        : null,
+                    "destination.UnlockableLocation.fastTravelPoint"
+                )
             );
             return !validation.Success ? validation
                 : CurrentInputMode != HubInputMode.Traversal

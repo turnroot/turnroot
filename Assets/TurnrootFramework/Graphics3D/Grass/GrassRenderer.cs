@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 #endif
 
@@ -15,8 +16,7 @@ namespace Turnroot.Graphics3D
     ///   1. Attach to a GameObject with a MeshFilter.
     ///   2. Assign GrassCompute and a grass Material.
     ///   3. Optionally assign a Read/Write Texture2D mask (white = full grass).
-    ///   4. Optionally assign unmasked extra materials (scattered uniformly)
-    ///      or a masked extra material with its own mask texture.
+    ///   4. Optionally assign grass mixin materials (scattered using the same mask).
     ///   5. Hit Play, or use "Regenerate Grass" in the context menu.
     ///
     /// Toggle via grassEnabled, SetGrassEnabled(bool), or an Animation Track.
@@ -47,7 +47,7 @@ namespace Turnroot.Graphics3D
 
         // -- Density & Blade Size --------------------------------------------------
         [Header("Density")]
-        [Range(1f, 350f)]
+        [Range(1f, 400f)]
         public float density = 60f; // blades per world-space m�
         public int maxBlades = 1_000_000;
 
@@ -67,25 +67,21 @@ namespace Turnroot.Graphics3D
         public bool grassEnabled = true;
         public ShadowCastingMode shadowCasting = ShadowCastingMode.Off;
 
-        // -- Unmasked Extras -------------------------------------------------------
-        [Header("Unmasked Extras � one scatter pass per material, ignores mask")]
-        public List<Material> extraMaterials = new List<Material>();
+        // -- Grass Mixins ----------------------------------------------------------
+        [Header("Grass Mixins - one scatter pass per material, follows grass mask")]
+        [FormerlySerializedAs("extraMaterials")]
+        public List<Material> grassMixinMaterials = new List<Material>();
 
         [Range(0f, 1f)]
-        public float unmaskedExtraDensity = 0.01f; // quads per m�
-        public Vector2 unmaskedExtraSize = new Vector2(0.1f, 0.1f);
+        [FormerlySerializedAs("unmaskedExtraDensity")]
+        public float grassMixinDensity = 0.01f; // quads per m�
 
-        // -- Masked Extras ---------------------------------------------------------
-        [Header("Masked Extras � quads spawned where maskedExtraMask is white")]
-        public Material maskedExtraMaterial;
-        public Texture2D maskedExtraMask;
+        [FormerlySerializedAs("unmaskedExtraSize")]
+        public Vector2 grassMixinSize = new Vector2(0.1f, 0.1f);
 
-        [Range(0f, 1f)]
-        public float maskedExtraThreshold = 0.5f;
-
-        [Range(0f, 1f)]
-        public float maskedExtraDensity = 0.01f; // quads per m�
-        public Vector2 maskedExtraSize = new Vector2(0.1f, 0.1f);
+        [Min(0.1f)]
+        [Tooltip("Hard cap for grass mixin width/height to prevent accidental giant quads.")]
+        public float maxGrassMixinSize = 8f;
 
         // -- Debug -----------------------------------------------------------------
         [Header("Debug")]

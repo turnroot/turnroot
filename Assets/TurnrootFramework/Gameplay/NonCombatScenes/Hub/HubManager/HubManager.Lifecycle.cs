@@ -56,8 +56,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 _brain.OnLongTermMemoryInitialized += HandleLongTermMemoryInitialized;
             }
-
-            OnHubStartInitialize?.Invoke();
         }
 
         private void HandleLongTermMemoryInitialized()
@@ -195,7 +193,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             int idx = HubDayRandom.Range(0, cameraPoints.Length);
             Transform dest = cameraPoints[idx];
             GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
-            OnHubInitialize?.Invoke();
         }
 
         private void InvokeChapterHubEvents(int currentChapter)

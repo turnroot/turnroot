@@ -17,19 +17,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
     public partial class HubManager : MonoBehaviour
     {
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/Movement")]
         public float MaxTiltUp;
 
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/Movement")]
         public float MaxTiltDown;
 
         [Tooltip("Time it takes to reach the target rotation (seconds)")]
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/Movement")]
         public float lookSmoothTime = 0.15f;
         private Coroutine _lookCoroutine;
 
         // degrees per second movement when axis input is present.
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/Movement")]
         public float lookStep = 10f;
 
         private Vector3 _baseRotation;
@@ -38,35 +38,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private float _pitchOffset;
         private float _yawOffset;
 
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Cameras")]
         [Tooltip("Single traversal vcam used for both exploring and zooming")]
         public CinemachineVirtualCamera TraversalVcam;
 
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/UI")]
         public float maxPoiDistance = 10f;
         private bool _isLooking;
         private IHubSelectable _currentPoiVisual;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomLayerMask")]
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/UI")]
         public LayerMask poiLayerMask;
 
         [UnityEngine.Serialization.FormerlySerializedAs("normalFov")]
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Cameras")]
         public float ExploreFOV = 60f;
 
         [UnityEngine.Serialization.FormerlySerializedAs("zoomedFov")]
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Cameras")]
         public float ZoomFOV = 30f;
 
         [Tooltip("Seconds used to blend between ExploreFOV and ZoomFOV")]
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Cameras")]
         public float zoomTime = 0.2f;
 
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/UI")]
         public UIFade FocusOverlayFade;
 
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/UI")]
         public ExploreModeFade[] exploreModeFades;
         private bool useThirdPersonWalkWhenUnzoomed = true;
         private bool lockCursorWhileLooking = true;
@@ -77,7 +77,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Tooltip(
             "Radius used when casting out of the camera. A larger value gives you a bigger forgiveness window around the centre of the view."
         )]
-        [BoxGroup("Look/Traversal Settings")]
+        [Foldout("Explore/UI")]
         public float zoomCastRadius = 0.25f;
         private bool _isPoiActive;
         private bool _isZoomed;
