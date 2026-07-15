@@ -70,6 +70,6 @@ namespace Turnroot.NonCombatScenes.Abstract
             newRegionAudioSource.PlayOneShot(newRegionSfx);
         }
 
-        private void HidePopupAfterDelay() => newRegionDisplay.HideAfterTime(popupHideDelay);
+        private void HidePopupAfterDelay() => newRegionDisplay?.HideAfterTime(popupHideDelay);
     }
 }
