@@ -3,7 +3,9 @@ using System.Linq;
 using Turnroot.Gameplay.Combat;
 using Turnroot.UI;
 using Turnroot.Utilities;
+using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -355,6 +357,107 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             return true;
         }
+
+        public void TransitionBackToHub(UIFade fadeToBlack = null, Vector3? returnPosition = null)
+        {
+            void DoReturn()
+            {
+                var brainValidation = OperationResultGuards.RequireNotNull(_brain, nameof(_brain));
+                if (!brainValidation.Success)
+                {
+                    $"HubManager: TransitionBackToHub aborted. {brainValidation.ErrorMessage}".LogError();
+                    return;
+                }
+
+                var allPoi = FindObjectsByType<HubPoiUi>(FindObjectsSortMode.None);
+                foreach (var poi in allPoi)
+                {
+                    poi.Hide();
+                }
+
+                GetHubCharacterManager()?.HandleHubOverviewEntered();
+
+                _brain.audioBrain.SetMusic(HubBackgroundMusic, fadeDuration: 1f);
+                GeneralCamera.fieldOfView = HubMainFov;
+                BackButtonFade.Hide();
+
+                if (returnPosition.HasValue && _avatarRoot != null)
+                {
+                    _avatarRoot.transform.position = returnPosition.Value;
+                }
+                else if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
+                {
+                    int idx = UnityEngine.Random.Range(0, cameraPoints.Length);
+                    Transform dest = cameraPoints[idx];
+                    GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
+                }
+                else
+                {
+                    $"Nothing can be done".LogError("HugManager");
+                }
+
+                CurrentLocationName = null;
+                CurrentLocationPoint = null;
+                CurrentTraversalAvatarPoint = null;
+
+                SetInputMode(HubInputMode.Location);
+                UpdateChoiceSelection();
+                UpdateDateText();
+                HubActionsFade.Show();
+                _brain?.charactersBrain.CheckBirthdays();
+            }
+
+            if (fadeToBlack == null)
+            {
+                DoReturn();
+                return;
+            }
+
+            UnityAction onVisible = null;
+            UnityAction onHidden = null;
+
+            onVisible = () =>
+            {
+                fadeToBlack.OnVisible.RemoveListener(onVisible);
+                DoReturn();
+                fadeToBlack.Hide();
+            };
+
+            onHidden = () =>
+            {
+                fadeToBlack.OnHidden.RemoveListener(onHidden);
+            };
+
+            fadeToBlack.OnVisible.AddListener(onVisible);
+            fadeToBlack.OnHidden.AddListener(onHidden);
+            fadeToBlack.Show();
+        }
+
+        private int currentIndex = 0;
+
+        private const string birthdayNotificationTypeName = "birthday";
+        private const string shipNotificationTypeName = "ship";
+        private const string itemNotificationTypeName = "items";
+
+        public void UpdateChapterNumberAndNameText(int chapterNumber, string chapterName)
+        {
+            if (ChapterNumberAndNameText != null)
+            {
+                ChapterNumberAndNameText.text = string.Format(
+                    ChapterNumberAndNameFormat,
+                    chapterNumber,
+                    chapterName
+                );
+            }
+        }
+
+        public SpecificUiHandler SpecificUiInputHandler => GetComponent<SpecificUiHandler>();
+
+        private Character.HubCharacterManager GetHubCharacterManager() =>
+            _hubCharacterManager =
+                _hubCharacterManager != null
+                    ? _hubCharacterManager
+                    : FindFirstObjectByType<Character.HubCharacterManager>();
 
         #endregion
     }

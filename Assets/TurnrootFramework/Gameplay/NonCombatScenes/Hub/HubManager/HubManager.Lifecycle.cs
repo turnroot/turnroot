@@ -1,3 +1,5 @@
+using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
+using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -37,6 +39,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!ValidateRequired(_brain, nameof(_brain), nameof(Start)))
             {
+                "Critical error: Brain not found.".LogWarning();
                 return;
             }
 
@@ -45,9 +48,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 LoadingScreen = FindFirstObjectByType<LoadingScreenController>();
             }
 
-            // If LTM is already ready, initialize immediately; otherwise, wait for the
-            // LTM initialization event (this can happen after Start when using some
-            // async brain init paths)
+            if (dock == null)
+            {
+                dock = FindFirstObjectByType<Dock>();
+            }
+
+            if (shopsManager == null)
+            {
+                shopsManager = FindFirstObjectByType<ShopsManager>();
+            }
+
             if (_brain.ltm != null && _brain.ltm.Initialized)
             {
                 InitializeHubForCurrentDate();
@@ -79,7 +89,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 var storedDate = ltm.GetGameDate();
                 if (storedDate == GameDate.Default)
                 {
-                    // First load ever: initialize from settings and persist
+                    // First load ever
                     gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
                     ltm.SetGameDate(gameDate.year, (Month)(gameDate.month - 1), gameDate.day);
                     $"HubManager: No saved game date found, using starting date {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
@@ -97,7 +107,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var hasProcessed = HubDayStateStore.HasProcessedDailyUpdates;
             if (!hasProcessed)
             {
-                dock?.UpdateDailyVoyageStatuses();
+                dock.UpdateDailyVoyageStatuses();
                 CheckShipsDocked();
                 CheckRareItems();
                 HubDayStateStore.MarkDailyUpdatesProcessed(_brain);
@@ -132,7 +142,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!HubDayStateStore.HasProcessedDailyUpdates)
             {
-                dock?.UpdateDailyVoyageStatuses();
+                dock.UpdateDailyVoyageStatuses();
 
                 CheckShipsDocked();
 
@@ -140,9 +150,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             else
             {
-                // Daily updates already processed for today; rebuild dock runtime lists and
-                // re-enforce capacity so MaxDockedShipsPerSide is respected on hub re-entry
-                dock?.EnforceCapacityOnLoad();
+                dock.EnforceCapacityOnLoad();
             }
 
             UpdateChapterNumberAndNameText(
@@ -222,7 +230,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
             }
 
-            // Ensure we clean up any menu canvas / subscriptions when hub is destroyed.
             EndSettingsMenu();
         }
 
