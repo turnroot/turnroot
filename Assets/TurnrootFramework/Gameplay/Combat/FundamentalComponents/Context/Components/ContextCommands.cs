@@ -118,7 +118,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     weaponItem,
                     this
                 );
-                hit = UnityEngine.Random.Range(0f, 100f) <= hitChance;
+                hit = Random.Range(0f, 100f) <= hitChance;
             }
             else
             {
@@ -155,7 +155,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         weaponItem,
                         this
                     );
-                    if (UnityEngine.Random.Range(0f, 100f) < critChance)
+                    if (Random.Range(0f, 100f) < critChance)
                     {
                         Flags.ActiveUnitFlags.WillCriticalHit = true;
                         Flags.ActiveUnitFlags.Unit = attacker;
