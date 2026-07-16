@@ -197,16 +197,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool _wasRunPressed;
 
-        private void Awake()
-        {
-            if (NavMeshAgent != null)
-            {
-                NavMeshAgent.updateRotation = false;
-                NavMeshAgent.updatePosition = true;
-                NavMeshAgent.speed = MoveSpeed;
-            }
-        }
-
         private void Update()
         {
             if (!_isLooking)

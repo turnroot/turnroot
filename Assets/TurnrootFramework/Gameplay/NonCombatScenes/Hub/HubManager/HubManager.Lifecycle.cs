@@ -33,6 +33,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void ActivateHubManager()
         {
+            InitializeTraversal();
             gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
 
             _brain = FindFirstObjectByType<Brain.Brain>();
@@ -72,6 +73,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
             InitializeHubForCurrentDate();
+        }
+
+        private void InitializeTraversal()
+        {
+            if (NavMeshAgent != null)
+            {
+                NavMeshAgent.updateRotation = false;
+                NavMeshAgent.updatePosition = true;
+                NavMeshAgent.speed = MoveSpeed;
+            }
         }
 
         private void InitializeHubForCurrentDate()
