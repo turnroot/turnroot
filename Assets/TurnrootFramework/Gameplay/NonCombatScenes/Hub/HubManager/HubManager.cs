@@ -35,6 +35,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #region Fields
 
         [Foldout("Core")]
+        [InfoBox(
+            "HubManager GameObjects must start disabled in the scene! The HubManagerSwitcher will activate the correct one based on the current chapter."
+        )]
         [HideInInspector]
         public Brain.Brain _brain;
 
