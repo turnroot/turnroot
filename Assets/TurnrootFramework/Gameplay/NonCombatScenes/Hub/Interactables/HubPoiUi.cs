@@ -156,7 +156,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void Awake()
         {
-            hubmanager = FindFirstObjectByType<HubManager>();
+            hubmanager = HubManager.GetCurrent();
             if (poiVisual == null)
             {
                 $"HubPoiUi on {gameObject.name} has no poiVisual assigned, disabling.".LogWarning();

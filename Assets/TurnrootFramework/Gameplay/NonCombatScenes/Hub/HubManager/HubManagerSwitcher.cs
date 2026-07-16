@@ -14,10 +14,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             brain.OnSceneChanged += OnSceneChanged;
         }
 
-        private void Start()
-        {
-            TryActivateHubManagerForCurrentScene();
-        }
+        private void Start() => TryActivateHubManagerForCurrentScene();
 
         private void OnDisable()
         {
@@ -25,10 +22,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             brain.OnSceneChanged -= OnSceneChanged;
         }
 
-        private void OnSceneChanged(string sceneName, string displayName)
-        {
-            TryActivateHubManagerForCurrentScene();
-        }
+        private void OnSceneChanged(string sceneName, string displayName) => TryActivateHubManagerForCurrentScene();
 
         private void TryActivateHubManagerForCurrentScene()
         {
@@ -50,10 +44,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 && selectedHubManager.gameObject.activeInHierarchy
             )
             {
+                HubManager.SetCurrent(selectedHubManager);
                 return;
             }
 
             _activeHubManager = selectedHubManager;
+            HubManager.SetCurrent(_activeHubManager);
             if (!_activeHubManager.gameObject.activeSelf)
             {
                 _activeHubManager.gameObject.SetActive(true);

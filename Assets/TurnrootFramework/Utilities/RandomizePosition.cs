@@ -6,11 +6,11 @@ namespace Turnroot.Utilities
     {
         public Transform[] choices;
 
-        public void SetPosition()
+        public void SetPosition(Transform target)
         {
             if (choices != null && choices.Length > 0)
             {
-                transform.position = choices[Random.Range(0, choices.Length)].position;
+                target.position = choices[Random.Range(0, choices.Length)].position;
             }
         }
     }

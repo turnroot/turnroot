@@ -35,7 +35,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void Awake()
         {
-            _hubManager = FindFirstObjectByType<HubManager>();
+            _hubManager = HubManager.GetCurrent();
 
             if (poiVisual == null)
             {
