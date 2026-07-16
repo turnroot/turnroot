@@ -62,7 +62,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         {
             _brain = GetAndCacheBrain.GetBrain();
             _audioBrain = _brain.audioBrain;
-            _hubManager = FindFirstObjectByType<HubManager>();
+            _hubManager = HubManager.GetCurrent();
 
             if (CharacterInteraction == null)
             {

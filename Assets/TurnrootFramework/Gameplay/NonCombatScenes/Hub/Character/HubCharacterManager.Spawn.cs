@@ -157,7 +157,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private HubManager GetHubManager()
         {
-            _hubManager ??= FindFirstObjectByType<HubManager>();
+            _hubManager ??= HubManager.GetCurrent();
             return _hubManager;
         }
     }

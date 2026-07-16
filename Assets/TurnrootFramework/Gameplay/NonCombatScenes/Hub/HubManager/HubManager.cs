@@ -31,6 +31,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     /// </remarks>
     public partial class HubManager : MonoBehaviour
     {
+        public static HubManager Current { get; private set; }
+
+        public static HubManager GetCurrent()
+        {
+            if (Current != null)
+            {
+                return Current;
+            }
+
+            Current = FindFirstObjectByType<HubManager>(FindObjectsInactive.Include);
+            return Current;
+        }
+
+        public static void SetCurrent(HubManager hubManager) => Current = hubManager;
+
         #region Fields
 
         [Foldout("Core")]
