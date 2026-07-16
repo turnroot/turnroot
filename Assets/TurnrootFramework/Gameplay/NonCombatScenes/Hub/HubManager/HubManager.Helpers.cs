@@ -387,7 +387,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
                 else if (GeneralCamera != null && cameraPoints != null && cameraPoints.Length > 0)
                 {
-                    int idx = UnityEngine.Random.Range(0, cameraPoints.Length);
+                    int idx = Random.Range(0, cameraPoints.Length);
                     Transform dest = cameraPoints[idx];
                     GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
                 }

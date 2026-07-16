@@ -128,8 +128,7 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void HandleSceneChanged(string sceneName, string displayName) =>
-            SaveAllFiles();
+        private void HandleSceneChanged(string sceneName, string displayName) => SaveAllFiles();
 
         #endregion
     }

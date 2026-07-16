@@ -71,7 +71,7 @@ namespace Turnroot.Skills.Nodes.Events
                 maxDistance > 0
                     ? maxDistance
                     : (
-                        Turnroot.GameSettings.GameplayGeneralSettings.Instance?.GetMaxWarpDistance()
+                        GameSettings.GameplayGeneralSettings.Instance?.GetMaxWarpDistance()
                         ?? 20
                     );
 

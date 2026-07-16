@@ -31,13 +31,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private bool _hubInitialized = false;
 
-        public void Start()
+        public void ActivateHubManager()
         {
             gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
 
             _brain = FindFirstObjectByType<Brain.Brain>();
 
-            if (!ValidateRequired(_brain, nameof(_brain), nameof(Start)))
+            if (!ValidateRequired(_brain, nameof(_brain)))
             {
                 "Critical error: Brain not found.".LogWarning();
                 return;

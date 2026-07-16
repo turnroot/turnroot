@@ -43,7 +43,6 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-
             int activeIndex = SaveFiles.FindIndex(sf =>
                 sf.LtmSubfolderPath == ActiveSaveFileSubfolderPath.ToString().ToLower()
             );
@@ -51,7 +50,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 return;
             }
-
 
             _playtimeAccumulator += Time.deltaTime;
             if (_playtimeAccumulator >= 1f)
@@ -63,7 +61,6 @@ namespace Turnroot.Gameplay.Brain
                 {
                     saveFile.playTimeSeconds = 0;
                 }
-
 
                 SaveFiles[activeIndex] = saveFile;
                 _playtimeAccumulator -= toAdd;

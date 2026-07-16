@@ -134,13 +134,13 @@ namespace Turnroot.Gameplay.Brain
 
             bool hasShort = identity.ClassModelPrefabShort != null;
             bool hasTall = identity.ClassModelPrefab != null;
-            if (build == Turnroot.Characters.BodyBuild.Short && !hasShort && hasTall)
+            if (build == BodyBuild.Short && !hasShort && hasTall)
             {
                 LogWarning(
                     $"Class '{classInst.ClassData.GetClassName()}' has no short prefab; using tall prefab for {unit.CharacterTemplate.DisplayName}."
                 );
             }
-            else if (build == Turnroot.Characters.BodyBuild.Tall && !hasTall && hasShort)
+            else if (build == BodyBuild.Tall && !hasTall && hasShort)
             {
                 LogWarning(
                     $"Class '{classInst.ClassData.GetClassName()}' has no tall prefab; using short prefab for {unit.CharacterTemplate.DisplayName}."
