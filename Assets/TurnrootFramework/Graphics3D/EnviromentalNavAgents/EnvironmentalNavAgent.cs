@@ -78,7 +78,7 @@ namespace Turnroot.Graphics3D
             {
                 if (TryGetComponent<RandomizePosition>(out var randomizer))
                 {
-                    randomizer.SetPosition();
+                    randomizer.SetPosition(transform);
                 }
                 else
                 {
