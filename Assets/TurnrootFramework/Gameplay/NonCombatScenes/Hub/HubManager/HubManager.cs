@@ -25,7 +25,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     [RequireComponent(typeof(UiInputProvider))]
     [RequireComponent(typeof(SpecificUiHandler))]
     [RequireComponent(typeof(FastTravelManager))]
-    [RequireComponent(typeof(HubManagerSwitcher))]
     /// <remarks>
     /// This may need editing for your project, but if you aren't making major logic changes, you should
     /// be able to wrangle it to work for you just with UI changes and inspector stuff
