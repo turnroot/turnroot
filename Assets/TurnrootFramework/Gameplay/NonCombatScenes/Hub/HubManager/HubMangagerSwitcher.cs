@@ -3,13 +3,6 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
-    [Serializable]
-    public struct HubManagerChapter
-    {
-        public HubManager hubManager;
-        public int chapterNumber;
-    }
-
     public class HubManagerSwitcher : MonoBehaviour
     {
         public HubManagerChapter[] hubManagerChapters;
