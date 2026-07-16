@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -9,7 +10,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public int chapterNumber;
     }
 
-    public class HubManagerSwitcher
+    public class HubManagerSwitcher : MonoBehaviour
     {
         public HubManagerChapter[] hubManagerChapters;
 
