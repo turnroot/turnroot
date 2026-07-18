@@ -83,33 +83,114 @@ namespace Turnroot.Utilities.AbstractScripts
         private int _lastInvokedIndex = -1;
         private bool _sceneStartTriggersApplied;
         private bool _brainEventsSubscribed;
+        private bool _brainReadySubscribed;
+        private bool _loadingControllerSubscribed;
         private LoadingScreenController _pendingLoadingScreenRestore;
 
-        protected virtual void Awake() => TryBindBrain();
-
-        protected virtual void OnEnable() => TryBindBrain();
+        protected virtual void OnEnable()
+        {
+            SubscribeToBrainReady();
+            TryBindBrain();
+        }
 
         protected virtual void OnDisable()
         {
-            UnsubscribeFromBrainEvents();
-            UnsubscribeFromLoadingController();
-        }
-
-        protected virtual void OnDestroy()
-        {
+            UnsubscribeFromBrainReady();
             UnsubscribeFromBrainEvents();
             UnsubscribeFromLoadingController();
         }
 
         private void TryBindBrain()
         {
-            brain = GetAndCacheBrain.GetBrain();
+            var candidateBrain = brain ?? FindFirstObjectByType<Brain>();
+            if (candidateBrain == null)
+            {
+                return;
+            }
+
+            if (brain != candidateBrain)
+            {
+                UnsubscribeFromBrainEvents();
+                UnsubscribeFromLoadingController();
+                brain = candidateBrain;
+            }
+
+            if (!IsBrainReady(brain))
+            {
+                return;
+            }
+
             loadingController = brain.GetComponent<LoadingController>();
 
             SubscribeToBrainEvents();
             SubscribeToLoadingController();
 
             ApplySceneStartTriggersIfNeeded();
+            CatchUpToCurrentSceneIfNeeded();
+        }
+
+        private static bool IsBrainReady(Brain candidateBrain) =>
+            candidateBrain != null
+            && candidateBrain.stateBrain != null
+            && candidateBrain.sceneFlowBrain != null;
+
+        private void SubscribeToBrainReady()
+        {
+            if (_brainReadySubscribed)
+            {
+                return;
+            }
+
+            Brain.OnBrainReady += HandleBrainReady;
+            _brainReadySubscribed = true;
+        }
+
+        private void UnsubscribeFromBrainReady()
+        {
+            if (!_brainReadySubscribed)
+            {
+                return;
+            }
+
+            Brain.OnBrainReady -= HandleBrainReady;
+            _brainReadySubscribed = false;
+        }
+
+        private void HandleBrainReady(Brain readyBrain)
+        {
+            if (readyBrain == null)
+            {
+                return;
+            }
+
+            brain = readyBrain;
+            TryBindBrain();
+        }
+
+        private void CatchUpToCurrentSceneIfNeeded()
+        {
+            var currentSceneName = brain?.sceneFlowBrain?.CurrentSceneName;
+            if (string.IsNullOrEmpty(currentSceneName))
+            {
+                return;
+            }
+
+            if (!string.Equals(currentSceneName, gameObject.scene.name, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var currentState = brain?.stateBrain?.CurrentState;
+            if (currentState != null)
+            {
+                ActivateSegmentByState(currentState);
+                if (_lastInvokedIndex >= 0)
+                {
+                    return;
+                }
+            }
+
+            StartScene();
         }
 
         protected int Index
@@ -158,17 +239,19 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected void SubscribeToLoadingController()
         {
-            if (loadingController != null)
+            if (loadingController != null && !_loadingControllerSubscribed)
             {
                 loadingController.OnProgressChanged += HandleLoadingProgressChanged;
+                _loadingControllerSubscribed = true;
             }
         }
 
         protected void UnsubscribeFromLoadingController()
         {
-            if (loadingController != null)
+            if (loadingController != null && _loadingControllerSubscribed)
             {
                 loadingController.OnProgressChanged -= HandleLoadingProgressChanged;
+                _loadingControllerSubscribed = false;
             }
         }
 

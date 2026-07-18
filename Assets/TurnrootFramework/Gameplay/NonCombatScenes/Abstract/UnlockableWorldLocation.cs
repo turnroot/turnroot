@@ -51,9 +51,9 @@ namespace Turnroot.NonCombatScenes.Abstract
             }
         }
 
-        private void OnEnable() => newRegionDisplay.OnVisible.AddListener(HidePopupAfterDelay);
+        private void OnEnable() => newRegionDisplay?.OnVisible.AddListener(HidePopupAfterDelay);
 
-        private void OnDisable() => newRegionDisplay.OnVisible.RemoveListener(HidePopupAfterDelay);
+        private void OnDisable() => newRegionDisplay?.OnVisible.RemoveListener(HidePopupAfterDelay);
 
         private void OnTriggerEnter(Collider other)
         {
