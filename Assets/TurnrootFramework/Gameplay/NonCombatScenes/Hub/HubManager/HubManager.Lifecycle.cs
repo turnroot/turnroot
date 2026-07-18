@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.NonCombatScenes.Hub.Docks;
 using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
+using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
