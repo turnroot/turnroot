@@ -102,7 +102,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         private void TryBindBrain()
         {
-            var candidateBrain = brain ?? FindFirstObjectByType<Brain>();
+            var candidateBrain = brain ?? Brain.ReadyBrain ?? FindFirstObjectByType<Brain>();
             if (candidateBrain == null)
             {
                 return;
@@ -131,6 +131,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         private static bool IsBrainReady(Brain candidateBrain) =>
             candidateBrain != null
+            && candidateBrain.IsFullyInitialized
             && candidateBrain.stateBrain != null
             && candidateBrain.sceneFlowBrain != null;
 
@@ -172,6 +173,16 @@ namespace Turnroot.Utilities.AbstractScripts
             var currentSceneName = brain?.sceneFlowBrain?.CurrentSceneName;
             if (string.IsNullOrEmpty(currentSceneName))
             {
+                TryBootstrapCurrentScene();
+                currentSceneName = brain?.sceneFlowBrain?.CurrentSceneName;
+                if (_lastInvokedIndex >= 0)
+                {
+                    return;
+                }
+            }
+
+            if (string.IsNullOrEmpty(currentSceneName))
+            {
                 return;
             }
 
@@ -191,6 +202,23 @@ namespace Turnroot.Utilities.AbstractScripts
             }
 
             StartScene();
+        }
+
+        private void TryBootstrapCurrentScene()
+        {
+            var flowBrain = brain?.sceneFlowBrain;
+            if (flowBrain == null || !string.IsNullOrEmpty(flowBrain.CurrentSceneName))
+            {
+                return;
+            }
+
+            var sceneName = gameObject.scene.name;
+            if (string.IsNullOrEmpty(sceneName))
+            {
+                return;
+            }
+
+            flowBrain.SetCurrentSceneByName(sceneName);
         }
 
         protected int Index
