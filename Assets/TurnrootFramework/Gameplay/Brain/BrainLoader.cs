@@ -18,8 +18,8 @@ namespace Turnroot.Gameplay.Brain
             // Only load the Brain scene once
             if (!_brainSceneLoaded)
             {
-                LoadBrainScene();
-                _brainSceneLoaded = true;
+                var result = LoadBrainScene();
+                _brainSceneLoaded = result.Success;
             }
         }
 
@@ -27,6 +27,12 @@ namespace Turnroot.Gameplay.Brain
         {
             try
             {
+                var existing = SceneManager.GetSceneByName(BrainSceneName);
+                if (existing.IsValid() && existing.isLoaded)
+                {
+                    return OperationResult.Successful();
+                }
+
                 // Unity's SceneManager can throw if scene doesn't exist
                 SceneManager.LoadScene(BrainSceneName, LoadSceneMode.Additive);
                 return OperationResult.Successful();

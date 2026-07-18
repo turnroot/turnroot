@@ -13,7 +13,7 @@ namespace Turnroot.Gameplay.Brain
     {
         private bool _awake = false;
 
-        private void MakeInitialConnections()
+        private bool MakeInitialConnections()
         {
             // populate remaining core components
             stateBrain = GetComponent<StateBrain>();
@@ -34,29 +34,35 @@ namespace Turnroot.Gameplay.Brain
             saveFileBrain = GetComponent<SaveFileBrain>();
             sceneFlowBrain = GetComponent<SceneFlowBrain>();
 
-            ValidationHelper.ValidateNotNull(stateBrain, "stateBrain");
-            ValidationHelper.ValidateNotNull(conversationalBrain, "conversationalBrain");
-            ValidationHelper.ValidateNotNull(gamewideContextBrain, "gamewideContextBrain");
-            ValidationHelper.ValidateNotNull(battleBrain, "battleBrain");
-            ValidationHelper.ValidateNotNull(charactersBrain, "charactersBrain");
-            ValidationHelper.ValidateNotNull(inventoryBrain, "inventoryBrain");
-            ValidationHelper.ValidateNotNull(storehouseBrain, "storehouseBrain");
-            ValidationHelper.ValidateNotNull(
-                battleInputControllerBrain,
-                "battleInputControllerBrain"
+            bool allConnected = ValidationHelper.ValidateNotNull(
+                "Brain.MakeInitialConnections",
+                out var missing,
+                (stateBrain, "stateBrain"),
+                (conversationalBrain, "conversationalBrain"),
+                (gamewideContextBrain, "gamewideContextBrain"),
+                (battleBrain, "battleBrain"),
+                (charactersBrain, "charactersBrain"),
+                (inventoryBrain, "inventoryBrain"),
+                (storehouseBrain, "storehouseBrain"),
+                (battleInputControllerBrain, "battleInputControllerBrain"),
+                (uiBrain, "uiBrain"),
+                (volumeBrain, "volumeBrain"),
+                (audioBrain, "audioBrain"),
+                (cameraBrain, "cameraBrain"),
+                (cursorBrain, "cursorBrain"),
+                (positioningInputControllerBrain, "positioningInputControllerBrain"),
+                (unitAppearanceBrain, "unitAppearanceBrain"),
+                (saveFileBrain, "saveFileBrain"),
+                (sceneFlowBrain, "sceneFlowBrain")
             );
-            ValidationHelper.ValidateNotNull(uiBrain, "uiBrain");
-            ValidationHelper.ValidateNotNull(volumeBrain, "volumeBrain");
-            ValidationHelper.ValidateNotNull(audioBrain, "audioBrain");
-            ValidationHelper.ValidateNotNull(cameraBrain, "cameraBrain");
-            ValidationHelper.ValidateNotNull(cursorBrain, "cursorBrain");
-            ValidationHelper.ValidateNotNull(
-                positioningInputControllerBrain,
-                "positioningInputControllerBrain"
-            );
-            ValidationHelper.ValidateNotNull(unitAppearanceBrain, "unitAppearanceBrain");
-            ValidationHelper.ValidateNotNull(saveFileBrain, "saveFileBrain");
-            ValidationHelper.ValidateNotNull(sceneFlowBrain, "sceneFlowBrain");
+
+            if (!allConnected)
+            {
+                $"Brain: Initialization incomplete, missing components: {string.Join(", ", missing)}".LogError(
+                    "Brain.MakeInitialConnections"
+                );
+                return false;
+            }
 
             // Find all DynamicSceneFlows in other scenes and set their .brain to this
             var allSceneFlows = FindObjectsByType<DynamicSceneFlow>(FindObjectsSortMode.None);
@@ -70,17 +76,19 @@ namespace Turnroot.Gameplay.Brain
             _awake = true;
 
             PublishBrainReady(this);
+            return true;
         }
 
         public void Awake()
         {
             if (!_awake)
             {
+                IsFullyInitialized = false;
                 InitializeLongTermMemory();
                 InitializeModules();
                 InitializeAdvancedSystems();
                 TryLinkConversationController();
-                MakeInitialConnections();
+                _awake = MakeInitialConnections();
             }
         }
 
@@ -161,7 +169,11 @@ namespace Turnroot.Gameplay.Brain
 
         #region Cleanup
 
-        private void OnDestroy() => CleanupAdvancedSystems();
+        private void OnDestroy()
+        {
+            ClearBrainReadyState();
+            CleanupAdvancedSystems();
+        }
 
         #endregion
     }
