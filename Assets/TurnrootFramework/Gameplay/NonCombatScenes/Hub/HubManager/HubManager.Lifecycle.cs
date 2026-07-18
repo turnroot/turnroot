@@ -34,6 +34,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void ActivateHubManager()
         {
             InitializeTraversal();
+            ApplyLookPitch = GameplayPlayerSettings.Instance.ExploreVerticalTilt;
             gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
 
             _brain = FindFirstObjectByType<Brain.Brain>();
