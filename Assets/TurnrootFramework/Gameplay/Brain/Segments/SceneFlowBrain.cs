@@ -13,6 +13,7 @@ namespace Turnroot.Utilities.SceneFlows
     /// Handles scene transitions, navigation history, and condition evaluation.
     /// Provides UnityEvent-compatible methods for inspector-based scene flow triggers.
     /// </summary>
+    [RequireComponent(typeof(Brain))]
     public partial class SceneFlowBrain : BrainComponent
     {
         private static WaitForSeconds _waitForSeconds0_3 = new WaitForSeconds(0.3f);
@@ -47,6 +48,16 @@ namespace Turnroot.Utilities.SceneFlows
         private const string BrainSceneName = "TurnrootBrain";
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
+
+        private Brain EnsureBrainReference()
+        {
+            if (_brain == null)
+            {
+                _brain = GetComponent<Brain>();
+            }
+
+            return _brain;
+        }
 
         protected override void Awake()
         {
@@ -180,7 +191,7 @@ namespace Turnroot.Utilities.SceneFlows
 
             _currentScene = scene;
             ApplySceneArrivalSideEffects(scene);
-            Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
+            EnsureBrainReference()?.PublishSceneChanged(scene.sceneName, scene.displayName);
         }
 
         /// <summary>
@@ -230,7 +241,7 @@ namespace Turnroot.Utilities.SceneFlows
 
             _currentScene = scene;
             ApplySceneArrivalSideEffects(scene);
-            Brain.PublishSceneChanged(scene.sceneName, scene.displayName);
+            EnsureBrainReference()?.PublishSceneChanged(scene.sceneName, scene.displayName);
         }
 
         public void ReturnToGameStartScreen() => SetCurrentScene(sceneFlowGraph.StartingSceneId);
@@ -292,7 +303,7 @@ namespace Turnroot.Utilities.SceneFlows
             if (newYear != oldDate.year || newMonthInt != oldDate.month || newDay != oldDate.day)
             {
                 _ltm.SetGameDate(newYear, newMonth, newDay);
-                Brain.PublishGameDateChanged(newYear, newMonthInt, newDay);
+                EnsureBrainReference()?.PublishGameDateChanged(newYear, newMonthInt, newDay);
             }
         }
 
@@ -328,12 +339,13 @@ namespace Turnroot.Utilities.SceneFlows
             // Entering the End Of Hub Day scene signals that the current hub day is done.
             if (scene.isEndOfHubDay)
             {
-                Brain.PublishHubDayCompleted();
+                EnsureBrainReference()?.PublishHubDayCompleted();
             }
 
             if (scene.SpecificChapter)
             {
-                Brain.PublishSetSaveFileChapter(scene.ChapterName, scene.ChapterNumber);
+                EnsureBrainReference()
+                    ?.PublishSetSaveFileChapter(scene.ChapterName, scene.ChapterNumber);
             }
         }
 

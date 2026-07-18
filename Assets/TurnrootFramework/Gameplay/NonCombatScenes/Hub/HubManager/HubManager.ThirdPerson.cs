@@ -57,7 +57,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [Foldout("Explore/Movement")]
         public float LookYawSpeed = 120f;
-        private bool ApplyLookPitch = GameplayPlayerSettings.Instance.ExploreVerticalTilt;
+        private bool ApplyLookPitch = true;
 
         [Foldout("Explore/Movement")]
         public float LookPitchSpeed = 120f;
