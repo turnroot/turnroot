@@ -85,13 +85,9 @@ namespace Turnroot.Utilities.AbstractScripts
         private bool _brainEventsSubscribed;
         private LoadingScreenController _pendingLoadingScreenRestore;
 
-        protected virtual void Awake()
-        {
-            Brain.OnBrainReady += HandleBrainReady;
-            TryBindBrain(FindFirstObjectByType<Brain>());
-        }
+        protected virtual void Awake() => TryBindBrain();
 
-        protected virtual void OnEnable() => TryBindBrain(brain ?? FindFirstObjectByType<Brain>());
+        protected virtual void OnEnable() => TryBindBrain();
 
         protected virtual void OnDisable()
         {
@@ -101,19 +97,13 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected virtual void OnDestroy()
         {
-            Brain.OnBrainReady -= HandleBrainReady;
             UnsubscribeFromBrainEvents();
             UnsubscribeFromLoadingController();
         }
 
-        private void TryBindBrain(Brain candidateBrain)
+        private void TryBindBrain()
         {
-            if (candidateBrain == null || ReferenceEquals(candidateBrain, brain))
-            {
-                return;
-            }
-
-            brain = candidateBrain;
+            brain = GetAndCacheBrain.GetBrain();
             loadingController = brain.GetComponent<LoadingController>();
 
             SubscribeToBrainEvents();
@@ -131,12 +121,6 @@ namespace Turnroot.Utilities.AbstractScripts
                 _index = value;
                 OnSegmentReached(_index);
             }
-        }
-
-        protected void Start()
-        {
-            ApplySceneStartTriggersIfNeeded();
-            _ = StartCoroutine(RunNextFrame(StartScene));
         }
 
         #region Event Subscriptions
@@ -193,8 +177,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected void HandleSceneLoadProgress(float progress) => ReportLoadingProgress(progress);
 
-        protected void HandleSceneChanged(string sceneName, string displayName) =>
-            ApplySceneStartTriggersIfNeeded();
+        protected void HandleSceneChanged(string sceneName, string displayName) => StartScene();
 
         protected void HandleSceneTransitionStarted(string sceneName, string displayName) =>
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneEnd);
@@ -268,8 +251,6 @@ namespace Turnroot.Utilities.AbstractScripts
             _sceneStartTriggersApplied = true;
             ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneStart);
         }
-
-        private void HandleBrainReady(Brain readyBrain) => TryBindBrain(readyBrain);
 
         public void ReportLoadingProgress(float percentage)
         {
@@ -446,12 +427,6 @@ namespace Turnroot.Utilities.AbstractScripts
             {
                 CurrentSegment?.onSegmentReached?.Invoke();
             }
-        }
-
-        protected IEnumerator RunNextFrame(Action action)
-        {
-            yield return null;
-            action();
         }
     }
 }
