@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
@@ -7,32 +6,61 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         public HubManagerChapter[] hubManagerChapters;
         private HubManager _activeHubManager;
+        private Brain.Brain _brain;
+        private bool _subscribedToSceneChanged;
 
-        private void Awake()
-        {
-            var brain = Utilities.GetAndCacheBrain.GetBrain();
-            brain.OnSceneChanged += OnSceneChanged;
-        }
+        private void Awake() => TrySubscribeToBrainSceneChanged();
 
         private void Start() => TryActivateHubManagerForCurrentScene();
 
-        private void OnDisable()
-        {
-            var brain = Utilities.GetAndCacheBrain.GetBrain();
-            brain.OnSceneChanged -= OnSceneChanged;
-        }
+        private void OnDisable() => UnsubscribeFromBrainSceneChanged();
 
-        private void OnSceneChanged(string sceneName, string displayName) => TryActivateHubManagerForCurrentScene();
+        private void OnDestroy() => UnsubscribeFromBrainSceneChanged();
 
-        private void TryActivateHubManagerForCurrentScene()
+        private void TrySubscribeToBrainSceneChanged()
         {
-            var brain = Utilities.GetAndCacheBrain.GetBrain();
-            if (brain?.sceneFlowBrain?.CurrentScene == null)
+            if (_subscribedToSceneChanged)
             {
                 return;
             }
 
-            var currentChapterNumber = brain.sceneFlowBrain.CurrentScene.ChapterNumber;
+            _brain ??= Utilities.GetAndCacheBrain.GetBrain();
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _brain.OnSceneChanged += OnSceneChanged;
+            _subscribedToSceneChanged = true;
+        }
+
+        private void UnsubscribeFromBrainSceneChanged()
+        {
+            if (!_subscribedToSceneChanged)
+            {
+                return;
+            }
+
+            if (_brain != null)
+            {
+                _brain.OnSceneChanged -= OnSceneChanged;
+            }
+
+            _subscribedToSceneChanged = false;
+        }
+
+        private void OnSceneChanged(string sceneName, string displayName) =>
+            TryActivateHubManagerForCurrentScene();
+
+        private void TryActivateHubManagerForCurrentScene()
+        {
+            _brain ??= Utilities.GetAndCacheBrain.GetBrain();
+            if (_brain?.sceneFlowBrain?.CurrentScene == null)
+            {
+                return;
+            }
+
+            var currentChapterNumber = _brain.sceneFlowBrain.CurrentScene.ChapterNumber;
             var selectedHubManager = GetHubManagerForChapter(currentChapterNumber);
             if (selectedHubManager == null)
             {
@@ -81,17 +109,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             }
 
-            if (hasSelectedHubManagerChapter)
-            {
-                return selectedHubManagerChapter.hubManager;
-            }
-
-            if (hubManagerChapters.Length > 0)
-            {
-                return hubManagerChapters[0].hubManager;
-            }
-
-            return null;
+            return hasSelectedHubManagerChapter ? selectedHubManagerChapter.hubManager
+                : hubManagerChapters.Length > 0 ? hubManagerChapters[0].hubManager
+                : null;
         }
     }
 }

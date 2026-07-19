@@ -1,5 +1,4 @@
 using System;
-using NaughtyAttributes;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
 using Turnroot.UI;
 using UnityEngine;

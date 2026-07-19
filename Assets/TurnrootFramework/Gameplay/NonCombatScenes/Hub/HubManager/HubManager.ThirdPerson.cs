@@ -1,5 +1,4 @@
 using NaughtyAttributes;
-using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
