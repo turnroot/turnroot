@@ -29,7 +29,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
         _ShadowColor("Shadow Color", Color) = (0.35, 0.38, 0.5, 1)
         [Toggle] _ShadowColorReplace("Replace (off = multiply)", Float) = 0
         _ShadowStrength("Shadow Strength", Range(0, 1)) = 1
-        _ShadowOffset("Shadow Offset", Range(0, 1)) = 0.5
+        _ShadowOffset("Shadow Offset", Range(-1, 1)) = 0.5
         _ShadowSoftness("Shadow Edge Softness", Range(0.001, 1)) = 0.05
 
         [Header(Highlight Band)]
