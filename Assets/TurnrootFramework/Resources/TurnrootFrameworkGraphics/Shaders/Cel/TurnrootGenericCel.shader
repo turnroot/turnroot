@@ -830,6 +830,4 @@ Shader "Turnroot/Generic Cel Shader"
             ENDHLSL
         }
     }
-
-    CustomEditor "Turnroot.TurnrootDefaultCharacterShader"
 }
