@@ -406,8 +406,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
                     // "How lit" this pixel is, 0..1. A pixel that's either facing
                     // away from the light OR occluded by the shadow map lands at 0
                     // (shadow band) — not a mid-tone remap artefact.
-                    float lit = saturate(ndl) * atten;
-                    float litNoised = saturate(lit + noiseOffset);
+                    float lit = ndl * atten;
+                    float litNoised = lit + noiseOffset;
 
                     float shadowEdge    = max(_ShadowSoftness, 0.0001);
                     float highlightEdge = max(_HighlightSoftness, 0.0001);
