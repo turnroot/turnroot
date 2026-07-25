@@ -15,10 +15,10 @@
   <Project Path="TurnrootFramework.Editor.Characters.Stats.csproj" />
   <Project Path="TurnrootFramework.Editor.Conversations.Nodes.csproj" />
   <Project Path="TurnrootFramework.Editor.Maps.Terrain.csproj" />
-  <Project Path="TurnrootFramework.Editor.GraphicPacks.DefaultShaders.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Hub.Shop.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Objects.Components.csproj" />
   <Project Path="TurnrootFramework.Editor.Conversations.csproj" />
+  <Project Path="TurnrootFramework.Editor.GraphicPacks.DefaultShaders.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Objects.csproj" />
   <Project Path="TurnrootFramework.Editor.Utilities.SceneFlows.csproj" />
   <Project Path="TurnrootFramework.Editor.Characters.csproj" />
