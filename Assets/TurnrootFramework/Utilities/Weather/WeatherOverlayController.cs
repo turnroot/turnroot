@@ -229,7 +229,7 @@ namespace Turnroot.Utilities.Weather
                 SetColor(material, "_RainColor2", RainColor2);
                 SetFloat(material, "_RainColor1Chance", RainColor1Chance);
                 SetFloat(material, "_RainDensity", RainDensity);
-                SetFloat(material, "_RainSpeed", RainSpeed);
+                SetFloat(material, "_RainSpeed", RainSpeed * 2f);
                 SetFloat(material, "_RainWidth", RainWidth);
                 SetFloat(material, "_RainLength", RainLength);
                 SetFloat(material, "_RainWidthRandomness", RainWidthRandomness);

@@ -166,9 +166,34 @@ namespace Turnroot.Utilities.Weather
                 RenderSettings.skybox = currentSkybox;
             }
 
+            ApplyLightningSpriteSettings(currentSkybox);
+
             // Refresh audio / event timing when skybox changes
             UpdateAmbientAudio();
             ResetEventTimers();
+        }
+
+        private void ApplyLightningSpriteSettings(Material mat)
+        {
+            if (mat == null)
+            {
+                return;
+            }
+
+            if (LightningSpriteAtlas != null && mat.HasProperty("_LightningSpriteAtlas"))
+            {
+                mat.SetTexture("_LightningSpriteAtlas", LightningSpriteAtlas.texture);
+            }
+
+            if (mat.HasProperty("_LightningSpriteSize"))
+            {
+                mat.SetFloat("_LightningSpriteSize", LightningSpriteSize);
+            }
+
+            if (mat.HasProperty("_LightningGridCount"))
+            {
+                mat.SetFloat("_LightningGridCount", LightningGridCount);
+            }
         }
 
         public void Update()

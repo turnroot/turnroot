@@ -295,6 +295,16 @@ namespace Turnroot.Utilities.Weather
         [Tooltip("Possible weather types that can be randomly selected when the scene loads.")]
         public WeatherType[] PossibleWeatherTypes;
 
+        [BoxGroup("Lightning")]
+        [HorizontalLine(2, EColor.Yellow)]
+        public Sprite LightningSpriteAtlas;
+
+        [BoxGroup("Lightning")]
+        public float LightningSpriteSize = 256f;
+
+        [BoxGroup("Lightning")]
+        public float LightningGridCount = 4f;
+
         [HorizontalLine(2, EColor.Gray)]
         [Header("Time of Day")]
         [BoxGroup("Time")]
