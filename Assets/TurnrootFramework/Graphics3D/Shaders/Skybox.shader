@@ -141,10 +141,9 @@ Shader "Turnroot/StylizedSkybox"
         _LightningEventDirection("Lightning Event Direction", Vector) = (0,1,0,0)
         [Toggle(DISTANT_LIGHTNING)] _DistantLightningEnabled("Enable Distant Lightning Bolts", Float) = 1
         _DistantLightningBrightness("Distant Lightning Brightness",  Range(0, 2)) = 1.0
-        _DistantLightningWidth("Distant Lightning Width",  Range(0.1, 1.0)) = 1.0
         _DistantLightningGlow("Distant Lightning Glow Strength",  Range(0, 2)) = 0.5
         [NoScaleOffset] _LightningSpriteAtlas("Lightning Sprite Atlas (white on black)", 2D) = "black" {}
-        _LightningSpriteSize("Lightning Sprite Reference Size (px)",  Range(32, 512)) = 256
+        _LightningSpriteSize("Lightning Sprite Reference Size (px)",  Range(32, 512)) = 512
         _LightningGridCount("Lightning Sprite Grid Count", Range(1, 64)) = 16
         
         [Header(Atmospheric Effects)]
@@ -588,9 +587,7 @@ Shader "Turnroot/StylizedSkybox"
                 if(angleDiff > 3.14159) angleDiff -= 6.28318;
                 if(angleDiff < -3.14159) angleDiff += 6.28318;
                 
-                // Width multiplier from user control, scaled by the sprite's reference size
-                // (256px reference == original 0.3 rad half-width footprint)
-                float widthMult = _DistantLightningWidth * (_LightningSpriteSize / 256.0);
+                float widthMult = 1f;
                 float angularHalfWidth = 0.3 * max(0.01, widthMult);
                 
                 // Check if we're in viewing range
