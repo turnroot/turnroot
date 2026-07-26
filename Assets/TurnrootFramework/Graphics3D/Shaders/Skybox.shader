@@ -587,7 +587,7 @@ Shader "Turnroot/StylizedSkybox"
                 if(angleDiff > 3.14159) angleDiff -= 6.28318;
                 if(angleDiff < -3.14159) angleDiff += 6.28318;
                 
-                float widthMult = 1f;
+                float widthMult = 1;
                 float angularHalfWidth = 0.3 * max(0.01, widthMult);
                 
                 // Check if we're in viewing range
