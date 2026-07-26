@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
@@ -11,11 +12,11 @@ namespace Turnroot.Utilities.Weather
         public UnityEvent NightStart;
         public UnityEvent NightEnd;
 
-        private readonly System.Collections.Generic.Dictionary<
+        private readonly Dictionary<
             Renderer,
             Material[]
         > _celRendererOriginalMaterials = new();
-        private readonly System.Collections.Generic.Dictionary<
+        private readonly Dictionary<
             Material,
             Material
         > _celMaterialInstances = new();
