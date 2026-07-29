@@ -19,10 +19,19 @@ namespace Turnroot.Gameplay.Brain
 
         protected override void UnsubscribeFromBrainEvents() { }
 
+        private int _lastAppliedQualityStep = -1;
+
         protected override void Awake() => base.Awake();
 
         public void ApplySettingsToVolumes(PlayerSettings.GameplayPlayerSettings playerSettings)
         {
+            int qualityStep = playerSettings.QualityStep;
+            if (qualityStep != _lastAppliedQualityStep)
+            {
+                _lastAppliedQualityStep = qualityStep;
+                ApplyQualitySettings(playerSettings);
+            }
+
             var settings = playerSettings;
 
             // Find the GlobalVolume component in all scenes
@@ -108,8 +117,6 @@ namespace Turnroot.Gameplay.Brain
                     Mathf.Abs(postExposure) > 0.000001f || Mathf.Abs(contrast) > 0.000001f;
             }
 
-            // Apply URP quality settings (shadows, cascades, etc.)
-            ApplyQualitySettings(settings);
         }
 
         private void ApplyQualitySettings(PlayerSettings.GameplayPlayerSettings settings)
@@ -123,6 +130,11 @@ namespace Turnroot.Gameplay.Brain
             // Map float quality to 4 discrete steps (0..3)
             int step = settings.QualityStep;
 
+            // NOTE: msaaSampleCount and colorGradingMode are intentionally not set here.
+            // Both are pipeline-architecture properties in URP: changing msaaSampleCount forces
+            // reallocation of all MSAA render targets, and colorGradingMode switches LDR/HDR
+            // shader variants. Neither can be changed safely at runtime without corrupting the
+            // render pipeline. Configure them in the URP asset directly for the desired default.
             switch (step)
             {
                 case 0: // Low
@@ -131,8 +143,6 @@ namespace Turnroot.Gameplay.Brain
                     rpAsset.shadowDistance = 30f;
                     rpAsset.shadowCascadeCount = 1;
                     rpAsset.maxAdditionalLightsCount = 1;
-                    rpAsset.msaaSampleCount = 1;
-                    rpAsset.colorGradingMode = ColorGradingMode.LowDynamicRange;
                     break;
                 case 1: // Medium
                     rpAsset.mainLightShadowmapResolution = 1024;
@@ -140,8 +150,6 @@ namespace Turnroot.Gameplay.Brain
                     rpAsset.shadowDistance = 80f;
                     rpAsset.shadowCascadeCount = 2;
                     rpAsset.maxAdditionalLightsCount = 3;
-                    rpAsset.msaaSampleCount = 2;
-                    rpAsset.colorGradingMode = ColorGradingMode.LowDynamicRange;
                     break;
                 case 2: // High
                     rpAsset.mainLightShadowmapResolution = 4096;
@@ -149,8 +157,6 @@ namespace Turnroot.Gameplay.Brain
                     rpAsset.shadowDistance = 150f;
                     rpAsset.shadowCascadeCount = 4;
                     rpAsset.maxAdditionalLightsCount = 5;
-                    rpAsset.msaaSampleCount = 4;
-                    rpAsset.colorGradingMode = ColorGradingMode.HighDynamicRange;
                     break;
                 case 3: // Ultra
                     rpAsset.mainLightShadowmapResolution = 8192;
@@ -158,8 +164,6 @@ namespace Turnroot.Gameplay.Brain
                     rpAsset.shadowDistance = 300f;
                     rpAsset.shadowCascadeCount = 4;
                     rpAsset.maxAdditionalLightsCount = 8;
-                    rpAsset.msaaSampleCount = 8;
-                    rpAsset.colorGradingMode = ColorGradingMode.HighDynamicRange;
                     break;
             }
         }
