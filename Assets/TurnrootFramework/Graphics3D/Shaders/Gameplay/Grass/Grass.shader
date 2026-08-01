@@ -28,7 +28,7 @@ Shader "Turnroot/Grass"
         _UnderlyingMix      ("Mix with Underlying Color", Float) = 0.0
         _GroundTex          ("Ground Albedo Texture", 2D) = "white" {}
         [HideInInspector]
-        _GroundTex_ST       ("Ground UV Tiling/Offset", Vector) = (1,1,0,0)
+        _GroundTex_ST       ("Ground UV Tiling/Offset", Vector) = (1,1,0,0)  // legacy, unused — mesh UVs are sampled directly
 
         [Header(Tinting)]
         _CelTintColor       ("Cel Tint Color", Color) = (1,1,1,1)
@@ -126,7 +126,7 @@ Shader "Turnroot/Grass"
             float  _UnderlyingMix;
             TEXTURE2D(_GroundTex);
             SAMPLER(sampler_GroundTex);
-            float4 _GroundTex_ST;
+            // _GroundTex_ST removed — mesh UV is sampled directly via blade.uv
             float4 _CelTintColor;
             float  _CelTintIntensity;
             float4 _NightTintColor;
@@ -286,8 +286,7 @@ Shader "Turnroot/Grass"
                 // mix with ground texture if requested
                 if (_UnderlyingMix > 0.0001)
                 {
-                    float2 uv = input.groundUV * _GroundTex_ST.xy + _GroundTex_ST.zw;
-                    float3 underCol = SAMPLE_TEXTURE2D(_GroundTex, sampler_GroundTex, uv).rgb;
+                    float3 underCol = SAMPLE_TEXTURE2D(_GroundTex, sampler_GroundTex, input.groundUV).rgb;
                     grassCol = lerp(grassCol, underCol, _UnderlyingMix);
                 }
 
