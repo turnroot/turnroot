@@ -46,7 +46,6 @@ namespace Turnroot.Graphics3D
             BuildPlaneMesh();
             BuildBladeData(mf.sharedMesh);
             BuildExtraGroups(mf.sharedMesh);
-            AlignGroundTexture();
 
             _cullKernel = computeShader.FindKernel("CullGrass");
         }

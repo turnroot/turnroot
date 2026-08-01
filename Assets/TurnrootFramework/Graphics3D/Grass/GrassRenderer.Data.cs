@@ -7,16 +7,17 @@ namespace Turnroot.Graphics3D
 {
     public partial class GrassRenderer
     {
-        // Must match BladeData in GrassCompute.compute (10 floats = 40 bytes)
+        // Must match BladeData in GrassCompute.compute (12 floats = 48 bytes)
         private struct BladeData
         {
             public Vector3 position;
             public Vector3 normal;
+            public Vector2 uv;
             public float height;
             public float width;
             public float phase;
             public float facingAngle;
-            public const int Stride = 40;
+            public const int Stride = 48;
         }
 
         private class ExtraGroup
@@ -98,6 +99,7 @@ namespace Turnroot.Graphics3D
                     {
                         position = pos,
                         normal = normal,
+                        uv = uv,
                         height =
                             Mathf.Lerp(minHeight, maxHeight, (float)rng.NextDouble()) * maskVal,
                         width = Mathf.Lerp(minWidth, maxWidth, (float)rng.NextDouble()),
@@ -255,6 +257,7 @@ namespace Turnroot.Graphics3D
                     {
                         position = pos,
                         normal = normal,
+                        uv = uv,
                         height = clampedPlaneSize.y,
                         width = clampedPlaneSize.x,
                         phase = (float)(rng.NextDouble() * Math.PI * 2.0),
