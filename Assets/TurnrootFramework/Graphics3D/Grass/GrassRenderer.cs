@@ -91,7 +91,6 @@ namespace Turnroot.Graphics3D
         private ComputeBuffer _visibleBladesBuffer;
         private ComputeBuffer _indirectArgsBuffer;
         private ComputeBuffer _readbackBuffer;
-        private ComputeBuffer _groundUVsBuffer;
 
         private MeshRenderer _meshRenderer;
         private bool _meshRendererWasEnabled;
