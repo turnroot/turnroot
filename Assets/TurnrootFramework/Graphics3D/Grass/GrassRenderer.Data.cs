@@ -349,8 +349,8 @@ namespace Turnroot.Graphics3D
             for (int ti = 0; ti < triCount; ti++)
             {
                 Vector3 w0 = transform.TransformPoint(verts[tris[ti * 3]]);
-                Vector3 w1 = transform.TransformPoint(verts[tris[ti * 3 + 1]]);
-                Vector3 w2 = transform.TransformPoint(verts[tris[ti * 3 + 2]]);
+                Vector3 w1 = transform.TransformPoint(verts[tris[(ti * 3) + 1]]);
+                Vector3 w2 = transform.TransformPoint(verts[tris[(ti * 3) + 2]]);
                 areas[ti] = Vector3.Cross(w1 - w0, w2 - w0).magnitude * 0.5f;
                 totalArea += areas[ti];
             }
@@ -396,19 +396,19 @@ namespace Turnroot.Graphics3D
             }
 
             int i0 = tris[lo * 3],
-                i1 = tris[lo * 3 + 1],
-                i2 = tris[lo * 3 + 2];
+                i1 = tris[(lo * 3) + 1],
+                i2 = tris[(lo * 3) + 2];
             float r1 = Mathf.Sqrt((float)rng.NextDouble()),
                 r2 = (float)rng.NextDouble();
             float u = 1f - r1,
                 v = r1 * (1f - r2),
                 w = r1 * r2;
 
-            pos = transform.TransformPoint(u * verts[i0] + v * verts[i1] + w * verts[i2]);
+            pos = transform.TransformPoint((u * verts[i0]) + (v * verts[i1]) + (w * verts[i2]));
             normal = transform
-                .TransformDirection(u * normals[i0] + v * normals[i1] + w * normals[i2])
+                .TransformDirection((u * normals[i0]) + (v * normals[i1]) + (w * normals[i2]))
                 .normalized;
-            uv = u * uvs[i0] + v * uvs[i1] + w * uvs[i2];
+            uv = (u * uvs[i0]) + (v * uvs[i1]) + (w * uvs[i2]);
         }
     }
 }

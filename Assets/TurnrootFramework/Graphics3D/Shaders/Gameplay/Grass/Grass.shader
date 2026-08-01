@@ -27,6 +27,7 @@ Shader "Turnroot/Grass"
         [Range(0,1)]
         _UnderlyingMix      ("Mix with Underlying Color", Float) = 0.0
         _GroundTex          ("Ground Albedo Texture", 2D) = "white" {}
+        [HideInInspector]
         _GroundTex_ST       ("Ground UV Tiling/Offset", Vector) = (1,1,0,0)
 
         [Header(Tinting)]
@@ -346,6 +347,7 @@ Shader "Turnroot/Grass"
             {
                 float3 position;
                 float3 normal;
+                float2 uv;
                 float  height;
                 float  width;
                 float  phase;
@@ -459,6 +461,7 @@ Shader "Turnroot/Grass"
             {
                 float3 position;
                 float3 normal;
+                float2 uv;
                 float  height;
                 float  width;
                 float  phase;
