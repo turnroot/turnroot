@@ -13,7 +13,6 @@ struct BladeData
 {
     float3 position;    // world-space base of blade
     float3 normal;      // surface normal at blade base (world space)
-    float2 uv;          // mesh UV at the sampled ground point
     float  height;      // randomised blade height
     float  width;       // randomised blade width
     float  phase;       // random 0..2PI, drives sway desynchronisation
