@@ -107,6 +107,7 @@ Shader "Turnroot/Grass"
             {
                 float3 position;
                 float3 normal;
+                float2 uv;
                 float  height;
                 float  width;
                 float  phase;
@@ -154,7 +155,8 @@ Shader "Turnroot/Grass"
                 float4 shadowCoord : TEXCOORD3;
                 float  colorJitter : TEXCOORD4;  // per-blade random, baked from phase
                 float  distFade    : TEXCOORD5;  // 0..1 LOD alpha
-                float4 screenPos   : TEXCOORD6;  // for sampling underlying scene color
+                float2 groundUV    : TEXCOORD6;  // sampled from the source ground mesh
+                float4 screenPos   : TEXCOORD7;  // for sampling underlying scene color
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -251,6 +253,7 @@ Shader "Turnroot/Grass"
 
                 // ── Per-blade variation baked from phase ───────────────────────
                 o.colorJitter = frac(blade.phase * 0.15915); // 0..1 unique per blade
+                o.groundUV    = blade.uv;
 
                 // ── Distance LOD fade ──────────────────────────────────────────
                 float dist = distance(blade.position, _CameraPosition.xyz);
@@ -282,8 +285,7 @@ Shader "Turnroot/Grass"
                 // mix with ground texture if requested
                 if (_UnderlyingMix > 0.0001)
                 {
-                    float2 worldUV = input.positionWS.xz;
-                    float2 uv = worldUV * _GroundTex_ST.xy + _GroundTex_ST.zw;
+                    float2 uv = input.groundUV * _GroundTex_ST.xy + _GroundTex_ST.zw;
                     float3 underCol = SAMPLE_TEXTURE2D(_GroundTex, sampler_GroundTex, uv).rgb;
                     grassCol = lerp(grassCol, underCol, _UnderlyingMix);
                 }
