@@ -7,22 +7,17 @@ namespace Turnroot.Graphics3D
 {
     public partial class GrassRenderer
     {
-        // Must match BladeData in GrassCompute.compute (10 floats = 40 bytes)
+        // Must match BladeData in GrassCompute.compute (12 floats = 48 bytes)
         private struct BladeData
         {
             public Vector3 position;
             public Vector3 normal;
+            public Vector2 uv;
             public float height;
             public float width;
             public float phase;
             public float facingAngle;
-            public const int Stride = 40;
-        }
-
-        private struct BladePlacement
-        {
-            public BladeData blade;
-            public Vector2 uv;
+            public const int Stride = 48;
         }
 
         private class ExtraGroup
@@ -31,7 +26,6 @@ namespace Turnroot.Graphics3D
             public ComputeBuffer all;
             public ComputeBuffer visible;
             public ComputeBuffer args;
-            public ComputeBuffer groundUVs;
             public int totalCount;
         }
 
@@ -56,7 +50,6 @@ namespace Turnroot.Graphics3D
             }
 
             var blades = new List<BladeData>(targetCount);
-            var groundUVs = new List<Vector2>(targetCount);
             var bounds = new Bounds();
             bool first = true;
             var rng = new System.Random(42);
@@ -106,6 +99,7 @@ namespace Turnroot.Graphics3D
                     {
                         position = pos,
                         normal = normal,
+                        uv = uv,
                         height =
                             Mathf.Lerp(minHeight, maxHeight, (float)rng.NextDouble()) * maskVal,
                         width = Mathf.Lerp(minWidth, maxWidth, (float)rng.NextDouble()),
@@ -113,7 +107,6 @@ namespace Turnroot.Graphics3D
                         facingAngle = (float)(rng.NextDouble() * Math.PI * 2.0),
                     }
                 );
-                groundUVs.Add(uv);
             }
 
             _totalBladeCount = blades.Count;
@@ -137,8 +130,6 @@ namespace Turnroot.Graphics3D
                 ComputeBufferType.IndirectArguments
             );
             _allBladesBuffer.SetData(blades.ToArray());
-            _groundUVsBuffer = new ComputeBuffer(_totalBladeCount, sizeof(float) * 2);
-            _groundUVsBuffer.SetData(groundUVs.ToArray());
 
             // configure indirect args for drawing (instance count will be filled in later)
             SetArgsFromMesh(_bladeMesh);
@@ -196,10 +187,10 @@ namespace Turnroot.Graphics3D
             );
 
             var rng2 = new System.Random(98765);
-            var bins = new List<BladePlacement>[grassMixinMaterials.Count];
+            var bins = new List<BladeData>[grassMixinMaterials.Count];
             for (int i = 0; i < bins.Length; i++)
             {
-                bins[i] = new List<BladePlacement>();
+                bins[i] = new List<BladeData>();
             }
 
             foreach (var b in pool)
@@ -217,7 +208,7 @@ namespace Turnroot.Graphics3D
         }
 
         // Scatter `count` blades; skip candidates where `reject(uv)` returns true.
-        private List<BladePlacement> ScatterBlades(
+        private List<BladeData> ScatterBlades(
             int count,
             float[] cdf,
             int triCount,
@@ -229,7 +220,7 @@ namespace Turnroot.Graphics3D
             Vector2 planeSize
         )
         {
-            var list = new List<BladePlacement>(Mathf.Max(count, 0));
+            var list = new List<BladeData>(Mathf.Max(count, 0));
             if (count <= 0)
             {
                 return list;
@@ -262,54 +253,41 @@ namespace Turnroot.Graphics3D
                 );
 
                 list.Add(
-                    new BladePlacement
+                    new BladeData
                     {
-                        blade = new BladeData
-                        {
-                            position = pos,
-                            normal = normal,
-                            height = clampedPlaneSize.y,
-                            width = clampedPlaneSize.x,
-                            phase = (float)(rng.NextDouble() * Math.PI * 2.0),
-                            facingAngle = (float)(rng.NextDouble() * Math.PI * 2.0),
-                        },
+                        position = pos,
+                        normal = normal,
                         uv = uv,
+                        height = clampedPlaneSize.y,
+                        width = clampedPlaneSize.x,
+                        phase = (float)(rng.NextDouble() * Math.PI * 2.0),
+                        facingAngle = (float)(rng.NextDouble() * Math.PI * 2.0),
                     }
                 );
             }
             return list;
         }
 
-        private void CreateExtraGroup(Material mat, List<BladePlacement> placements)
+        private void CreateExtraGroup(Material mat, List<BladeData> blades)
         {
-            if (placements == null || placements.Count == 0)
+            if (blades == null || blades.Count == 0)
             {
                 return;
-            }
-
-            var blades = new BladeData[placements.Count];
-            var groundUVs = new Vector2[placements.Count];
-            for (int i = 0; i < placements.Count; i++)
-            {
-                blades[i] = placements[i].blade;
-                groundUVs[i] = placements[i].uv;
             }
 
             var g = new ExtraGroup
             {
                 material = mat,
-                totalCount = blades.Length,
-                all = new ComputeBuffer(blades.Length, BladeData.Stride),
+                totalCount = blades.Count,
+                all = new ComputeBuffer(blades.Count, BladeData.Stride),
                 visible = new ComputeBuffer(
-                    blades.Length,
+                    blades.Count,
                     BladeData.Stride,
                     ComputeBufferType.Append
                 ),
                 args = new ComputeBuffer(1, 5 * sizeof(uint), ComputeBufferType.IndirectArguments),
-                groundUVs = new ComputeBuffer(groundUVs.Length, sizeof(float) * 2),
             };
-            g.all.SetData(blades);
-            g.groundUVs.SetData(groundUVs);
+            g.all.SetData(blades.ToArray());
             g.args.SetData(
                 new uint[]
                 {
@@ -349,8 +327,8 @@ namespace Turnroot.Graphics3D
             for (int ti = 0; ti < triCount; ti++)
             {
                 Vector3 w0 = transform.TransformPoint(verts[tris[ti * 3]]);
-                Vector3 w1 = transform.TransformPoint(verts[tris[ti * 3 + 1]]);
-                Vector3 w2 = transform.TransformPoint(verts[tris[ti * 3 + 2]]);
+                Vector3 w1 = transform.TransformPoint(verts[tris[(ti * 3) + 1]]);
+                Vector3 w2 = transform.TransformPoint(verts[tris[(ti * 3) + 2]]);
                 areas[ti] = Vector3.Cross(w1 - w0, w2 - w0).magnitude * 0.5f;
                 totalArea += areas[ti];
             }
@@ -396,19 +374,19 @@ namespace Turnroot.Graphics3D
             }
 
             int i0 = tris[lo * 3],
-                i1 = tris[lo * 3 + 1],
-                i2 = tris[lo * 3 + 2];
+                i1 = tris[(lo * 3) + 1],
+                i2 = tris[(lo * 3) + 2];
             float r1 = Mathf.Sqrt((float)rng.NextDouble()),
                 r2 = (float)rng.NextDouble();
             float u = 1f - r1,
                 v = r1 * (1f - r2),
                 w = r1 * r2;
 
-            pos = transform.TransformPoint(u * verts[i0] + v * verts[i1] + w * verts[i2]);
+            pos = transform.TransformPoint((u * verts[i0]) + (v * verts[i1]) + (w * verts[i2]));
             normal = transform
-                .TransformDirection(u * normals[i0] + v * normals[i1] + w * normals[i2])
+                .TransformDirection((u * normals[i0]) + (v * normals[i1]) + (w * normals[i2]))
                 .normalized;
-            uv = u * uvs[i0] + v * uvs[i1] + w * uvs[i2];
+            uv = (u * uvs[i0]) + (v * uvs[i1]) + (w * uvs[i2]);
         }
     }
 }

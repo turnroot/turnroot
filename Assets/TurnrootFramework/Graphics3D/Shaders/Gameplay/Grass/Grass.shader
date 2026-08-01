@@ -27,6 +27,7 @@ Shader "Turnroot/Grass"
         [Range(0,1)]
         _UnderlyingMix      ("Mix with Underlying Color", Float) = 0.0
         _GroundTex          ("Ground Albedo Texture", 2D) = "white" {}
+        [HideInInspector]
         _GroundTex_ST       ("Ground UV Tiling/Offset", Vector) = (1,1,0,0)
 
         [Header(Tinting)]
@@ -107,6 +108,7 @@ Shader "Turnroot/Grass"
             {
                 float3 position;
                 float3 normal;
+                float2 uv;
                 float  height;
                 float  width;
                 float  phase;
@@ -114,7 +116,6 @@ Shader "Turnroot/Grass"
             };
 
             StructuredBuffer<BladeData> _VisibleBlades;
-            StructuredBuffer<float2> _GroundUVs;
 
             CBUFFER_START(UnityPerMaterial)
             float4 _BaseColor;
@@ -253,7 +254,7 @@ Shader "Turnroot/Grass"
 
                 // ── Per-blade variation baked from phase ───────────────────────
                 o.colorJitter = frac(blade.phase * 0.15915); // 0..1 unique per blade
-                o.groundUV    = _GroundUVs[instanceID];
+                o.groundUV    = blade.uv;
 
                 // ── Distance LOD fade ──────────────────────────────────────────
                 float dist = distance(blade.position, _CameraPosition.xyz);
@@ -346,6 +347,7 @@ Shader "Turnroot/Grass"
             {
                 float3 position;
                 float3 normal;
+                float2 uv;
                 float  height;
                 float  width;
                 float  phase;
@@ -459,6 +461,7 @@ Shader "Turnroot/Grass"
             {
                 float3 position;
                 float3 normal;
+                float2 uv;
                 float  height;
                 float  width;
                 float  phase;
