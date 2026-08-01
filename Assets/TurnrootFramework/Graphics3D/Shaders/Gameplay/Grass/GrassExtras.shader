@@ -43,7 +43,7 @@ Shader "Turnroot/GrassExtras"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            struct BladeData { float3 position; float3 normal; float height; float width; float phase; float facingAngle; };
+            struct BladeData { float3 position; float3 normal; float2 uv; float height; float width; float phase; float facingAngle; };
             StructuredBuffer<BladeData> _VisibleBlades;
 
             CBUFFER_START(UnityPerMaterial)
@@ -147,7 +147,7 @@ Shader "Turnroot/GrassExtras"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-            struct BladeData { float3 position; float3 normal; float height; float width; float phase; float facingAngle; };
+            struct BladeData { float3 position; float3 normal; float2 uv; float height; float width; float phase; float facingAngle; };
             StructuredBuffer<BladeData> _VisibleBlades;
             CBUFFER_START(UnityPerMaterial)
             float _AlphaCutoff;
