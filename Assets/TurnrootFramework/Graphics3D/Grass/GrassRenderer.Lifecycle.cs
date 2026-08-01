@@ -37,6 +37,7 @@ namespace Turnroot.Graphics3D
                 _allBladesBuffer,
                 _visibleBladesBuffer,
                 _indirectArgsBuffer,
+                _groundUVsBuffer,
                 _totalBladeCount,
                 _bladeMesh,
                 grassMaterial,
@@ -47,7 +48,16 @@ namespace Turnroot.Graphics3D
             {
                 foreach (var g in _extraGroups)
                 {
-                    DrawGroup(g.all, g.visible, g.args, g.totalCount, _planeMesh, g.material, cam);
+                    DrawGroup(
+                        g.all,
+                        g.visible,
+                        g.args,
+                        g.groundUVs,
+                        g.totalCount,
+                        _planeMesh,
+                        g.material,
+                        cam
+                    );
                 }
             }
         }

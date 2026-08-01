@@ -55,6 +55,7 @@ namespace Turnroot.Graphics3D
             ComputeBuffer all,
             ComputeBuffer visible,
             ComputeBuffer argsBuffer,
+            ComputeBuffer groundUVs,
             int totalCount,
             Mesh mesh,
             Material mat,
@@ -72,6 +73,11 @@ namespace Turnroot.Graphics3D
             )
             {
                 return;
+            }
+
+            if (groundUVs != null)
+            {
+                mat.SetBuffer("_GroundUVs", groundUVs);
             }
 
             if (disableCulling)
@@ -152,6 +158,8 @@ namespace Turnroot.Graphics3D
             _visibleBladesBuffer = null;
             _indirectArgsBuffer?.Release();
             _indirectArgsBuffer = null;
+            _groundUVsBuffer?.Release();
+            _groundUVsBuffer = null;
             _readbackBuffer?.Release();
             _readbackBuffer = null;
 
@@ -162,6 +170,7 @@ namespace Turnroot.Graphics3D
                     g.all?.Release();
                     g.visible?.Release();
                     g.args?.Release();
+                    g.groundUVs?.Release();
                 }
                 _extraGroups = null;
             }
