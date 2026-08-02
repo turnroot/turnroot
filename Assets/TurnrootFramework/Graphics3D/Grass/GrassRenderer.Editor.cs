@@ -15,7 +15,7 @@ namespace Turnroot.Graphics3D
         {
             minHeight = Mathf.Min(minHeight, maxHeight);
             minWidth = Mathf.Min(minWidth, maxWidth);
-            density = Mathf.Clamp(density, 1f, 400f);
+            density = Mathf.Clamp(density, 1f, 500f);
             maxDistance = Mathf.Max(0f, maxDistance);
             fadeStartDistance = Mathf.Clamp(fadeStartDistance, 0f, maxDistance);
             grassMixinDensity = Mathf.Clamp01(grassMixinDensity);
