@@ -42,7 +42,7 @@ namespace Turnroot.Graphics3D
 
         // -- Density & Blade Size --------------------------------------------------
         [Header("Density")]
-        [Range(1f, 400f)]
+        [Range(1f, 500f)]
         public float density = 60f; // blades per world-space m�
         public int maxBlades = 1_000_000;
 
