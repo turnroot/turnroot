@@ -12,14 +12,8 @@ namespace Turnroot.Utilities.Weather
         public UnityEvent NightStart;
         public UnityEvent NightEnd;
 
-        private readonly Dictionary<
-            Renderer,
-            Material[]
-        > _celRendererOriginalMaterials = new();
-        private readonly Dictionary<
-            Material,
-            Material
-        > _celMaterialInstances = new();
+        private readonly Dictionary<Renderer, Material[]> _celRendererOriginalMaterials = new();
+        private readonly Dictionary<Material, Material> _celMaterialInstances = new();
 
         [Range(0, 1)]
         [Tooltip(
@@ -42,6 +36,7 @@ namespace Turnroot.Utilities.Weather
 
         private RenderTexture _lastSkyboxForSampling;
         private float _lastSkyboxSampleTime;
+        private Texture2D _skyboxSampleTexture;
 
         // Night tint state (for updating grass tint only when night changes meaningfully)
         private float _lastNightFactor = -1f;
@@ -97,33 +92,26 @@ namespace Turnroot.Utilities.Weather
 
         public void SetSkybox(WeatherType weatherType) => SetSkybox(weatherType, null);
 
+        private Material[] GetSkyboxesForWeather(WeatherType weatherType) =>
+            weatherType switch
+            {
+                WeatherType.Sunny => SunnySkyboxes,
+                WeatherType.Cloudy => CloudySkyboxes,
+                WeatherType.Rainy => RainySkyboxes,
+                WeatherType.Snowy => SnowySkyboxes,
+                WeatherType.Stormy => StormySkyboxes,
+                WeatherType.Volcanic => VolcanicSkyboxes,
+                _ => null,
+            };
+
         public void SetSkybox(WeatherType weatherType, int? forcedIndex)
         {
-            Material[] selectedSkyboxes = null;
-
-            switch (weatherType)
+            var selectedSkyboxes = GetSkyboxesForWeather(weatherType);
+            if (selectedSkyboxes == null)
             {
-                case WeatherType.Sunny:
-                    selectedSkyboxes = SunnySkyboxes;
-                    break;
-                case WeatherType.Cloudy:
-                    selectedSkyboxes = CloudySkyboxes;
-                    break;
-                case WeatherType.Rainy:
-                    selectedSkyboxes = RainySkyboxes;
-                    break;
-                case WeatherType.Snowy:
-                    selectedSkyboxes = SnowySkyboxes;
-                    break;
-                case WeatherType.Stormy:
-                    selectedSkyboxes = StormySkyboxes;
-                    break;
-                case WeatherType.Volcanic:
-                    selectedSkyboxes = VolcanicSkyboxes;
-                    break;
-                default:
-                    RenderSettings.skybox = DefaultSkybox;
-                    return;
+                currentSkybox = DefaultSkybox;
+                RenderSettings.skybox = currentSkybox;
+                return;
             }
 
             if (_instantiatedSkyboxMaterial != null)
@@ -132,7 +120,7 @@ namespace Turnroot.Utilities.Weather
                 _instantiatedSkyboxMaterial = null;
             }
 
-            if (selectedSkyboxes != null && selectedSkyboxes.Length > 0)
+            if (selectedSkyboxes.Length > 0)
             {
                 int chosenIndex = -1;
 
@@ -197,32 +185,42 @@ namespace Turnroot.Utilities.Weather
             }
         }
 
+        // Returns true when time advances from 'from' to 'to' (with optional midnight wrap) and crosses targetHour.
+        private static bool HourCrossed(float from, float to, bool wrapped, float targetHour)
+        {
+            if (!wrapped)
+            {
+                return from < targetHour && targetHour <= to;
+            }
+            // Wrapped: effective range is [from, 24) ∪ [0, to]
+            return targetHour > from || targetHour <= to;
+        }
+
         public void Update()
         {
             if (ProgressTimeOfDay)
             {
+                float prevTimeOfDay = TimeOfDay;
                 TimeOfDay += (Time.deltaTime / DayLength) * 24f;
-                if (TimeOfDay >= 24f)
+                bool wrapped = TimeOfDay >= 24f;
+                if (wrapped)
                 {
-                    TimeOfDay = 0f;
+                    TimeOfDay -= 24f;
                 }
 
-                if (Mathf.Approximately(TimeOfDay, NightStartHour))
+                if (HourCrossed(prevTimeOfDay, TimeOfDay, wrapped, NightStartHour))
                 {
                     NightStart.Invoke();
                 }
-                else if (Mathf.Approximately(TimeOfDay, NightEndHour))
+                else if (HourCrossed(prevTimeOfDay, TimeOfDay, wrapped, NightEndHour))
                 {
                     NightEnd.Invoke();
                 }
             }
 
+            ApplyDirectionalLightRotation();
             if (DirectionalLight != null)
             {
-                DirectionalLight.transform.rotation = Quaternion.Euler(
-                    ConvertTimeOfDayAndYearToDirectionalLightRotation(TimeOfDay, TimeOfYear)
-                );
-
                 bool overcast = CurrentWeatherType != WeatherType.Sunny;
                 DirectionalLight.intensity = overcast
                     ? OvercastLightIntensity
@@ -260,6 +258,54 @@ namespace Turnroot.Utilities.Weather
             WeatherOverlayController.ApplyPreset(overlayWeather);
         }
 
+        private void ApplyDirectionalLightRotation()
+        {
+            if (DirectionalLight == null)
+            {
+                return;
+            }
+
+            DirectionalLight.transform.rotation = Quaternion.Euler(
+                ConvertTimeOfDayAndYearToDirectionalLightRotation(TimeOfDay, TimeOfYear)
+            );
+        }
+
+        private void CacheWaterBaseColors()
+        {
+            var mat = GetActiveWaterMaterial();
+            if (mat == null)
+            {
+                return;
+            }
+
+            baseShallowColor = mat.GetColor("_ShallowColor");
+            baseDeepColor = mat.GetColor("_DeepColor");
+            baseSpecColor = mat.GetColor("_SpecularColor");
+            baseFresnelColor = mat.GetColor("_FresnelColor");
+        }
+
+        private void CacheCelMaterialBaseColors()
+        {
+            if (CelMaterials == null || CelMaterials.Length == 0)
+            {
+                return;
+            }
+
+            int len = CelMaterials.Length;
+            baseCelLight = new Color[len];
+            baseCelBaseTint = new Color[len];
+            for (int i = 0; i < len; i++)
+            {
+                var m = CelMaterials[i];
+                baseCelLight[i] =
+                    m != null && m.HasProperty("_light") ? m.GetColor("_light") : Color.white;
+                baseCelBaseTint[i] =
+                    m != null && m.HasProperty("_BaseTint") ? m.GetColor("_BaseTint") : Color.white;
+            }
+
+            InstantiateCelMaterialsForRenderers();
+        }
+
         public void Awake()
         {
             if (RandomizeStartTimeOfDay)
@@ -277,23 +323,14 @@ namespace Turnroot.Utilities.Weather
                 TimeOfDay = HubDayRandom.Range(min, max);
             }
 
-            if (DirectionalLight != null)
-            {
-                DirectionalLight.transform.rotation = Quaternion.Euler(
-                    ConvertTimeOfDayAndYearToDirectionalLightRotation(TimeOfDay, TimeOfYear)
-                );
-            }
+            ApplyDirectionalLightRotation();
 
             if (WaterMaterial != null)
             {
                 // Instantiate the material so runtime tinting does not persist to the source asset.
                 _waterMaterialSource = WaterMaterial;
                 _waterMaterialInstance = Instantiate(_waterMaterialSource);
-
-                baseShallowColor = _waterMaterialInstance.GetColor("_ShallowColor");
-                baseDeepColor = _waterMaterialInstance.GetColor("_DeepColor");
-                baseSpecColor = _waterMaterialInstance.GetColor("_SpecularColor");
-                baseFresnelColor = _waterMaterialInstance.GetColor("_FresnelColor");
+                CacheWaterBaseColors();
             }
 
             // Configure audio sources for ambience and 3D event sounds
@@ -334,34 +371,7 @@ namespace Turnroot.Utilities.Weather
                 TimeOfYear = Mathf.Clamp01(mfrac + dfrac);
             }
 
-            // cache cel shader base light & base-tint colours
-            if (CelMaterials != null && CelMaterials.Length > 0)
-            {
-                int len = CelMaterials.Length;
-                baseCelLight = new Color[len];
-                baseCelBaseTint = new Color[len];
-                for (int i = 0; i < len; i++)
-                {
-                    var m = CelMaterials[i];
-                    if (m != null)
-                    {
-                        baseCelLight[i] = m.HasProperty("_light")
-                            ? m.GetColor("_light")
-                            : Color.white;
-                        baseCelBaseTint[i] = m.HasProperty("_BaseTint")
-                            ? m.GetColor("_BaseTint")
-                            : Color.white;
-                    }
-                    else
-                    {
-                        baseCelLight[i] = Color.white;
-                        baseCelBaseTint[i] = Color.white;
-                    }
-                }
-
-                // Ensure we modify runtime instances rather than the shared assets.
-                InstantiateCelMaterialsForRenderers();
-            }
+            CacheCelMaterialBaseColors();
 
             _brain = GetAndCacheBrain.GetBrain();
             if (_brain != null)
@@ -399,6 +409,12 @@ namespace Turnroot.Utilities.Weather
             }
 
             RestoreCelMaterials();
+
+            if (_skyboxSampleTexture != null)
+            {
+                Destroy(_skyboxSampleTexture);
+                _skyboxSampleTexture = null;
+            }
         }
 
         private void HandleSceneChanged(string sceneName, string displayName)
@@ -442,13 +458,7 @@ namespace Turnroot.Utilities.Weather
                 }
             }
 
-            if (DirectionalLight != null)
-            {
-                DirectionalLight.transform.rotation = Quaternion.Euler(
-                    ConvertTimeOfDayAndYearToDirectionalLightRotation(TimeOfDay, TimeOfYear)
-                );
-            }
-
+            ApplyDirectionalLightRotation();
             SetSkybox(CurrentWeatherType);
 
             // Always refresh overlay weather after scene change
@@ -465,43 +475,8 @@ namespace Turnroot.Utilities.Weather
                 ApplyWeatherOverlayPreset(month);
             }
 
-            var mat = GetActiveWaterMaterial();
-            if (mat != null)
-            {
-                baseShallowColor = mat.GetColor("_ShallowColor");
-                baseDeepColor = mat.GetColor("_DeepColor");
-                baseSpecColor = mat.GetColor("_SpecularColor");
-                baseFresnelColor = mat.GetColor("_FresnelColor");
-            }
-
-            // cache cel shader base light & base-tint colours
-            if (CelMaterials != null && CelMaterials.Length > 0)
-            {
-                int len = CelMaterials.Length;
-                baseCelLight = new Color[len];
-                baseCelBaseTint = new Color[len];
-                for (int i = 0; i < len; i++)
-                {
-                    var m = CelMaterials[i];
-                    if (m != null)
-                    {
-                        baseCelLight[i] = m.HasProperty("_light")
-                            ? m.GetColor("_light")
-                            : Color.white;
-                        baseCelBaseTint[i] = m.HasProperty("_BaseTint")
-                            ? m.GetColor("_BaseTint")
-                            : Color.white;
-                    }
-                    else
-                    {
-                        baseCelLight[i] = Color.white;
-                        baseCelBaseTint[i] = Color.white;
-                    }
-                }
-
-                // Ensure we modify runtime instances rather than the shared assets
-                InstantiateCelMaterialsForRenderers();
-            }
+            CacheWaterBaseColors();
+            CacheCelMaterialBaseColors();
         }
     }
 }
