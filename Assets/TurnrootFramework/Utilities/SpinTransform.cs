@@ -1,5 +1,8 @@
+using UnityEngine;
+
 namespace Turnroot.Utilities
 {
+    [System.Serializable]
     public enum SpinAxis
     {
         X,
@@ -7,9 +10,9 @@ namespace Turnroot.Utilities
         Z,
     }
 
-    public class SpinTransform : UnityEngine.MonoBehaviour
+    public class SpinTransform : MonoBehaviour
     {
-        private UnityEngine.Vector3 spinAxis;
+        private Vector3 spinAxis;
         public SpinAxis axis = SpinAxis.Y;
         public float spinSpeed = 10f;
 
@@ -18,20 +21,17 @@ namespace Turnroot.Utilities
             switch (axis)
             {
                 case SpinAxis.X:
-                    spinAxis = UnityEngine.Vector3.right;
+                    spinAxis = Vector3.right;
                     break;
                 case SpinAxis.Y:
-                    spinAxis = UnityEngine.Vector3.up;
+                    spinAxis = Vector3.up;
                     break;
                 case SpinAxis.Z:
-                    spinAxis = UnityEngine.Vector3.forward;
+                    spinAxis = Vector3.forward;
                     break;
             }
         }
 
-        private void Update()
-        {
-            transform.Rotate(spinAxis, spinSpeed * UnityEngine.Time.deltaTime);
-        }
+        private void Update() => transform.Rotate(spinAxis, spinSpeed * UnityEngine.Time.deltaTime);
     }
 }
