@@ -66,6 +66,13 @@ namespace Turnroot.Utilities.Weather
         [Range(0, 1)]
         public float NightTintIntensity = 0.5f;
 
+        [BoxGroup("Skybox Tinting")]
+        [Tooltip(
+            "Shape of the night tint falloff curve. 1 = linear (constant ramp). 2 = squared (default: soft at dusk/dawn, concentrated near midnight). Higher values push the tint peak tighter around midnight."
+        )]
+        [Range(0.5f, 4f)]
+        public float NightTintCurveExponent = 2f;
+
         [HorizontalLine(2, EColor.Blue)]
         [Header("Night Timing")]
         [BoxGroup("Night Timing")]
@@ -81,6 +88,22 @@ namespace Turnroot.Utilities.Weather
         )]
         [Range(0, 24)]
         public float NightEndHour = 6f;
+
+        [BoxGroup("Night Timing")]
+        [Tooltip(
+            "Hour at which the sunrise color phase begins (0-24). From this hour to NightEndHour, "
+                + "sunrise colors blend in. Set equal to or after NightEndHour to disable the rising phase."
+        )]
+        [Range(0, 24)]
+        public float SunriseStartHour = 5f;
+
+        [BoxGroup("Night Timing")]
+        [Tooltip(
+            "Hour at which the sunrise color phase ends (0-24). From NightEndHour to this hour, "
+                + "water uses sunrise colors. Set equal to or before NightEndHour to disable the sunrise phase."
+        )]
+        [Range(0, 24)]
+        public float SunriseEndHour = 9f;
 
         [HorizontalLine(2, EColor.Orange)]
         [Header("Scene Lights")]

@@ -9,6 +9,17 @@ namespace Turnroot.Utilities.Weather
         private AudioClip PickRandomClip(AudioClip[] clips) =>
             clips == null || clips.Length == 0 ? null : clips[Random.Range(0, clips.Length)];
 
+        private AudioClip[] GetAmbientClipsForWeather(WeatherType weatherType) =>
+            weatherType switch
+            {
+                WeatherType.Sunny => SunnyAmbientClips,
+                WeatherType.Cloudy => CloudyAmbientClips,
+                WeatherType.Rainy => RainyAmbientClips,
+                WeatherType.Stormy => StormyAmbientClips,
+                WeatherType.Volcanic => VolcanicAmbientClips,
+                _ => null,
+            };
+
         private void UpdateAmbientAudio()
         {
             if (AmbientAudioSource == null)
@@ -28,25 +39,7 @@ namespace Turnroot.Utilities.Weather
 
             _lastAmbientWeatherType = CurrentWeatherType;
 
-            AudioClip clip = null;
-            switch (CurrentWeatherType)
-            {
-                case WeatherType.Sunny:
-                    clip = PickRandomClip(SunnyAmbientClips);
-                    break;
-                case WeatherType.Cloudy:
-                    clip = PickRandomClip(CloudyAmbientClips);
-                    break;
-                case WeatherType.Rainy:
-                    clip = PickRandomClip(RainyAmbientClips);
-                    break;
-                case WeatherType.Stormy:
-                    clip = PickRandomClip(StormyAmbientClips);
-                    break;
-                case WeatherType.Volcanic:
-                    clip = PickRandomClip(VolcanicAmbientClips);
-                    break;
-            }
+            AudioClip clip = PickRandomClip(GetAmbientClipsForWeather(CurrentWeatherType));
 
             if (clip == null)
             {
@@ -62,14 +55,13 @@ namespace Turnroot.Utilities.Weather
 
         private void UpdateNightAmbientAudio()
         {
-            // _appliedNightFactor is -1 when uninitialized — treat as 0 (full day).
-            float night = _appliedNightFactor < 0f ? 0f : Mathf.Clamp01(_appliedNightFactor);
-
             if (NightAmbientAudioSource == null)
             {
                 return;
             }
 
+            // Use the same normalized curved night factor used by tinting.
+            float night = GetNightBlendFactor(GetAppliedNightFactor());
             NightAmbientAudioSource.volume = night * NightAmbientMaxVolume;
 
             if (night > 0.001f)

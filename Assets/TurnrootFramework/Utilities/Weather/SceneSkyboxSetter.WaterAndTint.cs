@@ -47,24 +47,43 @@ namespace Turnroot.Utilities.Weather
                 return Color.white;
             }
 
+            // Reuse the cached texture when dimensions match; recreate only when the RT is resized.
+            if (
+                _skyboxSampleTexture == null
+                || _skyboxSampleTexture.width != rt.width
+                || _skyboxSampleTexture.height != rt.height
+            )
+            {
+                if (_skyboxSampleTexture != null)
+                {
+                    Destroy(_skyboxSampleTexture);
+                }
+
+                _skyboxSampleTexture = new Texture2D(
+                    rt.width,
+                    rt.height,
+                    TextureFormat.RGBA32,
+                    false
+                );
+                _skyboxSampleTexture.hideFlags = HideFlags.DontSave;
+            }
+
             var prev = RenderTexture.active;
             RenderTexture.active = rt;
 
-            var tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBA32, false);
-            tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
-            tex.Apply();
+            _skyboxSampleTexture.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+            // No Apply() needed: ReadPixels populates the CPU buffer directly,
+            // and GetPixel reads from the CPU buffer. Apply() would only upload to GPU.
 
-            int minY = rt.height / 2;
+            RenderTexture.active = prev;
+
             Color sum = Color.black;
             for (int i = 0; i < sampleCount; i++)
             {
                 int x = Random.Range(0, rt.width);
-                int y = Random.Range(minY, rt.height);
-                sum += tex.GetPixel(x, y);
+                int y = Random.Range(0, rt.height);
+                sum += _skyboxSampleTexture.GetPixel(x, y);
             }
-
-            RenderTexture.active = prev;
-            Destroy(tex);
 
             var avg = sum / sampleCount;
             if (avg.maxColorComponent <= 0.01f)
@@ -75,9 +94,7 @@ namespace Turnroot.Utilities.Weather
             // boost saturation so tint is more noticeable
             Color.RGBToHSV(avg, out float h, out float s, out float v);
             s = Mathf.Clamp01(s * SkyboxTintSaturationBoost);
-            avg = Color.HSVToRGB(h, s, v);
-
-            return avg;
+            return Color.HSVToRGB(h, s, v);
         }
 
         private int GetSkyboxSampleCount(int qualityStep)
@@ -102,51 +119,90 @@ namespace Turnroot.Utilities.Weather
             };
         }
 
-        private float _targetNightFactor = -1f;
         private float _appliedNightFactor = -1f;
+        private float _nightLerpStartFactor = -1f;
+        private float _nightLerpTargetFactor = -1f;
         private float _nightTintLerpStartTime = -Mathf.Infinity;
         private const float NightTintLerpDuration = 0.5f;
+        private const float NightFactorChangeThreshold = 0.02f;
+
+        // Returns a [0,1] curve applied to the raw night factor (0 = dusk/dawn, 1 = midnight).
+        // The exponent keeps the tint soft at dusk/dawn and concentrates it near midnight.
+        // Intensity exactly reaches NightTintIntensity at rawNightFactor = 1 (midnight).
+        private float GetNightBlendFactor(float rawNightFactor)
+        {
+            return Mathf.Pow(Mathf.Clamp01(rawNightFactor), NightTintCurveExponent);
+        }
+
+        private float GetAppliedNightFactor()
+        {
+            return _appliedNightFactor < 0f ? 0f : Mathf.Clamp01(_appliedNightFactor);
+        }
+
+        private float GetNightTintIntensityFromFactor(float rawNightFactor)
+        {
+            return NightTintIntensity * GetNightBlendFactor(rawNightFactor);
+        }
+
+        private void ApplyNightTintToMaterial(Material material, float intensity)
+        {
+            if (material == null)
+            {
+                return;
+            }
+
+            if (material.HasProperty("_NightTintColor"))
+            {
+                material.SetColor("_NightTintColor", NightTintColor);
+            }
+
+            if (material.HasProperty("_NightTintIntensity"))
+            {
+                material.SetFloat("_NightTintIntensity", intensity);
+            }
+        }
 
         private void UpdateNightTint(float nightFactor)
         {
             float clampedFactor = Mathf.Clamp01(nightFactor);
-            if (Mathf.Abs(clampedFactor - _targetNightFactor) < 0.02f)
+
+            if (_appliedNightFactor < 0f)
+            {
+                // Initialize to avoid snapping from an uninitialized value.
+                _appliedNightFactor = clampedFactor;
+                _nightLerpStartFactor = clampedFactor;
+                _nightLerpTargetFactor = clampedFactor;
+                ApplyNightTintImmediate(GetNightTintIntensityFromFactor(_appliedNightFactor));
+                return;
+            }
+
+            if (Mathf.Abs(clampedFactor - _nightLerpTargetFactor) < NightFactorChangeThreshold)
             {
                 return; // no meaningful change to target
             }
 
-            _targetNightFactor = clampedFactor;
+            // Start from the currently applied value so retargeting during a transition is smooth.
+            _nightLerpStartFactor = _appliedNightFactor;
+            _nightLerpTargetFactor = clampedFactor;
             _nightTintLerpStartTime = Time.time;
-
-            // If this is the first time, initialize applied value to the current target so we don't
-            // immediately snap from -1 (uninitialized) to the first target value.
-            if (_appliedNightFactor < 0f)
-            {
-                _appliedNightFactor = _targetNightFactor;
-                ApplyNightTintImmediate(_appliedNightFactor);
-                return;
-            }
-
-            // Ensure we always start lerping from the current applied value.
-            // (Do not reset _appliedNightFactor to the target here, or we'd never lerp.)
         }
 
         private void ApplyNightTintLerp()
         {
-            // If we haven't initialized yet, do nothing.
+            // Do nothing until initialized.
             if (_appliedNightFactor < 0f)
             {
                 return;
             }
 
             // If target equals applied, nothing to do.
-            if (Mathf.Approximately(_appliedNightFactor, _targetNightFactor))
+            if (Mathf.Approximately(_appliedNightFactor, _nightLerpTargetFactor))
             {
                 return;
             }
 
             float t = Mathf.Clamp01((Time.time - _nightTintLerpStartTime) / NightTintLerpDuration);
-            float newFactor = Mathf.Lerp(_appliedNightFactor, _targetNightFactor, t);
+            float newFactor = Mathf.Lerp(_nightLerpStartFactor, _nightLerpTargetFactor, t);
 
             // If we haven't moved yet, skip the expensive update.
             if (Mathf.Abs(newFactor - _appliedNightFactor) < 0.0001f)
@@ -154,52 +210,27 @@ namespace Turnroot.Utilities.Weather
                 return;
             }
 
-            _appliedNightFactor = newFactor;
-            ApplyNightTintImmediate(_appliedNightFactor);
+            // Snap exactly at the end to avoid accumulating tiny residual differences.
+            _appliedNightFactor = t >= 1f ? _nightLerpTargetFactor : newFactor;
+
+            ApplyNightTintImmediate(GetNightTintIntensityFromFactor(_appliedNightFactor));
         }
 
-        private void ApplyNightTintImmediate(float factor)
+        private void ApplyNightTintImmediate(float intensity)
         {
-            // Use a curved falloff so tint ramps in stronger near midnight and is softer during dusk/dawn.
-            float curvedFactor = Mathf.Pow(factor, 2f);
-            float intensity = NightTintIntensity * curvedFactor;
+            ApplyNightTintToMaterial(GrassMaterial, intensity);
 
-            // Grass material (optional): update when night tint changes.
-            if (GrassMaterial != null)
-            {
-                GrassMaterial.SetColor("_NightTintColor", NightTintColor);
-                GrassMaterial.SetFloat("_NightTintIntensity", intensity);
-            }
-
-            // GrassExtras materials (optional): same night tint.
             if (GrassExtrasMaterials != null)
             {
                 foreach (var mat in GrassExtrasMaterials)
                 {
-                    if (mat != null)
-                    {
-                        mat.SetColor("_NightTintColor", NightTintColor);
-                        mat.SetFloat("_NightTintIntensity", intensity);
-                    }
+                    ApplyNightTintToMaterial(mat, intensity);
                 }
             }
 
-            // Also update cel materials (night tint portion only).
             foreach (var runtimeMat in _celMaterialInstances.Values)
             {
-                if (runtimeMat == null)
-                {
-                    continue;
-                }
-
-                if (runtimeMat.HasProperty("_NightTintColor"))
-                {
-                    runtimeMat.SetColor("_NightTintColor", NightTintColor);
-                }
-                if (runtimeMat.HasProperty("_NightTintIntensity"))
-                {
-                    runtimeMat.SetFloat("_NightTintIntensity", intensity);
-                }
+                ApplyNightTintToMaterial(runtimeMat, intensity);
             }
         }
 
@@ -276,16 +307,9 @@ namespace Turnroot.Utilities.Weather
                 }
 
                 // Apply night tint on the same update (for quality updates and forced updates)
-                if (runtimeMat.HasProperty("_NightTintColor"))
-                {
-                    runtimeMat.SetColor("_NightTintColor", NightTintColor);
-                }
-                if (runtimeMat.HasProperty("_NightTintIntensity"))
-                {
-                    // Use the applied night factor so cel and grass tint match
-                    float nightIntensity = NightTintIntensity * Mathf.Pow(_appliedNightFactor, 2f);
-                    runtimeMat.SetFloat("_NightTintIntensity", nightIntensity);
-                }
+                // Use the same curved night intensity path as grass tint so all night tinting stays in sync.
+                float nightIntensity = GetNightTintIntensityFromFactor(GetAppliedNightFactor());
+                ApplyNightTintToMaterial(runtimeMat, nightIntensity);
             }
 
             _lastCelTintUpdateTime = Time.time;
@@ -304,6 +328,31 @@ namespace Turnroot.Utilities.Weather
         }
 
         private Material GetActiveWaterMaterial() => _waterMaterialInstance ?? WaterMaterial;
+
+        // Returns [0, 1]: rises from 0 to 1 between SunriseStartHour and NightEndHour (peak),
+        // then falls back to 0 by SunriseEndHour. Triangle curve — no discontinuity.
+        // Returns 0 if the sunrise window is degenerate (start >= end).
+        private float GetSunriseFactor(float timeOfDay)
+        {
+            if (SunriseStartHour >= SunriseEndHour)
+            {
+                return 0f;
+            }
+
+            // Rising phase: SunriseStartHour → NightEndHour
+            if (timeOfDay >= SunriseStartHour && timeOfDay < NightEndHour)
+            {
+                return Mathf.InverseLerp(SunriseStartHour, NightEndHour, timeOfDay);
+            }
+
+            // Falling phase: NightEndHour → SunriseEndHour
+            if (timeOfDay >= NightEndHour && timeOfDay < SunriseEndHour)
+            {
+                return 1f - Mathf.InverseLerp(NightEndHour, SunriseEndHour, timeOfDay);
+            }
+
+            return 0f;
+        }
 
         private float GetNightFactor(float timeOfDay)
         {
@@ -351,18 +400,21 @@ namespace Turnroot.Utilities.Weather
                 return;
             }
 
-            // Calculate day/night blending based on the desired transition times.
-            // Night starts at 16:00 and ends at 06:00, with midnight being full night.
-            float tNight = GetNightFactor(TimeOfDay);
-            float tDay = 1f - tNight;
-            float tSunrise = 0f;
+            // Calculate day/night/sunrise blending based on inspector-configured timing.
+            float rawNightFactor = GetNightFactor(TimeOfDay);
+            float tNight = GetNightBlendFactor(rawNightFactor);
+            // 3-way blend: tNight + tSunrise + tDay always sums to 1.
+            // Sunrise phase fills the gap between night ending and full day.
+            float remaining = 1f - tNight;
+            float tSunrise = remaining * GetSunriseFactor(TimeOfDay);
+            float tDay = remaining - tSunrise;
             bool overcast = CurrentWeatherType != WeatherType.Sunny;
 
             // Update night tint based on time of day — only when the factor changes meaningfully.
-            if (Mathf.Abs(tNight - _lastNightFactor) >= 0.01f)
+            if (Mathf.Abs(rawNightFactor - _lastNightFactor) >= 0.01f)
             {
-                UpdateNightTint(tNight);
-                _lastNightFactor = tNight;
+                UpdateNightTint(rawNightFactor);
+                _lastNightFactor = rawNightFactor;
             }
             ApplyNightTintLerp();
 
