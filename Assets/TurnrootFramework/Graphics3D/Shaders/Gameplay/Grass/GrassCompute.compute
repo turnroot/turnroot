@@ -1,50 +1,54 @@
-// GrassCompute.compute
-// Per-frame culling pass only.
-// Blade positions are pre-computed on the CPU in GrassRenderer.cs and uploaded once.
-// Each frame this kernel reads from _AllBlades, applies frustum + distance culling,
-// and appends survivors to _VisibleBlades (an AppendStructuredBuffer).
-// GrassRenderer.cs then calls ComputeBuffer.CopyCount to write the surviving count
-// into the DrawMeshInstancedIndirect args buffer.
+﻿// GrassCompute.compute
+// Two kernels:
+//   CullGrass       - frustum+distance cull of a pre-generated blade buffer.
+//                     Used by extra grass-mixin groups (CPU-generated static buffers).
+//   GenerateAndCull - per-frame procedural blade generation directly from the ground mesh,
+//                     with integrated frustum+distance culling. Main grass kernel.
+//                     No CPU position buffer required; blade positions are derived from a
+//                     Wang hash keyed on (triangleIndex, bladeSubIndex), so they are
+//                     identical every frame with zero CPU work after init.
 
 #pragma kernel CullGrass
+#pragma kernel GenerateAndCull
 
-// ── Blade data — must exactly match BladeData struct in GrassRenderer.cs ────────────
+// ---- Blade data -- must exactly match BladeData struct in GrassRenderer.cs ----------
 struct BladeData
 {
     float3 position;    // world-space base of blade
     float3 normal;      // surface normal at blade base (world space)
     float2 uv;          // mesh UV at this blade's ground sample point
-    float  height;      // randomised blade height
-    float  width;       // randomised blade width
-    float  phase;       // random 0..2PI, drives sway desynchronisation
-    float  facingAngle; // random 0..2PI, rotates blade around surface normal
+    float  height;
+    float  width;
+    float  phase;       // 0..2PI, drives sway desynchronisation
+    float  facingAngle; // 0..2PI, rotates blade around surface normal
 };
 
-// ── Buffers ──────────────────────────────────────────────────────────────────────────
-StructuredBuffer<BladeData>       _AllBlades;     // full set, written once at init
-AppendStructuredBuffer<BladeData> _VisibleBlades; // survivors written each frame
+// ---- Shared output ------------------------------------------------------------------
+AppendStructuredBuffer<BladeData> _VisibleBlades;
 
-// ── Uniforms (set by GrassRenderer.LateUpdate each frame) ───────────────────────────
-int    _TotalBladeCount;
+// ---- Shared per-frame uniforms ------------------------------------------------------
 float4 _FrustumPlanes[6]; // each plane: xyz = outward normal, w = plane distance
 float3 _CameraPos;
 float  _MaxDistance;
 
-// ── Frustum plane test ───────────────────────────────────────────────────────────────
-// Returns true if a sphere (centre, radius) is entirely outside any frustum plane
-// i.e. the blade should be culled.
+// ---- Frustum plane test -------------------------------------------------------------
 bool FrustumCull(float3 centre, float radius)
 {
     [unroll]
     for (int i = 0; i < 6; i++)
     {
-        // Signed distance from centre to plane. Negative = behind/outside the plane.
         float sd = dot(_FrustumPlanes[i].xyz, centre) + _FrustumPlanes[i].w;
         if (sd < -radius)
-            return true; // entirely outside this plane → cull
+            return true;
     }
     return false;
 }
+
+// ====================================================================================
+// CullGrass -- for extra grass-mixin groups (CPU-generated static blade buffers)
+// ====================================================================================
+StructuredBuffer<BladeData> _AllBlades;
+int _TotalBladeCount;
 
 [numthreads(64, 1, 1)]
 void CullGrass(uint3 id : SV_DispatchThreadID)
@@ -55,18 +59,143 @@ void CullGrass(uint3 id : SV_DispatchThreadID)
 
     BladeData blade = _AllBlades[idx];
 
-    // ── Distance cull ─────────────────────────────────────────────────────────────
     float dist = distance(blade.position, _CameraPos);
     if (dist > _MaxDistance)
         return;
 
-    // ── Frustum cull ──────────────────────────────────────────────────────────────
-    // Use height * 1.5 as a conservative bounding sphere radius so blades near the
-    // frustum edge don't pop in/out as they sway.
-    float boundRadius = blade.height * 1.5;
-    if (FrustumCull(blade.position, boundRadius))
+    if (FrustumCull(blade.position, blade.height * 1.5))
         return;
 
-    // Blade passed all tests — add to the visible set for this frame
     _VisibleBlades.Append(blade);
+}
+
+// ====================================================================================
+// GenerateAndCull -- one thread per mesh triangle, generates blades procedurally
+// ====================================================================================
+
+// ---- Mesh data (uploaded once at init) ----------------------------------------------
+StructuredBuffer<float3> _MeshVerts;
+StructuredBuffer<int>    _MeshTris;
+StructuredBuffer<float3> _MeshNormals;
+StructuredBuffer<float2> _MeshUVs;
+int      _TriCount;
+float4x4 _LocalToWorld;
+
+// ---- Blade generation parameters ----------------------------------------------------
+float _Density;
+float _MinHeight;
+float _MaxHeight;
+float _MinWidth;
+float _MaxWidth;
+
+// ---- Mask (bind a 1x1 white texture when no mask is assigned) -----------------------
+Texture2D<float4> _MaskTex;
+SamplerState      sampler_MaskTex;
+int   _HasMask;
+float _MaskFloor;
+
+// ---- Wang hash ----------------------------------------------------------------------
+uint WangHash(uint seed)
+{
+    seed = (seed ^ 61u) ^ (seed >> 16u);
+    seed *= 9u;
+    seed ^= seed >> 4u;
+    seed *= 0x27d4eb2du;
+    seed ^= seed >> 15u;
+    return seed;
+}
+
+float HashFloat(uint seed)
+{
+    return float(WangHash(seed) & 0xFFFFFFu) * (1.0 / 16777216.0);
+}
+
+[numthreads(64, 1, 1)]
+void GenerateAndCull(uint3 id : SV_DispatchThreadID)
+{
+    int triIdx = (int)id.x;
+    if (triIdx >= _TriCount)
+        return;
+
+    // Triangle vertices in world space
+    int i0 = _MeshTris[triIdx * 3];
+    int i1 = _MeshTris[triIdx * 3 + 1];
+    int i2 = _MeshTris[triIdx * 3 + 2];
+
+    float3 wp0 = mul(_LocalToWorld, float4(_MeshVerts[i0], 1.0)).xyz;
+    float3 wp1 = mul(_LocalToWorld, float4(_MeshVerts[i1], 1.0)).xyz;
+    float3 wp2 = mul(_LocalToWorld, float4(_MeshVerts[i2], 1.0)).xyz;
+
+    // Conservative early-out via centroid distance
+    float3 triCenter = (wp0 + wp1 + wp2) * 0.33333;
+    float  triRadius = max(length(wp1 - wp0), max(length(wp2 - wp1), length(wp0 - wp2)));
+    if (distance(triCenter, _CameraPos) > _MaxDistance + triRadius)
+        return;
+
+    // Triangle area and blade budget (cap at 2048 per triangle for safety)
+    float area       = length(cross(wp1 - wp0, wp2 - wp0)) * 0.5;
+    int   bladeCount = min((int)round(area * _Density), 2048);
+    if (bladeCount <= 0)
+        return;
+
+    // Normals and UVs for interpolation
+    float3x3 normalMat = (float3x3)_LocalToWorld;
+    float3 wn0 = normalize(mul(normalMat, _MeshNormals[i0]));
+    float3 wn1 = normalize(mul(normalMat, _MeshNormals[i1]));
+    float3 wn2 = normalize(mul(normalMat, _MeshNormals[i2]));
+    float2 uv0 = _MeshUVs[i0];
+    float2 uv1 = _MeshUVs[i1];
+    float2 uv2 = _MeshUVs[i2];
+
+    for (int i = 0; i < bladeCount; i++)
+    {
+        // Deterministic seed unique to (triangle, blade)
+        uint seed = WangHash((uint)(triIdx * 65537 + i));
+
+        // Uniform barycentric sampling
+        float r1 = sqrt(HashFloat(seed));
+        float r2 = HashFloat(WangHash(seed + 1u));
+        float bu = 1.0 - r1;
+        float bv = r1 * (1.0 - r2);
+        float bw = r1 * r2;
+
+        float3 pos = bu * wp0 + bv * wp1 + bw * wp2;
+        float2 uv  = bu * uv0 + bv * uv1 + bw * uv2;
+        float3 nrm = normalize(bu * wn0 + bv * wn1 + bw * wn2);
+
+        // Distance cull
+        if (distance(pos, _CameraPos) > _MaxDistance)
+            continue;
+
+        // Frustum cull (conservative sphere = max blade height x 1.5)
+        if (FrustumCull(pos, _MaxHeight * 1.5))
+            continue;
+
+        // Mask
+        float maskVal = 1.0;
+        if (_HasMask > 0)
+        {
+            float raw = _MaskTex.SampleLevel(sampler_MaskTex, uv, 0).r;
+            maskVal = saturate((raw - _MaskFloor) / max(1.0 - _MaskFloor, 0.0001));
+        }
+        if (maskVal <= 0.0)
+            continue;
+
+        // Per-blade properties from hash chain
+        uint s2 = WangHash(seed + 2u);
+        uint s3 = WangHash(s2   + 3u);
+        uint s4 = WangHash(s3   + 4u);
+        uint s5 = WangHash(s4   + 5u);
+
+        BladeData blade;
+        blade.position    = pos;
+        blade.normal      = nrm;
+        blade.uv          = uv;
+        blade.height      = lerp(_MinHeight, _MaxHeight, HashFloat(s2)) * maskVal;
+        blade.width       = lerp(_MinWidth,  _MaxWidth,  HashFloat(s3));
+        blade.phase       = HashFloat(s4) * 6.28318;
+        blade.facingAngle = HashFloat(s5) * 6.28318;
+
+        _VisibleBlades.Append(blade);
+    }
 }

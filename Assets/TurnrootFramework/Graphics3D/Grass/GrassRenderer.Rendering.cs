@@ -44,10 +44,90 @@ namespace Turnroot.Graphics3D
 
             BuildBladeMesh();
             BuildPlaneMesh();
-            BuildBladeData(mf.sharedMesh);
+            UploadMeshData(mf.sharedMesh);
             BuildExtraGroups(mf.sharedMesh);
 
+            _generateKernel = computeShader.FindKernel("GenerateAndCull");
             _cullKernel = computeShader.FindKernel("CullGrass");
+        }
+
+        // ── Main grass: GPU procedural generate + cull in one pass ────────────────
+        private void DrawMainGrass(UnityEngine.Camera cam)
+        {
+            if (
+                _visibleBladesBuffer == null
+                || _indirectArgsBuffer == null
+                || _bladeMesh == null
+                || grassMaterial == null
+                || cam == null
+            )
+                return;
+
+            _visibleBladesBuffer.SetCounterValue(0);
+            DispatchGenerate(cam);
+
+            SetArgsFromMesh(_bladeMesh);
+            SetInstanceCount(0);
+            _indirectArgsBuffer.SetData(_args);
+            ComputeBuffer.CopyCount(_visibleBladesBuffer, _indirectArgsBuffer, sizeof(uint));
+
+            grassMaterial.SetBuffer("_VisibleBlades", _visibleBladesBuffer);
+            grassMaterial.SetVector("_CameraPosition", cam.transform.position);
+            grassMaterial.SetFloat("_MaxDistance", maxDistance);
+            grassMaterial.SetFloat("_FadeStartDistance", fadeStartDistance);
+
+            Graphics.DrawMeshInstancedIndirect(
+                _bladeMesh,
+                0,
+                grassMaterial,
+                _drawBounds,
+                _indirectArgsBuffer,
+                0,
+                null,
+                shadowCasting,
+                true
+            );
+        }
+
+        private void DispatchGenerate(UnityEngine.Camera cam)
+        {
+            Plane[] planes = GeometryUtility.CalculateFrustumPlanes(cam);
+            var planeV4 = new Vector4[6];
+            for (int i = 0; i < 6; i++)
+                planeV4[i] = new Vector4(
+                    planes[i].normal.x,
+                    planes[i].normal.y,
+                    planes[i].normal.z,
+                    planes[i].distance
+                );
+
+            computeShader.SetVectorArray("_FrustumPlanes", planeV4);
+            computeShader.SetVector("_CameraPos", cam.transform.position);
+            computeShader.SetFloat("_MaxDistance", maxDistance);
+            computeShader.SetInt("_TriCount", _triCount);
+            computeShader.SetMatrix("_LocalToWorld", transform.localToWorldMatrix);
+            computeShader.SetFloat("_Density", density);
+            computeShader.SetFloat("_MinHeight", minHeight);
+            computeShader.SetFloat("_MaxHeight", maxHeight);
+            computeShader.SetFloat("_MinWidth", minWidth);
+            computeShader.SetFloat("_MaxWidth", maxWidth);
+
+            bool hasMask = maskTexture != null && maskTexture.isReadable;
+            computeShader.SetInt("_HasMask", hasMask ? 1 : 0);
+            computeShader.SetFloat("_MaskFloor", maskFloor);
+            computeShader.SetTexture(
+                _generateKernel,
+                "_MaskTex",
+                hasMask ? (Texture)maskTexture : _whiteTex
+            );
+
+            computeShader.SetBuffer(_generateKernel, "_MeshVerts", _meshVertsBuffer);
+            computeShader.SetBuffer(_generateKernel, "_MeshTris", _meshTrisBuffer);
+            computeShader.SetBuffer(_generateKernel, "_MeshNormals", _meshNormalsBuffer);
+            computeShader.SetBuffer(_generateKernel, "_MeshUVs", _meshUVsBuffer);
+            computeShader.SetBuffer(_generateKernel, "_VisibleBlades", _visibleBladesBuffer);
+
+            computeShader.Dispatch(_generateKernel, Mathf.CeilToInt(_triCount / 64f), 1, 1);
         }
 
         // ── Per-frame GPU work ────────────────────────────────────────────────────
@@ -146,14 +226,21 @@ namespace Turnroot.Graphics3D
                 _meshRenderer.enabled = _meshRendererWasEnabled;
             }
 
-            _allBladesBuffer?.Release();
-            _allBladesBuffer = null;
             _visibleBladesBuffer?.Release();
             _visibleBladesBuffer = null;
             _indirectArgsBuffer?.Release();
             _indirectArgsBuffer = null;
             _readbackBuffer?.Release();
             _readbackBuffer = null;
+
+            _meshVertsBuffer?.Release();
+            _meshVertsBuffer = null;
+            _meshTrisBuffer?.Release();
+            _meshTrisBuffer = null;
+            _meshNormalsBuffer?.Release();
+            _meshNormalsBuffer = null;
+            _meshUVsBuffer?.Release();
+            _meshUVsBuffer = null;
 
             if (_extraGroups != null)
             {
