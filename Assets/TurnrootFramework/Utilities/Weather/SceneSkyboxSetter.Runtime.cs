@@ -330,7 +330,22 @@ namespace Turnroot.Utilities.Weather
                 // Instantiate the material so runtime tinting does not persist to the source asset.
                 _waterMaterialSource = WaterMaterial;
                 _waterMaterialInstance = Instantiate(_waterMaterialSource);
+                _waterMaterialInstance.hideFlags = HideFlags.DontSave;
                 CacheWaterBaseColors();
+
+                // Swap the material slot on the renderer so SetColor calls are visible in-scene.
+                if (WaterRenderer != null)
+                {
+                    var slots = WaterRenderer.sharedMaterials;
+                    for (int i = 0; i < slots.Length; i++)
+                    {
+                        if (slots[i] == _waterMaterialSource)
+                        {
+                            slots[i] = _waterMaterialInstance;
+                        }
+                    }
+                    WaterRenderer.sharedMaterials = slots;
+                }
             }
 
             // Configure audio sources for ambience and 3D event sounds
@@ -394,10 +409,19 @@ namespace Turnroot.Utilities.Weather
             // restore material colours (if we instantiated an instance)
             if (_waterMaterialInstance != null)
             {
-                _waterMaterialInstance.SetColor("_ShallowColor", baseShallowColor);
-                _waterMaterialInstance.SetColor("_DeepColor", baseDeepColor);
-                _waterMaterialInstance.SetColor("_SpecularColor", baseSpecColor);
-                _waterMaterialInstance.SetColor("_FresnelColor", baseFresnelColor);
+                // Restore original material on the renderer before destroying the instance.
+                if (WaterRenderer != null && _waterMaterialSource != null)
+                {
+                    var slots = WaterRenderer.sharedMaterials;
+                    for (int i = 0; i < slots.Length; i++)
+                    {
+                        if (slots[i] == _waterMaterialInstance)
+                        {
+                            slots[i] = _waterMaterialSource;
+                        }
+                    }
+                    WaterRenderer.sharedMaterials = slots;
+                }
 
                 if (_waterMaterialSource != null)
                 {
