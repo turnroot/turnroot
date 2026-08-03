@@ -18,10 +18,10 @@ namespace Turnroot.Graphics3D
         {
             if (
                 !grassEnabled
-                || _allBladesBuffer == null
+                || _visibleBladesBuffer == null
                 || computeShader == null
                 || grassMaterial == null
-                || _totalBladeCount == 0
+                || _triCount == 0
             )
             {
                 return;
@@ -33,15 +33,7 @@ namespace Turnroot.Graphics3D
                 return;
             }
 
-            DrawGroup(
-                _allBladesBuffer,
-                _visibleBladesBuffer,
-                _indirectArgsBuffer,
-                _totalBladeCount,
-                _bladeMesh,
-                grassMaterial,
-                cam
-            );
+            DrawMainGrass(cam);
 
             if (_extraGroups != null)
             {

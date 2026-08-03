@@ -31,109 +31,55 @@ namespace Turnroot.Graphics3D
 
         private List<ExtraGroup> _extraGroups;
 
-        // ── Blade placement ───────────────────────────────────────────────────────
-        private void BuildBladeData(Mesh mesh)
+        // -- Mesh data upload (replaces CPU blade pre-generation) ------------------
+        private void UploadMeshData(Mesh mesh)
         {
             var (verts, tris, normals, uvs) = GetMeshArrays(mesh);
-            var (cdf, totalArea) = BuildAreaCDF(verts, tris);
-            if (totalArea <= 0f)
+            _triCount = tris.Length / 3;
+
+            // Upload mesh geometry for the GenerateAndCull compute kernel
+            _meshVertsBuffer = new ComputeBuffer(verts.Length, 3 * sizeof(float));
+            _meshTrisBuffer = new ComputeBuffer(tris.Length, sizeof(int));
+            _meshNormalsBuffer = new ComputeBuffer(normals.Length, 3 * sizeof(float));
+            _meshUVsBuffer = new ComputeBuffer(uvs.Length, 2 * sizeof(float));
+            _meshVertsBuffer.SetData(verts);
+            _meshTrisBuffer.SetData(tris);
+            _meshNormalsBuffer.SetData(normals);
+            _meshUVsBuffer.SetData(uvs);
+
+            // 1x1 white texture fallback for when no mask is assigned
+            if (_whiteTex == null)
             {
-                return;
+                _whiteTex = new Texture2D(1, 1, TextureFormat.R8, false);
+                _whiteTex.SetPixel(0, 0, Color.white);
+                _whiteTex.Apply();
             }
 
-            bool hasMask = maskTexture != null && maskTexture.isReadable;
-            int triCount = tris.Length / 3;
-            int targetCount = Mathf.Min(Mathf.RoundToInt(totalArea * density), maxBlades);
-            if (targetCount == 0)
-            {
-                return;
-            }
-
-            var blades = new List<BladeData>(targetCount);
-            var bounds = new Bounds();
-            bool first = true;
-            var rng = new System.Random(42);
-
-            for (
-                int attempt = 0;
-                blades.Count < targetCount && attempt < targetCount * 4;
-                attempt++
-            )
-            {
-                SampleTriangle(
-                    rng,
-                    cdf,
-                    triCount,
-                    tris,
-                    verts,
-                    normals,
-                    uvs,
-                    out Vector3 pos,
-                    out Vector3 normal,
-                    out Vector2 uv
-                );
-
-                float maskVal = 1f;
-                if (hasMask)
-                {
-                    float raw = maskTexture.GetPixelBilinear(uv.x, uv.y).grayscale;
-                    maskVal = Mathf.Clamp01((raw - maskFloor) / Mathf.Max(1f - maskFloor, 0.0001f));
-                }
-                if (maskVal <= 0f)
-                {
-                    continue;
-                }
-
-                if (first)
-                {
-                    bounds = new Bounds(pos, Vector3.zero);
-                    first = false;
-                }
-                else
-                {
-                    bounds.Encapsulate(pos);
-                }
-
-                blades.Add(
-                    new BladeData
-                    {
-                        position = pos,
-                        normal = normal,
-                        uv = uv,
-                        height =
-                            Mathf.Lerp(minHeight, maxHeight, (float)rng.NextDouble()) * maskVal,
-                        width = Mathf.Lerp(minWidth, maxWidth, (float)rng.NextDouble()),
-                        phase = (float)(rng.NextDouble() * Math.PI * 2.0),
-                        facingAngle = (float)(rng.NextDouble() * Math.PI * 2.0),
-                    }
-                );
-            }
-
-            _totalBladeCount = blades.Count;
-            if (_totalBladeCount == 0)
-            {
-                return;
-            }
-
-            bounds.Expand(maxHeight * 4f);
-            _drawBounds = bounds;
-
-            _allBladesBuffer = new ComputeBuffer(_totalBladeCount, BladeData.Stride);
+            // Visible blades buffer: sized to hold at most maxBlades blades per frame
             _visibleBladesBuffer = new ComputeBuffer(
-                _totalBladeCount,
+                Mathf.Max(maxBlades, 1),
                 BladeData.Stride,
                 ComputeBufferType.Append
             );
+
             _indirectArgsBuffer = new ComputeBuffer(
                 1,
                 5 * sizeof(uint),
                 ComputeBufferType.IndirectArguments
             );
-            _allBladesBuffer.SetData(blades.ToArray());
-
-            // configure indirect args for drawing (instance count will be filled in later)
             SetArgsFromMesh(_bladeMesh);
             SetInstanceCount(0);
+
+            // Draw bounds: world-space mesh bounds expanded by maxDistance so the
+            // DrawMeshInstancedIndirect call is never wrongly frustum-culled by Unity.
+            Bounds mb = mesh.bounds;
+            Vector3 worldCenter = transform.TransformPoint(mb.center);
+            Vector3 worldExtents = new Vector3(
+                mb.extents.x * transform.lossyScale.x + maxDistance,
+                mb.extents.y * transform.lossyScale.y + maxHeight,
+                mb.extents.z * transform.lossyScale.z + maxDistance
+            );
+            _drawBounds = new Bounds(worldCenter, worldExtents * 2f);
         }
 
         // ── Extra group placement ─────────────────────────────────────────────────
@@ -319,16 +265,31 @@ namespace Turnroot.Graphics3D
         }
 
         // Normalised cumulative area distribution over mesh triangles.
-        private (float[] cdf, float totalArea) BuildAreaCDF(Vector3[] verts, int[] tris)
+        // When center/radius are supplied, only triangles with at least one vertex
+        // within radius are included — focusing generation on the visible area.
+        private (float[] cdf, float totalArea) BuildAreaCDF(
+            Vector3[] verts,
+            int[] tris,
+            Vector3 center = default,
+            float radius = float.MaxValue
+        )
         {
             int triCount = tris.Length / 3;
             var areas = new float[triCount];
             float totalArea = 0f;
+            float radiusSq = radius * radius;
             for (int ti = 0; ti < triCount; ti++)
             {
                 Vector3 w0 = transform.TransformPoint(verts[tris[ti * 3]]);
                 Vector3 w1 = transform.TransformPoint(verts[tris[(ti * 3) + 1]]);
                 Vector3 w2 = transform.TransformPoint(verts[tris[(ti * 3) + 2]]);
+                // Skip triangles entirely outside the radius
+                if (
+                    (w0 - center).sqrMagnitude > radiusSq
+                    && (w1 - center).sqrMagnitude > radiusSq
+                    && (w2 - center).sqrMagnitude > radiusSq
+                )
+                    continue;
                 areas[ti] = Vector3.Cross(w1 - w0, w2 - w0).magnitude * 0.5f;
                 totalArea += areas[ti];
             }

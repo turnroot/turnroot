@@ -87,16 +87,23 @@ namespace Turnroot.Graphics3D
         public bool logVisibleCount = false;
 
         // -- GPU resources ---------------------------------------------------------
-        private ComputeBuffer _allBladesBuffer;
         private ComputeBuffer _visibleBladesBuffer;
         private ComputeBuffer _indirectArgsBuffer;
         private ComputeBuffer _readbackBuffer;
+
+        // Mesh data buffers uploaded once at init; read by GenerateAndCull each frame
+        private ComputeBuffer _meshVertsBuffer;
+        private ComputeBuffer _meshTrisBuffer;
+        private ComputeBuffer _meshNormalsBuffer;
+        private ComputeBuffer _meshUVsBuffer;
+        private Texture2D _whiteTex; // 1x1 white fallback when no mask is assigned
 
         private MeshRenderer _meshRenderer;
         private bool _meshRendererWasEnabled;
         private Mesh _bladeMesh;
         private Mesh _planeMesh;
-        private int _totalBladeCount;
+        private int _triCount;
+        private int _generateKernel;
         private int _cullKernel;
         private Bounds _drawBounds;
         private float _logTimer;
