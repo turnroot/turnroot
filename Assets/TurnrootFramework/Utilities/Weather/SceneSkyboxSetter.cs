@@ -124,6 +124,12 @@ namespace Turnroot.Utilities.Weather
         [HorizontalLine(2, EColor.Green)]
         [Header("Water Material & Colors")]
         [BoxGroup("Water")]
+        [Tooltip(
+            "Renderer on the water mesh. The water material slot will be swapped to a runtime instance so tinting changes do not persist to the source asset."
+        )]
+        public Renderer WaterRenderer;
+
+        [BoxGroup("Water")]
         [Tooltip("Water material used for tinting based on sky conditions.")]
         public Material WaterMaterial;
 
