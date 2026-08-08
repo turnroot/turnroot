@@ -6,6 +6,7 @@ using UnityEngine.Playables;
 
 namespace Turnroot.Graphics3D
 {
+    [RequireComponent(typeof(NavMeshAgent), typeof(Animator), typeof(AudioSource))]
     public class EnvironmentalNavAgent : MonoBehaviour
     {
         [Header("Components")]
@@ -290,30 +291,24 @@ namespace Turnroot.Graphics3D
 
         public OperationResult EmitSound()
         {
-            TryGetComponent(out AudioSource source);
-            if (source == null)
+            AudioSource source = GetComponent<AudioSource>();
+
+            if (neutralSounds != null && neutralSounds.Length > 0)
             {
-                return OperationResult.Failure("No AudioSource found on EnvironmentalNavAgent.");
+                AudioClip newClip;
+                do
+                {
+                    newClip = neutralSounds[Random.Range(0, neutralSounds.Length)];
+                } while (newClip == currentSound && neutralSounds.Length > 1);
+                currentSound = newClip;
+                source.PlayOneShot(currentSound);
+                return OperationResult.Successful();
             }
             else
             {
-                if (neutralSounds != null && neutralSounds.Length > 0)
-                {
-                    AudioClip newClip;
-                    do
-                    {
-                        newClip = neutralSounds[Random.Range(0, neutralSounds.Length)];
-                    } while (newClip == currentSound && neutralSounds.Length > 1);
-                    currentSound = newClip;
-                    source.PlayOneShot(currentSound);
-                    return OperationResult.Successful();
-                }
-                else
-                {
-                    return OperationResult.Failure(
-                        "No neutral sounds assigned to EnvironmentalNavAgent."
-                    );
-                }
+                return OperationResult.Failure(
+                    "No neutral sounds assigned to EnvironmentalNavAgent."
+                );
             }
         }
     }
