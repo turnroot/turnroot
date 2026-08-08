@@ -36,14 +36,14 @@ namespace Turnroot.Graphics3D
         public float maxWalkTime = 5f;
         public float minDestinationChangeInterval = 10f;
         public float maxDestinationChangeInterval = 20f;
-
-        [Header("Wander - Path Noise")]
         public float noiseAmount = 2.5f;
         public float noiseFrequency = 0.8f;
         public float noiseSpeed = 0.15f;
-
-        [Header("Wander - Destination")]
         public float wanderRadius = 8f;
+
+        [Header("Audio")]
+        public float minSoundInterval = 5f;
+        public float maxSoundInterval = 15f;
 
         private enum WanderState
         {
@@ -52,9 +52,9 @@ namespace Turnroot.Graphics3D
         }
 
         private WanderState _state = WanderState.Idle;
-
         private float _stateTimer;
         private float _destinationChangeTimer;
+        private float _soundTimer;
         private Vector3 _wanderTarget;
         private float _noiseOffset;
         private int _currentIdleIndex;
@@ -101,13 +101,19 @@ namespace Turnroot.Graphics3D
         {
             _stateTimer -= Time.deltaTime;
             _destinationChangeTimer -= Time.deltaTime;
-
+            _soundTimer -= Time.deltaTime;
             if (_destinationChangeTimer <= 0f)
             {
                 PickNewDestination();
             }
 
             UpdateCrossfade();
+
+            if (_soundTimer <= 0f)
+            {
+                EmitSound();
+                _soundTimer = Random.Range(minSoundInterval, maxSoundInterval);
+            }
 
             switch (_state)
             {
