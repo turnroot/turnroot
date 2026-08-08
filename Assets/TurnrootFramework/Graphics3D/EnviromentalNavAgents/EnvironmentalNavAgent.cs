@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
+using UnityEngine.Serialization;
 
 namespace Turnroot.Graphics3D
 {
@@ -13,7 +14,8 @@ namespace Turnroot.Graphics3D
         public NavMeshAgent agent;
         public Animator animator;
 
-        public AudioClip[] neutralSounds;
+        [FormerlySerializedAs("neutralSounds")]
+        public AudioClip[] sounds;
         private AudioClip currentSound;
 
         public bool randomizeStartPosition = false;
@@ -44,6 +46,8 @@ namespace Turnroot.Graphics3D
         [Header("Audio")]
         public float minSoundInterval = 5f;
         public float maxSoundInterval = 15f;
+
+        public bool emitSounds = true;
 
         private enum WanderState
         {
@@ -111,7 +115,10 @@ namespace Turnroot.Graphics3D
 
             if (_soundTimer <= 0f)
             {
-                EmitSound();
+                if (emitSounds)
+                {
+                    EmitSound();
+                }
                 _soundTimer = Random.Range(minSoundInterval, maxSoundInterval);
             }
 
@@ -299,13 +306,13 @@ namespace Turnroot.Graphics3D
         {
             AudioSource source = GetComponent<AudioSource>();
 
-            if (neutralSounds != null && neutralSounds.Length > 0)
+            if (sounds != null && sounds.Length > 0)
             {
                 AudioClip newClip;
                 do
                 {
-                    newClip = neutralSounds[Random.Range(0, neutralSounds.Length)];
-                } while (newClip == currentSound && neutralSounds.Length > 1);
+                    newClip = sounds[Random.Range(0, sounds.Length)];
+                } while (newClip == currentSound && sounds.Length > 1);
                 currentSound = newClip;
                 source.PlayOneShot(currentSound);
                 return OperationResult.Successful();
