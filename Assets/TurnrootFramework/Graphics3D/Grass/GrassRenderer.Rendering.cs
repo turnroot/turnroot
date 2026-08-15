@@ -61,7 +61,9 @@ namespace Turnroot.Graphics3D
                 || grassMaterial == null
                 || cam == null
             )
+            {
                 return;
+            }
 
             _visibleBladesBuffer.SetCounterValue(0);
             DispatchGenerate(cam);
@@ -94,12 +96,14 @@ namespace Turnroot.Graphics3D
             Plane[] planes = GeometryUtility.CalculateFrustumPlanes(cam);
             var planeV4 = new Vector4[6];
             for (int i = 0; i < 6; i++)
+            {
                 planeV4[i] = new Vector4(
                     planes[i].normal.x,
                     planes[i].normal.y,
                     planes[i].normal.z,
                     planes[i].distance
                 );
+            }
 
             computeShader.SetVectorArray("_FrustumPlanes", planeV4);
             computeShader.SetVector("_CameraPos", cam.transform.position);

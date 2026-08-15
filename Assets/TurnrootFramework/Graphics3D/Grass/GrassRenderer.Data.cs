@@ -289,7 +289,10 @@ namespace Turnroot.Graphics3D
                     && (w1 - center).sqrMagnitude > radiusSq
                     && (w2 - center).sqrMagnitude > radiusSq
                 )
+                {
                     continue;
+                }
+
                 areas[ti] = Vector3.Cross(w1 - w0, w2 - w0).magnitude * 0.5f;
                 totalArea += areas[ti];
             }
