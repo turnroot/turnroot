@@ -1,4 +1,5 @@
 using NaughtyAttributes;
+using Turnroot.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +17,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
         {
             Slider,
             Toggles,
-            SimpleButton,
+            UiChoice,
             Carousel,
         }
 
@@ -39,8 +40,8 @@ namespace Turnroot.UI.Components.Menu.Submenu
         [ShowIf("rowType", RowType.Toggles)]
         public SimpleToggle[] toggleComponents;
 
-        [ShowIf("rowType", RowType.SimpleButton)]
-        public SimpleButton.SimpleButton[] buttonComponents;
+        [ShowIf("rowType", RowType.UiChoice)]
+        public UiChoice[] buttonComponents;
 
         [ShowIf("rowType", RowType.Carousel)]
         public MenuCarousel carouselComponent;
@@ -72,8 +73,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
             return rowType switch
             {
                 RowType.Toggles when HasElements(toggleComponents) => toggleComponents.Length - 1,
-                RowType.SimpleButton when HasElements(buttonComponents) => buttonComponents.Length
-                    - 1,
+                RowType.UiChoice when HasElements(buttonComponents) => buttonComponents.Length - 1,
                 RowType.Carousel when carouselComponent != null => carouselComponent.Options.Count
                     - 1,
                 _ => 0,
@@ -87,7 +87,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Toggles:
                     UpdateToggleVisuals();
                     break;
-                case RowType.SimpleButton:
+                case RowType.UiChoice:
                     UpdateButtonVisuals();
                     break;
                 case RowType.Carousel:
@@ -103,7 +103,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
                 case RowType.Toggles:
                     ClearToggleVisuals();
                     break;
-                case RowType.SimpleButton:
+                case RowType.UiChoice:
                     ClearButtonVisuals();
                     break;
                 case RowType.Carousel:
@@ -149,19 +149,26 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
             for (int i = 0; i < buttonComponents.Length; i++)
             {
-                buttonComponents[i]?.OnPointerExit(null);
-                var textComponent = buttonComponents[i]
-                    ?.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                var choice = buttonComponents[i];
+                if (choice == null)
+                    continue;
+
+                if (i == currentSelectionIndex)
+                {
+                    choice.Select();
+                }
+                else
+                {
+                    choice.Deselect();
+                }
+
+                var textComponent = choice.GetComponentInChildren<TMPro.TextMeshProUGUI>();
                 if (textComponent != null)
                 {
                     textComponent.fontStyle =
                         (i == currentSelectionIndex)
                             ? TMPro.FontStyles.Bold
                             : TMPro.FontStyles.Normal;
-                }
-                if (i == currentSelectionIndex)
-                {
-                    buttonComponents[i]?.OnPointerEnter(null);
                 }
             }
         }
@@ -175,6 +182,8 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
             for (int i = 0; i < buttonComponents.Length; i++)
             {
+                buttonComponents[i]?.Deselect();
+
                 var textComponent = buttonComponents[i]
                     ?.GetComponentInChildren<TMPro.TextMeshProUGUI>();
                 if (textComponent != null)
@@ -227,12 +236,12 @@ namespace Turnroot.UI.Components.Menu.Submenu
             return !isSelected
                 ? false
                 : input switch
-            {
-                SubmenuRowInput.Left => HandleInputLeftRight(SubmenuRowInput.Left),
-                SubmenuRowInput.Right => HandleInputLeftRight(SubmenuRowInput.Right),
-                SubmenuRowInput.Select => HandleInputSelect(),
-                _ => false,
-            };
+                {
+                    SubmenuRowInput.Left => HandleInputLeftRight(SubmenuRowInput.Left),
+                    SubmenuRowInput.Right => HandleInputLeftRight(SubmenuRowInput.Right),
+                    SubmenuRowInput.Select => HandleInputSelect(),
+                    _ => false,
+                };
         }
 
         private bool HandleInputLeftRight(SubmenuRowInput direction)
@@ -242,59 +251,59 @@ namespace Turnroot.UI.Components.Menu.Submenu
             switch (rowType)
             {
                 case RowType.Slider:
+                {
+                    // quality slider uses 4 discrete steps (0,1/3,2/3,1),
+                    // other sliders use y 0.1 increment
+                    float step;
+                    string normalized = string.Empty;
+                    string[] candidates = new string[]
                     {
-                        // quality slider uses 4 discrete steps (0,1/3,2/3,1),
-                        // other sliders use y 0.1 increment
-                        float step;
-                        string normalized = string.Empty;
-                        string[] candidates = new string[]
-                        {
                         sliderComponent != null ? sliderComponent.gameObject.name : null,
                         gameObject.name,
                         labelText != null ? labelText.text : null,
-                        };
+                    };
 
-                        foreach (var c in candidates)
+                    foreach (var c in candidates)
+                    {
+                        if (string.IsNullOrEmpty(c))
                         {
-                            if (string.IsNullOrEmpty(c))
-                            {
-                                continue;
-                            }
-
-                            var lower = c.ToLower();
-                            var sb = new System.Text.StringBuilder();
-                            foreach (var ch in lower)
-                            {
-                                if (char.IsLetterOrDigit(ch))
-                                {
-                                    sb.Append(ch);
-                                }
-                            }
-                            normalized = sb.ToString();
-                            if (!string.IsNullOrEmpty(normalized))
-                            {
-                                break;
-                            }
+                            continue;
                         }
 
-                        if (normalized == "quality")
+                        var lower = c.ToLower();
+                        var sb = new System.Text.StringBuilder();
+                        foreach (var ch in lower)
                         {
-                            // Move exactly one tenth per input; with slider max=0.3 this yields four steps
-                            step = 0.1f * delta;
+                            if (char.IsLetterOrDigit(ch))
+                            {
+                                sb.Append(ch);
+                            }
                         }
-                        else
+                        normalized = sb.ToString();
+                        if (!string.IsNullOrEmpty(normalized))
                         {
-                            step = 0.1f * delta; // legacy behavior for other sliders
+                            break;
                         }
-
-                        AdjustSlider(step);
-                        return true;
                     }
+
+                    if (normalized == "quality")
+                    {
+                        // Move exactly one tenth per input; with slider max=0.3 this yields four steps
+                        step = 0.1f * delta;
+                    }
+                    else
+                    {
+                        step = 0.1f * delta; // legacy behavior for other sliders
+                    }
+
+                    AdjustSlider(step);
+                    return true;
+                }
 
                 case RowType.Toggles:
                     return NavigateElements(toggleComponents, delta, UpdateToggleVisuals);
 
-                case RowType.SimpleButton:
+                case RowType.UiChoice:
                     return NavigateElements(buttonComponents, delta, UpdateButtonVisuals);
 
                 case RowType.Carousel:
@@ -361,7 +370,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
                     toggleComponents[currentSelectionIndex]?.Toggle();
                     return true;
 
-                case RowType.SimpleButton:
+                case RowType.UiChoice:
                     if (!HasElements(buttonComponents))
                     {
                         return false;

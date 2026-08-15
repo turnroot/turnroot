@@ -244,10 +244,7 @@ namespace Turnroot.UI.Editor
             );
             EditorGUILayout.LabelField("  • Child items: RadialMenuItem components", _bodyStyle);
             EditorGUILayout.LabelField("  • Navigation: Directional input or mouse", _bodyStyle);
-            EditorGUILayout.LabelField(
-                "  • Best for: Quick access, radial selection",
-                _bodyStyle
-            );
+            EditorGUILayout.LabelField("  • Best for: Quick access, radial selection", _bodyStyle);
             GUILayout.Space(4);
 
             EditorGUILayout.LabelField("<b>GridMenu</b> (2D grid navigation)", _bodyStyle);
@@ -340,7 +337,7 @@ namespace Turnroot.UI.Editor
             EditorGUILayout.LabelField("  • Create child GameObjects under menu", _bodyStyle);
             EditorGUILayout.LabelField("  • Add Component → ListMenuItem to each", _bodyStyle);
             EditorGUILayout.LabelField(
-                "  • SimpleButton is auto-added by ListMenuItem",
+                "  • UiChoice is auto-added by ListMenuItem (add UIEffect component for visuals)",
                 _bodyStyle
             );
             EditorGUILayout.LabelField("  • Set Item Name field on each ListMenuItem", _bodyStyle);
@@ -612,8 +609,14 @@ namespace Turnroot.UI.Editor
                 "  • Created from GamewideUiSettings.MenuCanvasPrefab",
                 _bodyStyle
             );
-            EditorGUILayout.LabelField("  • Uses SimpleButton with Role.Back", _bodyStyle);
-            EditorGUILayout.LabelField("  • Input: Escape key or gamepad B/Circle", _bodyStyle);
+            EditorGUILayout.LabelField(
+                "  • Input subscribed directly to UIInputActionDefaults.Back",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "  • Input: UIInputActionDefaults.Back (Escape / gamepad B)",
+                _bodyStyle
+            );
             EditorGUILayout.LabelField("  • Navigates to previous menu in depth stack", _bodyStyle);
             GUILayout.Space(4);
 
@@ -623,7 +626,7 @@ namespace Turnroot.UI.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "  • Prefab should contain SimpleButton with Role = Back",
+                "  • Prefab is visual only — input is subscribed directly in code",
                 _bodyStyle
             );
             EditorGUILayout.LabelField("  • Position and style in prefab", _bodyStyle);
@@ -658,7 +661,10 @@ namespace Turnroot.UI.Editor
             EditorGUILayout.LabelField("  ✓ Button creation/destruction", _bodyStyle);
             EditorGUILayout.LabelField("  ✓ Input action binding", _bodyStyle);
             EditorGUILayout.LabelField("  ✓ State-based visibility logic", _bodyStyle);
-            EditorGUILayout.LabelField("  ✓ SimpleButton integration", _bodyStyle);
+            EditorGUILayout.LabelField(
+                "  ✓ Direct UIInputAction subscription (no SimpleButton)",
+                _bodyStyle
+            );
             GUILayout.Space(4);
 
             EditorGUILayout.LabelField("<b>What's NOT Implemented:</b>", _bodyStyle);
@@ -732,7 +738,7 @@ namespace Turnroot.UI.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "  • Ensure SimpleButton component on list item",
+                "  • Check UiChoice component on list item and that UIEffect is assigned",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
@@ -767,7 +773,7 @@ namespace Turnroot.UI.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "  • Verify SimpleButton in MenuCanvasPrefab has Role.Back",
+                "  • Back input is subscribed directly to UIInputActionDefaults.Back",
                 _bodyStyle
             );
 

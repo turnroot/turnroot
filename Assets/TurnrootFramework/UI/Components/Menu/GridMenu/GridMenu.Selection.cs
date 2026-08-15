@@ -1,4 +1,4 @@
-using UnityEngine.EventSystems;
+using Turnroot.UI;
 
 namespace Turnroot.UI.Components.GridMenu
 {
@@ -26,24 +26,16 @@ namespace Turnroot.UI.Components.GridMenu
                 return;
             }
 
-            // Simulate pointer exit on previous
+            // Deselect previous
             if (_selectedIndex >= 0 && _selectedIndex < menuItems.Count)
             {
-                var prev = menuItems[_selectedIndex];
-                if (prev.TryGetComponent(out SimpleButton.SimpleButton prevButton))
-                {
-                    var fakeExit = new PointerEventData(EventSystem.current);
-                    prevButton.OnPointerExit(fakeExit);
-                }
+                menuItems[_selectedIndex].TryGetComponent<UiChoice>(out var prevChoice);
+                prevChoice?.Deselect();
             }
 
-            // Simulate pointer enter on new
-            var current = menuItems[index];
-            if (current.TryGetComponent(out SimpleButton.SimpleButton curButton))
-            {
-                var fakeEnter = new PointerEventData(EventSystem.current);
-                curButton.OnPointerEnter(fakeEnter);
-            }
+            // Select new
+            menuItems[index].TryGetComponent<UiChoice>(out var curChoice);
+            curChoice?.Select();
 
             _selectedIndex = index;
 

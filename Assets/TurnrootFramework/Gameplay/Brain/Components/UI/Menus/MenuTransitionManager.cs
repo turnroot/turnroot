@@ -4,7 +4,6 @@ using Turnroot.UI;
 using Turnroot.UI.Components;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
-using Turnroot.UI.Components.SimpleButton;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
@@ -173,12 +172,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
 
                 menu.OnItemSelected += itemHandler;
-
-                var simpleButtons = menu.GetComponentsInChildren<SimpleButton>(true);
-                foreach (var sb in simpleButtons)
-                {
-                    sb.AssignSelectAction(UIInputActionDefaults.Select);
-                }
             }
 
             if (instance.TryGetComponent<RadialMenu>(out var radial))

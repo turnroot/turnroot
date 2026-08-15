@@ -13,7 +13,6 @@ namespace Turnroot.UI
     /// them as simple string events.  Also holds audio settings used by
     /// <see cref="UiChoiceHandler"/> during navigation.
     /// </summary>
-    [RequireComponent(typeof(GameObject))]
     public class UiInputProvider : MonoBehaviour
     {
         /// <summary>Fired whenever one of the common UI actions is performed.</summary>
@@ -39,7 +38,6 @@ namespace Turnroot.UI
 
         private InputAction _subscribedScrollLeft;
         private InputAction _subscribedScrollRight;
-        private InputAction _subscribedLeftStickClick;
 
         private InputAction _subscribedToggleDetails;
 
@@ -377,7 +375,7 @@ namespace Turnroot.UI
             int maxCount,
             Action onSelect
         )
-            where T : MonoBehaviour
+            where T : UiChoice
         {
             UiChoiceHandler.HandleNavigation(
                 action,

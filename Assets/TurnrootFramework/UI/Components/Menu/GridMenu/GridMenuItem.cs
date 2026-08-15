@@ -1,14 +1,14 @@
+using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
 
 namespace Turnroot.UI.Components.GridMenu
 {
     /// <summary>
-    /// A menu item designed for grid-based menus with row/column positioning and SimpleButton integration.
+    /// A menu item designed for grid-based menus with row/column positioning and UiChoice visual feedback.
     /// </summary>
-    [RequireComponent(typeof(SimpleButtonComponent))]
+    [RequireComponent(typeof(UiChoice))]
     public class GridMenuItem
         : MenuItemBase,
             IPointerEnterHandler,
@@ -31,37 +31,31 @@ namespace Turnroot.UI.Components.GridMenu
         [SerializeField]
         private string itemName;
 
-        private SimpleButtonComponent _simpleButton;
+        private UiChoice _uiChoice;
 
         private void Awake()
         {
-            _simpleButton = GetComponent<SimpleButtonComponent>() ?? gameObject.AddComponent<SimpleButtonComponent>();
-            _simpleButton.OnSelected += HandleSimpleButtonSelection;
-        }
-
-        private void OnDestroy()
-        {
-            if (_simpleButton != null)
-            {
-                _simpleButton.OnSelected -= HandleSimpleButtonSelection;
-            }
+            _uiChoice = GetComponent<UiChoice>() ?? gameObject.AddComponent<UiChoice>();
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            _simpleButton.OnPointerEnter(eventData);
+            _uiChoice.Select();
             parentMenu?.NavigateToItem(this);
             RaiseHoverEnter();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            _simpleButton.OnPointerExit(eventData);
+            _uiChoice.Deselect();
             RaiseHoverExit();
         }
 
-        public void OnPointerClick(PointerEventData eventData) =>
-            _simpleButton.OnPointerClick(eventData);
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            eventData.Use();
+            Select();
+        }
 
         public override void Select()
         {
@@ -69,7 +63,15 @@ namespace Turnroot.UI.Components.GridMenu
             parentMenu?.SelectItem(this);
         }
 
-        private void HandleSimpleButtonSelection() => Select();
+        public override void Deselect()
+        {
+            base.Deselect();
+            _uiChoice?.Deselect();
+        }
+
+        public void HighlightVisual() => _uiChoice?.Select();
+
+        public void ClearHighlightVisual() => _uiChoice?.Deselect();
 
         public override void SetParentMenu(MenuBase parent)
         {

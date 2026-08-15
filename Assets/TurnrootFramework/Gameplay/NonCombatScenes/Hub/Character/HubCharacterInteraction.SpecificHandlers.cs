@@ -5,6 +5,7 @@ using Turnroot.Characters;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Objects;
 using Turnroot.GameSettings;
+using Turnroot.UI;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 {
     public partial class HubCharacterInteraction : MonoBehaviour
     {
-        private MonoBehaviour[] _activeItemRows;
+        private UiChoice[] _activeItemRows;
         private ObjectItem[] _items;
         private int _activeItemChoiceIndex;
         private Action _activeOnItemChosen;
@@ -140,12 +141,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             }
 
             var materials = CharacterManager._brain.storehouseBrain.GetAllMaterials();
-            var rows = new List<MonoBehaviour>();
+            var rows = new List<UiChoice>();
             var itemList = new List<ObjectItem>();
             foreach (var kv in materials.Where(m => filter(m.Key) && m.Value > 0))
             {
-                rows.Add(createAndInitRow(kv.Key, kv.Value));
-                itemList.Add(kv.Key);
+                var row = createAndInitRow(kv.Key, kv.Value);
+                var choice = row.GetComponent<UiChoice>();
+                if (choice != null)
+                {
+                    rows.Add(choice);
+                    itemList.Add(kv.Key);
+                }
+                else
+                {
+                    $"HubCharacterInteraction: Row {row.name} is missing a UiChoice component — skipped.".LogWarning();
+                }
             }
 
             _activeItemRows = rows.ToArray();
@@ -159,8 +169,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
             if (_activeItemRows.Length > 0)
             {
-                _activeItemRows[0]
-                    .BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver);
+                _activeItemRows[0].Select();
             }
 
             InputProvider.OnInput += HandleItemInput;
