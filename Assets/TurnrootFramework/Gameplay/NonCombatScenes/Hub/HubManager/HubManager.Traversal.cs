@@ -41,6 +41,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Foldout("Cameras")]
         [Tooltip("Single traversal vcam used for both exploring and zooming")]
         public CinemachineVirtualCamera TraversalVcam;
+        public Camera OverlayCamera;
 
         [Foldout("Explore/UI")]
         public float maxPoiDistance = 10f;

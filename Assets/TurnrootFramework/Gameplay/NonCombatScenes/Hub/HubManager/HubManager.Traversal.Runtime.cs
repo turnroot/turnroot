@@ -92,6 +92,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        private void SetOverlayCameraFovImmediate(float fov)
+        {
+            if (OverlayCamera != null)
+            {
+                OverlayCamera.fieldOfView = fov;
+            }
+        }
+
         private void StartTraversalFovTween(float targetFov)
         {
             if (_zoomFovCoroutine != null)
@@ -112,6 +120,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             var startLens = TraversalVcam.m_Lens;
+            var startOverlayLens = OverlayCamera?.fieldOfView ?? 0f;
             float startFov = startLens.FieldOfView;
             float duration = Mathf.Max(0.0001f, zoomTime);
             float elapsed = 0f;
@@ -121,10 +130,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / duration);
                 SetTraversalFovImmediate(Mathf.Lerp(startFov, targetFov, t));
+                SetOverlayCameraFovImmediate(Mathf.Lerp(startOverlayLens, targetFov, t));
                 yield return null;
             }
 
             SetTraversalFovImmediate(targetFov);
+            SetOverlayCameraFovImmediate(targetFov);
             _zoomFovCoroutine = null;
         }
 
