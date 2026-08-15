@@ -11,8 +11,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     {
         public void PickTileAndAction()
         {
-            // TEMPORARY DEBUG: Force recompute every time
-            ClearReusableTileLists();
             // 1. Ensure tiles are computed
             EnsureTilesAreComputed();
 

@@ -5,7 +5,6 @@ using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
-using Turnroot.UI.Components.SimpleButton;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
@@ -148,41 +147,9 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void ReassignRoleButton(GameObject canvas)
         {
-            if (canvas == null)
-            {
-                return;
-            }
-
-            var sb = canvas.GetComponentInChildren<SimpleButton>();
-            if (sb == null)
-            {
-                return;
-            }
-
-            // Don't dispose shared actions; we keep the shared UI actions enabled at all times.
-            // The SimpleButton component is responsible for managing its own subscriptions.
-
-            if (sb.Role == SimpleButtonRole.Back)
-            {
-                sb.AssignSelectAction(UIInputActionDefaults.Back);
-                // Ensure the Back handler is present (rebinding may have caused subscriptions to be lost)
-                try
-                {
-                    sb.OnSelected -= HandleBackButtonPressed;
-                }
-                catch { }
-                sb.OnSelected += HandleBackButtonPressed;
-            }
-            else if (sb.Role == SimpleButtonRole.Details)
-            {
-                sb.AssignSelectAction(UIInputActionDefaults.Confirm);
-                try
-                {
-                    sb.OnSelected -= HandleDetailsButtonPressed;
-                }
-                catch { }
-                sb.OnSelected += HandleDetailsButtonPressed;
-            }
+            // Input for Back/Details is now subscribed directly to UIInputActionDefaults;
+            // re-subscribing is handled by the BackAndDetailHelper Create/Destroy flow.
+            // No-op here — kept for call-site compatibility during the transition.
         }
 
         private void HandleUnitSelectionChangedPersist(CharacterInstance unit, bool selected)

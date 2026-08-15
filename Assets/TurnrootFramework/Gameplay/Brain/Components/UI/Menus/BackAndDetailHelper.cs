@@ -3,7 +3,6 @@ using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
-using Turnroot.UI.Components.SimpleButton;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -80,40 +79,42 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        private void CreateBackButton() =>
-            CreateRoleButton(
-                ref _currentMenuCanvasPrefab,
-                SimpleButtonRole.Back,
-                HandleBackButtonPressed
-            );
+        private void CreateBackButton()
+        {
+            CreateRoleCanvas(ref _currentMenuCanvasPrefab, "Back");
+            UIInputActionDefaults.Back.performed -= OnBackPerformed;
+            UIInputActionDefaults.Back.performed += OnBackPerformed;
+            "UiBrain: Subscribed Back handler to UIInputActionDefaults.Back.".LogInfo();
+        }
 
-        private void DestroyBackButton() =>
-            DestroyRoleButton(
-                ref _currentMenuCanvasPrefab,
-                SimpleButtonRole.Back,
-                HandleBackButtonPressed
-            );
+        private void DestroyBackButton()
+        {
+            UIInputActionDefaults.Back.performed -= OnBackPerformed;
+            DestroyRoleCanvas(ref _currentMenuCanvasPrefab);
+        }
 
-        private void CreateDetailsButton() =>
-            CreateRoleButton(
-                ref _currentDetailsCanvasPrefab,
-                SimpleButtonRole.Details,
-                HandleDetailsButtonPressed
-            );
+        private void CreateDetailsButton()
+        {
+            CreateRoleCanvas(ref _currentDetailsCanvasPrefab, "Details");
+            UIInputActionDefaults.ToggleDetails.performed -= OnDetailsPerformed;
+            UIInputActionDefaults.ToggleDetails.performed += OnDetailsPerformed;
+            "UiBrain: Subscribed Details handler to UIInputActionDefaults.ToggleDetails.".LogInfo();
+        }
 
-        private void DestroyDetailsButton() =>
-            DestroyRoleButton(
-                ref _currentDetailsCanvasPrefab,
-                SimpleButtonRole.Details,
-                HandleDetailsButtonPressed
-            );
+        private void DestroyDetailsButton()
+        {
+            UIInputActionDefaults.ToggleDetails.performed -= OnDetailsPerformed;
+            DestroyRoleCanvas(ref _currentDetailsCanvasPrefab);
+        }
 
-        // Generic helper to create a canvas prefab and wire a role-specific SimpleButton
-        private void CreateRoleButton(
-            ref GameObject targetPrefabField,
-            SimpleButtonRole role,
-            Action handler
-        )
+        private void OnBackPerformed(UnityEngine.InputSystem.InputAction.CallbackContext _) =>
+            HandleBackButtonPressed();
+
+        private void OnDetailsPerformed(UnityEngine.InputSystem.InputAction.CallbackContext _) =>
+            HandleDetailsButtonPressed();
+
+        // Instantiates the visual canvas prefab for a role button (Back or Details).
+        private void CreateRoleCanvas(ref GameObject targetPrefabField, string roleName)
         {
             if (uiSettings?.MenuCanvasPrefab == null)
             {
@@ -123,97 +124,14 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             targetPrefabField = Instantiate(uiSettings.MenuCanvasPrefab);
             targetPrefabField.transform.SetParent(null);
-            targetPrefabField.name = $"{targetPrefabField.name}_{role}";
-
-            // Find all SimpleButton components in the prefab and pick the most appropriate one
-            var simpleButtons = targetPrefabField.GetComponentsInChildren<SimpleButton>(true);
-            if (simpleButtons == null || simpleButtons.Length == 0)
-            {
-                $"UiBrain: No SimpleButton found in MenuCanvasPrefab for role {role}".LogWarning();
-                return;
-            }
-
-            // Prefer an existing button that already matches the desired role
-            SimpleButton chosen = null;
-            foreach (var sb in simpleButtons)
-            {
-                if (sb.Role == role)
-                {
-                    chosen = sb;
-                    break;
-                }
-            }
-
-            // If none matched by role, avoid overwriting an existing Back button when creating Details
-            if (chosen == null)
-            {
-                foreach (var sb in simpleButtons)
-                {
-                    if (role == SimpleButtonRole.Details && sb.Role == SimpleButtonRole.Back)
-                    {
-                        // skip back buttons when creating details
-                        continue;
-                    }
-
-                    // choose the first sensible candidate
-                    chosen = sb;
-                    break;
-                }
-            }
-
-            // Fallback to first button if still nothing chosen (shouldn't happen)
-            chosen ??= simpleButtons[0];
-
-            // Ensure chosen button is marked with the correct role
-            chosen.Role = role;
-
-            // Assign the correct input action for the chosen button
-            if (role == SimpleButtonRole.Back)
-            {
-                chosen.AssignSelectAction(UIInputActionDefaults.Back);
-            }
-            else if (role == SimpleButtonRole.Details)
-            {
-                chosen.AssignSelectAction(UIInputActionDefaults.Confirm);
-            }
-
-            if (handler != null)
-            {
-                // Remove any existing subscription first to prevent duplicates
-                try
-                {
-                    chosen.OnSelected -= handler;
-                }
-                catch { }
-                // Now add it
-                chosen.OnSelected += handler;
-
-                $"UiBrain: Subscribed {role} handler on {chosen.gameObject.name}.".LogInfo();
-            }
+            targetPrefabField.name = $"{targetPrefabField.name}_{roleName}";
         }
 
-        // Generic helper to destroy a canvas prefab and clean up role-specific wiring
-        private void DestroyRoleButton(
-            ref GameObject targetPrefabField,
-            SimpleButtonRole role,
-            Action handler
-        )
+        // Destroys the visual canvas prefab.
+        private void DestroyRoleCanvas(ref GameObject targetPrefabField)
         {
             if (targetPrefabField != null)
             {
-                var simpleButton = targetPrefabField.GetComponentInChildren<SimpleButton>();
-                if (simpleButton != null && simpleButton.Role == role)
-                {
-                    if (handler != null)
-                    {
-                        simpleButton.OnSelected -= handler;
-                    }
-
-                    // Do not disable or dispose shared UI actions.
-                    // We only clear references so the shared actions remain available globally.
-                    // The SimpleButton class handles wiring the action's performed event.
-                }
-
                 Destroy(targetPrefabField);
                 targetPrefabField = null;
             }

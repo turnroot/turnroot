@@ -210,8 +210,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                     or InputActionConstants.Start
             )
             {
-                _navigableChoices[_currentChoiceIndex]
-                    ?.BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver);
+                _navigableChoices[_currentChoiceIndex]?.Select();
                 var selectedOption = AllPossibleChoices.First(c =>
                     c.Choice == _navigableChoices[_currentChoiceIndex]
                 );
@@ -254,9 +253,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 _navigableChoices,
                 ref _currentChoiceIndex,
                 _navigableChoices.Length,
-                () =>
-                    _navigableChoices[_currentChoiceIndex]
-                        ?.BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver)
+                () => _navigableChoices[_currentChoiceIndex]?.Select()
             );
 
             UpdateChoiceSelection();

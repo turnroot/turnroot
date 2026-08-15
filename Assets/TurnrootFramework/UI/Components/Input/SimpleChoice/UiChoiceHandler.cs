@@ -13,14 +13,14 @@ namespace Turnroot.UI
         /// <summary>
         /// Handles navigation and selection for UI choice components.
         /// </summary>
-        /// <typeparam name="T">Any MonoBehaviour with Select/Deselect methods</typeparam>
-        /// <param name="action">The input action ("NavigateUp", "NavigateDown", "NavigateLeft", "NavigateRight", "Select")</param>
-        /// <param name="managers">Array of UI choice components</param>
-        /// <param name="currentIndex">Current selection index (will be modified)</param>
-        /// <param name="maxCount">Maximum number of choices</param>
-        /// <param name="onSelect">Callback to invoke when selection is confirmed</param>
-        /// <param name="navigationSound">Optional audio source for navigation feedback</param>
-        /// <param name="navigationClip">Optional audio clip for navigation sound</param>
+        /// <typeparam name="T">A <see cref="UiChoice"/> component providing Select/Deselect visual feedback.</typeparam>
+        /// <param name="action">The input action string from <see cref="InputActionConstants"/>.</param>
+        /// <param name="managers">Array of UiChoice components to navigate.</param>
+        /// <param name="currentIndex">Current selection index (will be modified).</param>
+        /// <param name="maxCount">Maximum number of choices.</param>
+        /// <param name="onSelect">Callback to invoke when selection is confirmed.</param>
+        /// <param name="navigationSound">Optional audio source for navigation feedback.</param>
+        /// <param name="navigationClip">Optional audio clip for navigation sound.</param>
         public static void HandleNavigation<T>(
             string action,
             T[] managers,
@@ -30,7 +30,7 @@ namespace Turnroot.UI
             AudioSource navigationSound = null,
             AudioClip navigationClip = null
         )
-            where T : MonoBehaviour
+            where T : UiChoice
         {
             // Validate inputs early to avoid unnecessary exceptions
             var validation = OperationResultGuards.All(
@@ -46,14 +46,7 @@ namespace Turnroot.UI
             // Deselect all choices (skip any that have been destroyed)
             for (int i = 0; i < managers.Length; i++)
             {
-                var manager = managers[i];
-                if (manager == null)
-                {
-                    continue;
-                }
-
-                // Use DontRequireReceiver so we don't need to wrap in try/catch.
-                manager.SendMessage("Deselect", SendMessageOptions.DontRequireReceiver);
+                managers[i]?.Deselect();
             }
 
             if (action is InputActionConstants.NavigateUp or InputActionConstants.NavigateLeft)
@@ -111,9 +104,8 @@ namespace Turnroot.UI
                 $"UiChoiceHandler: Invalid currentIndex {currentIndex} after navigation.".LogWarning();
                 currentIndex = 0;
             }
-            // also suppress missing receiver warning
-            managers[currentIndex]
-                .BroadcastMessage("Select", SendMessageOptions.DontRequireReceiver);
+
+            managers[currentIndex]?.Select();
         }
     }
 }

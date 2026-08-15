@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.GameSettings;
+using Turnroot.UI;
 using UnityEngine;
-using SimpleButtonComponent = Turnroot.UI.Components.SimpleButton.SimpleButton;
 
 namespace Turnroot.UI.Components.Menu
 {
@@ -53,7 +53,8 @@ namespace Turnroot.UI.Components.Menu
             // Do not disable shared input actions; they are always available.
         }
 
-        private void OnDestroy() => UIInputActionDefaults.RemoveInitializedHandler(EnableMenuInputActions);
+        private void OnDestroy() =>
+            UIInputActionDefaults.RemoveInitializedHandler(EnableMenuInputActions);
 
         private void EnableMenuInputActions()
         {
@@ -163,27 +164,14 @@ namespace Turnroot.UI.Components.Menu
             // Only update highlighting if the selection has actually changed
             if (_previousSelectedIndex != _actualCurrentSelectedIndex)
             {
-                if (
-                    _previousSelectedIndex >= 0
-                    && _previousSelectedIndex < menuItems.Count
-                    && menuItems[_previousSelectedIndex]
-                        .TryGetComponent<SimpleButtonComponent>(out var prevButton)
-                )
+                if (_previousSelectedIndex >= 0 && _previousSelectedIndex < menuItems.Count)
                 {
-                    var fakeExitEvent = new UnityEngine.EventSystems.PointerEventData(
-                        UnityEngine.EventSystems.EventSystem.current
-                    );
-                    prevButton.OnPointerExit(fakeExitEvent);
+                    menuItems[_previousSelectedIndex].TryGetComponent<UiChoice>(out var prevChoice);
+                    prevChoice?.Deselect();
                 }
 
-                var currentItem = menuItems[_actualCurrentSelectedIndex];
-                if (currentItem.TryGetComponent<SimpleButtonComponent>(out var currentButton))
-                {
-                    var fakeHoverEvent = new UnityEngine.EventSystems.PointerEventData(
-                        UnityEngine.EventSystems.EventSystem.current
-                    );
-                    currentButton.OnPointerEnter(fakeHoverEvent);
-                }
+                menuItems[_actualCurrentSelectedIndex].TryGetComponent<UiChoice>(out var curChoice);
+                curChoice?.Select();
 
                 _previousSelectedIndex = _actualCurrentSelectedIndex;
             }
