@@ -151,7 +151,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
             {
                 var choice = buttonComponents[i];
                 if (choice == null)
+                {
                     continue;
+                }
 
                 if (i == currentSelectionIndex)
                 {
