@@ -212,6 +212,28 @@ namespace Turnroot.UI.Editor
             EditorGUILayout.LabelField("  └─ Coordinates transitions between menus", _bodyStyle);
             GUILayout.Space(4);
 
+            EditorGUILayout.LabelField(
+                "• <b>UiChoice / UiInputProvider</b> (Input & visual feedback)",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "  └─ UiChoice: visual selection state (scale, color, UIEffect)",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "  └─ UiInputProvider: single input subscriber per screen, fires OnInput event",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "  └─ UiChoiceHandler: static helper for index-based navigation across UiChoice arrays",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "  └─ All menu items (ListMenuItem, GridMenuItem) require UiChoice component",
+                _bodyStyle
+            );
+            GUILayout.Space(4);
+
             EditorGUILayout.LabelField("• <b>MenuRouteHandler</b> (Runtime routing)", _bodyStyle);
             EditorGUILayout.LabelField("  └─ Maps MenuItem names to actions", _bodyStyle);
             EditorGUILayout.LabelField(
@@ -356,13 +378,19 @@ namespace Turnroot.UI.Editor
             );
             GUILayout.Space(4);
 
-            EditorGUILayout.LabelField("<b>4. Configure Input (optional)</b>", _bodyStyle);
+            EditorGUILayout.LabelField("<b>4. Configure Input</b>", _bodyStyle);
             EditorGUILayout.LabelField(
-                "  • ListMenu has navigateUpAction, navigateDownAction",
+                "  • Navigation input (Up/Down/Select) is handled automatically by MenuBase",
                 _bodyStyle
             );
-            EditorGUILayout.LabelField("  • These are auto-configured by UiBrain", _bodyStyle);
-            EditorGUILayout.LabelField("  • selectAction for item selection", _bodyStyle);
+            EditorGUILayout.LabelField(
+                "  • MenuBase polls UIInputActionDefaults (set up via UIInputActionBootstrap)",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "  • No per-menu input fields to configure — it's all shared and automatic",
+                _bodyStyle
+            );
             GUILayout.Space(4);
 
             EditorGUILayout.LabelField("<b>5. Save as Prefab</b>", _bodyStyle);
@@ -606,15 +634,11 @@ namespace Turnroot.UI.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "  • Created from GamewideUiSettings.MenuCanvasPrefab",
+                "  • Created from GamewideUiSettings.MenuCanvasPrefab (visual only)",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "  • Input subscribed directly to UIInputActionDefaults.Back",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField(
-                "  • Input: UIInputActionDefaults.Back (Escape / gamepad B)",
+                "  • Input subscribed directly to UIInputActionDefaults.Back (Escape / gamepad B)",
                 _bodyStyle
             );
             EditorGUILayout.LabelField("  • Navigates to previous menu in depth stack", _bodyStyle);
@@ -679,7 +703,7 @@ namespace Turnroot.UI.Editor
 
             EditorGUILayout.LabelField("<b>Current Implementation Location:</b>", _bodyStyle);
             EditorGUILayout.LabelField(
-                "  • BackAndDetailHelper.cs:247 - HandleDetailsButtonPressed()",
+                "  • BackAndDetailHelper.cs ~L217 - HandleDetailsButtonPressed()",
                 _bodyStyle
             );
             GUILayout.Label("// Current code just logs:", _codeStyle);
@@ -833,7 +857,11 @@ namespace Turnroot.UI.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Input actions wired automatically - don't subscribe manually",
+                "• Menu navigation input is automatic via UIInputActionDefaults — no per-menu setup needed",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "• Back/Details input subscribes directly to UIInputActionDefaults in UiBrain",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
