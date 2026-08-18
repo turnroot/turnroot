@@ -1,33 +1,24 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using NaughtyAttributes;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
+using Turnroot.Gameplay.Brain;
 using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
 
 namespace Turnroot.Conversations
 {
     /// <summary>
     /// Manages conversation playback, UI, and branching dialogue choices.
     /// </summary>
-    public partial class ConversationController : MonoBehaviour
+    public class ConversationController : MonoBehaviour
     {
-        private Coroutine _conversationRoutine;
-        private int _tweenRunId;
-        private readonly List<Coroutine> _activeTweens = new();
-        private Sprite _lastActiveSprite;
-        private int _pendingChoiceTarget = int.MinValue;
-        private int _activeBranchingNodeId = int.MinValue;
-        private ConversationLayer _activeBranchingLayer;
-        private ConversationInstance _runningInstance;
-
-        // One-shot playback support
         [Header("Audio")]
         [SerializeField]
         private AudioSource _audioSource;
@@ -35,9 +26,6 @@ namespace Turnroot.Conversations
         [Header("UI")]
         [SerializeField]
         private UIFade _uiFade;
-
-        private ConversationLayer _activeOneShotLayer;
-        private Coroutine _oneShotRoutine;
 
         [Header("Available Conversations")]
         [SerializeField]
@@ -59,8 +47,6 @@ namespace Turnroot.Conversations
         [SerializeField]
         private Image _speakerPortraitImageInactive;
 
-        // Uses shared UI actions configured via UIInputActionBootstrap
-
         [Header("Choice UI")]
         [SerializeField]
         private GameObject _choiceButtonPrefab;
@@ -68,52 +54,25 @@ namespace Turnroot.Conversations
         [SerializeField]
         private Transform _choiceButtonsContainer;
 
-        [Header("Controller Events")]
-        public UnityEvent OnAwake;
-        public UnityEvent OnAnyConversationStart;
-        public UnityEvent OnAnyConversationFinished;
+        public event Action OnAnyConversationStart;
+        public event Action OnAnyConversationFinished;
 
-        #region Help & Documentation
+        private Coroutine _conversationRoutine;
+        private Coroutine _oneShotRoutine;
+        private readonly List<Coroutine> _activeTweens = new();
+        private Sprite _lastActiveSprite;
+        private int _pendingChoiceTarget = int.MinValue;
+        private int _activeBranchingNodeId = int.MinValue;
+        private ConversationLayer _activeBranchingLayer;
+        private ConversationLayer _activeOneShotLayer;
+        private ConversationInstance _runningInstance;
+        private int _tweenRunId;
+        private bool _inputSubscribed;
 
-#if UNITY_EDITOR
-        [Button("📖 Show Conversation System Help", EButtonEnableMode.Always)]
-        private void ShowHelp()
-        {
-            // Use reflection to call the editor window since it's in a separate Editor assembly
-            var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
-            System.Type windowType = null;
+        private Brain _brain;
+        private BattleSceneFlow _sceneFlow;
 
-            foreach (var assembly in assemblies)
-            {
-                windowType = assembly.GetType(
-                    "Turnroot.Conversations.Editor.ConversationControllerHelpWindow"
-                );
-                if (windowType != null)
-                {
-                    break;
-                }
-            }
-
-            if (windowType != null)
-            {
-                var showMethod = windowType.GetMethod(
-                    "ShowWindowFromButton",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
-                );
-                showMethod?.Invoke(null, null);
-            }
-            else
-            {
-                UnityEditor.EditorUtility.DisplayDialog(
-                    "Help",
-                    "Could not find ConversationControllerHelpWindow editor script",
-                    "OK"
-                );
-            }
-        }
-#endif
-
-        #endregion
+        private Graphics2DSettings GfxSettings => Graphics2DSettings.Instance;
 
         private ConversationInstance SelectedInstance =>
             _conversationInstances != null
@@ -122,13 +81,42 @@ namespace Turnroot.Conversations
                 ? _conversationInstances[_currentConversation]
                 : null;
 
-        private void Awake()
+        private Conversation SelectedConversation => SelectedInstance?.Conversation;
+
+        private void Awake() => EnsureAudioSource();
+
+        private void OnDisable()
         {
-            EnsureAudioSource();
-            OnAwake?.Invoke();
+            UnsubscribeAdvanceInput();
+            CancelActiveTweens();
+
+            if (_conversationRoutine != null)
+            {
+                StopCoroutine(_conversationRoutine);
+                _conversationRoutine = null;
+            }
+
+            if (_oneShotRoutine != null)
+            {
+                StopCoroutine(_oneShotRoutine);
+                _oneShotRoutine = null;
+            }
         }
 
-        private bool _inputSubscribed;
+        private void OnAdvanceInputPerformed(InputAction.CallbackContext context)
+        {
+            if (!gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            if (_activeOneShotLayer == null && _activeBranchingLayer == null)
+            {
+                return;
+            }
+
+            NextLayer();
+        }
 
         private void SubscribeAdvanceInput()
         {
@@ -160,45 +148,6 @@ namespace Turnroot.Conversations
             _inputSubscribed = false;
         }
 
-        private void OnDisable()
-        {
-            UnsubscribeAdvanceInput();
-
-            CleanupTweens();
-
-            if (_conversationRoutine != null)
-            {
-                StopCoroutine(_conversationRoutine);
-                _conversationRoutine = null;
-            }
-
-            if (_oneShotRoutine != null)
-            {
-                StopCoroutine(_oneShotRoutine);
-                _oneShotRoutine = null;
-            }
-        }
-
-        private void OnAdvanceInputPerformed(InputAction.CallbackContext context)
-        {
-            if (!gameObject.activeInHierarchy)
-            {
-                return;
-            }
-
-            // Only advance when a conversation or one-shot is actually in progress.
-            if (
-                _activeOneShotLayer == null
-                && _activeBranchingLayer == null
-                && SelectedConversation?.CurrentLayer == null
-            )
-            {
-                return;
-            }
-
-            NextLayer();
-        }
-
         private void EnsureAudioSource()
         {
             if (_audioSource == null)
@@ -213,49 +162,7 @@ namespace Turnroot.Conversations
             }
         }
 
-        private Conversation SelectedConversation => SelectedInstance?.Conversation;
-
-        private Coroutine StartTween(IEnumerator routine)
-        {
-            if (routine == null)
-            {
-                return null;
-            }
-
-            var c = StartCoroutine(routine);
-            _activeTweens.Add(c);
-            return c;
-        }
-
-        private void CancelActiveTweens()
-        {
-            foreach (var c in _activeTweens)
-            {
-                if (c != null)
-                {
-                    StopCoroutine(c);
-                }
-            }
-            _activeTweens.Clear();
-
-            // tidy up any temporary swap overlays that might have been left behind
-            // when a coroutine was stopped early.
-            // use the newer API to avoid unnecessary sorting overhead
-            var allImages = FindObjectsByType<Image>(FindObjectsSortMode.None);
-            foreach (var img in allImages)
-            {
-                if (img.gameObject.name.StartsWith("swap_overlay_"))
-                {
-                    Destroy(img.gameObject);
-                }
-            }
-        }
-
-        private Graphics2DSettings GfxSettings => Graphics2DSettings.Instance;
-
         public void Advance() => NextLayer();
-
-        public void Proceed() => NextLayer();
 
         public void StartCurrentConversation() => StartConversation();
 
@@ -292,57 +199,37 @@ namespace Turnroot.Conversations
                 % _conversationInstances.Count;
         }
 
-        public bool ChooseBranchTarget(int targetNodeId)
-        {
-            if (SelectedConversation?.BranchingConversation != true)
-            {
-                return false;
-            }
-
-            _pendingChoiceTarget = targetNodeId;
-            ClearChoiceButtons();
-            return true;
-        }
-
-        public List<ChoiceData> GetCurrentChoices()
-        {
-            if (
-                SelectedConversation?.BranchingConversation != true
-                || _activeBranchingNodeId == int.MinValue
-            )
-            {
-                return null;
-            }
-
-            var nodes = SelectedConversation.GetGraphNodes();
-            return nodes?.TryGetValue(_activeBranchingNodeId, out var node) == true
-                ? node.choices
-                : null;
-        }
-
-        [Button("Start Conversation")]
         public void StartConversation()
         {
-            if (!ValidateConversationStart())
+            var instance = SelectedInstance;
+            if (instance == null)
             {
+                $"No ConversationInstance selected at index {_currentConversation}".LogError(
+                    "ConversationController"
+                );
                 return;
             }
 
-            CleanupPreviousConversation();
-            ResetUI();
+            if (SelectedConversation == null)
+            {
+                $"Instance '{instance.name}' has no Conversation assigned.".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
 
-            var instance = SelectedInstance;
-            SelectedConversation?.StartConversation();
-            SelectedConversation?.OnConversationStart?.Invoke();
-            instance?.OnConversationStart?.Invoke();
-            OnAnyConversationStart?.Invoke();
+            if (SelectedConversation.ConversationGraph == null)
+            {
+                ResetUI();
+                $"Conversation '{SelectedConversation.name}' has no graph.".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
 
-            _runningInstance = instance;
-            SubscribeAdvanceInput();
-            _conversationRoutine = StartCoroutine(RunConversation(instance));
+            StartConversationInternal(SelectedConversation, instance, null);
         }
 
-        [Button("Next Layer")]
         public void NextLayer()
         {
             if (_activeOneShotLayer != null)
@@ -351,12 +238,27 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            if (_activeBranchingLayer != null)
+            _activeBranchingLayer?.CompleteLayer();
+        }
+
+        public bool ChooseBranchTarget(int targetNodeId)
+        {
+            _pendingChoiceTarget = targetNodeId;
+            ClearChoiceButtons();
+            return true;
+        }
+
+        public List<ChoiceData> GetCurrentChoices()
+        {
+            if (_activeBranchingNodeId == int.MinValue)
             {
-                _activeBranchingLayer.CompleteLayer();
-                return;
+                return null;
             }
-            SelectedConversation?.CurrentLayer?.CompleteLayer();
+
+            var nodes = SelectedConversation?.GetGraphNodes();
+            return nodes?.TryGetValue(_activeBranchingNodeId, out var node) == true
+                ? node.choices
+                : null;
         }
 
         /// <summary>
@@ -365,7 +267,7 @@ namespace Turnroot.Conversations
         /// Intended for runtime-selected conversations (e.g. hub chitchat).
         /// <paramref name="onFinished"/> is called once the conversation completes.
         /// </summary>
-        public void PlayConversationDirect(Conversation conversation, UnityAction onFinished = null)
+        public void PlayConversationDirect(Conversation conversation, Action onFinished = null)
         {
             if (conversation == null)
             {
@@ -373,40 +275,226 @@ namespace Turnroot.Conversations
                 return;
             }
 
+            if (conversation.ConversationGraph == null)
+            {
+                $"Conversation '{conversation.name}' has no graph.".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            StartConversationInternal(conversation, null, onFinished);
+        }
+
+        private void StartConversationInternal(
+            Conversation conversation,
+            ConversationInstance instance,
+            Action onFinished
+        )
+        {
             CleanupPreviousConversation();
             ResetUI();
             ShowConversationUI();
 
-            conversation.StartConversation();
+            _runningInstance = instance;
+            _brain = GetAndCacheBrain.GetBrain();
+            _sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
+
             OnAnyConversationStart?.Invoke();
+            _brain?.PublishConversationStarted(conversation);
 
             SubscribeAdvanceInput();
-            _conversationRoutine = StartCoroutine(RunConversationDirect(conversation, onFinished));
+            _conversationRoutine = StartCoroutine(RunConversationGraph(conversation, onFinished));
         }
 
-        private IEnumerator RunConversationDirect(Conversation conversation, UnityAction onFinished)
+        private void CleanupPreviousConversation()
         {
-            var sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
+            if (_conversationRoutine != null)
+            {
+                StopCoroutine(_conversationRoutine);
+                _conversationRoutine = null;
+            }
 
-            yield return conversation.BranchingConversation
-                ? RunBranchingConversation(conversation, sceneFlow)
-                : RunLinearConversation(conversation, sceneFlow);
+            CancelActiveTweens();
+            _tweenRunId++;
+        }
+
+        private void ResetUI()
+        {
+            Graphics2DUtils.ResetImage(_speakerPortraitImageActive);
+            Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
+            _lastActiveSprite = null;
+            if (_dialogueText != null)
+            {
+                _dialogueText.text = string.Empty;
+            }
+
+            if (_speakerNameText != null)
+            {
+                _speakerNameText.text = string.Empty;
+            }
+
+            ClearChoiceButtons();
+        }
+
+        private IEnumerator RunConversationGraph(Conversation conversation, Action onFinished)
+        {
+            var nodes = conversation.GetGraphNodes();
+            if (nodes == null || nodes.Count == 0)
+            {
+                $"Conversation '{conversation.name}' has no nodes.".LogError(
+                    "ConversationController.RunConversationGraph"
+                );
+                ResetUI();
+                yield break;
+            }
+
+            int currentNodeId = FindEntryNode(nodes);
+
+            while (currentNodeId != int.MinValue)
+            {
+                if (!nodes.TryGetValue(currentNodeId, out var nodeData) || nodeData == null)
+                {
+                    break;
+                }
+
+                _activeBranchingNodeId = currentNodeId;
+
+                if (nodeData.node is Branching.ConversationActionNode actionNode)
+                {
+                    actionNode.Execute(this);
+                    currentNodeId = nodeData.nextTargetId;
+                    continue;
+                }
+
+                if (nodeData.conversationLayer != null)
+                {
+                    yield return ProcessLayer(nodeData.conversationLayer);
+                }
+
+                if (nodeData.choices?.Count > 0)
+                {
+                    _pendingChoiceTarget = int.MinValue;
+                    ShowChoicesForNode(currentNodeId);
+
+                    _sceneFlow?.ResetInterruptActivityTimer();
+                    if (_sceneFlow != null)
+                    {
+                        _sceneFlow.InterruptIsWaitingForPlayerInput = true;
+                    }
+
+                    yield return new WaitUntil(() => _pendingChoiceTarget != int.MinValue);
+
+                    _sceneFlow?.ResetInterruptActivityTimer();
+                    if (_sceneFlow != null)
+                    {
+                        _sceneFlow.InterruptIsWaitingForPlayerInput = false;
+                    }
+
+                    currentNodeId = _pendingChoiceTarget;
+                    ClearChoiceButtons();
+                    continue;
+                }
+
+                currentNodeId = nodeData.nextTargetId;
+            }
+
+            _activeBranchingNodeId = int.MinValue;
+            _activeBranchingLayer = null;
+            _pendingChoiceTarget = int.MinValue;
 
             onFinished?.Invoke();
             UnsubscribeAdvanceInput();
             OnAnyConversationFinished?.Invoke();
+            _brain?.PublishConversationEnded(conversation);
 
             if (
-                sceneFlow != null
-                && sceneFlow.IsInterruptQueued
-                && sceneFlow.CurrentInterrupt
-                    == InterruptType.Conversation
+                _sceneFlow != null
+                && _sceneFlow.IsInterruptQueued
+                && _sceneFlow.CurrentInterrupt == InterruptType.Conversation
             )
             {
-                sceneFlow.CompleteInterrupt();
+                _sceneFlow.CompleteInterrupt();
             }
 
             _conversationRoutine = null;
+        }
+
+        private int FindEntryNode(Dictionary<int, NodeData> nodes)
+        {
+            foreach (var kv in nodes)
+            {
+                if (kv.Value?.node != null && kv.Value.incomingCount == 0)
+                {
+                    return kv.Key;
+                }
+            }
+
+            foreach (var kv in nodes)
+            {
+                return kv.Key;
+            }
+
+            return int.MinValue;
+        }
+
+        private IEnumerator ProcessLayer(ConversationLayer layer)
+        {
+            if (!layer.HasBeenParsed)
+            {
+                layer.ParseDialogue();
+            }
+
+            layer.StartLayer();
+            _brain?.PublishConversationLayerStarted(layer);
+
+            _activeBranchingLayer = layer;
+            UpdateUIForLayer(layer);
+
+            _sceneFlow?.ResetInterruptActivityTimer();
+            if (_sceneFlow != null)
+            {
+                _sceneFlow.InterruptIsWaitingForPlayerInput = true;
+            }
+
+            bool completed = false;
+            void OnComplete() => completed = true;
+            layer.OnLayerCompleted += OnComplete;
+            yield return new WaitUntil(() => completed);
+            layer.OnLayerCompleted -= OnComplete;
+
+            _sceneFlow?.ResetInterruptActivityTimer();
+            if (_sceneFlow != null)
+            {
+                _sceneFlow.InterruptIsWaitingForPlayerInput = false;
+            }
+
+            _brain?.PublishConversationLayerEnded(layer);
+            _activeBranchingLayer = null;
+        }
+
+        private void ShowConversationUI()
+        {
+            if (_uiFade != null)
+            {
+                _uiFade.Show();
+            }
+            else if (!gameObject.activeInHierarchy)
+            {
+                gameObject.SetActive(true);
+            }
+        }
+
+        private void HideConversationUI()
+        {
+            if (_uiFade != null)
+            {
+                _uiFade.Hide();
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         /// <summary>
@@ -423,14 +511,14 @@ namespace Turnroot.Conversations
 
             ShowConversationUI();
 
-            if (oneShot.Audio != null)
+            if (oneShot.Audio != null && _audioSource != null)
+            {
+                _audioSource.PlayOneShot(oneShot.Audio);
+            }
+            else if (oneShot.Audio != null)
             {
                 EnsureAudioSource();
-                if (_audioSource == null)
-                {
-                    "Audio clip provided but AudioSource could not be created.".LogWarning();
-                }
-                else
+                if (_audioSource != null)
                 {
                     _audioSource.PlayOneShot(oneShot.Audio);
                 }
@@ -438,95 +526,22 @@ namespace Turnroot.Conversations
 
             CleanupPreviousConversation();
             ResetUI();
-
-            if (_dialogueText == null || _speakerNameText == null)
-            {
-                "UI references are not assigned (dialogue or speaker name is missing). Please assign _dialogueText and _speakerNameText.".LogWarning();
-            }
-
-            if (_oneShotRoutine != null)
-            {
-                StopCoroutine(_oneShotRoutine);
-                _oneShotRoutine = null;
-            }
-
             SubscribeAdvanceInput();
             _oneShotRoutine = StartCoroutine(RunOneShot(oneShot));
-        }
-
-        private void ShowConversationUI()
-        {
-            if (_uiFade != null)
-            {
-                _uiFade.Show();
-            }
-            else
-            {
-                if (!gameObject.activeInHierarchy)
-                {
-                    gameObject.SetActive(true);
-                }
-            }
-        }
-
-        private void HideConversationUI()
-        {
-            if (_uiFade != null)
-            {
-                _uiFade.Hide();
-            }
-            else
-            {
-                gameObject.SetActive(false);
-            }
         }
 
         private IEnumerator RunOneShot(OneShot oneShot)
         {
             _activeOneShotLayer = CreateOneShotLayer(oneShot);
+            _brain = GetAndCacheBrain.GetBrain();
+            _sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
 
             OnAnyConversationStart?.Invoke();
-
-            if (!_activeOneShotLayer.HasBeenParsed)
-            {
-                _activeOneShotLayer.ParseDialogue();
-            }
-
-            _activeOneShotLayer.StartLayer();
-            UpdateUIForLayer(_activeOneShotLayer);
-
-            var sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
-            sceneFlow?.ResetInterruptActivityTimer();
-            if (sceneFlow != null)
-            {
-                sceneFlow.InterruptIsWaitingForPlayerInput = true;
-            }
-
-            bool completed = false;
-            void OnComplete() => completed = true;
-
-            var completionEvent = _activeOneShotLayer?.OnLayerComplete;
-            if (completionEvent != null)
-            {
-                completionEvent.AddListener(OnComplete);
-                yield return new WaitUntil(() => completed);
-                completionEvent.RemoveListener(OnComplete);
-            }
-            else
-            {
-                "One-shot layer does not have a completion event; concluding immediately.".LogWarning();
-            }
-
-            if (sceneFlow != null)
-            {
-                sceneFlow.ResetInterruptActivityTimer();
-                sceneFlow.InterruptIsWaitingForPlayerInput = false;
-            }
+            yield return ProcessLayer(_activeOneShotLayer);
+            OnAnyConversationFinished?.Invoke();
 
             _activeOneShotLayer = null;
             _oneShotRoutine = null;
-            UnsubscribeAdvanceInput();
-            OnAnyConversationFinished?.Invoke();
             HideConversationUI();
         }
 
@@ -538,11 +553,215 @@ namespace Turnroot.Conversations
                 SpeakerDisplayName = oneShot.SpeakerName ?? string.Empty,
                 ParsePronouns = false,
             };
-
-            // Apply the portrait via the public API instead of using reflection.
             layer.SetPrimaryPortraitSprite(oneShot.Portrait);
-
             return layer;
         }
+
+        private void UpdateUIForLayer(ConversationLayer layer)
+        {
+            if (layer == null)
+            {
+                return;
+            }
+
+            if (_dialogueText != null)
+            {
+                _dialogueText.text = layer.Dialogue;
+            }
+
+            if (_speakerNameText != null)
+            {
+                _speakerNameText.text = GetSpeakerName(layer.GetActiveSlot());
+            }
+
+            var (activeSprite, _, _, _) = layer.GetActiveAndInactivePortraits();
+            if (_lastActiveSprite != activeSprite)
+            {
+                ApplyPortraitForLayer(layer);
+                _lastActiveSprite = activeSprite;
+            }
+        }
+
+        private string GetSpeakerName(ConversationLayer.SpeakerSlot slot)
+        {
+            return slot == null ? "???"
+                : !string.IsNullOrWhiteSpace(slot.DisplayName) ? slot.DisplayName
+                : slot.Speaker != null && !string.IsNullOrWhiteSpace(slot.Speaker.DisplayName)
+                    ? slot.Speaker.DisplayName
+                : "???";
+        }
+
+        private void ApplyPortraitForLayer(ConversationLayer layer)
+        {
+            if (layer == null || _speakerPortraitImageActive == null)
+            {
+                return;
+            }
+
+            var (activeSprite, activeTint, inactiveSprite, inactiveTint) =
+                layer.GetActiveAndInactivePortraits();
+
+            if (activeSprite == null || _speakerPortraitImageActive == null)
+            {
+                return;
+            }
+
+            if (_tweenRunId != 0)
+            {
+                CancelActiveTweens();
+            }
+
+            if (GfxSettings?.AnimatePortraitTransitions ?? true)
+            {
+                Graphics2DUtils.KillImageTweens(
+                    _speakerPortraitImageActive,
+                    _speakerPortraitImageInactive
+                );
+            }
+
+            var activeImg = _speakerPortraitImageActive;
+            var inactiveImg = _speakerPortraitImageInactive;
+
+            Graphics2DUtils.SetSprite(activeImg, activeSprite);
+            Graphics2DUtils.SetSprite(inactiveImg, inactiveSprite);
+
+            activeImg.color = activeTint;
+            if (inactiveImg != null)
+            {
+                inactiveImg.color = Color.white;
+            }
+
+            var duration = GfxSettings?.PortraitTransitionDuration ?? 0.4f;
+            var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
+
+            if (
+                GfxSettings?.SecondaryConversationPortraitInactiveBehavior
+                == SecondaryConversationPortraitInactiveBehavior.Tint
+            )
+            {
+                StartTween(
+                    Graphics2DUtils.TintCoroutine(
+                        activeImg,
+                        inactiveImg,
+                        activeTint,
+                        inactiveTint,
+                        duration,
+                        ease,
+                        _tweenRunId
+                    )
+                );
+            }
+            else
+            {
+                StartTween(Graphics2DUtils.HideCoroutine(inactiveImg, duration, ease, _tweenRunId));
+            }
+        }
+
+        private void ClearChoiceButtons()
+        {
+            if (_choiceButtonsContainer == null)
+            {
+                return;
+            }
+
+            for (int i = _choiceButtonsContainer.childCount - 1; i >= 0; i--)
+            {
+                Destroy(_choiceButtonsContainer.GetChild(i).gameObject);
+            }
+        }
+
+        private void ShowChoicesForNode(int nodeId)
+        {
+            if (_choiceButtonPrefab == null || _choiceButtonsContainer == null)
+            {
+                return;
+            }
+
+            var nodes = SelectedConversation?.GetGraphNodes();
+            if (nodes?.TryGetValue(nodeId, out var nodeData) != true)
+            {
+                return;
+            }
+
+            ClearChoiceButtons();
+
+            foreach (var choice in nodeData.choices)
+            {
+                CreateChoiceButton(choice);
+            }
+        }
+
+        private void CreateChoiceButton(ChoiceData choice)
+        {
+            var go = Instantiate(_choiceButtonPrefab, _choiceButtonsContainer);
+            if (go == null)
+            {
+                return;
+            }
+
+            go.SetActive(true);
+
+            var btn = go.GetComponent<Button>();
+            var img = go.GetComponent<Image>();
+            var label = go.GetComponentInChildren<TextMeshProUGUI>(true);
+
+            if (label != null)
+            {
+                label.gameObject.SetActive(true);
+                label.text = GetChoiceLabel(choice);
+            }
+
+            if (img != null)
+            {
+                img.enabled = true;
+            }
+
+            if (btn != null)
+            {
+                btn.gameObject.SetActive(true);
+                btn.interactable = true;
+                int targetId = choice.targetNodeId;
+                btn.onClick.AddListener(() => _pendingChoiceTarget = targetId);
+            }
+        }
+
+        private string GetChoiceLabel(ChoiceData choice) =>
+            !string.IsNullOrEmpty(choice?.label) ? choice.label
+            : !string.IsNullOrEmpty(choice?.choiceText) ? choice.choiceText
+            : "Choice";
+
+        private Coroutine StartTween(IEnumerator routine)
+        {
+            if (routine == null)
+            {
+                return null;
+            }
+
+            var c = StartCoroutine(routine);
+            _activeTweens.Add(c);
+            return c;
+        }
+
+        private void CancelActiveTweens()
+        {
+            foreach (var c in _activeTweens)
+            {
+                if (c != null)
+                {
+                    StopCoroutine(c);
+                }
+            }
+            _activeTweens.Clear();
+
+            foreach (var img in FindObjectsByType<Image>(FindObjectsSortMode.None))
+            {
+                if (img.gameObject.name.StartsWith("swap_overlay_"))
+                {
+                    Destroy(img.gameObject);
+                }
+            }
+        }
+
+        private void OnDestroy() => CancelActiveTweens();
     }
 }

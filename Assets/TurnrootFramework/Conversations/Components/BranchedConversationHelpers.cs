@@ -148,7 +148,7 @@ namespace Turnroot.Conversations
                 }
 
                 var conns = port.GetConnections();
-                if (conns == null)
+                if (conns == null || conns.Count == 0)
                 {
                     continue;
                 }
@@ -227,30 +227,24 @@ namespace Turnroot.Conversations
             value = null;
             var t = obj.GetType();
 
-            var fi = t.GetField(
+            var field = t.GetField(
                 name,
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
             );
-            if (fi != null && fi.FieldType == typeof(string))
+            if (field != null && field.FieldType == typeof(string))
             {
-                value = fi.GetValue(obj) as string;
-                if (!string.IsNullOrEmpty(value))
-                {
-                    return true;
-                }
+                value = field.GetValue(obj) as string;
+                return !string.IsNullOrEmpty(value);
             }
 
-            var pi = t.GetProperty(
+            var property = t.GetProperty(
                 name,
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
             );
-            if (pi != null && pi.PropertyType == typeof(string))
+            if (property != null && property.PropertyType == typeof(string))
             {
-                value = pi.GetValue(obj) as string;
-                if (!string.IsNullOrEmpty(value))
-                {
-                    return true;
-                }
+                value = property.GetValue(obj) as string;
+                return !string.IsNullOrEmpty(value);
             }
 
             return false;
@@ -336,4 +330,3 @@ namespace Turnroot.Conversations
         public string label;
     }
 }
-

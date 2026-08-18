@@ -1,6 +1,5 @@
 using System.Collections;
 using Turnroot.GameSettings;
-using Turnroot.UI;
 using Turnroot.UI.Components;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;

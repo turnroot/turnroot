@@ -1,4 +1,3 @@
-using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -25,10 +24,7 @@ namespace Turnroot.UI.Components.ListMenu
 
         private UiChoice _uiChoice;
 
-        private void Awake()
-        {
-            _uiChoice = GetComponent<UiChoice>() ?? gameObject.AddComponent<UiChoice>();
-        }
+        private void Awake() => _uiChoice = GetComponent<UiChoice>() ?? gameObject.AddComponent<UiChoice>();
 
         public void OnPointerEnter(PointerEventData eventData)
         {

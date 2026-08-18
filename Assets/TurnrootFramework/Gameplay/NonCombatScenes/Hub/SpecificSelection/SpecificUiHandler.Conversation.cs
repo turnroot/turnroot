@@ -18,7 +18,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (cc != null)
             {
                 _subscribedController = cc;
-                cc.OnAnyConversationFinished.AddListener(OnConversationFinished);
+                cc.OnAnyConversationFinished += OnConversationFinished;
             }
             else
             {
@@ -30,9 +30,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (_subscribedController != null)
             {
-                _subscribedController.OnAnyConversationFinished.RemoveListener(
-                    OnConversationFinished
-                );
+                _subscribedController.OnAnyConversationFinished -= OnConversationFinished;
                 _subscribedController = null;
             }
         }

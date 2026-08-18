@@ -60,20 +60,20 @@ namespace Turnroot.Conversations.Branching.Nodes.Editor
     public class ConversationNodeEditor : ConversationBaseNodeEditor { }
 
     /// <summary>
-    /// Custom editor for SplitByChoices2Node with two choice branches.
+    /// Custom editor for the configurable SplitByChoicesNode.
     /// </summary>
-    [CustomNodeEditor(typeof(SplitByChoices2Node))]
-    public class SplitByChoices2NodeEditor : ConversationBaseNodeEditor { }
+    [CustomNodeEditor(typeof(SplitByChoicesNode))]
+    public class SplitByChoicesNodeEditor : ConversationBaseNodeEditor { }
 
     /// <summary>
-    /// Custom editor for SplitByChoices3Node with three choice branches.
+    /// Custom editor for ChangeSupportPointsNode.
     /// </summary>
-    [CustomNodeEditor(typeof(SplitByChoices3Node))]
-    public class SplitByChoices3NodeEditor : ConversationBaseNodeEditor { }
+    [CustomNodeEditor(typeof(ChangeSupportPointsNode))]
+    public class ChangeSupportPointsNodeEditor : ConversationBaseNodeEditor { }
 
     /// <summary>
-    /// Custom editor for SplitByChoices4Node with four choice branches.
+    /// Custom editor for UnlockBattleNode.
     /// </summary>
-    [CustomNodeEditor(typeof(SplitByChoices4Node))]
-    public class SplitByChoices4NodeEditor : ConversationBaseNodeEditor { }
+    [CustomNodeEditor(typeof(UnlockBattleNode))]
+    public class UnlockBattleNodeEditor : ConversationBaseNodeEditor { }
 }
