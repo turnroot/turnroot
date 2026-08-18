@@ -1,7 +1,6 @@
 using NaughtyAttributes;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-
 // The easing enum is defined alongside the utilities so we can refer to it directly
 using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
 
@@ -14,10 +13,6 @@ namespace Turnroot.AbstractScripts.Graphics2D
     {
         Hide,
         Tint,
-        Swap,
-        TintAndSwap,
-        SwapAndHide,
-        None,
     }
 
     /// <summary>
@@ -49,8 +44,6 @@ namespace Turnroot.AbstractScripts.Graphics2D
         [field: SerializeField, BoxGroup("Conversations")]
         public Ease PortraitTransitionEase { get; private set; } = Ease.InOutSine;
 
-        [field: SerializeField, BoxGroup("Conversations"), Range(0f, 2f)]
-        public float SwapCrossfade { get; private set; } = 0.4f;
         public Color InactiveTintColor => _inactiveTintColor;
 
         [field: SerializeField, BoxGroup("Conversations"), Range(0f, 1f)]

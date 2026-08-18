@@ -129,20 +129,11 @@ namespace Turnroot.Utilities.Weather
         // Returns a [0,1] curve applied to the raw night factor (0 = dusk/dawn, 1 = midnight).
         // The exponent keeps the tint soft at dusk/dawn and concentrates it near midnight.
         // Intensity exactly reaches NightTintIntensity at rawNightFactor = 1 (midnight).
-        private float GetNightBlendFactor(float rawNightFactor)
-        {
-            return Mathf.Pow(Mathf.Clamp01(rawNightFactor), NightTintCurveExponent);
-        }
+        private float GetNightBlendFactor(float rawNightFactor) => Mathf.Pow(Mathf.Clamp01(rawNightFactor), NightTintCurveExponent);
 
-        private float GetAppliedNightFactor()
-        {
-            return _appliedNightFactor < 0f ? 0f : Mathf.Clamp01(_appliedNightFactor);
-        }
+        private float GetAppliedNightFactor() => _appliedNightFactor < 0f ? 0f : Mathf.Clamp01(_appliedNightFactor);
 
-        private float GetNightTintIntensityFromFactor(float rawNightFactor)
-        {
-            return NightTintIntensity * GetNightBlendFactor(rawNightFactor);
-        }
+        private float GetNightTintIntensityFromFactor(float rawNightFactor) => NightTintIntensity * GetNightBlendFactor(rawNightFactor);
 
         private void ApplyNightTintToMaterial(Material material, float intensity)
         {
@@ -346,12 +337,7 @@ namespace Turnroot.Utilities.Weather
             }
 
             // Falling phase: NightEndHour → SunriseEndHour
-            if (timeOfDay >= NightEndHour && timeOfDay < SunriseEndHour)
-            {
-                return 1f - Mathf.InverseLerp(NightEndHour, SunriseEndHour, timeOfDay);
-            }
-
-            return 0f;
+            return timeOfDay >= NightEndHour && timeOfDay < SunriseEndHour ? 1f - Mathf.InverseLerp(NightEndHour, SunriseEndHour, timeOfDay) : 0f;
         }
 
         private float GetNightFactor(float timeOfDay)

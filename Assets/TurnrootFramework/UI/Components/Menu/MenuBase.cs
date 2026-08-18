@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Segments;
 using Turnroot.GameSettings;
-using Turnroot.UI;
 using UnityEngine;
 
 namespace Turnroot.UI.Components.Menu

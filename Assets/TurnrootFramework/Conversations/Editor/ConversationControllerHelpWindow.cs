@@ -107,8 +107,7 @@ namespace Turnroot.Conversations.Editor
             DrawHeader();
             DrawArchitecture();
             DrawWorkflow();
-            DrawLinearExample();
-            DrawBranchingExample();
+            DrawGraphExample();
             DrawControllerMethods();
             DrawReroutes();
             DrawTips();
@@ -121,7 +120,7 @@ namespace Turnroot.Conversations.Editor
             GUILayout.Space(10);
             EditorGUILayout.LabelField("💬 CONVERSATION SYSTEM GUIDE", _headerStyle);
             EditorGUILayout.LabelField(
-                "Complete documentation for ConversationController, linear & branching dialogue",
+                "Complete documentation for ConversationController and graph-based dialogue",
                 _bodyStyle
             );
             DrawSeparator();
@@ -132,12 +131,9 @@ namespace Turnroot.Conversations.Editor
             EditorGUILayout.LabelField("ARCHITECTURE OVERVIEW", _sectionStyle);
 
             EditorGUILayout.LabelField("• <b>Conversation</b> (ScriptableObject)", _bodyStyle);
+            EditorGUILayout.LabelField("  └─ Defines a branching dialogue flow", _bodyStyle);
             EditorGUILayout.LabelField(
-                "  └─ Defines dialogue flow (linear or branching)",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField(
-                "  └─ Contains ConversationLayers or ConversationGraph",
+                "  └─ Contains a ConversationGraph (XNode graph asset)",
                 _bodyStyle
             );
             GUILayout.Space(4);
@@ -145,7 +141,7 @@ namespace Turnroot.Conversations.Editor
             EditorGUILayout.LabelField("• <b>ConversationLayer</b> (data)", _bodyStyle);
             EditorGUILayout.LabelField("  └─ Single dialogue segment", _bodyStyle);
             EditorGUILayout.LabelField(
-                "  └─ Contains text, speaker info, portraits, events",
+                "  └─ Contains text, speaker info, and portraits",
                 _bodyStyle
             );
             GUILayout.Space(4);
@@ -155,7 +151,10 @@ namespace Turnroot.Conversations.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField("  └─ Configuration wrapper for a Conversation", _bodyStyle);
-            EditorGUILayout.LabelField("  └─ Can override events per instance", _bodyStyle);
+            EditorGUILayout.LabelField(
+                "  └─ Links a Conversation asset to a controller",
+                _bodyStyle
+            );
             GUILayout.Space(4);
 
             EditorGUILayout.LabelField("• <b>ConversationController</b> (component)", _bodyStyle);
@@ -182,22 +181,18 @@ namespace Turnroot.Conversations.Editor
             GUILayout.Label("   Right-click → Create → Turnroot/Conversation", _codeStyle);
             GUILayout.Space(4);
 
-            EditorGUILayout.LabelField("<b>2. Choose conversation type:</b>", _bodyStyle);
+            EditorGUILayout.LabelField("<b>2. Assign a ConversationGraph:</b>", _bodyStyle);
+            EditorGUILayout.LabelField("   • Create or select an XNode graph asset", _bodyStyle);
             EditorGUILayout.LabelField(
-                "   • <b>Linear:</b> Uncheck 'Branching Conversation', add layers",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField(
-                "   • <b>Branching:</b> Keep checked, assign ConversationGraph",
+                "   • Hook up layer nodes, choice nodes, and action nodes",
                 _bodyStyle
             );
             GUILayout.Space(4);
 
-            EditorGUILayout.LabelField("<b>3. Configure ConversationLayers:</b>", _bodyStyle);
+            EditorGUILayout.LabelField("<b>3. Configure layer nodes:</b>", _bodyStyle);
             EditorGUILayout.LabelField("   • Set speaker (CharacterData)", _bodyStyle);
             EditorGUILayout.LabelField("   • Choose portrait key", _bodyStyle);
             EditorGUILayout.LabelField("   • Write dialogue text", _bodyStyle);
-            EditorGUILayout.LabelField("   • Add optional events", _bodyStyle);
             GUILayout.Space(4);
 
             EditorGUILayout.LabelField("<b>4. Create ConversationInstance:</b>", _bodyStyle);
@@ -224,57 +219,9 @@ namespace Turnroot.Conversations.Editor
             DrawSeparator();
         }
 
-        private void DrawLinearExample()
+        private void DrawGraphExample()
         {
-            EditorGUILayout.LabelField("EXAMPLE 1: Linear Conversation", _sectionStyle);
-
-            EditorGUILayout.LabelField(
-                "<b>Scenario:</b> Two characters talk in sequence",
-                _exampleStyle
-            );
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>Conversation Setup:</b>", _exampleStyle);
-            GUILayout.Label("Branching Conversation: Unchecked", _codeStyle);
-            GUILayout.Label("Layers:", _codeStyle);
-            GUILayout.Label("  Layer 0:", _codeStyle);
-            GUILayout.Label("    Speaker: Hero", _codeStyle);
-            GUILayout.Label("    Portrait: Neutral", _codeStyle);
-            GUILayout.Label("    Text: \"I need to find the ancient sword.\"", _codeStyle);
-            GUILayout.Label("  Layer 1:", _codeStyle);
-            GUILayout.Label("    Speaker: Mentor", _codeStyle);
-            GUILayout.Label("    Portrait: Wise", _codeStyle);
-            GUILayout.Label("    Text: \"The sword lies beyond the mountains.\"", _codeStyle);
-            GUILayout.Label("  Layer 2:", _codeStyle);
-            GUILayout.Label("    Speaker: Hero", _codeStyle);
-            GUILayout.Label("    Portrait: Determined", _codeStyle);
-            GUILayout.Label("    Text: \"I'll begin my journey at dawn.\"", _codeStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>Playback:</b>", _exampleStyle);
-            EditorGUILayout.LabelField(
-                "  • Call StartConversation() → Shows Layer 0",
-                _exampleStyle
-            );
-            EditorGUILayout.LabelField("  • Player clicks/advances → Layer 1", _exampleStyle);
-            EditorGUILayout.LabelField("  • Player clicks/advances → Layer 2", _exampleStyle);
-            EditorGUILayout.LabelField(
-                "  • Player clicks/advances → Conversation ends",
-                _exampleStyle
-            );
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField(
-                "<color=#90EE90>Result: Simple linear dialogue sequence</color>",
-                _exampleStyle
-            );
-
-            DrawSeparator();
-        }
-
-        private void DrawBranchingExample()
-        {
-            EditorGUILayout.LabelField("EXAMPLE 2: Branching Conversation", _sectionStyle);
+            EditorGUILayout.LabelField("EXAMPLE: Branching Conversation Graph", _sectionStyle);
 
             EditorGUILayout.LabelField(
                 "<b>Scenario:</b> Player makes choices that affect dialogue flow",
@@ -356,9 +303,9 @@ namespace Turnroot.Conversations.Editor
 
         private void DrawReroutes()
         {
-            EditorGUILayout.LabelField("UNITY EVENT REROUTES (DynamicSceneFlow)", _sectionStyle);
+            EditorGUILayout.LabelField("DYNAMICSCENEFLOW REROUTES", _sectionStyle);
 
-            EditorGUILayout.LabelField("<b>Available methods for Unity Events:</b>", _bodyStyle);
+            EditorGUILayout.LabelField("<b>Available reroute methods:</b>", _bodyStyle);
             GUILayout.Space(4);
 
             GUILayout.Label("StartConversation() - Start current conversation", _codeStyle);
@@ -384,11 +331,11 @@ namespace Turnroot.Conversations.Editor
             EditorGUILayout.LabelField("💡 TIPS & BEST PRACTICES", _sectionStyle);
 
             EditorGUILayout.LabelField(
-                "• <b>Linear conversations</b> are simpler for cutscenes and narration",
+                "• All conversations are graph-based; use XNode to author dialogue",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• <b>Branching conversations</b> give players agency and replay value",
+                "• Branching choices give players agency and replay value",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
@@ -400,7 +347,7 @@ namespace Turnroot.Conversations.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Use <b>OnLayerStart/OnLayerEnd</b> events for mid-conversation effects",
+                "• Use <b>action nodes</b> (Change Support Points, Unlock Battle) for gameplay effects",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(

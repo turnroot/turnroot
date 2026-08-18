@@ -1,6 +1,6 @@
+using System;
 using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Turnroot.Conversations
 {
@@ -16,7 +16,7 @@ namespace Turnroot.Conversations
         private AudioSource _audioSource;
 
         private ConversationController _controller;
-        private UnityAction _pendingCallback;
+        private Action _pendingCallback;
 
         public bool HasPendingCallback => _pendingCallback != null;
 
@@ -65,7 +65,7 @@ namespace Turnroot.Conversations
         /// conversation controller reports completion. If the one-shot has no dialogue the
         /// callback is invoked immediately.
         /// </summary>
-        public void PlayOneShotThen(OneShot oneShot, UnityAction onFinished)
+        public void PlayOneShotThen(OneShot oneShot, Action onFinished)
         {
             if (!string.IsNullOrWhiteSpace(oneShot.Dialogue))
             {
@@ -76,7 +76,7 @@ namespace Turnroot.Conversations
                 if (_controller != null)
                 {
                     _pendingCallback = onFinished;
-                    _controller.OnAnyConversationFinished.AddListener(onFinished);
+                    _controller.OnAnyConversationFinished += onFinished;
                     PlayOneShot(oneShot);
                     return;
                 }
@@ -91,9 +91,12 @@ namespace Turnroot.Conversations
         }
 
         /// <summary>Removes a specific finished callback and clears the pending reference if it matches.</summary>
-        public void UnsubscribeOneShotFinished(UnityAction onFinished)
+        public void UnsubscribeOneShotFinished(Action onFinished)
         {
-            _controller?.OnAnyConversationFinished.RemoveListener(onFinished);
+            if (_controller != null && onFinished != null)
+            {
+                _controller.OnAnyConversationFinished -= onFinished;
+            }
             if (_pendingCallback == onFinished)
             {
                 _pendingCallback = null;
@@ -103,9 +106,9 @@ namespace Turnroot.Conversations
         /// <summary>Removes whatever pending callback is currently registered. Safe to call from OnDisable.</summary>
         public void ClearPendingCallback()
         {
-            if (_pendingCallback != null)
+            if (_pendingCallback != null && _controller != null)
             {
-                _controller?.OnAnyConversationFinished.RemoveListener(_pendingCallback);
+                _controller.OnAnyConversationFinished -= _pendingCallback;
                 _pendingCallback = null;
             }
         }

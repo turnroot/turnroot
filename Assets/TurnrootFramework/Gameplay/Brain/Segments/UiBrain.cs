@@ -2,7 +2,6 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
-using Turnroot.UI;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.Utilities;

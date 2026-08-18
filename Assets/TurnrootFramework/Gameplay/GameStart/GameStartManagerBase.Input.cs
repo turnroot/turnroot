@@ -113,14 +113,13 @@ namespace Turnroot.Gameplay.GameStart
 
         private static bool IsPressed(InputAction action) => action != null && action.IsPressed();
 
-        private static void QuitApplication()
-        {
+        private static void QuitApplication() =>
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
             UnityEngine.Application.Quit();
 #endif
-        }
+
 
         private void HandlePronounsInput(string action)
         {

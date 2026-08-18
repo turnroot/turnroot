@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NaughtyAttributes;
 using Turnroot.AbstractScripts.Graphics2D;
@@ -5,7 +6,6 @@ using Turnroot.Characters;
 using Turnroot.Characters.Subclasses;
 using Turnroot.Utilities;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Turnroot.Conversations
 {
@@ -45,7 +45,7 @@ namespace Turnroot.Conversations
                     {
                         PortraitKey = null;
 #if UNITY_EDITOR
-                        var sel = UnityEditor.Selection.activeObject as Object;
+                        var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
                         if (sel != null)
                         {
                             var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
@@ -64,7 +64,7 @@ namespace Turnroot.Conversations
                 {
                     PortraitKey = null;
 #if UNITY_EDITOR
-                    var sel = UnityEditor.Selection.activeObject as Object;
+                    var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
                     if (sel != null)
                     {
                         var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
@@ -86,7 +86,7 @@ namespace Turnroot.Conversations
                 CachedSprite = null;
 #if UNITY_EDITOR
                 // Ensure the change is recorded so the conversation asset is marked dirty and saved.
-                var sel = UnityEditor.Selection.activeObject as Object;
+                var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
                 if (sel != null)
                 {
                     var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
@@ -163,27 +163,14 @@ namespace Turnroot.Conversations
             GetPortrait(_secondary.Speaker, _secondary.PortraitKey);
 
         /// <summary>
-        /// Contains Unity events triggered at the start and completion of a conversation layer.
+        /// Raised when the layer starts playback.
         /// </summary>
-        [System.Serializable]
-        public class LayerEvents
-        {
-            public UnityEvent OnLayerStart = new UnityEvent();
-            public UnityEvent OnLayerComplete = new UnityEvent();
-        }
+        public event Action OnLayerStarted;
 
-        [HideInInspector]
-        public UnityEvent OnLayerStart => Events.OnLayerStart;
-
-        [HideInInspector]
-        public UnityEvent OnLayerComplete => Events.OnLayerComplete;
-
-        [Foldout("Events")]
-        public LayerEvents Events = new();
-
-        public Sprite PortraitSprite => GetPortraitSpriteForSlot(_primary);
-
-        public Sprite SecondaryPortraitSprite => GetPortraitSpriteForSlot(_secondary);
+        /// <summary>
+        /// Raised when the layer is completed by the player advancing the conversation.
+        /// </summary>
+        public event Action OnLayerCompleted;
 
         public void Awake()
         {
@@ -197,9 +184,9 @@ namespace Turnroot.Conversations
             }
         }
 
-        public void StartLayer() => OnLayerStart?.Invoke();
+        public void StartLayer() => OnLayerStarted?.Invoke();
 
-        public void CompleteLayer() => OnLayerComplete?.Invoke();
+        public void CompleteLayer() => OnLayerCompleted?.Invoke();
 
         private void ValidatePortraitKeyOnSpeakerChange(
             ref string portraitKey,
@@ -215,9 +202,9 @@ namespace Turnroot.Conversations
             }
         }
 
-        private Portrait GetPortrait(CharacterData speaker, string portraitKey) => speaker != null && portraitKey != null ? speaker.GetPortrait(portraitKey) : null;
+        private Portrait GetPortrait(CharacterData speaker, string portraitKey) =>
+            speaker != null && portraitKey != null ? speaker.GetPortrait(portraitKey) : null;
 
-        // Active speaker helpers
         public ActiveSpeakerType ActiveSpeaker
         {
             get => _activeSpeaker;
@@ -227,59 +214,65 @@ namespace Turnroot.Conversations
         public SpeakerSlot GetActiveSlot() =>
             _activeSpeaker == ActiveSpeakerType.Primary ? _primary : _secondary;
 
-        public Portrait ActivePortrait =>
-            GetPortrait(GetActiveSlot().Speaker, GetActiveSlot().PortraitKey);
+        private SpeakerSlot GetInactiveSlot() =>
+            _activeSpeaker == ActiveSpeakerType.Primary ? _secondary : _primary;
 
-        // Tint helpers: return the color that should be applied to a portrait image
-        public Color GetPortraitTint(SpeakerSlot slot)
+        private (Sprite sprite, Color tint) GetPortraitInfo(SpeakerSlot slot)
         {
             if (slot == null)
             {
-                return Color.white;
+                return (null, Color.white);
             }
 
-            if (slot == GetActiveSlot())
+            CachePortraitForSlot(slot);
+
+            var tint = slot == GetActiveSlot() ? Color.white : ComputeInactiveTint();
+
+            return (slot.CachedSprite, tint);
+        }
+
+        private void CachePortraitForSlot(SpeakerSlot slot)
+        {
+            if (slot.CachedSprite != null)
             {
-                return Color.white;
+                return;
             }
 
+            var p = GetPortrait(slot.Speaker, slot.PortraitKey);
+            if (p == null && slot.Speaker?.PortraitCount > 0)
+            {
+                var keys = slot.Speaker.GetPortraitKeys();
+                if (keys.Length > 0)
+                {
+                    slot.PortraitKey = keys[0];
+                    p = slot.Speaker.GetPortrait(slot.PortraitKey);
+                }
+            }
+
+            if (p != null)
+            {
+                slot.CachedSprite = p.SavedSprite;
+            }
+        }
+
+        private static Color ComputeInactiveTint()
+        {
             var settings = Graphics2DSettings.Instance;
             var tintColor = settings?.InactiveTintColor ?? new Color(0.5f, 0.5f, 0.5f, 1f);
             var tintMix = settings?.InactiveTintMix ?? 0.5f;
             return Color.Lerp(Color.white, tintColor, tintMix);
         }
 
-        public Color PrimaryPortraitTint => GetPortraitTint(_primary);
-        public Color SecondaryPortraitTint => GetPortraitTint(_secondary);
-
-        private Sprite GetPortraitSpriteForSlot(SpeakerSlot slot)
+        public (
+            Sprite activeSprite,
+            Color activeTint,
+            Sprite inactiveSprite,
+            Color inactiveTint
+        ) GetActiveAndInactivePortraits()
         {
-            if (slot == null)
-            {
-                return null;
-            }
-
-            if (slot.CachedSprite == null)
-            {
-                // If a portrait key is set, use it. Otherwise, try to pick the first available portrait
-                var p = GetPortrait(slot.Speaker, slot.PortraitKey);
-                if (p == null && slot.Speaker?.PortraitCount > 0)
-                {
-                    // pick the first available portrait key as a sensible default
-                    var keys = slot.Speaker.GetPortraitKeys();
-                    if (keys.Length > 0)
-                    {
-                        slot.PortraitKey = keys[0];
-                        p = slot.Speaker.GetPortrait(slot.PortraitKey);
-                    }
-                }
-
-                if (p != null)
-                {
-                    slot.CachedSprite = p.SavedSprite;
-                }
-            }
-            return slot.CachedSprite;
+            var active = GetPortraitInfo(GetActiveSlot());
+            var inactive = GetPortraitInfo(GetInactiveSlot());
+            return (active.sprite, active.tint, inactive.sprite, inactive.tint);
         }
     }
 }
