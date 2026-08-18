@@ -5,7 +5,7 @@ using XNodeEditor;
 namespace Turnroot.Conversations.Branching.Nodes.Editor
 {
     /// <summary>
-    /// Shared implementation used by all conversation node editors.
+    /// Shared implementation used by most conversation node editors.
     /// </summary>
     public abstract class ConversationBaseNodeEditor : NodeEditor
     {
@@ -61,9 +61,56 @@ namespace Turnroot.Conversations.Branching.Nodes.Editor
 
     /// <summary>
     /// Custom editor for the configurable SplitByChoicesNode.
+    /// Draws one output port per choice after the main body fields.
     /// </summary>
     [CustomNodeEditor(typeof(SplitByChoicesNode))]
-    public class SplitByChoicesNodeEditor : ConversationBaseNodeEditor { }
+    public class SplitByChoicesNodeEditor : ConversationBaseNodeEditor
+    {
+        public override void OnBodyGUI()
+        {
+            serializedObject.Update();
+
+            float originalLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = GetWidth() * 0.5f;
+
+            var node = (SplitByChoicesNode)target;
+            node.EnsureChoicePorts();
+
+            var skipPorts = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+            foreach (var p in target.Ports)
+            {
+                skipPorts.Add(p.fieldName);
+            }
+
+            SerializedProperty iterator = serializedObject.GetIterator();
+            iterator.NextVisible(true);
+            while (iterator.NextVisible(false))
+            {
+                if (
+                    iterator.name == "graph"
+                    || iterator.name == "position"
+                    || iterator.name == "ports"
+                    || skipPorts.Contains(iterator.name)
+                )
+                {
+                    continue;
+                }
+
+                EditorGUILayout.PropertyField(iterator, true);
+            }
+
+            foreach (var port in target.Ports)
+            {
+                if (port.IsOutput)
+                {
+                    NodeEditorGUILayout.PortField(port);
+                }
+            }
+
+            EditorGUIUtility.labelWidth = originalLabelWidth;
+            serializedObject.ApplyModifiedProperties();
+        }
+    }
 
     /// <summary>
     /// Custom editor for ChangeSupportPointsNode.
