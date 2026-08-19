@@ -24,7 +24,24 @@ namespace Turnroot.Conversations.Branching
         public override void Execute(ConversationController controller)
         {
             var brain = GetAndCacheBrain.GetBrain();
+            if (brain == null)
+            {
+                "UnlockBattleNode: could not find Brain.".LogWarning();
+                return;
+            }
+
             var sceneFlowBrain = brain.sceneFlowBrain;
+            if (sceneFlowBrain == null)
+            {
+                "UnlockBattleNode: could not find SceneFlowBrain.".LogWarning();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(battleSceneName))
+            {
+                "UnlockBattleNode: battleSceneName is not set.".LogWarning();
+                return;
+            }
 
             string key = ResolveFlagKey();
             sceneFlowBrain.SetCustomFlag(key, true);
@@ -35,7 +52,7 @@ namespace Turnroot.Conversations.Branching
         {
             return !string.IsNullOrEmpty(flagKey)
                 ? flagKey
-                : !string.IsNullOrEmpty(battleSceneName) ? $"battle_unlocked_{battleSceneName}" : "battle_unlocked_unknown";
+                : $"battle_unlocked_{battleSceneName}";
         }
     }
 }

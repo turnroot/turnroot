@@ -12,8 +12,15 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public event Action<string> OnBattleUnlocked;
 
-        public void PublishBattleUnlocked(string battleSceneName) =>
+        public void PublishBattleUnlocked(string battleSceneName)
+        {
+            if (string.IsNullOrWhiteSpace(battleSceneName))
+            {
+                return;
+            }
+
             OnBattleUnlocked?.Invoke(battleSceneName);
+        }
 
         #endregion
     }

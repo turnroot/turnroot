@@ -20,43 +20,67 @@ namespace Turnroot.Conversations.Branching
         [SerializeField]
         private List<string> _choiceLabels = new();
 
-        [SerializeField, HideInInspector]
-        private List<ConversationFlow> _choices = new();
-
         public IReadOnlyList<string> ChoiceLabels => _choiceLabels;
+
+        public string GetChoiceLabel(int index) =>
+            index >= 0 && index < _choiceLabels.Count ? _choiceLabels[index] : "Choice";
+
+        /// <summary>
+        /// Ensures a dynamic output port exists for each configured choice. Called by the
+        /// editor and runtime graph parser to keep ports in sync with <see cref="choiceCount"/>.
+        /// </summary>
+        public void EnsureChoicePorts()
+        {
+            EnsureChoiceLabels();
+
+            for (int i = 0; i < choiceCount; i++)
+            {
+                var portName = $"Choice{i + 1}";
+                if (GetOutputPort(portName) == null)
+                {
+                    AddDynamicOutput(typeof(ConversationFlow), fieldName: portName);
+                }
+            }
+
+            var toRemove = new List<NodePort>();
+            foreach (var port in DynamicPorts)
+            {
+                if (
+                    port.fieldName.StartsWith("Choice")
+                    && int.TryParse(port.fieldName.Substring(6), out int index)
+                    && index > choiceCount
+                )
+                {
+                    toRemove.Add(port);
+                }
+            }
+
+            foreach (var port in toRemove)
+            {
+                RemoveDynamicPort(port);
+            }
+        }
 
         public override void OnCreateConnection(NodePort from, NodePort to)
         {
-            EnsureChoiceLists();
+            EnsureChoicePorts();
             base.OnCreateConnection(from, to);
         }
 
         public override void OnRemoveConnection(NodePort port)
         {
-            EnsureChoiceLists();
+            EnsureChoicePorts();
             base.OnRemoveConnection(port);
         }
 
         public override object GetValue(NodePort port)
         {
-            EnsureChoiceLists();
-            int index = PortIndex(port.fieldName);
-            return index >= 0 && index < _choices.Count ? _choices[index] : null;
+            return null;
         }
 
-        private void EnsureChoiceLists()
+        private void EnsureChoiceLabels()
         {
-            _choices ??= new List<ConversationFlow>();
             _choiceLabels ??= new List<string>();
-
-            while (_choices.Count < choiceCount)
-            {
-                _choices.Add(default);
-            }
-            while (_choices.Count > choiceCount)
-            {
-                _choices.RemoveAt(_choices.Count - 1);
-            }
 
             while (_choiceLabels.Count < choiceCount)
             {
@@ -68,36 +92,11 @@ namespace Turnroot.Conversations.Branching
             }
         }
 
-        private int PortIndex(string fieldName)
-        {
-            if (string.IsNullOrEmpty(fieldName) || fieldName.Length < 7)
-            {
-                return -1;
-            }
-
-            if (
-                fieldName[0] == 'C'
-                && fieldName[1] == 'h'
-                && fieldName[2] == 'o'
-                && fieldName[3] == 'i'
-                && fieldName[4] == 'c'
-                && fieldName[5] == 'e'
-            )
-            {
-                if (int.TryParse(fieldName.Substring(6), out int index))
-                {
-                    return index - 1;
-                }
-            }
-
-            return -1;
-        }
-
 #if UNITY_EDITOR
         protected override void Init()
         {
             base.Init();
-            EnsureChoiceLists();
+            EnsureChoicePorts();
         }
 #endif
     }
