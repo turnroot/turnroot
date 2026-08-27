@@ -31,10 +31,11 @@
       "hash": "d6effd70f5574369e3415c423ef3e621ea309564"
     },
     "com.mehozavr.kuwahara": {
-      "version": "file:E:/Dev/UnityURP_Kuwahara",
+      "version": "https://github.com/josephclaytonhansen/UnityURP_Kuwahara.git#make-unity6-compatible",
       "depth": 0,
-      "source": "local",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "3bb9149f926e37f7b425d383bb6d2403a409dc7a"
     },
     "com.mischief.markdownviewer": {
       "version": "file:UnityMarkdownViewer",
