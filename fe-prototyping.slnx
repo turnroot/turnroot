@@ -6,6 +6,7 @@
   <Project Path="TurnrootFramework.Editor.UI.csproj" />
   <Project Path="TurnrootFramework.Editor.Utilities.CommonAncestors.csproj" />
   <Project Path="TurnrootFramework.Editor.Utilities.csproj" />
+  <Project Path="com.mehozavr.kuwaharaURP.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.csproj" />
   <Project Path="TurnrootFramework.Editor.Maps.csproj" />
   <Project Path="TurnrootFramework.Editor.Core.FolderIcons.csproj" />

@@ -30,6 +30,12 @@
       "dependencies": {},
       "hash": "d6effd70f5574369e3415c423ef3e621ea309564"
     },
+    "com.mehozavr.kuwahara": {
+      "version": "file:E:/Dev/UnityURP_Kuwahara",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.mischief.markdownviewer": {
       "version": "file:UnityMarkdownViewer",
       "depth": 0,

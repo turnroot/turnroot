@@ -32,6 +32,7 @@ namespace Turnroot.Conversations.Branching
         public void EnsureChoicePorts()
         {
             EnsureChoiceLabels();
+            AddDynamicInput(typeof(ConversationFlow), fieldName: "previous");
 
             for (int i = 0; i < choiceCount; i++)
             {
