@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Turnroot.Conversations.Branching
 {
     /// <summary>
-    /// Conversation action node that unlocks a battle by setting a SceneFlowBrain custom flag.
+    /// Conversation action node that unlocks a battle by setting 'battle_unlocked_<battleSceneName>'.
     /// The same flag key must be used as a condition on the transition leading to the battle
     /// scene. Publishes a brain event so UI notifications can react to the unlock.
     /// </summary>
@@ -12,47 +12,23 @@ namespace Turnroot.Conversations.Branching
     public class UnlockBattleNode : ConversationActionNode
     {
         [Tooltip(
-            "Unity scene name of the battle that is being unlocked. Used for the unlock event and to build the default flag key."
+            "SceneFlowGraph scene ID of the battle that is being unlocked"
         )]
-        public string battleSceneName;
-
-        [Tooltip(
-            "Custom flag key set on SceneFlowBrain. If empty, defaults to 'battle_unlocked_<battleSceneName>'."
-        )]
-        public string flagKey;
+        public string battleSceneId;
 
         public override void Execute(ConversationController controller)
         {
             var brain = GetAndCacheBrain.GetBrain();
-            if (brain == null)
-            {
-                "UnlockBattleNode: could not find Brain.".LogWarning();
-                return;
-            }
-
             var sceneFlowBrain = brain.sceneFlowBrain;
-            if (sceneFlowBrain == null)
+
+            if (string.IsNullOrWhiteSpace(battleSceneId))
             {
-                "UnlockBattleNode: could not find SceneFlowBrain.".LogWarning();
+                "UnlockBattleNode: battleSceneId is not set.".LogError();
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(battleSceneName))
-            {
-                "UnlockBattleNode: battleSceneName is not set.".LogWarning();
-                return;
-            }
-
-            string key = ResolveFlagKey();
-            sceneFlowBrain.SetCustomFlag(key, true);
-            brain.PublishBattleUnlocked(battleSceneName);
-        }
-
-        private string ResolveFlagKey()
-        {
-            return !string.IsNullOrEmpty(flagKey)
-                ? flagKey
-                : $"battle_unlocked_{battleSceneName}";
+            sceneFlowBrain.SetBattleUnlocked(battleSceneId, true);
+            brain.PublishBattleUnlocked(battleSceneId);
         }
     }
 }

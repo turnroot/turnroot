@@ -400,6 +400,8 @@ namespace Turnroot.Utilities.SceneFlows
             $"SceneFlowBrain: Set flag '{key}' = {value}".LogInfo();
         }
 
+        public void SetBattleUnlocked(string battleSceneId, bool unlocked) => SetCustomFlag($"battle_unlocked_{battleSceneId}", unlocked);
+
         public void SetCustomIntValue(string key, int value)
         {
             _customIntValues[key] = value;
