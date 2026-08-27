@@ -120,7 +120,7 @@ MonoBehaviour:
   m_Name: KuwaharaEffectRenderFeature
   m_EditorClassIdentifier: TurnrootFramework.Runtime::Turnroot.Graphics2D.Utilities.Kuwahara.KuwaharaEffectRenderFeature
   m_Active: 1
-  RenderOrder: 550
+  RenderOrder: 600
 --- !u!114 &6382460025239955874
 MonoBehaviour:
   m_ObjectHideFlags: 0

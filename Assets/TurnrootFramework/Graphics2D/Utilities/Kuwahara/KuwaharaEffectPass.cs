@@ -49,6 +49,10 @@ namespace Turnroot.Graphics2D.Utilities.Kuwahara
             TextureHandle source = resourceData.activeColorTexture;
             int passCount = effect.Passes.value;
 
+            // If the shader failed to load, don't render anything rather than turning the screen black.
+            if (_effectMaterial == null)
+                return;
+
             switch (effect.EffectType.value)
             {
                 case KuwaharaEffectType.Basic:
@@ -188,6 +192,7 @@ namespace Turnroot.Graphics2D.Utilities.Kuwahara
 
             builder.UseTexture(src, AccessFlags.Read);
             builder.SetRenderAttachment(dst, 0, AccessFlags.Write);
+            builder.AllowPassCulling(false);
             builder.SetRenderFunc(
                 static (BlitData d, RasterGraphContext ctx) =>
                 {
@@ -217,6 +222,7 @@ namespace Turnroot.Graphics2D.Utilities.Kuwahara
             builder.UseTexture(globalTex, AccessFlags.Read);
             builder.SetRenderAttachment(dst, 0, AccessFlags.Write);
             builder.AllowGlobalStateModification(true);
+            builder.AllowPassCulling(false);
             builder.SetRenderFunc(
                 static (BlitData d, RasterGraphContext ctx) =>
                 {
@@ -229,6 +235,7 @@ namespace Turnroot.Graphics2D.Utilities.Kuwahara
         class CopyData
         {
             public TextureHandle src;
+            public TextureHandle dst;
         }
 
         void AddCopyPass(RenderGraph rg, TextureHandle src, TextureHandle dst)
@@ -238,9 +245,11 @@ namespace Turnroot.Graphics2D.Utilities.Kuwahara
                 out var data
             );
             data.src = src;
+            data.dst = dst;
 
             builder.UseTexture(src, AccessFlags.Read);
             builder.SetRenderAttachment(dst, 0, AccessFlags.Write);
+            builder.AllowPassCulling(false);
             builder.SetRenderFunc(
                 static (CopyData d, RasterGraphContext ctx) =>
                 {
@@ -306,9 +315,21 @@ namespace Turnroot.Graphics2D.Utilities.Kuwahara
         {
             if (_effectType == type && _effectMaterial)
                 return;
-            if (_effectMaterial)
-                Object.Destroy(_effectMaterial);
-            _effectMaterial = new Material(Resources.Load<Shader>(shaderPath));
+            SafeDestroyMaterial(_effectMaterial);
+
+            Shader shader = Resources.Load<Shader>(shaderPath);
+            if (shader == null)
+            {
+                Debug.LogError(
+                    $"[Kuwahara] Could not load shader '{shaderPath}'. "
+                        + "Make sure the shader files are inside a Resources/Shaders folder."
+                );
+                _effectMaterial = null;
+                _effectType = type;
+                return;
+            }
+
+            _effectMaterial = new Material(shader);
             _effectType = type;
         }
 
@@ -320,13 +341,25 @@ namespace Turnroot.Graphics2D.Utilities.Kuwahara
                 mat.DisableKeyword(keyword);
         }
 
+        static void SafeDestroyMaterial(Material material)
+        {
+            if (material == null)
+                return;
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                Object.DestroyImmediate(material);
+            else
+                Object.Destroy(material);
+#else
+            Object.Destroy(material);
+#endif
+        }
+
         public void DeInit()
         {
-            if (_effectMaterial)
-            {
-                Object.Destroy(_effectMaterial);
-                _effectMaterial = null;
-            }
+            SafeDestroyMaterial(_effectMaterial);
+            _effectMaterial = null;
         }
     }
 }
