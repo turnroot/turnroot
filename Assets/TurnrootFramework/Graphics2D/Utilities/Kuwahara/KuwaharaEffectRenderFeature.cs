@@ -32,7 +32,7 @@ namespace Turnroot.Graphics2D.Utilities.Kuwahara
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            _pass.DeInit();
+            _pass?.DeInit();
         }
     }
 }

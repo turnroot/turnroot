@@ -1,19 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8675366131771116064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52a822e830c87f5499460fda4985760c, type: 3}
-  m_Name: KuwaharaEffectRenderFeature
-  m_EditorClassIdentifier: TurnrootFramework.Runtime::Turnroot.Graphics2D.Utilities.Kuwahara.KuwaharaEffectRenderFeature
-  m_Active: 1
-  RenderOrder: 550
 --- !u!114 &-7438861038417122632
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,8 +63,8 @@ MonoBehaviour:
   - {fileID: 7833122117494664109}
   - {fileID: 6382460025239955874}
   - {fileID: -7438861038417122632}
-  - {fileID: -8675366131771116064}
-  m_RendererFeatureMap: ad6b866f10d7b46ca2e98ec5930d9358b86aa75f4cdbc398e0f5539b77e89a87
+  - {fileID: 889357166347523860}
+  m_RendererFeatureMap: ad6b866f10d7b46ca2e98ec5930d9358b86aa75f4cdbc3981497977aa1a1570c
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -121,6 +107,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: com.mehozavr.kuwaharaURP::KuwaharaURP.KuwaharaEffectRenderFeature
   m_Active: 1
   RenderOrder: 550
+--- !u!114 &889357166347523860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52a822e830c87f5499460fda4985760c, type: 3}
+  m_Name: KuwaharaEffectRenderFeature
+  m_EditorClassIdentifier: TurnrootFramework.Runtime::Turnroot.Graphics2D.Utilities.Kuwahara.KuwaharaEffectRenderFeature
+  m_Active: 1
+  RenderOrder: 600
 --- !u!114 &6382460025239955874
 MonoBehaviour:
   m_ObjectHideFlags: 0
