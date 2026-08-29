@@ -133,7 +133,7 @@ namespace Turnroot.GameSettings
         }
 
         [Header("Aptitude Letter Icons")]
-        public LetterIconMapping LetterIcons = new LetterIconMapping();
+        public LetterIconMapping LetterIcons = new();
 
         protected override void OnEnable()
         {

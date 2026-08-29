@@ -58,7 +58,7 @@ namespace Turnroot.Graphics2D
         private bool animateOffset = false;
 
         [SerializeField]
-        private Vector2 offsetSpeed = new Vector2(0.1f, 0.1f);
+        private Vector2 offsetSpeed = new(0.1f, 0.1f);
 
         [SerializeField]
         private bool animateRotation = false;
@@ -70,7 +70,7 @@ namespace Turnroot.Graphics2D
         private bool animateScale = false;
 
         [SerializeField]
-        private Vector2 scaleRange = new Vector2(0.8f, 1.2f);
+        private Vector2 scaleRange = new(0.8f, 1.2f);
 
         [SerializeField]
         private float scaleSpeed = 1f;
@@ -79,7 +79,7 @@ namespace Turnroot.Graphics2D
         private bool pulsateIntensity = false;
 
         [SerializeField]
-        private Vector2 intensityRange = new Vector2(0.5f, 1.5f);
+        private Vector2 intensityRange = new(0.5f, 1.5f);
 
         [SerializeField]
         private float intensityPulseSpeed = 1f;
