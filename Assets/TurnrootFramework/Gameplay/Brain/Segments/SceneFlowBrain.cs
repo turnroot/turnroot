@@ -16,7 +16,7 @@ namespace Turnroot.Utilities.SceneFlows
     [RequireComponent(typeof(Brain))]
     public partial class SceneFlowBrain : BrainComponent
     {
-        private static WaitForSeconds _waitForSeconds0_3 = new WaitForSeconds(0.3f);
+        private static WaitForSeconds _waitForSeconds0_3 = new(0.3f);
 
         // reference to storage system for dates/etc.
         private LongTermMemory _ltm;

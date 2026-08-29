@@ -28,7 +28,7 @@ namespace Turnroot.Utilities
             "Half-size of the emitter rectangle in the object's local X (width) and Z (height) axes. "
                 + "Will be overwritten if AutoComputeExtents is enabled and a rectangle emitter is found."
         )]
-        public Vector2 Extents = new Vector2(5f, 5f);
+        public Vector2 Extents = new(5f, 5f);
 
         [Tooltip(
             "When true the script will look for a ParticleSystem with a rectangle shape and calculate \"Extents\" automatically."
@@ -111,10 +111,10 @@ namespace Turnroot.Utilities
             // This matches Unity's rectangle emitter axes and is more intuitive.
             _localCorners = new Vector3[4]
             {
-                new Vector3(-Extents.x, -Extents.y, 0f),
-                new Vector3(Extents.x, -Extents.y, 0f),
-                new Vector3(-Extents.x, Extents.y, 0f),
-                new Vector3(Extents.x, Extents.y, 0f),
+                new(-Extents.x, -Extents.y, 0f),
+                new(Extents.x, -Extents.y, 0f),
+                new(-Extents.x, Extents.y, 0f),
+                new(Extents.x, Extents.y, 0f),
             };
         }
 

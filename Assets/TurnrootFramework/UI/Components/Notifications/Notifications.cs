@@ -9,7 +9,7 @@ namespace Turnroot.UI.Components.Notifications
         public GameObject container;
         public GameObject notificationPrefab;
 
-        private List<Notification> instances = new List<Notification>();
+        private List<Notification> instances = new();
 
         private void Awake()
         {

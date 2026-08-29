@@ -65,14 +65,14 @@ namespace Turnroot.Graphics3D
         // -- Grass Mixins ----------------------------------------------------------
         [Header("Grass Mixins - one scatter pass per material, follows grass mask")]
         [FormerlySerializedAs("extraMaterials")]
-        public List<Material> grassMixinMaterials = new List<Material>();
+        public List<Material> grassMixinMaterials = new();
 
         [Range(0f, 1f)]
         [FormerlySerializedAs("unmaskedExtraDensity")]
         public float grassMixinDensity = 0.01f; // quads per m�
 
         [FormerlySerializedAs("unmaskedExtraSize")]
-        public Vector2 grassMixinSize = new Vector2(0.1f, 0.1f);
+        public Vector2 grassMixinSize = new(0.1f, 0.1f);
 
         [Min(0.1f)]
         [Tooltip("Hard cap for grass mixin width/height to prevent accidental giant quads.")]

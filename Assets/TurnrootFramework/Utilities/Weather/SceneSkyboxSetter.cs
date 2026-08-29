@@ -59,7 +59,7 @@ namespace Turnroot.Utilities.Weather
 
         [BoxGroup("Skybox Tinting")]
         [Tooltip("Night tint color applied during evening/night")]
-        public Color NightTintColor = new Color(0.1f, 0.13f, 0.25f, 1f);
+        public Color NightTintColor = new(0.1f, 0.13f, 0.25f, 1f);
 
         [BoxGroup("Skybox Tinting")]
         [Tooltip("Strength of the night tint (0 = off, 1 = full)")]
