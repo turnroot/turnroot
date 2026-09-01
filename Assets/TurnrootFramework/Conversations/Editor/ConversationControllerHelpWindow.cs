@@ -102,6 +102,7 @@ namespace Turnroot.Conversations.Editor
             DrawArchitecture();
             DrawWorkflow();
             DrawSyntaxReference();
+            DrawActionsReference();
             DrawControllerMethods();
             DrawReroutes();
             DrawTips();
@@ -176,8 +177,16 @@ namespace Turnroot.Conversations.Editor
             GUILayout.Label("PART1_Action_GainSupport_Aubrey_PP", _codeStyle);
             GUILayout.Label("PART1_Action_LoseSupport_Aubrey_M", _codeStyle);
             GUILayout.Label("PART1_Action_UnlockBattle_TakeOutTheTrash", _codeStyle);
+            GUILayout.Label("PART1_Action_PlayerGainsItem_IronSword", _codeStyle);
+            GUILayout.Label("PART1_Action_PlayerLosesItem_RustyKey", _codeStyle);
+            GUILayout.Label("PART1_Action_CharacterJoinsTeam_Aubrey", _codeStyle);
+            GUILayout.Label("PART1_Action_CharacterLeavesTeam_TempAlly", _codeStyle);
             GUILayout.Label(
-                "Strength suffixes: PP/PlusPlus, P/Plus, MM/MinusMinus, M/Minus.",
+                "Support strength suffixes: PP/PlusPlus, P/Plus, MM/MinusMinus, M/Minus.",
+                _bodyStyle
+            );
+            GUILayout.Label(
+                "Items load from Resources/Items. Characters load from Resources or the active roster.",
                 _bodyStyle
             );
             GUILayout.Space(4);
@@ -219,6 +228,43 @@ namespace Turnroot.Conversations.Editor
             GUILayout.Label("PlayConversationDirectFromNode(Conversation, nodeId)", _codeStyle);
             GUILayout.Label("NextLayer() / Advance() — advance dialogue", _codeStyle);
             GUILayout.Label("ChooseBranchTarget(string nodeId) — pick a choice", _codeStyle);
+
+            DrawSeparator();
+        }
+
+        private void DrawActionsReference()
+        {
+            EditorGUILayout.LabelField("ACTIONS", _sectionStyle);
+
+            EditorGUILayout.LabelField("<b>GainSupport / LoseSupport</b>", _bodyStyle);
+            GUILayout.Label("Changes avatar-to-character support points.", _codeStyle);
+            GUILayout.Label(
+                "Target is a speaker name from the conversation's People list. Strength suffixes (PP/P/MM/M) map to +/- 20/10.",
+                _bodyStyle
+            );
+            GUILayout.Space(4);
+
+            EditorGUILayout.LabelField("<b>UnlockBattle</b>", _bodyStyle);
+            GUILayout.Label("Unlocks a battle scene id for scene-flow selection.", _codeStyle);
+            GUILayout.Space(4);
+
+            EditorGUILayout.LabelField("<b>PlayerGainsItem / PlayerLosesItem</b>", _bodyStyle);
+            GUILayout.Label("Adds or removes an item in the avatar's inventory.", _codeStyle);
+            GUILayout.Label(
+                "Target is the ObjectItem asset name under Resources/Items. Lose removes the first matching instance.",
+                _bodyStyle
+            );
+            GUILayout.Space(4);
+
+            EditorGUILayout.LabelField(
+                "<b>CharacterJoinsTeam / CharacterLeavesTeam</b>",
+                _bodyStyle
+            );
+            GUILayout.Label("Adds or removes a character from the player roster.", _codeStyle);
+            GUILayout.Label(
+                "Target is a CharacterData asset name (Resources) or a display name in the active roster. Join creates the instance if needed.",
+                _bodyStyle
+            );
 
             DrawSeparator();
         }
