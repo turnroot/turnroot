@@ -138,13 +138,16 @@ namespace Turnroot.Conversations.Editor
 
             GUILayout.Label("1. Create a Conversation asset (Turnroot/Conversation).", _codeStyle);
             GUILayout.Label(
-                "2. Create a TextAsset in any Resources/Conversations folder.",
+                "2. Put the Conversation asset and its .mermaid TextAsset in Resources/Conversations.",
                 _codeStyle
             );
             GUILayout.Label("3. Write the Mermaid graph (see Syntax below).", _codeStyle);
             GUILayout.Label("4. Assign the TextAsset and click Parse & Update People.", _codeStyle);
             GUILayout.Label("5. Map any unmatched speakers to CharacterData assets.", _codeStyle);
-            GUILayout.Label("6. Add the Conversation to a ConversationController.", _codeStyle);
+            GUILayout.Label(
+                "6. Trigger it from code/events with PlayConversationById(\"MyConversation\").",
+                _codeStyle
+            );
 
             DrawSeparator();
         }
@@ -204,9 +207,12 @@ namespace Turnroot.Conversations.Editor
         {
             EditorGUILayout.LabelField("CONTROLLER API", _sectionStyle);
 
-            GUILayout.Label("StartConversation() — play from entry node", _codeStyle);
             GUILayout.Label(
-                "StartConversationFromNode(string nodeId) — resume at a node",
+                "PlayConversationById(string id) — play from Resources/Conversations",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "StartConversationById(string id, string nodeId) — resume at a node",
                 _codeStyle
             );
             GUILayout.Label("PlayConversationDirect(Conversation) — play any asset", _codeStyle);
@@ -221,10 +227,9 @@ namespace Turnroot.Conversations.Editor
         {
             EditorGUILayout.LabelField("DYNAMICSCENEFLOW REROUTES", _sectionStyle);
 
-            GUILayout.Label("StartConversation()", _codeStyle);
+            GUILayout.Label("StartConversation(string id)", _codeStyle);
+            GUILayout.Label("StartConversationFromNode(string id, string nodeId)", _codeStyle);
             GUILayout.Label("AdvanceConversation()", _codeStyle);
-            GUILayout.Label("StartConversationAtIndex(int)", _codeStyle);
-            GUILayout.Label("StartConversationFromNode(string nodeId)", _codeStyle);
             GUILayout.Label("ChooseBranch(string nodeId)", _codeStyle);
 
             DrawSeparator();
@@ -251,7 +256,7 @@ namespace Turnroot.Conversations.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Resume sub-conversations after scene changes with StartConversationFromNode(nodeId).",
+                "• Resume sub-conversations after scene changes with StartConversationById(id, nodeId).",
                 _bodyStyle
             );
 

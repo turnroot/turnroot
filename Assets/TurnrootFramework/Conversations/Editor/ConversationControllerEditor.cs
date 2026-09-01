@@ -1,16 +1,17 @@
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace Turnroot.Conversations.Editor
 {
     /// <summary>
-    /// Custom editor for ConversationController that provides a UI for managing conversation instances and quick actions.
+    /// Custom editor for ConversationController. Provides a play-mode id field and quick actions.
     /// </summary>
     [CustomEditor(typeof(ConversationController))]
     [CanEditMultipleObjects]
     public class ConversationControllerEditor : UnityEditor.Editor
     {
+        private string _playModeConversationId = "";
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -23,97 +24,47 @@ namespace Turnroot.Conversations.Editor
 
             GUILayout.Space(8);
 
-            DrawPropertiesExcluding(
-                serializedObject,
-                "m_Script",
-                "_conversationInstances",
-                "_currentConversation"
-            );
-
-            var instancesProp = serializedObject.FindProperty("_conversationInstances");
-            EditorGUILayout.PropertyField(
-                instancesProp,
-                new GUIContent("Conversation Instances"),
-                true
-            );
-
-            // Build popup labels from instances
-            var labels = new List<string>();
-            if (instancesProp != null && instancesProp.arraySize > 0)
-            {
-                for (int i = 0; i < instancesProp.arraySize; i++)
-                {
-                    var elem =
-                        instancesProp.GetArrayElementAtIndex(i).objectReferenceValue
-                        as ConversationInstance;
-                    if (elem == null)
-                    {
-                        labels.Add($"{i}: <null>");
-                    }
-                    else
-                    {
-                        labels.Add(
-                            $"{i}: {elem.name} -> {(elem.Conversation != null ? elem.Conversation.name : "<no conversation>")}"
-                        );
-                    }
-                }
-            }
-            else
-            {
-                labels.Add("<No Conversation Instances>");
-            }
-
-            var currentProp = serializedObject.FindProperty("_currentConversation");
-            int cur = currentProp.intValue;
-
-            // Clamp index into a safe range
-            if (labels.Count > 0)
-            {
-                cur = Mathf.Clamp(cur, 0, labels.Count - 1);
-            }
-            else
-            {
-                cur = 0;
-            }
-
-            using (new EditorGUI.DisabledScope(labels.Count == 0))
-            {
-                cur = EditorGUILayout.Popup(
-                    new GUIContent("Current Conversation Index"),
-                    cur,
-                    labels.ToArray()
-                );
-            }
-
-            currentProp.intValue = cur;
+            DrawPropertiesExcluding(serializedObject, "m_Script");
 
             serializedObject.ApplyModifiedProperties();
 
             GUILayout.Space(8);
             EditorGUILayout.LabelField("Quick Actions", EditorStyles.boldLabel);
 
+            _playModeConversationId = EditorGUILayout.TextField(
+                new GUIContent("Conversation Id"),
+                _playModeConversationId
+            );
+
             using (new EditorGUI.DisabledScope(Application.isPlaying == false))
             {
                 if (
                     GUILayout.Button(
-                        "Start Conversation" + (Application.isPlaying ? "" : "(Play Mode only)")
+                        "Play Conversation" + (Application.isPlaying ? "" : " (Play Mode only)")
                     )
                 )
                 {
                     foreach (var obj in targets)
                     {
                         var cc = obj as ConversationController;
-                        cc?.StartConversation();
+                        cc?.PlayConversationById(_playModeConversationId);
                     }
                 }
             }
 
-            if (GUILayout.Button("Next Layer"))
+            using (new EditorGUI.DisabledScope(Application.isPlaying == false))
             {
-                foreach (var obj in targets)
+                if (
+                    GUILayout.Button(
+                        "Next Layer" + (Application.isPlaying ? "" : " (Play Mode only)")
+                    )
+                )
                 {
-                    var cc = obj as ConversationController;
-                    cc?.NextLayer();
+                    foreach (var obj in targets)
+                    {
+                        var cc = obj as ConversationController;
+                        cc?.NextLayer();
+                    }
                 }
             }
         }

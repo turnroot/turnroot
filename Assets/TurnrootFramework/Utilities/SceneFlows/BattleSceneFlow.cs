@@ -25,6 +25,16 @@ namespace Turnroot.Utilities.AbstractScripts
         // Future: Cutscene, EventTrigger, etc.
     }
 
+    /// <summary>
+    /// Data for a queued conversation interrupt.
+    /// </summary>
+    [System.Serializable]
+    public class ConversationInterruptData
+    {
+        public string conversationId;
+        public string startNodeId;
+    }
+
     public class BattleSceneFlow : DynamicSceneFlow
     {
         // Once this reaches Combat.Battle, activate a mini state machine
@@ -143,16 +153,36 @@ namespace Turnroot.Utilities.AbstractScripts
         /// </summary>
         /// <param name="interruptType">The type of interrupt to queue</param>
         /// <param name="onCompleted">Callback to invoke when interrupt finishes</param>
+        public ConversationInterruptData QueuedConversationData { get; private set; }
+
         public void QueueInterrupt(InterruptType interruptType, System.Action onCompleted = null)
         {
             CurrentInterrupt = interruptType;
             _onInterruptCompleted = onCompleted;
             _lastInterruptActivityTime = UnityEngine.Time.time;
             _interruptIsWaitingForPlayerInput = false;
+
+            if (interruptType != InterruptType.Conversation)
+            {
+                QueuedConversationData = null;
+            }
         }
 
-        public void QueueConversation(System.Action onCompleted = null) =>
+        public void QueueConversation(
+            string conversationId = null,
+            string startNodeId = null,
+            System.Action onCompleted = null
+        )
+        {
+            QueuedConversationData = string.IsNullOrWhiteSpace(conversationId)
+                ? null
+                : new ConversationInterruptData
+                {
+                    conversationId = conversationId,
+                    startNodeId = startNodeId,
+                };
             QueueInterrupt(InterruptType.Conversation, onCompleted);
+        }
 
         /// <summary>
         /// Cleanup method to be called when battle ends.
@@ -161,6 +191,7 @@ namespace Turnroot.Utilities.AbstractScripts
         public void CleanupBattle()
         {
             CurrentInterrupt = InterruptType.None;
+            QueuedConversationData = null;
             _onInterruptCompleted = null;
             CurrentMiniBattleState = MiniBattleState.NoBattlePlayerInput;
             _lastInterruptActivityTime = 0f;
@@ -175,6 +206,7 @@ namespace Turnroot.Utilities.AbstractScripts
             _onInterruptCompleted?.Invoke();
             _onInterruptCompleted = null;
             CurrentInterrupt = InterruptType.None;
+            QueuedConversationData = null;
             _interruptIsWaitingForPlayerInput = false;
         }
 
@@ -258,7 +290,23 @@ namespace Turnroot.Utilities.AbstractScripts
                         FindFirstObjectByType<Conversations.ConversationController>();
                     if (conversationController != null)
                     {
-                        conversationController.StartCurrentConversation();
+                        if (
+                            QueuedConversationData != null
+                            && !string.IsNullOrWhiteSpace(QueuedConversationData.conversationId)
+                        )
+                        {
+                            conversationController.StartConversationById(
+                                QueuedConversationData.conversationId,
+                                QueuedConversationData.startNodeId
+                            );
+                        }
+                        else
+                        {
+                            "BattleSceneFlow: Conversation interrupt queued without a conversation id.".LogWarning();
+                            CompleteInterrupt();
+                            break;
+                        }
+
                         // Conversation is actively running, reset activity timer
                         ResetInterruptActivityTimer();
                     }
