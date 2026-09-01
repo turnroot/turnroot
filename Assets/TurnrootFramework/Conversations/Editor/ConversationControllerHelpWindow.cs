@@ -23,15 +23,9 @@ namespace Turnroot.Conversations.Editor
             window.Show();
         }
 
-        public static void ShowWindowFromButton()
-        {
-            ShowWindow();
-        }
+        public static void ShowWindowFromButton() => ShowWindow();
 
-        private void OnEnable()
-        {
-            InitializeStyles();
-        }
+        private void OnEnable() => InitializeStyles();
 
         private void InitializeStyles()
         {
@@ -44,14 +38,14 @@ namespace Turnroot.Conversations.Editor
 
             _sectionStyle = new GUIStyle(EditorStyles.boldLabel)
             {
-                fontSize = 13,
+                fontSize = 14,
                 margin = new RectOffset(0, 0, 8, 4),
                 normal = { textColor = new Color(1f, 0.85f, 0.4f) },
             };
 
             _bodyStyle = new GUIStyle(EditorStyles.label)
             {
-                fontSize = 11,
+                fontSize = 12,
                 wordWrap = true,
                 richText = true,
                 margin = new RectOffset(10, 10, 2, 6),
@@ -59,7 +53,7 @@ namespace Turnroot.Conversations.Editor
 
             _exampleStyle = new GUIStyle(EditorStyles.label)
             {
-                fontSize = 11,
+                fontSize = 12,
                 wordWrap = true,
                 richText = true,
                 margin = new RectOffset(20, 10, 2, 6),
@@ -68,7 +62,7 @@ namespace Turnroot.Conversations.Editor
 
             _codeStyle = new GUIStyle(EditorStyles.label)
             {
-                fontSize = 10,
+                fontSize = 12,
                 wordWrap = false,
                 richText = false,
                 margin = new RectOffset(30, 10, 1, 1),
@@ -107,7 +101,7 @@ namespace Turnroot.Conversations.Editor
             DrawHeader();
             DrawArchitecture();
             DrawWorkflow();
-            DrawGraphExample();
+            DrawSyntaxReference();
             DrawControllerMethods();
             DrawReroutes();
             DrawTips();
@@ -120,7 +114,7 @@ namespace Turnroot.Conversations.Editor
             GUILayout.Space(10);
             EditorGUILayout.LabelField("💬 CONVERSATION SYSTEM GUIDE", _headerStyle);
             EditorGUILayout.LabelField(
-                "Complete documentation for ConversationController and graph-based dialogue",
+                "Complete documentation for ConversationController and Mermaid-based dialogue",
                 _bodyStyle
             );
             DrawSeparator();
@@ -128,175 +122,97 @@ namespace Turnroot.Conversations.Editor
 
         private void DrawArchitecture()
         {
-            EditorGUILayout.LabelField("ARCHITECTURE OVERVIEW", _sectionStyle);
-
-            EditorGUILayout.LabelField("• <b>Conversation</b> (ScriptableObject)", _bodyStyle);
-            EditorGUILayout.LabelField("  └─ Defines a branching dialogue flow", _bodyStyle);
-            EditorGUILayout.LabelField(
-                "  └─ Contains a ConversationGraph (XNode graph asset)",
-                _bodyStyle
-            );
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("• <b>ConversationLayer</b> (data)", _bodyStyle);
-            EditorGUILayout.LabelField("  └─ Single dialogue segment", _bodyStyle);
-            EditorGUILayout.LabelField(
-                "  └─ Contains text, speaker info, and portraits",
-                _bodyStyle
-            );
-            GUILayout.Space(4);
+            EditorGUILayout.LabelField("HOW IT WORKS", _sectionStyle);
 
             EditorGUILayout.LabelField(
-                "• <b>ConversationInstance</b> (ScriptableObject)",
+                "A <b>Conversation</b> asset points to a Mermaid text file. At runtime the file is parsed into a graph of dialogue lines, choices, actions, conditions, and signals. The <b>ConversationController</b> walks that graph and drives the UI.",
                 _bodyStyle
             );
-            EditorGUILayout.LabelField("  └─ Configuration wrapper for a Conversation", _bodyStyle);
-            EditorGUILayout.LabelField(
-                "  └─ Links a Conversation asset to a controller",
-                _bodyStyle
-            );
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("• <b>ConversationController</b> (component)", _bodyStyle);
-            EditorGUILayout.LabelField("  └─ Manages playback and UI", _bodyStyle);
-            EditorGUILayout.LabelField("  └─ Handles portrait display", _bodyStyle);
-            EditorGUILayout.LabelField("  └─ Processes player choices (branching)", _bodyStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("• <b>ConversationGraph</b> (XNode graph)", _bodyStyle);
-            EditorGUILayout.LabelField(
-                "  └─ Visual node editor for branching conversations",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField("  └─ Nodes contain layers, edges define flow", _bodyStyle);
 
             DrawSeparator();
         }
 
         private void DrawWorkflow()
         {
-            EditorGUILayout.LabelField("SETUP WORKFLOW", _sectionStyle);
+            EditorGUILayout.LabelField("SETUP", _sectionStyle);
 
-            EditorGUILayout.LabelField("<b>1. Create a Conversation asset:</b>", _bodyStyle);
-            GUILayout.Label("   Right-click → Create → Turnroot/Conversation", _codeStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>2. Assign a ConversationGraph:</b>", _bodyStyle);
-            EditorGUILayout.LabelField("   • Create or select an XNode graph asset", _bodyStyle);
-            EditorGUILayout.LabelField(
-                "   • Hook up layer nodes, choice nodes, and action nodes",
-                _bodyStyle
+            GUILayout.Label("1. Create a Conversation asset (Turnroot/Conversation).", _codeStyle);
+            GUILayout.Label(
+                "2. Create a TextAsset in any Resources/Conversations folder.",
+                _codeStyle
             );
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>3. Configure layer nodes:</b>", _bodyStyle);
-            EditorGUILayout.LabelField("   • Set speaker (CharacterData)", _bodyStyle);
-            EditorGUILayout.LabelField("   • Choose portrait key", _bodyStyle);
-            EditorGUILayout.LabelField("   • Write dialogue text", _bodyStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>4. Create ConversationInstance:</b>", _bodyStyle);
-            GUILayout.Label("   Right-click → Create → Turnroot/Conversation Instance", _codeStyle);
-            EditorGUILayout.LabelField("   • Assign your Conversation", _bodyStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField(
-                "<b>5. Setup ConversationController in scene:</b>",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField("   • Add component to GameObject", _bodyStyle);
-            EditorGUILayout.LabelField(
-                "   • Assign UI references (dialogue text, portraits)",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField("   • Add ConversationInstances to list", _bodyStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>6. Start conversation:</b>", _bodyStyle);
-            EditorGUILayout.LabelField("   • Call StartConversation() in play mode", _bodyStyle);
-            EditorGUILayout.LabelField("   • Or use DynamicSceneFlow reroutes", _bodyStyle);
+            GUILayout.Label("3. Write the Mermaid graph (see Syntax below).", _codeStyle);
+            GUILayout.Label("4. Assign the TextAsset and click Parse & Update People.", _codeStyle);
+            GUILayout.Label("5. Map any unmatched speakers to CharacterData assets.", _codeStyle);
+            GUILayout.Label("6. Add the Conversation to a ConversationController.", _codeStyle);
 
             DrawSeparator();
         }
 
-        private void DrawGraphExample()
+        private void DrawSyntaxReference()
         {
-            EditorGUILayout.LabelField("EXAMPLE: Branching Conversation Graph", _sectionStyle);
+            EditorGUILayout.LabelField("SYNTAX", _sectionStyle);
 
-            EditorGUILayout.LabelField(
-                "<b>Scenario:</b> Player makes choices that affect dialogue flow",
-                _exampleStyle
+            GUILayout.Label("Node IDs: PART<Number>_<Kind>_<Name>[_<Qualifier>]", _codeStyle);
+            GUILayout.Space(4);
+
+            EditorGUILayout.LabelField("<b>Dialogue</b>", _bodyStyle);
+            GUILayout.Label("PART1_Aubrey_NEUTRAL[\"Aubrey: Hello.\"]", _codeStyle);
+            GUILayout.Label(
+                "Speaker comes from the ID; display name uses CharacterData.",
+                _bodyStyle
             );
             GUILayout.Space(4);
 
-            EditorGUILayout.LabelField("<b>ConversationGraph Setup:</b>", _exampleStyle);
-            GUILayout.Label("Node 1 (Entry):", _codeStyle);
-            GUILayout.Label("  Layer: \"Will you help us?\"", _codeStyle);
-            GUILayout.Label("  Choices:", _codeStyle);
-            GUILayout.Label("    → \"Yes, I'll help\" → Node 2", _codeStyle);
-            GUILayout.Label("    → \"No, I refuse\" → Node 3", _codeStyle);
-            GUILayout.Label("", _codeStyle);
-            GUILayout.Label("Node 2 (Help Path):", _codeStyle);
-            GUILayout.Label("  Layer: \"Thank you! The village is saved!\"", _codeStyle);
-            GUILayout.Label("  Next: End", _codeStyle);
-            GUILayout.Label("", _codeStyle);
-            GUILayout.Label("Node 3 (Refuse Path):", _codeStyle);
-            GUILayout.Label("  Layer: \"We'll have to manage alone then...\"", _codeStyle);
-            GUILayout.Label("  Next: End", _codeStyle);
+            EditorGUILayout.LabelField("<b>Choice</b>", _bodyStyle);
+            GUILayout.Label("PART1_Choice_Agree[\"OPTION A: I agree.\"]", _codeStyle);
+            GUILayout.Label("Body text becomes the choice button label.", _bodyStyle);
             GUILayout.Space(4);
 
-            EditorGUILayout.LabelField("<b>Playback:</b>", _exampleStyle);
-            EditorGUILayout.LabelField(
-                "  • Shows layer with choice buttons at bottom",
-                _exampleStyle
-            );
-            EditorGUILayout.LabelField(
-                "  • Player clicks choice → Conversation branches",
-                _exampleStyle
-            );
-            EditorGUILayout.LabelField(
-                "  • Different outcome based on player decision",
-                _exampleStyle
+            EditorGUILayout.LabelField("<b>Action</b>", _bodyStyle);
+            GUILayout.Label("PART1_Action_GainSupport_Aubrey_PP", _codeStyle);
+            GUILayout.Label("PART1_Action_LoseSupport_Aubrey_M", _codeStyle);
+            GUILayout.Label("PART1_Action_UnlockBattle_TakeOutTheTrash", _codeStyle);
+            GUILayout.Label(
+                "Strength suffixes: PP/PlusPlus, P/Plus, MM/MinusMinus, M/Minus.",
+                _bodyStyle
             );
             GUILayout.Space(4);
 
-            EditorGUILayout.LabelField(
-                "<color=#90EE90>Result: Player agency through branching paths</color>",
-                _exampleStyle
+            EditorGUILayout.LabelField("<b>Condition</b>", _bodyStyle);
+            GUILayout.Label("PART2_Condition_FirstIsopod", _codeStyle);
+            GUILayout.Label(
+                "Pauses until code fires NotifyConversationCondition(...).",
+                _bodyStyle
             );
+            GUILayout.Space(4);
+
+            EditorGUILayout.LabelField("<b>Signal</b>", _bodyStyle);
+            GUILayout.Label("PART1_Signal_StartBattle", _codeStyle);
+            GUILayout.Label("Fires OnConversationSignal so other systems can react.", _bodyStyle);
+            GUILayout.Space(4);
+
+            EditorGUILayout.LabelField("<b>Start / Finish</b>", _bodyStyle);
+            GUILayout.Label("PART1_Start([START])", _codeStyle);
+            GUILayout.Label("PART1_Finish_NoUnlock([FINISH])", _codeStyle);
+            GUILayout.Label("Use Finish, not End — End is a Mermaid reserved word.", _bodyStyle);
 
             DrawSeparator();
         }
 
         private void DrawControllerMethods()
         {
-            EditorGUILayout.LabelField("CONVERSATIONCONTROLLER PUBLIC API", _sectionStyle);
+            EditorGUILayout.LabelField("CONTROLLER API", _sectionStyle);
 
-            EditorGUILayout.LabelField("<b>Playback Control:</b>", _bodyStyle);
-            GUILayout.Space(4);
-
-            GUILayout.Label("StartConversation() - Starts current conversation", _codeStyle);
+            GUILayout.Label("StartConversation() — play from entry node", _codeStyle);
             GUILayout.Label(
-                "StartConversationAtIndex(int) - Start specific conversation",
+                "StartConversationFromNode(string nodeId) — resume at a node",
                 _codeStyle
             );
-            GUILayout.Label("NextLayer() - Advance to next layer", _codeStyle);
-            GUILayout.Label("Advance() - Alias for NextLayer()", _codeStyle);
-            GUILayout.Label("Proceed() - Alias for NextLayer()", _codeStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>Conversation Selection:</b>", _bodyStyle);
-            GUILayout.Space(4);
-
-            GUILayout.Label("IncrementConversationIndex() - Next in list", _codeStyle);
-            GUILayout.Label("DecrementConversationIndex() - Previous in list", _codeStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>Branching Control:</b>", _bodyStyle);
-            GUILayout.Space(4);
-
-            GUILayout.Label("ChooseBranchTarget(int) - Select choice by node ID", _codeStyle);
-            GUILayout.Label("GetCurrentChoices() - Get available choices", _codeStyle);
+            GUILayout.Label("PlayConversationDirect(Conversation) — play any asset", _codeStyle);
+            GUILayout.Label("PlayConversationDirectFromNode(Conversation, nodeId)", _codeStyle);
+            GUILayout.Label("NextLayer() / Advance() — advance dialogue", _codeStyle);
+            GUILayout.Label("ChooseBranchTarget(string nodeId) — pick a choice", _codeStyle);
 
             DrawSeparator();
         }
@@ -305,69 +221,37 @@ namespace Turnroot.Conversations.Editor
         {
             EditorGUILayout.LabelField("DYNAMICSCENEFLOW REROUTES", _sectionStyle);
 
-            EditorGUILayout.LabelField("<b>Available reroute methods:</b>", _bodyStyle);
-            GUILayout.Space(4);
-
-            GUILayout.Label("StartConversation() - Start current conversation", _codeStyle);
-            GUILayout.Label("AdvanceConversation() - Advance to next layer", _codeStyle);
-            GUILayout.Label("StartConversationAtIndex(int) - Start by index", _codeStyle);
-            GUILayout.Label("NextConversation() - Increment index", _codeStyle);
-            GUILayout.Label("PreviousConversation() - Decrement index", _codeStyle);
-            GUILayout.Label("ChooseBranch(int) - Select branch choice", _codeStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>Usage Example:</b>", _exampleStyle);
-            GUILayout.Label("DynamicSceneFlow Segment event:", _codeStyle);
-            GUILayout.Label("  → StartConversation()", _codeStyle);
-            GUILayout.Label("", _codeStyle);
-            GUILayout.Label("Button Press event:", _codeStyle);
-            GUILayout.Label("  → AdvanceConversation()", _codeStyle);
+            GUILayout.Label("StartConversation()", _codeStyle);
+            GUILayout.Label("AdvanceConversation()", _codeStyle);
+            GUILayout.Label("StartConversationAtIndex(int)", _codeStyle);
+            GUILayout.Label("StartConversationFromNode(string nodeId)", _codeStyle);
+            GUILayout.Label("ChooseBranch(string nodeId)", _codeStyle);
 
             DrawSeparator();
         }
 
         private void DrawTips()
         {
-            EditorGUILayout.LabelField("💡 TIPS & BEST PRACTICES", _sectionStyle);
+            EditorGUILayout.LabelField("TIPS", _sectionStyle);
 
             EditorGUILayout.LabelField(
-                "• All conversations are graph-based; use XNode to author dialogue",
+                "• Speaker names in IDs can't have spaces; map them to CharacterData for real display names.",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Branching choices give players agency and replay value",
+                "• Emotion suffixes are portrait keys; unknown keys fall back to 'default'.",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Use <b>ConversationInstances</b> to reuse same Conversation with different events",
+                "• Never use <b>End</b> in a node ID — it's a Mermaid reserved word. Use <b>Finish</b>.",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Set <b>portrait keys</b> in CharacterData for automatic portrait display",
+                "• Use <b>Signal_</b> nodes to fire brain events and <b>Condition_</b> nodes to wait for triggers.",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Use <b>action nodes</b> (Change Support Points, Unlock Battle) for gameplay effects",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField(
-                "• <b>Choice buttons</b> are auto-generated from graph edges (branching)",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField(
-                "• Test in Play Mode - use inspector buttons to advance dialogue",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField(
-                "• <b>Secondary portraits</b> can show multiple speakers simultaneously",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField(
-                "• Use <b>Graphics2DSettings</b> to configure portrait transition effects",
-                _bodyStyle
-            );
-            EditorGUILayout.LabelField(
-                "• Entry nodes in branching graphs are nodes with no incoming connections",
+                "• Resume sub-conversations after scene changes with StartConversationFromNode(nodeId).",
                 _bodyStyle
             );
 

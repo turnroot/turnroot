@@ -239,6 +239,34 @@ namespace Turnroot.Gameplay.Brain
             Brain.PublishSLevelSupportConversationAvailable(relationship);
         }
 
+        /// <summary>
+        /// Emits a signal from the active conversation. Other brain segments can subscribe to
+        /// <see cref="Brain.OnConversationSignal"/> to react.
+        /// </summary>
+        public void NotifyConversationSignal(Conversation conversation, string signalName)
+        {
+            if (conversation == null || string.IsNullOrWhiteSpace(signalName))
+            {
+                return;
+            }
+
+            Brain.PublishConversationSignal(conversation.name, signalName);
+        }
+
+        /// <summary>
+        /// Reports that an external condition for the active conversation has been met.
+        /// The conversation controller will resume at the matching condition branch.
+        /// </summary>
+        public void NotifyConversationCondition(Conversation conversation, string conditionName)
+        {
+            if (conversation == null || string.IsNullOrWhiteSpace(conditionName))
+            {
+                return;
+            }
+
+            Brain.PublishConversationConditionMet(conversation.name, conditionName);
+        }
+
         #endregion
     }
 }

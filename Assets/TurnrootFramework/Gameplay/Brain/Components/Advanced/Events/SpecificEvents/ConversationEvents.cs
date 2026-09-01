@@ -16,6 +16,18 @@ namespace Turnroot.Gameplay.Brain
         public event Action<ConversationLayer> OnConversationLayerStarted;
         public event Action<ConversationLayer> OnConversationLayerEnded;
 
+        /// <summary>
+        /// Fired when a conversation reaches a <c>Signal_</c> node.
+        /// Parameters: conversation name, signal name.
+        /// </summary>
+        public event Action<string, string> OnConversationSignal;
+
+        /// <summary>
+        /// Fired when an external system reports that a conversation condition has been met.
+        /// Parameters: conversation name, condition name.
+        /// </summary>
+        public event Action<string, string> OnConversationConditionMet;
+
         public void PublishSupportPointsChanged(SupportRelationshipInstance relationship) =>
             OnSupportPointsChanged.Invoke(relationship);
 
@@ -37,6 +49,14 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishConversationLayerEnded(ConversationLayer layer) =>
             OnConversationLayerEnded.Invoke(layer);
+
+        public void PublishConversationSignal(string conversationName, string signalName) =>
+            OnConversationSignal?.Invoke(conversationName, signalName);
+
+        public void PublishConversationConditionMet(
+            string conversationName,
+            string conditionName
+        ) => OnConversationConditionMet?.Invoke(conversationName, conditionName);
 
         #endregion
     }

@@ -13,7 +13,6 @@
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.Events.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Combat.csproj" />
   <Project Path="TurnrootFramework.Editor.Characters.Stats.csproj" />
-  <Project Path="TurnrootFramework.Editor.Conversations.Nodes.csproj" />
   <Project Path="TurnrootFramework.Editor.Maps.Terrain.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Hub.Shop.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Objects.Components.csproj" />

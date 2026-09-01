@@ -151,6 +151,33 @@ namespace Turnroot.Conversations
         /// </summary>
         public void SetPrimaryPortraitSprite(Sprite sprite) => _primary.CachedSprite = sprite;
 
+        public string SpeakerPortraitKey
+        {
+            get => _primary.PortraitKey;
+            set
+            {
+                _primary.PortraitKey = value;
+                _primary.CachedSprite = null;
+            }
+        }
+
+        public string SecondarySpeakerPortraitKey
+        {
+            get => _secondary.PortraitKey;
+            set
+            {
+                _secondary.PortraitKey = value;
+                _secondary.CachedSprite = null;
+            }
+        }
+
+        public void SetPortraitKey(ActiveSpeakerType type, string key)
+        {
+            var slot = type == ActiveSpeakerType.Primary ? _primary : _secondary;
+            slot.PortraitKey = key;
+            slot.CachedSprite = null;
+        }
+
         public string SecondarySpeakerDisplayName
         {
             get => _secondary.DisplayName;

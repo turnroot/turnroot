@@ -1,54 +1,47 @@
 using System.Collections.Generic;
-using Turnroot.Utilities;
+using Turnroot.Conversations.Mermaid;
 using UnityEngine;
 
 namespace Turnroot.Conversations
 {
     /// <summary>
-    /// Defines a branching conversation as an XNode graph.
+    /// Defines a conversation as a Mermaid flowchart. The source text is parsed at runtime into
+    /// a directed graph of dialogue, choices, actions, conditions, and signals.
     /// </summary>
     [CreateAssetMenu(fileName = "New Conversation", menuName = "Turnroot/Conversation")]
     public class Conversation : ScriptableObject
     {
         [field: SerializeField]
-        public Branching.Nodes.ConversationGraph ConversationGraph { get; private set; }
+        public TextAsset MermaidSource { get; set; }
 
-        private Dictionary<int, NodeData> _graphNodes;
+        [field: SerializeField]
+        public List<ConversationPerson> People { get; set; } = new();
 
-        public Dictionary<int, NodeData> GetGraphNodes()
+        [System.NonSerialized]
+        private MermaidConversationGraph _cachedGraph;
+
+        /// <summary>
+        /// Parses and returns the Mermaid graph. Results are cached for the lifetime of this instance.
+        /// </summary>
+        public MermaidConversationGraph GetGraph()
         {
-            _graphNodes = BranchedConversationHelpers.GetDataFromGraph(ConversationGraph);
-            return _graphNodes;
+            if (_cachedGraph != null)
+            {
+                return _cachedGraph;
+            }
+
+            if (MermaidSource == null)
+            {
+                return null;
+            }
+
+            _cachedGraph = MermaidConversationParser.Parse(MermaidSource.text, name);
+            return _cachedGraph;
         }
 
-        public List<string> GetGraphEntryNodeNames()
-        {
-            var entries = new List<string>();
-            if (!ValidationHelper.ValidateNotNull(ConversationGraph, nameof(ConversationGraph)))
-            {
-                return entries;
-            }
-
-            var gnodes = GetGraphNodes();
-            if (!ValidationHelper.ValidateNotNull(gnodes, nameof(gnodes)))
-            {
-                return entries;
-            }
-
-            foreach (var kv in gnodes)
-            {
-                var nd = kv.Value;
-                if (nd?.node == null)
-                {
-                    continue;
-                }
-
-                if (nd.node is Branching.ConversationNode conv && nd.incomingCount == 0)
-                {
-                    entries.Add(conv.name);
-                }
-            }
-            return entries;
-        }
+        /// <summary>
+        /// Clears the cached parsed graph. Call after changing the Mermaid source at runtime.
+        /// </summary>
+        public void InvalidateCache() => _cachedGraph = null;
     }
 }
