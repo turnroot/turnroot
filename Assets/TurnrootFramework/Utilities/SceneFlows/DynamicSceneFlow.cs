@@ -385,22 +385,16 @@ namespace Turnroot.Utilities.AbstractScripts
 
         #region Conversation Management Reroutes
 
-        public void StartConversation() => conversationController?.StartConversation();
+        public void StartConversation(string conversationId) =>
+            conversationController?.PlayConversationById(conversationId);
 
         public void AdvanceConversation() => conversationController?.NextLayer();
-
-        public void StartConversationAtIndex(int index) =>
-            conversationController?.StartConversationAtIndex(index);
-
-        public void NextConversation() => conversationController?.IncrementConversationIndex();
-
-        public void PreviousConversation() => conversationController?.DecrementConversationIndex();
 
         public void ChooseBranch(string targetNodeId) =>
             conversationController?.ChooseBranchTarget(targetNodeId);
 
-        public void StartConversationFromNode(string nodeId) =>
-            conversationController?.StartConversationFromNode(nodeId);
+        public void StartConversationFromNode(string conversationId, string nodeId) =>
+            conversationController?.StartConversationById(conversationId, nodeId);
 
         #endregion
 

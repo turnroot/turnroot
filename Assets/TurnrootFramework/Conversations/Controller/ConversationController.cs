@@ -26,18 +26,11 @@ namespace Turnroot.Conversations
         [SerializeField]
         private AudioSource _audioSource;
 
-        [Header("UI")]
+        [Header("Conversation UI")]
         [SerializeField]
         private UIFade _uiFade;
 
-        [Header("Available Conversations")]
-        [SerializeField]
-        private List<ConversationInstance> _conversationInstances = new();
-
-        [SerializeField]
-        private int _currentConversation;
-
-        [Header("UI References")]
+        [Header("Dialogue UI")]
         [SerializeField]
         private TextMeshProUGUI _dialogueText;
 
@@ -91,14 +84,7 @@ namespace Turnroot.Conversations
 
         private Graphics2DSettings GfxSettings => Graphics2DSettings.Instance;
 
-        private ConversationInstance SelectedInstance =>
-            _conversationInstances != null
-            && _currentConversation >= 0
-            && _currentConversation < _conversationInstances.Count
-                ? _conversationInstances[_currentConversation]
-                : null;
-
-        private Conversation SelectedConversation => SelectedInstance?.Conversation;
+        private const string ConversationResourcesPath = "Conversations";
 
         private void Awake() => EnsureAudioSource();
 
@@ -291,105 +277,51 @@ namespace Turnroot.Conversations
 
         public void Advance() => NextLayer();
 
-        public void StartCurrentConversation() => StartConversation();
-
-        public void StartConversationAtIndex(int index)
+        /// <summary>
+        /// Plays a conversation loaded from Resources/Conversations by its asset name.
+        /// Use this from UnityEvents or code that only knows an id string.
+        /// </summary>
+        public void PlayConversationById(string conversationId, Action onFinished = null)
         {
-            if (index < 0 || index >= _conversationInstances.Count)
+            var conversation = LoadConversationById(conversationId);
+            if (conversation == null)
             {
+                $"ConversationController: could not load conversation '{conversationId}'.".LogError(
+                    "ConversationController"
+                );
                 return;
             }
 
-            _currentConversation = index;
-            StartConversation();
+            PlayConversationDirect(conversation, onFinished);
         }
 
         /// <summary>
-        /// Starts the current registered conversation at a specific Mermaid node id.
-        /// Use this to resume a sub-conversation (e.g. PART2_Start) after a scene transition.
+        /// Starts a conversation loaded from Resources/Conversations by its asset name,
+        /// beginning at the specified Mermaid node id.
         /// </summary>
-        public void StartConversationFromNode(string nodeId)
+        public void StartConversationById(string conversationId, string nodeId = null)
         {
-            var instance = SelectedInstance;
-            if (instance == null)
+            var conversation = LoadConversationById(conversationId);
+            if (conversation == null)
             {
-                $"No ConversationInstance selected at index {_currentConversation}".LogError(
+                $"ConversationController: could not load conversation '{conversationId}'.".LogError(
                     "ConversationController"
                 );
                 return;
             }
 
-            if (SelectedConversation == null)
-            {
-                $"Instance '{instance.name}' has no Conversation assigned.".LogError(
-                    "ConversationController"
-                );
-                return;
-            }
-
-            if (SelectedConversation.MermaidSource == null)
-            {
-                ResetUI();
-                $"Conversation '{SelectedConversation.name}' has no Mermaid source.".LogError(
-                    "ConversationController"
-                );
-                return;
-            }
-
-            StartConversationInternal(SelectedConversation, instance, null, nodeId);
+            StartConversationInternal(conversation, null, nodeId);
         }
 
-        public void IncrementConversationIndex()
+        private Conversation LoadConversationById(string conversationId)
         {
-            if (_conversationInstances == null || _conversationInstances.Count == 0)
+            if (string.IsNullOrWhiteSpace(conversationId))
             {
-                return;
+                return null;
             }
 
-            _currentConversation = (_currentConversation + 1) % _conversationInstances.Count;
-        }
-
-        public void DecrementConversationIndex()
-        {
-            if (_conversationInstances == null || _conversationInstances.Count == 0)
-            {
-                return;
-            }
-
-            _currentConversation =
-                (_currentConversation - 1 + _conversationInstances.Count)
-                % _conversationInstances.Count;
-        }
-
-        public void StartConversation()
-        {
-            var instance = SelectedInstance;
-            if (instance == null)
-            {
-                $"No ConversationInstance selected at index {_currentConversation}".LogError(
-                    "ConversationController"
-                );
-                return;
-            }
-
-            if (SelectedConversation == null)
-            {
-                $"Instance '{instance.name}' has no Conversation assigned.".LogError(
-                    "ConversationController"
-                );
-                return;
-            }
-
-            if (SelectedConversation.MermaidSource == null)
-            {
-                ResetUI();
-                $"Conversation '{SelectedConversation.name}' has no Mermaid source.".LogError(
-                    "ConversationController"
-                );
-                return;
-            }
-
-            StartConversationInternal(SelectedConversation, instance, null);
+            var path = $"{ConversationResourcesPath}/{conversationId}";
+            return Resources.Load<Conversation>(path);
         }
 
         public void NextLayer()
@@ -410,19 +342,8 @@ namespace Turnroot.Conversations
             return true;
         }
 
-        public List<MermaidEdge> GetCurrentChoices()
-        {
-            if (string.IsNullOrEmpty(_activeBranchingNodeId) || _currentGraph == null)
-            {
-                return null;
-            }
-
-            return _currentGraph.GetOutgoing(_activeBranchingNodeId);
-        }
-
         /// <summary>
-        /// Plays a full <see cref="Conversation"/> asset immediately without requiring it to be
-        /// pre-registered in the <c>ConversationInstances</c> list.
+        /// Plays a full <see cref="Conversation"/> asset immediately.
         /// Intended for runtime-selected conversations (e.g. hub chitchat).
         /// <paramref name="onFinished"/> is called once the conversation completes.
         /// </summary>
@@ -442,7 +363,7 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            StartConversationInternal(conversation, null, onFinished, null);
+            StartConversationInternal(conversation, onFinished, null);
         }
 
         /// <summary>
@@ -469,12 +390,11 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            StartConversationInternal(conversation, null, onFinished, startNodeId);
+            StartConversationInternal(conversation, onFinished, startNodeId);
         }
 
         private void StartConversationInternal(
             Conversation conversation,
-            ConversationInstance instance,
             Action onFinished,
             string startNodeId = null
         )
