@@ -205,6 +205,24 @@ namespace Turnroot.Conversations.Mermaid.Editor
                             $"Action node '{node.Id}' uses unknown action type '{node.ActionType}'."
                         );
                     }
+                    else if (
+                        IsItemAction(node.ActionType)
+                        && string.IsNullOrWhiteSpace(node.ActionTarget)
+                    )
+                    {
+                        _validationWarnings.Add(
+                            $"Action node '{node.Id}' needs an item id (e.g. Action_PlayerGainsItem_IronSword)."
+                        );
+                    }
+                    else if (
+                        IsCharacterAction(node.ActionType)
+                        && string.IsNullOrWhiteSpace(node.ActionTarget)
+                    )
+                    {
+                        _validationWarnings.Add(
+                            $"Action node '{node.Id}' needs a character id (e.g. Action_CharacterJoinsTeam_Aubrey)."
+                        );
+                    }
                 }
             }
 
@@ -220,7 +238,35 @@ namespace Turnroot.Conversations.Mermaid.Editor
         private static bool IsKnownActionType(string actionType)
         {
             var upper = actionType.ToUpperInvariant();
-            return upper == "GAINSUPPORT" || upper == "LOSESUPPORT" || upper == "UNLOCKBATTLE";
+            return upper == "GAINSUPPORT"
+                || upper == "LOSESUPPORT"
+                || upper == "UNLOCKBATTLE"
+                || upper == "PLAYERGAINSITEM"
+                || upper == "GAINSITEM"
+                || upper == "PLAYERLOSESITEM"
+                || upper == "LOSESITEM"
+                || upper == "CHARACTERJOINSTEAM"
+                || upper == "JOINTEAM"
+                || upper == "CHARACTERLEAVESTEAM"
+                || upper == "LEAVETEAM";
+        }
+
+        private static bool IsItemAction(string actionType)
+        {
+            var upper = actionType.ToUpperInvariant();
+            return upper == "PLAYERGAINSITEM"
+                || upper == "GAINSITEM"
+                || upper == "PLAYERLOSESITEM"
+                || upper == "LOSESITEM";
+        }
+
+        private static bool IsCharacterAction(string actionType)
+        {
+            var upper = actionType.ToUpperInvariant();
+            return upper == "CHARACTERJOINSTEAM"
+                || upper == "JOINTEAM"
+                || upper == "CHARACTERLEAVESTEAM"
+                || upper == "LEAVETEAM";
         }
 
         private static CharacterData TryFindCharacterByDisplayName(string speakerName)
