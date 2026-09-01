@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
+using Turnroot.Characters;
+using Turnroot.Conversations.Mermaid;
 using Turnroot.Gameplay.Brain;
 using Turnroot.UI;
 using Turnroot.Utilities;
@@ -57,15 +60,29 @@ namespace Turnroot.Conversations
         public event Action OnAnyConversationStart;
         public event Action OnAnyConversationFinished;
 
+        /// <summary>
+        /// The conversation currently being played, or null if none is active.
+        /// </summary>
+        public Conversation ActiveConversation => _runningConversation;
+
+        /// <summary>
+        /// The id of the currently executing Mermaid node, or null if no conversation is active.
+        /// </summary>
+        public string ActiveNodeId => _activeBranchingNodeId;
+
         private Coroutine _conversationRoutine;
         private Coroutine _oneShotRoutine;
         private readonly List<Coroutine> _activeTweens = new();
         private Sprite _lastActiveSprite;
-        private int _pendingChoiceTarget = int.MinValue;
-        private int _activeBranchingNodeId = int.MinValue;
+        private string _pendingChoiceTarget;
+        private string _activeBranchingNodeId;
         private ConversationLayer _activeBranchingLayer;
         private ConversationLayer _activeOneShotLayer;
-        private ConversationInstance _runningInstance;
+        private Conversation _runningConversation;
+        private MermaidConversationGraph _currentGraph;
+        private string _resolvedConditionTarget;
+        private readonly Dictionary<string, ConversationLayer.ActiveSpeakerType> _speakerSlots =
+            new();
         private int _tweenRunId;
         private bool _inputSubscribed;
 
@@ -88,6 +105,7 @@ namespace Turnroot.Conversations
         private void OnDisable()
         {
             UnsubscribeAdvanceInput();
+            UnsubscribeConversationConditions();
             CancelActiveTweens();
 
             if (_conversationRoutine != null)
@@ -148,6 +166,115 @@ namespace Turnroot.Conversations
             _inputSubscribed = false;
         }
 
+        private void SubscribeConversationConditions()
+        {
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _brain.OnConversationConditionMet += OnConversationConditionMet;
+        }
+
+        private void UnsubscribeConversationConditions()
+        {
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _brain.OnConversationConditionMet -= OnConversationConditionMet;
+        }
+
+        private void OnConversationConditionMet(string conversationName, string conditionName)
+        {
+            if (
+                _runningConversation == null
+                || !string.Equals(
+                    _runningConversation.name,
+                    conversationName,
+                    StringComparison.Ordinal
+                )
+            )
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(conditionName) || _currentGraph == null)
+            {
+                return;
+            }
+
+            var resolved = ResolveConditionTarget(_activeBranchingNodeId, conditionName);
+            if (!string.IsNullOrEmpty(resolved))
+            {
+                _resolvedConditionTarget = resolved;
+            }
+        }
+
+        private string ResolveConditionTarget(string currentNodeId, string conditionName)
+        {
+            var currentNode = _currentGraph.GetNode(currentNodeId);
+            if (currentNode == null)
+            {
+                return null;
+            }
+
+            var outgoing = _currentGraph.GetOutgoing(currentNodeId);
+
+            // If we're standing on a condition node, check it first.
+            if (currentNode.Kind == MermaidNodeKind.Condition)
+            {
+                if (
+                    string.Equals(
+                        currentNode.ConditionName,
+                        conditionName,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                {
+                    return outgoing.Count > 0 ? outgoing[0].ToId : null;
+                }
+
+                // Otherwise, allow a more specific outgoing condition to match instead
+                // (e.g. AttackBoss -> FelicityAttacked).
+                return ResolveConditionTargetFromOutgoing(outgoing, conditionName);
+            }
+
+            // If we're on a non-condition node with outgoing condition branches, resolve
+            // directly to the node after the matching condition.
+            return ResolveConditionTargetFromOutgoing(outgoing, conditionName);
+        }
+
+        private string ResolveConditionTargetFromOutgoing(
+            List<MermaidEdge> outgoing,
+            string conditionName
+        )
+        {
+            foreach (var edge in outgoing)
+            {
+                var target = _currentGraph.GetNode(edge.ToId);
+                if (target?.Kind != MermaidNodeKind.Condition)
+                {
+                    continue;
+                }
+
+                if (
+                    string.Equals(
+                        target.ConditionName,
+                        conditionName,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                {
+                    var targetOutgoing = _currentGraph.GetOutgoing(target.Id);
+                    return targetOutgoing.Count > 0 ? targetOutgoing[0].ToId : null;
+                }
+            }
+
+            return null;
+        }
+
         private void EnsureAudioSource()
         {
             if (_audioSource == null)
@@ -175,6 +302,41 @@ namespace Turnroot.Conversations
 
             _currentConversation = index;
             StartConversation();
+        }
+
+        /// <summary>
+        /// Starts the current registered conversation at a specific Mermaid node id.
+        /// Use this to resume a sub-conversation (e.g. PART2_Start) after a scene transition.
+        /// </summary>
+        public void StartConversationFromNode(string nodeId)
+        {
+            var instance = SelectedInstance;
+            if (instance == null)
+            {
+                $"No ConversationInstance selected at index {_currentConversation}".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            if (SelectedConversation == null)
+            {
+                $"Instance '{instance.name}' has no Conversation assigned.".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            if (SelectedConversation.MermaidSource == null)
+            {
+                ResetUI();
+                $"Conversation '{SelectedConversation.name}' has no Mermaid source.".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            StartConversationInternal(SelectedConversation, instance, null, nodeId);
         }
 
         public void IncrementConversationIndex()
@@ -218,10 +380,10 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            if (SelectedConversation.ConversationGraph == null)
+            if (SelectedConversation.MermaidSource == null)
             {
                 ResetUI();
-                $"Conversation '{SelectedConversation.name}' has no graph.".LogError(
+                $"Conversation '{SelectedConversation.name}' has no Mermaid source.".LogError(
                     "ConversationController"
                 );
                 return;
@@ -241,24 +403,21 @@ namespace Turnroot.Conversations
             _activeBranchingLayer?.CompleteLayer();
         }
 
-        public bool ChooseBranchTarget(int targetNodeId)
+        public bool ChooseBranchTarget(string targetNodeId)
         {
             _pendingChoiceTarget = targetNodeId;
             ClearChoiceButtons();
             return true;
         }
 
-        public List<ChoiceData> GetCurrentChoices()
+        public List<MermaidEdge> GetCurrentChoices()
         {
-            if (_activeBranchingNodeId == int.MinValue)
+            if (string.IsNullOrEmpty(_activeBranchingNodeId) || _currentGraph == null)
             {
                 return null;
             }
 
-            var nodes = SelectedConversation?.GetGraphNodes();
-            return nodes?.TryGetValue(_activeBranchingNodeId, out var node) == true
-                ? node.choices
-                : null;
+            return _currentGraph.GetOutgoing(_activeBranchingNodeId);
         }
 
         /// <summary>
@@ -275,36 +434,69 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            if (conversation.ConversationGraph == null)
+            if (conversation.MermaidSource == null)
             {
-                $"Conversation '{conversation.name}' has no graph.".LogError(
+                $"Conversation '{conversation.name}' has no Mermaid source.".LogError(
                     "ConversationController"
                 );
                 return;
             }
 
-            StartConversationInternal(conversation, null, onFinished);
+            StartConversationInternal(conversation, null, onFinished, null);
+        }
+
+        /// <summary>
+        /// Plays a <see cref="Conversation"/> starting at a specific node id. Use this to resume
+        /// sub-conversations split across scenes (e.g. PART2_Start after a scene transition).
+        /// </summary>
+        public void PlayConversationDirectFromNode(
+            Conversation conversation,
+            string startNodeId,
+            Action onFinished = null
+        )
+        {
+            if (conversation == null)
+            {
+                "PlayConversationDirectFromNode called with null conversation.".LogInfo();
+                return;
+            }
+
+            if (conversation.MermaidSource == null)
+            {
+                $"Conversation '{conversation.name}' has no Mermaid source.".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            StartConversationInternal(conversation, null, onFinished, startNodeId);
         }
 
         private void StartConversationInternal(
             Conversation conversation,
             ConversationInstance instance,
-            Action onFinished
+            Action onFinished,
+            string startNodeId = null
         )
         {
             CleanupPreviousConversation();
             ResetUI();
             ShowConversationUI();
 
-            _runningInstance = instance;
+            _runningConversation = conversation;
             _brain = GetAndCacheBrain.GetBrain();
             _sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
+            _speakerSlots.Clear();
+            _resolvedConditionTarget = null;
 
             OnAnyConversationStart?.Invoke();
             _brain?.PublishConversationStarted(conversation);
 
             SubscribeAdvanceInput();
-            _conversationRoutine = StartCoroutine(RunConversationGraph(conversation, onFinished));
+            SubscribeConversationConditions();
+            _conversationRoutine = StartCoroutine(
+                RunMermaidGraph(conversation, onFinished, startNodeId)
+            );
         }
 
         private void CleanupPreviousConversation()
@@ -337,45 +529,84 @@ namespace Turnroot.Conversations
             ClearChoiceButtons();
         }
 
-        private IEnumerator RunConversationGraph(Conversation conversation, Action onFinished)
+        private IEnumerator RunMermaidGraph(
+            Conversation conversation,
+            Action onFinished,
+            string startNodeId = null
+        )
         {
-            var nodes = conversation.GetGraphNodes();
-            if (nodes == null || nodes.Count == 0)
+            _currentGraph = conversation.GetGraph();
+            if (_currentGraph == null || _currentGraph.Nodes.Count == 0)
             {
                 $"Conversation '{conversation.name}' has no nodes.".LogError(
-                    "ConversationController.RunConversationGraph"
+                    "ConversationController.RunMermaidGraph"
                 );
                 ResetUI();
                 yield break;
             }
 
-            int currentNodeId = FindEntryNode(nodes);
-
-            while (currentNodeId != int.MinValue)
+            MermaidNode currentNode = null;
+            if (!string.IsNullOrEmpty(startNodeId))
             {
-                if (!nodes.TryGetValue(currentNodeId, out var nodeData) || nodeData == null)
+                currentNode = _currentGraph.GetNode(startNodeId);
+                if (currentNode == null)
+                {
+                    $"Conversation '{conversation.name}' has no node with id '{startNodeId}'. Falling back to entry node.".LogWarning();
+                }
+            }
+
+            if (currentNode == null)
+            {
+                var entries = _currentGraph.GetEntryNodes();
+                currentNode = entries.Count > 0 ? entries[0] : _currentGraph.Nodes[0];
+            }
+
+            while (currentNode != null)
+            {
+                _activeBranchingNodeId = currentNode.Id;
+
+                switch (currentNode.Kind)
+                {
+                    case MermaidNodeKind.Dialogue:
+                    {
+                        var layer = BuildLayerFromNode(currentNode, conversation.People);
+                        if (layer != null)
+                        {
+                            yield return ProcessLayer(layer);
+                        }
+
+                        break;
+                    }
+
+                    case MermaidNodeKind.Action:
+                        ConversationActionExecutor.Execute(currentNode, conversation, this);
+                        break;
+
+                    case MermaidNodeKind.Signal:
+                        ConversationSignalEmitter.Emit(currentNode, conversation);
+                        break;
+
+                    case MermaidNodeKind.Condition:
+                        yield return WaitForConditionNode(currentNode);
+                        currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
+                        continue;
+
+                    case MermaidNodeKind.Anchor:
+                    case MermaidNodeKind.Choice:
+                        // Routing for Choice is handled below; Anchor is a pass-through marker.
+                        break;
+                }
+
+                var outgoing = _currentGraph.GetOutgoing(currentNode.Id);
+                if (outgoing.Count == 0)
                 {
                     break;
                 }
 
-                _activeBranchingNodeId = currentNodeId;
-
-                if (nodeData.node is Branching.ConversationActionNode actionNode)
+                if (AllTargetsAreChoices(outgoing))
                 {
-                    actionNode.Execute(this);
-                    currentNodeId = nodeData.nextTargetId;
-                    continue;
-                }
-
-                if (nodeData.conversationLayer != null)
-                {
-                    yield return ProcessLayer(nodeData.conversationLayer);
-                }
-
-                if (nodeData.choices?.Count > 0)
-                {
-                    _pendingChoiceTarget = int.MinValue;
-                    ShowChoicesForNode(currentNodeId);
+                    _pendingChoiceTarget = null;
+                    ShowChoices(outgoing);
 
                     _sceneFlow?.ResetInterruptActivityTimer();
                     if (_sceneFlow != null)
@@ -383,7 +614,7 @@ namespace Turnroot.Conversations
                         _sceneFlow.InterruptIsWaitingForPlayerInput = true;
                     }
 
-                    yield return new WaitUntil(() => _pendingChoiceTarget != int.MinValue);
+                    yield return new WaitUntil(() => !string.IsNullOrEmpty(_pendingChoiceTarget));
 
                     _sceneFlow?.ResetInterruptActivityTimer();
                     if (_sceneFlow != null)
@@ -391,20 +622,37 @@ namespace Turnroot.Conversations
                         _sceneFlow.InterruptIsWaitingForPlayerInput = false;
                     }
 
-                    currentNodeId = _pendingChoiceTarget;
+                    currentNode = _currentGraph.GetNode(_pendingChoiceTarget);
                     ClearChoiceButtons();
                     continue;
                 }
 
-                currentNodeId = nodeData.nextTargetId;
+                if (outgoing.Count == 1)
+                {
+                    currentNode = _currentGraph.GetNode(outgoing[0].ToId);
+                    continue;
+                }
+
+                if (AllTargetsAreConditions(outgoing))
+                {
+                    var firstCondition = _currentGraph.GetNode(outgoing[0].ToId);
+                    yield return WaitForConditionNode(firstCondition);
+                    currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
+                    continue;
+                }
+
+                $"ConversationController: node '{currentNode.Id}' has multiple outgoing edges that are not choices or conditions. Picking first.".LogWarning();
+                currentNode = _currentGraph.GetNode(outgoing[0].ToId);
             }
 
-            _activeBranchingNodeId = int.MinValue;
+            _activeBranchingNodeId = null;
             _activeBranchingLayer = null;
-            _pendingChoiceTarget = int.MinValue;
+            _pendingChoiceTarget = null;
+            _resolvedConditionTarget = null;
 
             onFinished?.Invoke();
             UnsubscribeAdvanceInput();
+            UnsubscribeConversationConditions();
             OnAnyConversationFinished?.Invoke();
             _brain?.PublishConversationEnded(conversation);
 
@@ -418,24 +666,138 @@ namespace Turnroot.Conversations
             }
 
             _conversationRoutine = null;
+            _runningConversation = null;
+            _currentGraph = null;
         }
 
-        private int FindEntryNode(Dictionary<int, NodeData> nodes)
+        private bool AllTargetsAreChoices(List<MermaidEdge> edges)
         {
-            foreach (var kv in nodes)
+            if (edges.Count == 0)
             {
-                if (kv.Value?.node != null && kv.Value.incomingCount == 0)
+                return false;
+            }
+
+            foreach (var edge in edges)
+            {
+                var node = _currentGraph.GetNode(edge.ToId);
+                if (node?.Kind != MermaidNodeKind.Choice)
                 {
-                    return kv.Key;
+                    return false;
                 }
             }
 
-            foreach (var kv in nodes)
+            return true;
+        }
+
+        private bool AllTargetsAreConditions(List<MermaidEdge> edges)
+        {
+            if (edges.Count == 0)
             {
-                return kv.Key;
+                return false;
             }
 
-            return int.MinValue;
+            foreach (var edge in edges)
+            {
+                var node = _currentGraph.GetNode(edge.ToId);
+                if (node?.Kind != MermaidNodeKind.Condition)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private IEnumerator WaitForConditionNode(MermaidNode conditionNode)
+        {
+            _resolvedConditionTarget = null;
+
+            _sceneFlow?.ResetInterruptActivityTimer();
+            if (_sceneFlow != null)
+            {
+                _sceneFlow.InterruptIsWaitingForPlayerInput = true;
+            }
+
+            yield return new WaitUntil(() => !string.IsNullOrEmpty(_resolvedConditionTarget));
+
+            _sceneFlow?.ResetInterruptActivityTimer();
+            if (_sceneFlow != null)
+            {
+                _sceneFlow.InterruptIsWaitingForPlayerInput = false;
+            }
+        }
+
+        private ConversationLayer BuildLayerFromNode(
+            MermaidNode node,
+            List<ConversationPerson> people
+        )
+        {
+            var person = people?.FirstOrDefault(p =>
+                string.Equals(p.SpeakerName, node.Speaker, StringComparison.OrdinalIgnoreCase)
+            );
+
+            var character = person?.Character;
+            var displayName = person?.ResolvedDisplayName ?? node.Speaker;
+
+            if (!_speakerSlots.ContainsKey(node.Speaker))
+            {
+                var slot =
+                    _speakerSlots.Count == 0
+                        ? ConversationLayer.ActiveSpeakerType.Primary
+                        : ConversationLayer.ActiveSpeakerType.Secondary;
+                _speakerSlots[node.Speaker] = slot;
+            }
+
+            var activeType = _speakerSlots[node.Speaker];
+
+            var layer = new ConversationLayer
+            {
+                Dialogue = node.Text,
+                ParsePronouns = true,
+                ReferringTo = character != null ? new[] { character } : null,
+                ActiveSpeaker = activeType,
+            };
+
+            if (activeType == ConversationLayer.ActiveSpeakerType.Primary)
+            {
+                layer.Speaker = character;
+                layer.SpeakerDisplayName = displayName;
+                layer.SpeakerPortraitKey = ResolvePortraitKey(character, node.Emotion);
+            }
+            else
+            {
+                layer.SecondarySpeaker = character;
+                layer.SecondarySpeakerDisplayName = displayName;
+                layer.SecondarySpeakerPortraitKey = ResolvePortraitKey(character, node.Emotion);
+            }
+
+            return layer;
+        }
+
+        private string ResolvePortraitKey(CharacterData character, string emotion)
+        {
+            if (string.IsNullOrWhiteSpace(emotion))
+            {
+                return "default";
+            }
+
+            if (character == null)
+            {
+                return "default";
+            }
+
+            if (character.ContainsPortraitKey(emotion))
+            {
+                return emotion;
+            }
+
+            var caseInsensitiveKey = character
+                .GetPortraitKeys()
+                ?.FirstOrDefault(k =>
+                    string.Equals(k, emotion, StringComparison.OrdinalIgnoreCase)
+                );
+
+            return !string.IsNullOrEmpty(caseInsensitiveKey) ? caseInsensitiveKey : "default";
         }
 
         private IEnumerator ProcessLayer(ConversationLayer layer)
@@ -670,28 +1032,28 @@ namespace Turnroot.Conversations
             }
         }
 
-        private void ShowChoicesForNode(int nodeId)
+        private void ShowChoices(List<MermaidEdge> choiceEdges)
         {
             if (_choiceButtonPrefab == null || _choiceButtonsContainer == null)
             {
                 return;
             }
 
-            var nodes = SelectedConversation?.GetGraphNodes();
-            if (nodes?.TryGetValue(nodeId, out var nodeData) != true)
-            {
-                return;
-            }
-
             ClearChoiceButtons();
 
-            foreach (var choice in nodeData.choices)
+            foreach (var edge in choiceEdges)
             {
-                CreateChoiceButton(choice);
+                var choiceNode = _currentGraph.GetNode(edge.ToId);
+                if (choiceNode == null)
+                {
+                    continue;
+                }
+
+                CreateChoiceButton(choiceNode);
             }
         }
 
-        private void CreateChoiceButton(ChoiceData choice)
+        private void CreateChoiceButton(MermaidNode choiceNode)
         {
             var go = Instantiate(_choiceButtonPrefab, _choiceButtonsContainer);
             if (go == null)
@@ -708,7 +1070,7 @@ namespace Turnroot.Conversations
             if (label != null)
             {
                 label.gameObject.SetActive(true);
-                label.text = GetChoiceLabel(choice);
+                label.text = GetChoiceLabel(choiceNode);
             }
 
             if (img != null)
@@ -720,15 +1082,14 @@ namespace Turnroot.Conversations
             {
                 btn.gameObject.SetActive(true);
                 btn.interactable = true;
-                int targetId = choice.targetNodeId;
+                var outgoing = _currentGraph.GetOutgoing(choiceNode.Id);
+                var targetId = outgoing.Count > 0 ? outgoing[0].ToId : null;
                 btn.onClick.AddListener(() => _pendingChoiceTarget = targetId);
             }
         }
 
-        private string GetChoiceLabel(ChoiceData choice) =>
-            !string.IsNullOrEmpty(choice?.label) ? choice.label
-            : !string.IsNullOrEmpty(choice?.choiceText) ? choice.choiceText
-            : "Choice";
+        private string GetChoiceLabel(MermaidNode choiceNode) =>
+            !string.IsNullOrEmpty(choiceNode?.Text) ? choiceNode.Text : "Choice";
 
         private Coroutine StartTween(IEnumerator routine)
         {

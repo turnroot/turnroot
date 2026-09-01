@@ -396,8 +396,11 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public void PreviousConversation() => conversationController?.DecrementConversationIndex();
 
-        public void ChooseBranch(int targetNodeId) =>
+        public void ChooseBranch(string targetNodeId) =>
             conversationController?.ChooseBranchTarget(targetNodeId);
+
+        public void StartConversationFromNode(string nodeId) =>
+            conversationController?.StartConversationFromNode(nodeId);
 
         #endregion
 
