@@ -92,15 +92,14 @@ namespace Turnroot.Characters.CharacterClass
         public bool HasRequiredVisuals() =>
             (
                 ClassModelPrefab != null
-                || ClassModelPrefabShort != null
                 || (PronounClassModelPrefabs != null && PronounClassModelPrefabs.Length > 0)
             ) && !string.IsNullOrEmpty(ClassName);
 
         /// <summary>
-        /// Get the class model prefab that best matches the given pronoun key and body build.
-        /// Falls back to the default ClassModelPrefab when no specific override exists.
+        /// Get the class model prefab that best matches the given pronoun key.
+        /// Falls back to the default ClassModelPrefab when no pronoun-specific entry exists.
         /// </summary>
-        public GameObject GetClassModelPrefab(string pronounKey, BodyBuild build)
+        public GameObject GetClassModelPrefab(string pronounKey)
         {
             // Pronoun overrides take highest priority
             if (!string.IsNullOrEmpty(pronounKey) && PronounClassModelPrefabs != null)
@@ -122,22 +121,8 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            // Short body build: prefer ClassModelPrefabShort, fall back to ClassModelPrefab
-            if (build == BodyBuild.Short)
-            {
-                return ClassModelPrefabShort ?? ClassModelPrefab;
-            }
-
-            // Tall body build: prefer ClassModelPrefab, fall back to ClassModelPrefabShort
-            return ClassModelPrefab ?? ClassModelPrefabShort;
+            return ClassModelPrefab;
         }
-
-        /// <summary>
-        /// Get the class model prefab that best matches the given pronoun key.
-        /// Falls back to the default ClassModelPrefab when no pronoun-specific entry exists.
-        /// </summary>
-        public GameObject GetClassModelPrefabForPronoun(string pronounKey) =>
-            GetClassModelPrefab(pronounKey, BodyBuild.Tall);
 
         public string GetTierDisplayName()
         {

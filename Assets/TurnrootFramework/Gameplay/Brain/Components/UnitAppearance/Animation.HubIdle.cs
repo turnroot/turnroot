@@ -9,10 +9,8 @@ namespace Turnroot.Gameplay.Brain
         private readonly Dictionary<int, Coroutine> _hubIdleCoroutines = new();
 
         /// <summary>
-        /// Configures a hub unit model to play <see cref="CharacterData.IdleNonBattleAnimations"/>
-        /// on loop, blending randomly through them.  Falls back to the character's normal idle clips
-        /// (honouring <see cref="CharacterData.UseDefaultAnimationsAlways"/>) when
-        /// no hub-specific clips are assigned.
+        /// Configures a hub unit model to play the current class's idle animations
+        /// on loop, blending randomly through them.
         ///
         /// Call this after <see cref="CreateModelForUnit"/> both when HubTeamLocations spawns hub
         /// unit models and when HubCharacter spawns its avatar model.
@@ -72,30 +70,8 @@ namespace Turnroot.Gameplay.Brain
 
         private AnimationClip[] ResolveHubIdleClips(CharacterInstance unit)
         {
-            var template = unit.CharacterTemplate;
-            if (template == null)
-            {
-                return null;
-            }
-
-            // Use hub-specific clips when available.
-            var hubClips = template.IdleNonBattleAnimations;
-            if (hubClips != null && hubClips.Length > 0)
-            {
-                return hubClips;
-            }
-
-            // Fall back to normal idle resolution.
-            if (template.UseDefaultAnimationsAlways)
-            {
-                return template.DefaultIdleAnimations;
-            }
-
             var classData = unit.GetCurrentClass()?.ClassData;
-            var classClips = classData?.IdleAnimations;
-            return (classClips != null && classClips.Length > 0)
-                ? classClips
-                : template.DefaultIdleAnimations;
+            return classData?.IdleAnimations;
         }
     }
 }

@@ -17,12 +17,6 @@ using UnityEngine.Serialization;
 
 namespace Turnroot.Characters
 {
-    public enum BodyBuild
-    {
-        Tall,
-        Short,
-    }
-
     [CreateAssetMenu(
         fileName = "NewCharacterConfiguration",
         menuName = "Turnroot/Characters/CharacterData"
@@ -40,15 +34,6 @@ namespace Turnroot.Characters
 
         [field: Foldout("Demographics"), HorizontalLine(color: EColor.Black), SerializeField]
         public Pronouns CharacterPronouns { get; private set; } = new();
-
-        [field: Foldout("Demographics"), SerializeField, Range(100f, 250f)]
-        public float Height { get; private set; } = 166f;
-
-        [field: Foldout("Demographics"), SerializeField]
-        [Tooltip(
-            "Whether this character uses the short or tall body type (affects class outfit model selection)"
-        )]
-        public BodyBuild Build { get; private set; } = BodyBuild.Tall;
 
         [field: Foldout("Demographics"), SerializeField, Range(1, 31)]
         public int BirthdayDay { get; private set; } = 1;
@@ -283,95 +268,19 @@ namespace Turnroot.Characters
         )]
         public GameObject NonBattleOutfitPrefab { get; private set; }
 
-        [field: Foldout("Visual"), SerializeField]
-        [Tooltip("Height offset for class hat positioning (Y axis)")]
-        public float ClassHatHeightOffset { get; private set; } = 0f;
-
-        [field:
-            Foldout("Animations"),
-            SerializeField,
-            HorizontalLine(color: EColor.Green),
-            InfoBox(
-                "If true, this character will always use the default animations assigned here, regardless of class-specific animations."
-            )
-        ]
-        public bool UseDefaultAnimationsAlways { get; private set; } = false;
-
-        [field:
-            Foldout("Animations"),
-            SerializeField,
-            InfoBox(
-                "Animations don't need to be unique- characters should all use the same underlying bone structure, with extra bones animated via a separate layer if needed. See the Rigging section below"
-            )
-        ]
-        public AnimationClip DefaultWalkingAnimation { get; private set; }
-
-        [field:
-            Foldout("Animations"),
-            SerializeField,
-            InfoBox("Used if no running animation is assigned in class.")
-        ]
-        public AnimationClip DefaultRunningAnimation { get; private set; }
-
-        [field:
-            Foldout("Animations"),
-            SerializeField,
-            InfoBox("If multiple idle animations are assigned, one will be chosen at random.")
-        ]
-        public AnimationClip[] DefaultIdleAnimations { get; private set; }
-
-        [field:
-            Foldout("Animations"),
-            SerializeField,
-            InfoBox(
-                "Idle animations used in the hub (non-battle). If multiple are assigned, one will be chosen at random and they will blend into each other. Falls back to DefaultIdleAnimations if empty."
-            )
-        ]
-        public AnimationClip[] IdleNonBattleAnimations { get; private set; }
-
-        [field:
-            Foldout("Animations"),
-            SerializeField,
-            InfoBox(
-                "Optional animation played when the character turns to face the avatar point in the hub. If not assigned, rotation is lerped."
-            )
-        ]
-        public AnimationClip HubTurnAnimation { get; private set; }
-
-        [field:
-            Foldout("Rigging"),
-            SerializeField,
-            Tooltip("Enable if this character has an additional bone layer (+X)"),
-            HorizontalLine(color: EColor.Blue)
-        ]
-        public bool HasExtraBoneLayer { get; private set; } = false;
-
         [field:
             Foldout("Rigging"),
             SerializeField,
             Tooltip(
-                "Optionally assign a custom Avatar (skeleton) for characters whose skeleton differs from the default base Avatar."
-            )
+                "Names of the hair/extra bone chains that should be animated procedurally. Each chain is animated independently (e.g., 'Hair_L', 'Hair_R', 'Cape')."
+            ),
+            HorizontalLine(color: EColor.Blue),
+            ShowIf(nameof(ProceduralHairSimulationEnabled))
         ]
-        public Avatar CustomAvatar { get; private set; }
+        public string[] ProceduralBoneChains { get; private set; } = new string[0];
 
-        [field:
-            Foldout("Rigging"),
-            SerializeField,
-            Tooltip(
-                "AvatarMask that marks bones belonging to the +X layer. Use this mask to animate only extra bones on a separate Animator layer."
-            )
-        ]
-        public AvatarMask AdditionalBonesMask { get; private set; }
-
-        [field:
-            Foldout("Rigging"),
-            SerializeField,
-            Tooltip(
-                "A list of extra bone names for tooling and runtime validation. This helps identify which bones belong to the +X layer."
-            )
-        ]
-        public string[] AdditionalBoneNames { get; private set; } = new string[0];
+        private bool ProceduralHairSimulationEnabled() =>
+            GameplayGeneralSettings.Instance?.ProceduralHairSimulation ?? false;
 
         [field:
             Foldout("Behavior"),

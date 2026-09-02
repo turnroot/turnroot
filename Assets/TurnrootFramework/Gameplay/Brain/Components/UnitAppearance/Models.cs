@@ -45,16 +45,33 @@ namespace Turnroot.Gameplay.Brain
                 animator.runtimeAnimatorController = _settings.DefaultUnitAnimatorController;
             }
 
-            // Apply custom avatar if character uses a different skeleton
-            if (unit.CharacterTemplate.CustomAvatar != null)
+            // Apply the shared Humanoid Avatar used for retargeting all character models
+            if (_settings.CharacterAvatar != null)
             {
-                animator.avatar = unit.CharacterTemplate.CustomAvatar;
+                animator.avatar = _settings.CharacterAvatar;
             }
 
-            // Setup extra bone layers if character has additional bones
-            SetupAnimatorLayers(animator, unit);
+            // Attach optional procedural hair simulation when enabled and supported.
+            AttachHairSimulation(unit, root);
 
             return root;
+        }
+
+        private void AttachHairSimulation(CharacterInstance unit, GameObject root)
+        {
+            if (_settings == null || !_settings.ProceduralHairSimulation)
+            {
+                return;
+            }
+
+            var chains = unit.CharacterTemplate.ProceduralBoneChains;
+            if (chains == null || chains.Length == 0)
+            {
+                return;
+            }
+
+            var driver = root.AddComponent<HairSimulationDriver>();
+            driver.Initialize(unit.CharacterTemplate, _brain);
         }
 
         private SkinnedMeshRenderer CreateOutfitMesh(CharacterInstance unit, GameObject parent)
@@ -122,29 +139,12 @@ namespace Turnroot.Gameplay.Brain
             }
 
             var pronounKey = unit.CharacterTemplate.CharacterPronouns.GetPronounKey();
-            var build = unit.CharacterTemplate.Build;
             var identity = classInst.ClassData.Identity;
-            var prefab = identity.GetClassModelPrefab(pronounKey, build);
+            var prefab = identity.GetClassModelPrefab(pronounKey);
 
-            // Warn if the requested body-build prefab isn't configured and we're falling back
             if (prefab == null)
             {
                 return false;
-            }
-
-            bool hasShort = identity.ClassModelPrefabShort != null;
-            bool hasTall = identity.ClassModelPrefab != null;
-            if (build == BodyBuild.Short && !hasShort && hasTall)
-            {
-                LogWarning(
-                    $"Class '{classInst.ClassData.GetClassName()}' has no short prefab; using tall prefab for {unit.CharacterTemplate.DisplayName}."
-                );
-            }
-            else if (build == BodyBuild.Tall && !hasTall && hasShort)
-            {
-                LogWarning(
-                    $"Class '{classInst.ClassData.GetClassName()}' has no tall prefab; using short prefab for {unit.CharacterTemplate.DisplayName}."
-                );
             }
 
             var obj = Instantiate(prefab, parent.transform);
@@ -180,20 +180,6 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            // If the class outfit prefab contains a child named 'ClassHat', allow per-character height offset.
-            var classHat = parent
-                .GetComponentsInChildren<Transform>(true)
-                .FirstOrDefault(t => t.name == "ClassHat");
-            if (classHat != null)
-            {
-                var lp = classHat.localPosition;
-                classHat.localPosition = new Vector3(
-                    lp.x,
-                    unit.CharacterTemplate.ClassHatHeightOffset,
-                    lp.z
-                );
-            }
-
             // Always use the character's HairPrefab (unit hair is authoritative) if not already present
             var hasHair = parent
                 .GetComponentsInChildren<Transform>(true)
@@ -223,9 +209,6 @@ namespace Turnroot.Gameplay.Brain
 
         private SkinnedMeshRenderer CreateHairMesh(CharacterInstance unit, GameObject parent)
         {
-            var classInst = unit.GetCurrentClass();
-
-            // Unit hair is always used via HairPrefab — if available, attach it here.
             if (unit.CharacterTemplate.HairPrefab == null)
             {
                 return null;

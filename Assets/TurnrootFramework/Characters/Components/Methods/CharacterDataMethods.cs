@@ -234,23 +234,6 @@ namespace Turnroot.Characters
                 }
             }
 
-            // Editor-time validation for rigging properties
-            if (HasExtraBoneLayer)
-            {
-                if (AdditionalBonesMask == null)
-                {
-                    $"{name}: 'HasExtraBoneLayer' is true but 'AdditionalBonesMask' is not set. This may cause Animator layering misconfiguration.".LogWarning();
-                }
-
-                if (
-                    (AdditionalBoneNames == null || AdditionalBoneNames.Length == 0)
-                    && AdditionalBonesMask == null
-                )
-                {
-                    $"{name}: No additional bone names or AvatarMask were provided for the extra bone layer. Add names or an AvatarMask for tooling/runtime mapping.".LogWarning();
-                }
-            }
-
             if (UseClassProgressionLadder && IsUnique)
             {
                 UseClassProgressionLadder = false;
