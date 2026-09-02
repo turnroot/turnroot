@@ -229,8 +229,6 @@ namespace Turnroot.Characters.Editor
                 if (_showDemographics)
                 {
                     DrawAutoPropertyField("CharacterPronouns");
-                    DrawAutoPropertyField("Height");
-                    DrawAutoPropertyField("Build");
                     DrawAutoPropertyField("BirthdayDay");
                     DrawAutoPropertyField("BirthdayMonth");
                     DrawAutoPropertyField("Species");

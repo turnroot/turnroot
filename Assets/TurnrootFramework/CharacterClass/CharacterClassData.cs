@@ -46,17 +46,17 @@ namespace Turnroot.Characters.CharacterClass
 
         [HorizontalLine(color: EColor.Green)]
         [Tooltip(
-            "Walk animation for this class. If null, falls back to character's DefaultWalkingAnimation."
+            "Walk animation for this class. Shared Humanoid Avatar retargeting makes this work for all proportions."
         )]
         public AnimationClip WalkAnimation;
 
         [Tooltip(
-            "Run animation for this class. If null, falls back to character's DefaultRunningAnimation."
+            "Run animation for this class. Shared Humanoid Avatar retargeting makes this work for all proportions."
         )]
         public AnimationClip RunAnimation;
 
         [Tooltip(
-            "Idle animations for this class. If empty, falls back to character's DefaultIdleAnimations. If multiple, one is chosen at random."
+            "Idle animations for this class. If multiple, one is chosen at random. Shared Humanoid Avatar retargeting makes this work for all proportions."
         )]
         public AnimationClip[] IdleAnimations = new AnimationClip[0];
 
@@ -155,7 +155,7 @@ namespace Turnroot.Characters.CharacterClass
         /// Falls back to the default class model if no pronoun override exists.
         /// </summary>
         public GameObject GetClassModelPrefabForPronoun(string pronounKey) =>
-            Identity?.GetClassModelPrefabForPronoun(pronounKey);
+            Identity?.GetClassModelPrefab(pronounKey);
 
         #endregion
 

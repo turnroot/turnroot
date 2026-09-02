@@ -524,36 +524,6 @@ namespace Turnroot.EditorTools
                             return r;
                         }
 
-                        // If character defines blendshapes, ensure all submeshes contain them and have sharedMesh
-                        var sb = data.Blendshapes.BlendshapeNames;
-                        if (sb != null && sb.Length > 0)
-                        {
-                            var missingAny = new List<string>();
-                            foreach (var smr in smrs)
-                            {
-                                var mesh = smr.sharedMesh;
-                                if (mesh == null)
-                                {
-                                    missingAny.Add($"{smr.gameObject.name}:no_mesh");
-                                    continue;
-                                }
-                                foreach (var b in sb)
-                                {
-                                    if (mesh.GetBlendShapeIndex(b) < 0)
-                                    {
-                                        missingAny.Add($"{smr.gameObject.name}:{b}");
-                                    }
-                                }
-                            }
-                            if (missingAny.Count > 0)
-                            {
-                                r.Color = red;
-                                r.Note =
-                                    $"Outfit missing blendshapes on submeshes: {string.Join(", ", missingAny)}";
-                                return r;
-                            }
-                        }
-
                         // Recommendation: prefer a dedicated child renderer named 'Hair' for hair meshes
                         // so runtime material-preservation is deterministic.
                         try
@@ -1003,8 +973,6 @@ namespace Turnroot.EditorTools
             var result = new CharacterAnalysis();
             result.Name = data.DisplayName ?? data.name;
 
-            var requiredBlendshapes = data.Blendshapes.BlendshapeNames;
-            bool hasBlendshapes = requiredBlendshapes != null && requiredBlendshapes.Length > 0;
             bool hasNonBattleOutfit = data.NonBattleOutfitPrefab != null;
             bool hasHeadAndHands = data.HeadAndHandsPrefab != null;
             bool hasHair = data.HairPrefab != null;
@@ -1015,8 +983,7 @@ namespace Turnroot.EditorTools
             var yellowNotes = new List<string>();
             var missingPrefabs = new List<Object>();
 
-            // Validate NonBattleOutfit prefab presence/SMR/blendshapes when needed
-            List<string> nonBattleMissingBlendshapes = new List<string>();
+            // Validate NonBattleOutfit prefab presence/SMR when needed
             if (hasNonBattleOutfit)
             {
                 var smr = data.NonBattleOutfitPrefab.GetComponentInChildren<SkinnedMeshRenderer>(
@@ -1027,38 +994,11 @@ namespace Turnroot.EditorTools
                     criticalNotes.Add("NonBattleOutfitPrefab missing SkinnedMeshRenderer");
                     missingPrefabs.Add(data.NonBattleOutfitPrefab);
                 }
-                else
+                else if (smr.sharedMesh == null)
                 {
-                    var mesh = smr.sharedMesh;
-                    if (mesh == null)
-                    {
-                        criticalNotes.Add("NonBattleOutfitPrefab missing sharedMesh");
-                        missingPrefabs.Add(data.NonBattleOutfitPrefab);
-                    }
-                    else if (hasBlendshapes)
-                    {
-                        foreach (var b in requiredBlendshapes)
-                        {
-                            if (mesh.GetBlendShapeIndex(b) < 0)
-                            {
-                                nonBattleMissingBlendshapes.Add(b);
-                            }
-                        }
-                        if (nonBattleMissingBlendshapes.Count > 0)
-                        {
-                            criticalNotes.Add(
-                                $"NonBattleOutfitPrefab missing blendshapes: {string.Join(", ", nonBattleMissingBlendshapes)}"
-                            );
-                            missingPrefabs.Add(data.NonBattleOutfitPrefab);
-                        }
-                    }
+                    criticalNotes.Add("NonBattleOutfitPrefab missing sharedMesh");
+                    missingPrefabs.Add(data.NonBattleOutfitPrefab);
                 }
-            }
-
-            // If blendshapes are defined but no non-battle outfit -> critical
-            if (hasBlendshapes && !hasNonBattleOutfit)
-            {
-                criticalNotes.Add("Has blendshapes but no NonBattleOutfitPrefab (required)");
             }
 
             // Optional but recommended (warn-level)
