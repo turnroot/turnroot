@@ -9,6 +9,8 @@ namespace Turnroot.AbstractScripts.Graphics2D
     /// </summary>
     public static class Graphics2DUtils
     {
+        private static readonly System.Collections.Generic.List<Image> _transientImages = new();
+
         /// <summary>
         /// Reduced set of easing types that were previously provided by DOTween.
         /// </summary>
@@ -17,6 +19,29 @@ namespace Turnroot.AbstractScripts.Graphics2D
             Linear,
             InOutSine,
             OutCubic,
+        }
+
+        public static void TrackTransientImage(Image image)
+        {
+            if (image == null)
+            {
+                return;
+            }
+
+            _transientImages.Add(image);
+        }
+
+        public static void ClearTransientImages()
+        {
+            foreach (var image in _transientImages)
+            {
+                if (image != null)
+                {
+                    Object.Destroy(image.gameObject);
+                }
+            }
+
+            _transientImages.Clear();
         }
 
         private static float EvaluateEase(Ease ease, float t)
@@ -129,6 +154,9 @@ namespace Turnroot.AbstractScripts.Graphics2D
             // ensure overlays render above their originals
             overlayA.transform.SetSiblingIndex(a.transform.GetSiblingIndex() + 1);
             overlayB.transform.SetSiblingIndex(b.transform.GetSiblingIndex() + 1);
+
+            TrackTransientImage(imgA);
+            TrackTransientImage(imgB);
 
             // swap underlying sprites immediately
             var tmp = a.sprite;

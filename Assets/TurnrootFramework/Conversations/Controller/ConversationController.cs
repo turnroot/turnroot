@@ -23,32 +23,24 @@ namespace Turnroot.Conversations
     public class ConversationController : MonoBehaviour
     {
         [Header("Audio")]
-        [SerializeField]
-        private AudioSource _audioSource;
+        public AudioSource _audioSource;
 
         [Header("Conversation UI")]
-        [SerializeField]
-        private UIFade _uiFade;
+        public UIFade _uiFade;
 
         [Header("Dialogue UI")]
-        [SerializeField]
-        private TextMeshProUGUI _dialogueText;
+        public TextMeshProUGUI _dialogueText;
 
-        [SerializeField]
-        private TextMeshProUGUI _speakerNameText;
+        public TextMeshProUGUI _speakerNameText;
 
-        [SerializeField]
-        private Image _speakerPortraitImageActive;
+        public Image _speakerPortraitImageActive;
 
-        [SerializeField]
-        private Image _speakerPortraitImageInactive;
+        public Image _speakerPortraitImageInactive;
 
         [Header("Choice UI")]
-        [SerializeField]
-        private GameObject _choiceButtonPrefab;
+        public GameObject _choiceButtonPrefab;
 
-        [SerializeField]
-        private Transform _choiceButtonsContainer;
+        public Transform _choiceButtonsContainer;
 
         public event Action OnAnyConversationStart;
         public event Action OnAnyConversationFinished;
@@ -86,24 +78,42 @@ namespace Turnroot.Conversations
 
         private const string ConversationResourcesPath = "Conversations";
 
-        private void Awake() => EnsureAudioSource();
-
         private void OnDisable()
         {
             UnsubscribeAdvanceInput();
             UnsubscribeConversationConditions();
             CancelActiveTweens();
+            StopRoutine(ref _conversationRoutine);
+            StopRoutine(ref _oneShotRoutine);
+        }
 
-            if (_conversationRoutine != null)
+        private void StopRoutine(ref Coroutine routine)
+        {
+            if (routine == null)
             {
-                StopCoroutine(_conversationRoutine);
-                _conversationRoutine = null;
+                return;
             }
 
-            if (_oneShotRoutine != null)
+            StopCoroutine(routine);
+            routine = null;
+        }
+
+        private void SetInterruptWaiting(bool waiting)
+        {
+            if (_sceneFlow == null)
             {
-                StopCoroutine(_oneShotRoutine);
-                _oneShotRoutine = null;
+                return;
+            }
+
+            _sceneFlow.ResetInterruptActivityTimer();
+            _sceneFlow.InterruptIsWaitingForPlayerInput = waiting;
+        }
+
+        private static void SetTextIfNotNull(TextMeshProUGUI text, string value)
+        {
+            if (text != null)
+            {
+                text.text = value;
             }
         }
 
@@ -261,20 +271,6 @@ namespace Turnroot.Conversations
             return null;
         }
 
-        private void EnsureAudioSource()
-        {
-            if (_audioSource == null)
-            {
-                _audioSource = GetComponent<AudioSource>();
-            }
-
-            if (_audioSource == null)
-            {
-                _audioSource = gameObject.AddComponent<AudioSource>();
-                _audioSource.playOnAwake = false;
-            }
-        }
-
         public void Advance() => NextLayer();
 
         /// <summary>
@@ -283,16 +279,12 @@ namespace Turnroot.Conversations
         /// </summary>
         public void PlayConversationById(string conversationId, Action onFinished = null)
         {
-            var conversation = LoadConversationById(conversationId);
-            if (conversation == null)
+            if (!TryLoadConversationById(conversationId, out var conversation))
             {
-                $"ConversationController: could not load conversation '{conversationId}'.".LogError(
-                    "ConversationController"
-                );
                 return;
             }
 
-            PlayConversationDirect(conversation, onFinished);
+            BeginConversation(conversation, onFinished, null, nameof(PlayConversationDirect));
         }
 
         /// <summary>
@@ -301,27 +293,59 @@ namespace Turnroot.Conversations
         /// </summary>
         public void StartConversationById(string conversationId, string nodeId = null)
         {
-            var conversation = LoadConversationById(conversationId);
+            if (!TryLoadConversationById(conversationId, out var conversation))
+            {
+                return;
+            }
+
+            BeginConversation(conversation, null, nodeId, nameof(StartConversationById));
+        }
+
+        private bool TryLoadConversationById(string conversationId, out Conversation conversation)
+        {
+            conversation = null;
+            if (string.IsNullOrWhiteSpace(conversationId))
+            {
+                return false;
+            }
+
+            conversation = Resources.Load<Conversation>(
+                $"{ConversationResourcesPath}/{conversationId}"
+            );
             if (conversation == null)
             {
                 $"ConversationController: could not load conversation '{conversationId}'.".LogError(
                     "ConversationController"
                 );
-                return;
+                return false;
             }
 
-            StartConversationInternal(conversation, null, nodeId);
+            return true;
         }
 
-        private Conversation LoadConversationById(string conversationId)
+        private bool BeginConversation(
+            Conversation conversation,
+            Action onFinished,
+            string startNodeId,
+            string callerName
+        )
         {
-            if (string.IsNullOrWhiteSpace(conversationId))
+            if (conversation == null)
             {
-                return null;
+                $"{callerName} called with null conversation.".LogInfo();
+                return false;
             }
 
-            var path = $"{ConversationResourcesPath}/{conversationId}";
-            return Resources.Load<Conversation>(path);
+            if (conversation.MermaidSource == null)
+            {
+                $"Conversation '{conversation.name}' has no Mermaid source.".LogError(
+                    "ConversationController"
+                );
+                return false;
+            }
+
+            StartConversationInternal(conversation, onFinished, startNodeId);
+            return true;
         }
 
         public void NextLayer()
@@ -347,24 +371,8 @@ namespace Turnroot.Conversations
         /// Intended for runtime-selected conversations (e.g. hub chitchat).
         /// <paramref name="onFinished"/> is called once the conversation completes.
         /// </summary>
-        public void PlayConversationDirect(Conversation conversation, Action onFinished = null)
-        {
-            if (conversation == null)
-            {
-                "PlayConversationDirect called with null conversation.".LogInfo();
-                return;
-            }
-
-            if (conversation.MermaidSource == null)
-            {
-                $"Conversation '{conversation.name}' has no Mermaid source.".LogError(
-                    "ConversationController"
-                );
-                return;
-            }
-
-            StartConversationInternal(conversation, onFinished, null);
-        }
+        public void PlayConversationDirect(Conversation conversation, Action onFinished = null) =>
+            BeginConversation(conversation, onFinished, null, nameof(PlayConversationDirect));
 
         /// <summary>
         /// Plays a <see cref="Conversation"/> starting at a specific node id. Use this to resume
@@ -376,21 +384,12 @@ namespace Turnroot.Conversations
             Action onFinished = null
         )
         {
-            if (conversation == null)
-            {
-                "PlayConversationDirectFromNode called with null conversation.".LogInfo();
-                return;
-            }
-
-            if (conversation.MermaidSource == null)
-            {
-                $"Conversation '{conversation.name}' has no Mermaid source.".LogError(
-                    "ConversationController"
-                );
-                return;
-            }
-
-            StartConversationInternal(conversation, onFinished, startNodeId);
+            BeginConversation(
+                conversation,
+                onFinished,
+                startNodeId,
+                nameof(PlayConversationDirectFromNode)
+            );
         }
 
         private void StartConversationInternal(
@@ -421,12 +420,7 @@ namespace Turnroot.Conversations
 
         private void CleanupPreviousConversation()
         {
-            if (_conversationRoutine != null)
-            {
-                StopCoroutine(_conversationRoutine);
-                _conversationRoutine = null;
-            }
-
+            StopRoutine(ref _conversationRoutine);
             CancelActiveTweens();
             _tweenRunId++;
         }
@@ -436,16 +430,8 @@ namespace Turnroot.Conversations
             Graphics2DUtils.ResetImage(_speakerPortraitImageActive);
             Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
             _lastActiveSprite = null;
-            if (_dialogueText != null)
-            {
-                _dialogueText.text = string.Empty;
-            }
-
-            if (_speakerNameText != null)
-            {
-                _speakerNameText.text = string.Empty;
-            }
-
+            SetTextIfNotNull(_dialogueText, string.Empty);
+            SetTextIfNotNull(_speakerNameText, string.Empty);
             ClearChoiceButtons();
         }
 
@@ -507,7 +493,7 @@ namespace Turnroot.Conversations
                         break;
 
                     case MermaidNodeKind.Condition:
-                        yield return WaitForConditionNode(currentNode);
+                        yield return WaitForConditionNode();
                         currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
                         continue;
 
@@ -528,19 +514,9 @@ namespace Turnroot.Conversations
                     _pendingChoiceTarget = null;
                     ShowChoices(outgoing);
 
-                    _sceneFlow?.ResetInterruptActivityTimer();
-                    if (_sceneFlow != null)
-                    {
-                        _sceneFlow.InterruptIsWaitingForPlayerInput = true;
-                    }
-
+                    SetInterruptWaiting(true);
                     yield return new WaitUntil(() => !string.IsNullOrEmpty(_pendingChoiceTarget));
-
-                    _sceneFlow?.ResetInterruptActivityTimer();
-                    if (_sceneFlow != null)
-                    {
-                        _sceneFlow.InterruptIsWaitingForPlayerInput = false;
-                    }
+                    SetInterruptWaiting(false);
 
                     currentNode = _currentGraph.GetNode(_pendingChoiceTarget);
                     ClearChoiceButtons();
@@ -556,7 +532,7 @@ namespace Turnroot.Conversations
                 if (AllTargetsAreConditions(outgoing))
                 {
                     var firstCondition = _currentGraph.GetNode(outgoing[0].ToId);
-                    yield return WaitForConditionNode(firstCondition);
+                    yield return WaitForConditionNode();
                     currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
                     continue;
                 }
@@ -628,23 +604,13 @@ namespace Turnroot.Conversations
             return true;
         }
 
-        private IEnumerator WaitForConditionNode(MermaidNode conditionNode)
+        private IEnumerator WaitForConditionNode()
         {
             _resolvedConditionTarget = null;
 
-            _sceneFlow?.ResetInterruptActivityTimer();
-            if (_sceneFlow != null)
-            {
-                _sceneFlow.InterruptIsWaitingForPlayerInput = true;
-            }
-
+            SetInterruptWaiting(true);
             yield return new WaitUntil(() => !string.IsNullOrEmpty(_resolvedConditionTarget));
-
-            _sceneFlow?.ResetInterruptActivityTimer();
-            if (_sceneFlow != null)
-            {
-                _sceneFlow.InterruptIsWaitingForPlayerInput = false;
-            }
+            SetInterruptWaiting(false);
         }
 
         private ConversationLayer BuildLayerFromNode(
@@ -733,11 +699,7 @@ namespace Turnroot.Conversations
             _activeBranchingLayer = layer;
             UpdateUIForLayer(layer);
 
-            _sceneFlow?.ResetInterruptActivityTimer();
-            if (_sceneFlow != null)
-            {
-                _sceneFlow.InterruptIsWaitingForPlayerInput = true;
-            }
+            SetInterruptWaiting(true);
 
             bool completed = false;
             void OnComplete() => completed = true;
@@ -745,39 +707,14 @@ namespace Turnroot.Conversations
             yield return new WaitUntil(() => completed);
             layer.OnLayerCompleted -= OnComplete;
 
-            _sceneFlow?.ResetInterruptActivityTimer();
-            if (_sceneFlow != null)
-            {
-                _sceneFlow.InterruptIsWaitingForPlayerInput = false;
-            }
-
+            SetInterruptWaiting(false);
             _brain?.PublishConversationLayerEnded(layer);
             _activeBranchingLayer = null;
         }
 
-        private void ShowConversationUI()
-        {
-            if (_uiFade != null)
-            {
-                _uiFade.Show();
-            }
-            else if (!gameObject.activeInHierarchy)
-            {
-                gameObject.SetActive(true);
-            }
-        }
+        private void ShowConversationUI() => _uiFade?.Show();
 
-        private void HideConversationUI()
-        {
-            if (_uiFade != null)
-            {
-                _uiFade.Hide();
-            }
-            else
-            {
-                gameObject.SetActive(false);
-            }
-        }
+        private void HideConversationUI() => _uiFade?.Hide();
 
         /// <summary>
         /// Play a short, one‑layer conversation (e.g. a single NPC quip).
@@ -796,14 +733,6 @@ namespace Turnroot.Conversations
             if (oneShot.Audio != null && _audioSource != null)
             {
                 _audioSource.PlayOneShot(oneShot.Audio);
-            }
-            else if (oneShot.Audio != null)
-            {
-                EnsureAudioSource();
-                if (_audioSource != null)
-                {
-                    _audioSource.PlayOneShot(oneShot.Audio);
-                }
             }
 
             CleanupPreviousConversation();
@@ -846,15 +775,8 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            if (_dialogueText != null)
-            {
-                _dialogueText.text = layer.Dialogue;
-            }
-
-            if (_speakerNameText != null)
-            {
-                _speakerNameText.text = GetSpeakerName(layer.GetActiveSlot());
-            }
+            SetTextIfNotNull(_dialogueText, layer.Dialogue);
+            SetTextIfNotNull(_speakerNameText, GetSpeakerName(layer.GetActiveSlot()));
 
             var (activeSprite, _, _, _) = layer.GetActiveAndInactivePortraits();
             if (_lastActiveSprite != activeSprite)
@@ -883,7 +805,7 @@ namespace Turnroot.Conversations
             var (activeSprite, activeTint, inactiveSprite, inactiveTint) =
                 layer.GetActiveAndInactivePortraits();
 
-            if (activeSprite == null || _speakerPortraitImageActive == null)
+            if (activeSprite == null)
             {
                 return;
             }
@@ -901,42 +823,39 @@ namespace Turnroot.Conversations
                 );
             }
 
-            var activeImg = _speakerPortraitImageActive;
-            var inactiveImg = _speakerPortraitImageInactive;
+            Graphics2DUtils.SetSprite(_speakerPortraitImageActive, activeSprite);
+            Graphics2DUtils.SetSprite(_speakerPortraitImageInactive, inactiveSprite);
 
-            Graphics2DUtils.SetSprite(activeImg, activeSprite);
-            Graphics2DUtils.SetSprite(inactiveImg, inactiveSprite);
-
-            activeImg.color = activeTint;
-            if (inactiveImg != null)
+            _speakerPortraitImageActive.color = activeTint;
+            if (_speakerPortraitImageInactive != null)
             {
-                inactiveImg.color = Color.white;
+                _speakerPortraitImageInactive.color = Color.white;
             }
 
             var duration = GfxSettings?.PortraitTransitionDuration ?? 0.4f;
             var ease = GfxSettings?.PortraitTransitionEase ?? Ease.OutCubic;
-
-            if (
+            var shouldTintInactive =
                 GfxSettings?.SecondaryConversationPortraitInactiveBehavior
-                == SecondaryConversationPortraitInactiveBehavior.Tint
-            )
-            {
-                StartTween(
-                    Graphics2DUtils.TintCoroutine(
-                        activeImg,
-                        inactiveImg,
-                        activeTint,
-                        inactiveTint,
-                        duration,
-                        ease,
-                        _tweenRunId
-                    )
+                == SecondaryConversationPortraitInactiveBehavior.Tint;
+
+            var tween = shouldTintInactive
+                ? Graphics2DUtils.TintCoroutine(
+                    _speakerPortraitImageActive,
+                    _speakerPortraitImageInactive,
+                    activeTint,
+                    inactiveTint,
+                    duration,
+                    ease,
+                    _tweenRunId
+                )
+                : Graphics2DUtils.HideCoroutine(
+                    _speakerPortraitImageInactive,
+                    duration,
+                    ease,
+                    _tweenRunId
                 );
-            }
-            else
-            {
-                StartTween(Graphics2DUtils.HideCoroutine(inactiveImg, duration, ease, _tweenRunId));
-            }
+
+            StartTween(tween);
         }
 
         private void ClearChoiceButtons()
@@ -1033,14 +952,7 @@ namespace Turnroot.Conversations
                 }
             }
             _activeTweens.Clear();
-
-            foreach (var img in FindObjectsByType<Image>(FindObjectsSortMode.None))
-            {
-                if (img.gameObject.name.StartsWith("swap_overlay_"))
-                {
-                    Destroy(img.gameObject);
-                }
-            }
+            Graphics2DUtils.ClearTransientImages();
         }
 
         private void OnDestroy() => CancelActiveTweens();
