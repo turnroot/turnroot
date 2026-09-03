@@ -28,6 +28,14 @@ namespace Turnroot.Conversations.Mermaid
             RegexOptions.Compiled | RegexOptions.IgnoreCase
         );
 
+        // Dialogue tails must be: <Speaker>_<Emotion>-<Descriptor> with no extra
+        // underscores or hyphens. Multi-word speaker names remove spaces instead of
+        // using underscores.
+        private static readonly Regex StrictDialogueTailRegex = new(
+            @"^[A-Za-z0-9]+_[A-Za-z0-9]+-[A-Za-z0-9]+$",
+            RegexOptions.Compiled
+        );
+
         public static MermaidConversationGraph Parse(string mermaidText, string conversationName)
         {
             var graph = new MermaidConversationGraph();
@@ -63,6 +71,12 @@ namespace Turnroot.Conversations.Mermaid
                 {
                     var id = nodeMatch.Groups[1].Value.Trim();
                     var text = UnwrapNodeBody(nodeMatch.Groups[2].Value);
+
+                    if (nodeTexts.ContainsKey(id))
+                    {
+                        $"MermaidConversationParser: duplicate node id '{id}' in '{conversationName}'. Each node must have a unique ID.".LogWarning();
+                    }
+
                     nodeTexts[id] = text;
                 }
 
@@ -97,7 +111,7 @@ namespace Turnroot.Conversations.Mermaid
 
             foreach (var kvp in nodeTexts)
             {
-                var node = ParseNode(kvp.Key, kvp.Value, conversationName);
+                var node = ParseNode(kvp.Key, kvp.Value, conversationName, graph);
                 if (node != null)
                 {
                     graph.Nodes.Add(node);
@@ -123,7 +137,7 @@ namespace Turnroot.Conversations.Mermaid
         private static string StripComment(string line)
         {
             var index = line.IndexOf("%%", StringComparison.Ordinal);
-            return index >= 0 ? line.Substring(0, index) : line;
+            return index >= 0 ? line[..index] : line;
         }
 
         private static string UnwrapNodeBody(string wrapped)
@@ -135,19 +149,20 @@ namespace Turnroot.Conversations.Mermaid
 
             var open = wrapped[0];
             var close = wrapped[wrapped.Length - 1];
-            if (
+            return
                 (open == '[' && close == ']')
                 || (open == '(' && close == ')')
                 || (open == '{' && close == '}')
-            )
-            {
-                return wrapped.Substring(1, wrapped.Length - 2).Trim();
-            }
-
-            return wrapped.Trim();
+                ? wrapped[1..^1].Trim()
+                : wrapped.Trim();
         }
 
-        private static MermaidNode ParseNode(string id, string text, string conversationName)
+        private static MermaidNode ParseNode(
+            string id,
+            string text,
+            string conversationName,
+            MermaidConversationGraph graph
+        )
         {
             var partMatch = PartPrefixRegex.Match(id);
             if (!partMatch.Success)
@@ -167,27 +182,20 @@ namespace Turnroot.Conversations.Mermaid
 
             if (tail.StartsWith("Start", StringComparison.OrdinalIgnoreCase))
             {
-                node.Kind = MermaidNodeKind.Anchor;
+                node.Kind = MermaidNodeKind.Start;
                 node.ActionType = "Start";
                 node.ActionTarget =
-                    tail.Length > "Start".Length + 1 ? tail.Substring("Start".Length + 1) : null;
+                    tail.Length > "Start".Length + 1 ? tail[("Start".Length + 1)..] : null;
                 return node;
             }
 
-            // "End" is a Mermaid reserved word (closes subgraphs), so we use Finish/Complete.
             if (
                 tail.StartsWith("Finish", StringComparison.OrdinalIgnoreCase)
                 || tail.StartsWith("Complete", StringComparison.OrdinalIgnoreCase)
             )
             {
-                node.Kind = MermaidNodeKind.Anchor;
-                node.ActionType = "Finish";
-                var prefixLength = tail.StartsWith("Finish", StringComparison.OrdinalIgnoreCase)
-                    ? "Finish".Length
-                    : "Complete".Length;
-                node.ActionTarget =
-                    tail.Length > prefixLength + 1 ? tail.Substring(prefixLength + 1) : null;
-                return node;
+                $"MermaidConversationParser: '{tail}' is no longer supported. Finish/Complete nodes were removed; end a conversation by leaving the last node with no outgoing arrows.".LogWarning();
+                return null;
             }
 
             var segments = tail.Split('_');
@@ -221,25 +229,56 @@ namespace Turnroot.Conversations.Mermaid
                 return node;
             }
 
-            // Default: Dialogue with Speaker_Emotion.
+            // Default: Dialogue with Speaker_Emotion-Descriptor.
             node.Kind = MermaidNodeKind.Dialogue;
-            ParseDialogueNode(tail, node);
+            ParseDialogueNode(tail, node, conversationName, graph);
             return node;
         }
 
-        private static void ParseDialogueNode(string tail, MermaidNode node)
+        private static void ParseDialogueNode(
+            string tail,
+            MermaidNode node,
+            string conversationName,
+            MermaidConversationGraph graph
+        )
         {
-            var segments = tail.Split('_');
-            if (segments.Length >= 2)
+            if (!StrictDialogueTailRegex.IsMatch(tail))
             {
-                node.Emotion = segments[^1];
-                node.Speaker = string.Join("_", segments.Take(segments.Length - 1));
-            }
-            else
-            {
+                var message =
+                    $"MermaidConversationParser: dialogue node '{node.Id}' has an invalid ID format in '{conversationName}'. "
+                    + "Expected 'PART<N>_<Speaker>_<Emotion>-<Descriptor>' with exactly one underscore and one hyphen after the part number. "
+                    + "Multi-word speaker names must have spaces removed, not replaced with underscores.";
+                message.LogError();
+                graph.Errors.Add(message);
                 node.Speaker = tail;
                 node.Emotion = "default";
+                return;
             }
+
+            var underscoreIndex = tail.IndexOf('_');
+            var hyphenIndex = tail.IndexOf('-');
+            var speaker = tail[..underscoreIndex];
+            var emotion = tail[(underscoreIndex + 1)..hyphenIndex];
+            var descriptor = tail[(hyphenIndex + 1)..];
+
+            if (string.IsNullOrWhiteSpace(speaker) || string.IsNullOrWhiteSpace(emotion))
+            {
+                var message =
+                    $"MermaidConversationParser: dialogue node '{node.Id}' has an empty speaker or emotion in '{conversationName}'.";
+                message.LogError();
+                graph.Errors.Add(message);
+            }
+
+            if (string.IsNullOrWhiteSpace(descriptor))
+            {
+                var message =
+                    $"MermaidConversationParser: dialogue node '{node.Id}' has an empty descriptor in '{conversationName}'.";
+                message.LogError();
+                graph.Errors.Add(message);
+            }
+
+            node.Speaker = speaker;
+            node.Emotion = emotion;
         }
 
         private static void ParseActionNode(string[] segments, string text, MermaidNode node)
@@ -278,12 +317,12 @@ namespace Turnroot.Conversations.Mermaid
                 var lastUnderscore = rawTarget.LastIndexOf('_');
                 if (lastUnderscore > 0)
                 {
-                    var possibleStrength = rawTarget.Substring(lastUnderscore + 1);
+                    var possibleStrength = rawTarget[(lastUnderscore + 1)..];
                     var parsed = ParseStrengthFromId(possibleStrength, out _);
                     if (!string.IsNullOrEmpty(parsed))
                     {
                         strength = parsed;
-                        rawTarget = rawTarget.Substring(0, lastUnderscore);
+                        rawTarget = rawTarget[..lastUnderscore];
                     }
                 }
 
@@ -299,12 +338,12 @@ namespace Turnroot.Conversations.Mermaid
             var targetLastUnderscore = rawTarget.LastIndexOf('_');
             if (targetLastUnderscore > 0)
             {
-                var possibleStrength = rawTarget.Substring(targetLastUnderscore + 1);
+                var possibleStrength = rawTarget[(targetLastUnderscore + 1)..];
                 var parsed = ParseStrengthFromId(possibleStrength, out _);
                 if (!string.IsNullOrEmpty(parsed))
                 {
                     node.ActionStrength = parsed;
-                    node.ActionTarget = rawTarget.Substring(0, targetLastUnderscore);
+                    node.ActionTarget = rawTarget[..targetLastUnderscore];
                     return;
                 }
             }
@@ -334,17 +373,11 @@ namespace Turnroot.Conversations.Mermaid
             }
 
             // If the type itself is ambiguous, inspect the body text.
-            if (upperText.Contains("GAIN") && !upperText.Contains("LOSE"))
-            {
-                return SupportChangeOperation.Gain;
-            }
-
-            if (upperText.Contains("LOSE") && !upperText.Contains("GAIN"))
-            {
-                return SupportChangeOperation.Lose;
-            }
-
-            return null;
+            return upperText.Contains("GAIN") && !upperText.Contains("LOSE")
+                    ? SupportChangeOperation.Gain
+                : upperText.Contains("LOSE") && !upperText.Contains("GAIN")
+                    ? SupportChangeOperation.Lose
+                : null;
         }
 
         private static string ParseStrengthFromId(string segment, out string baseSegment)
@@ -354,51 +387,35 @@ namespace Turnroot.Conversations.Mermaid
 
             if (upper.EndsWith("PLUSPLUS") || upper.EndsWith("PP"))
             {
-                baseSegment = segment.Substring(
-                    0,
-                    segment.Length - GetSuffixLength(upper, "PLUSPLUS", "PP")
-                );
+                baseSegment = segment[..^(GetSuffixLength(upper, "PLUSPLUS", "PP"))];
                 return "++";
             }
 
             if (upper.EndsWith("PLUS") || upper.EndsWith("P"))
             {
-                baseSegment = segment.Substring(
-                    0,
-                    segment.Length - GetSuffixLength(upper, "PLUS", "P")
-                );
+                baseSegment = segment[..^(GetSuffixLength(upper, "PLUS", "P"))];
                 return "+";
             }
 
             if (upper.EndsWith("MINUSMINUS") || upper.EndsWith("MM"))
             {
-                baseSegment = segment.Substring(
-                    0,
-                    segment.Length - GetSuffixLength(upper, "MINUSMINUS", "MM")
-                );
+                baseSegment = segment[..^(GetSuffixLength(upper, "MINUSMINUS", "MM"))];
                 return "--";
             }
 
             if (upper.EndsWith("MINUS") || upper.EndsWith("M"))
             {
-                baseSegment = segment.Substring(
-                    0,
-                    segment.Length - GetSuffixLength(upper, "MINUS", "M")
-                );
+                baseSegment = segment[..^(GetSuffixLength(upper, "MINUS", "M"))];
                 return "-";
             }
 
             return null;
         }
 
-        private static int GetSuffixLength(string upper, string word, string abbr)
-        {
-            if (upper.EndsWith(word))
-                return word.Length;
-            if (upper.EndsWith(abbr))
-                return abbr.Length;
-            return 0;
-        }
+        private static int GetSuffixLength(string upper, string word, string abbr) =>
+            upper.EndsWith(word) ? word.Length
+            : upper.EndsWith(abbr) ? abbr.Length
+            : 0;
 
         private static string ParseStrengthFromText(string text)
         {
@@ -408,16 +425,11 @@ namespace Turnroot.Conversations.Mermaid
             }
 
             var upper = text.ToUpperInvariant();
-            if (upper.Contains("++"))
-                return "++";
-            if (upper.Contains("--"))
-                return "--";
-            if (upper.Contains('+'))
-                return "+";
-            if (upper.Contains('-'))
-                return "-";
-
-            return null;
+            return upper.Contains("++") ? "++"
+                : upper.Contains("--") ? "--"
+                : upper.Contains('+') ? "+"
+                : upper.Contains('-') ? "-"
+                : null;
         }
     }
 }

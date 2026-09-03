@@ -464,7 +464,16 @@ namespace Turnroot.Conversations
             if (currentNode == null)
             {
                 var entries = _currentGraph.GetEntryNodes();
-                currentNode = entries.Count > 0 ? entries[0] : _currentGraph.Nodes[0];
+                if (entries.Count == 0)
+                {
+                    $"Conversation '{conversation.name}' has no PART<N>_Start node. Add a Start node to define where the conversation begins.".LogError(
+                        "ConversationController.RunMermaidGraph"
+                    );
+                    ResetUI();
+                    yield break;
+                }
+
+                currentNode = entries[0];
             }
 
             while (currentNode != null)
@@ -497,9 +506,9 @@ namespace Turnroot.Conversations
                         currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
                         continue;
 
-                    case MermaidNodeKind.Anchor:
+                    case MermaidNodeKind.Start:
                     case MermaidNodeKind.Choice:
-                        // Routing for Choice is handled below; Anchor is a pass-through marker.
+                        // Routing for Choice is handled below; Start is a pass-through marker.
                         break;
                 }
 
