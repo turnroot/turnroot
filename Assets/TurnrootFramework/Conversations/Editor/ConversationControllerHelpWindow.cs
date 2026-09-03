@@ -157,57 +157,196 @@ namespace Turnroot.Conversations.Editor
         {
             EditorGUILayout.LabelField("SYNTAX", _sectionStyle);
 
-            GUILayout.Label("Node IDs: PART<Number>_<Kind>_<Name>[_<Qualifier>]", _codeStyle);
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>Dialogue</b>", _bodyStyle);
-            GUILayout.Label("PART1_Aubrey_NEUTRAL[\"Aubrey: Hello.\"]", _codeStyle);
-            GUILayout.Label(
-                "Speaker comes from the ID; display name uses CharacterData.",
+            EditorGUILayout.LabelField("Direction", _sectionStyle);
+            EditorGUILayout.LabelField(
+                "Every conversation file begins with a direction line. TD means the chart reads from top to bottom.",
                 _bodyStyle
             );
-            GUILayout.Space(4);
+            GUILayout.Label("flowchart TD", _codeStyle);
+            DrawSeparator();
 
-            EditorGUILayout.LabelField("<b>Choice</b>", _bodyStyle);
+            EditorGUILayout.LabelField("Node IDs", _sectionStyle);
+            EditorGUILayout.LabelField(
+                "A node is one step in the conversation. Each line has an ID and a body inside square brackets. The ID is how nodes connect to each other, and it must be unique within the conversation.",
+                _bodyStyle
+            );
+
+            GUILayout.Label("PART1_Aubrey_NEUTRAL-Greeting[\"Aubrey: Hello!\"]", _codeStyle);
+            GUILayout.Label(
+                "|------------- ID ----------------| |-- brackets --| |-- player text --|",
+                _codeStyle
+            );
+            GUILayout.Label("PART1_Aubrey_NEUTRAL-Greeting", _codeStyle);
+            GUILayout.Label("PART1_Aubrey_NEUTRAL-Reply", _codeStyle);
+            GUILayout.Label("PART1_LadyOfTheLake_MYSTERIOUS-Intro", _codeStyle);
+            EditorGUILayout.LabelField(
+                "Dialogue IDs use the format <b>PART&lt;Number&gt;_&lt;Speaker&gt;_&lt;Emotion&gt;-&lt;Descriptor&gt;</b>. The descriptor is a short, unique name so a character can speak more than once with the same emotion. After the part number there must be exactly one underscore (between speaker and emotion) and exactly one hyphen (between emotion and descriptor). Multi-word speaker names remove spaces rather than using underscores; no other underscores or hyphens are allowed inside the speaker, emotion, or descriptor.",
+                _bodyStyle
+            );
+            DrawSeparator();
+
+            EditorGUILayout.LabelField("Connections", _sectionStyle);
+            EditorGUILayout.LabelField(
+                "Connect nodes with arrows so the conversation knows what to play next. When one node points to several Choice nodes, the game shows them as buttons.",
+                _bodyStyle
+            );
+            GUILayout.Label(
+                "PART1_Aubrey_NEUTRAL-Greeting --> PART1_Player_NEUTRAL-Reply",
+                _codeStyle
+            );
+            GUILayout.Label("|---- first node ----| |arrow| |---- next node ----|", _codeStyle);
+            DrawSeparator();
+
+            EditorGUILayout.LabelField("Start", _sectionStyle);
+            GUILayout.Label("PART1_Start[\"Hub conversation\"]", _codeStyle);
+            EditorGUILayout.LabelField(
+                "Every conversation must have exactly one Start node. This is where PlayConversationById begins. If a file has several Starts, use StartConversationById(id, nodeId) to begin from a specific one.",
+                _bodyStyle
+            );
+            DrawSeparator();
+
+            EditorGUILayout.LabelField("Dialogue", _sectionStyle);
+            GUILayout.Label("PART1_Aubrey_NEUTRAL-Greeting[\"Aubrey: Hello.\"]", _codeStyle);
+            EditorGUILayout.LabelField(
+                "Displays the quoted text and shows the speaker's portrait using the emotion keyword. The speaker name is matched to a CharacterData asset through the Conversation's People list.",
+                _bodyStyle
+            );
+            DrawSeparator();
+
+            EditorGUILayout.LabelField("Emotion keywords", _sectionStyle);
+            GUILayout.Label("PART1_Aubrey_ANGRY-Warning", _codeStyle);
+            GUILayout.Label("PART1_Aubrey_SAD-Goodbye", _codeStyle);
+            GUILayout.Label("PART1_Aubrey_HAPPY-Celebration", _codeStyle);
+            EditorGUILayout.LabelField(
+                "The word between the last underscore and the hyphen is the emotion keyword. It selects which portrait or expression to show. You can use any keyword as long as the CharacterData has a matching portrait. Common examples: NEUTRAL, ANGRY, SAD, HAPPY, ANNOYED, EXPLAINING.",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "If the portrait key is missing, the system tries a case-insensitive match, then falls back to a portrait named <b>default</b>.",
+                _bodyStyle
+            );
+            DrawSeparator();
+
+            EditorGUILayout.LabelField("Choice", _sectionStyle);
             GUILayout.Label("PART1_Choice_Agree[\"OPTION A: I agree.\"]", _codeStyle);
-            GUILayout.Label("Body text becomes the choice button label.", _bodyStyle);
-            GUILayout.Space(4);
+            EditorGUILayout.LabelField(
+                "The quoted text becomes the choice button label. A Choice node must have exactly one outgoing arrow, which points to the node that plays after the player picks it.",
+                _bodyStyle
+            );
+            DrawSeparator();
 
-            EditorGUILayout.LabelField("<b>Action</b>", _bodyStyle);
-            GUILayout.Label("PART1_Action_GainSupport_Aubrey_PP", _codeStyle);
-            GUILayout.Label("PART1_Action_LoseSupport_Aubrey_M", _codeStyle);
-            GUILayout.Label("PART1_Action_UnlockBattle_TakeOutTheTrash", _codeStyle);
-            GUILayout.Label("PART1_Action_PlayerGainsItem_IronSword", _codeStyle);
-            GUILayout.Label("PART1_Action_PlayerLosesItem_RustyKey", _codeStyle);
-            GUILayout.Label("PART1_Action_CharacterJoinsTeam_Aubrey", _codeStyle);
-            GUILayout.Label("PART1_Action_CharacterLeavesTeam_TempAlly", _codeStyle);
-            GUILayout.Label(
-                "Support strength suffixes: PP/PlusPlus, P/Plus, MM/MinusMinus, M/Minus.",
+            EditorGUILayout.LabelField("Dialogue To Choices", _sectionStyle);
+            EditorGUILayout.LabelField(
+                "Create several Choice nodes and point one dialogue node at all of them. The controller will pause the conversation and show each choice as a button.",
                 _bodyStyle
             );
             GUILayout.Label(
-                "Items load from Resources/Items. Characters load from Resources or the active roster.",
-                _bodyStyle
+                "PART1_Aubrey_NEUTRAL-Question[\"Aubrey: Which way should we go?\"]",
+                _codeStyle
             );
-            GUILayout.Space(4);
-
-            EditorGUILayout.LabelField("<b>Condition</b>", _bodyStyle);
-            GUILayout.Label("PART2_Condition_FirstIsopod", _codeStyle);
             GUILayout.Label(
-                "Pauses until code fires NotifyConversationCondition(...).",
+                "PART1_Choice_Left[\"Left into the forest.\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Choice_Right[\"Right toward the river.\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Aubrey_NEUTRAL-GoLeft[\"Aubrey: The forest it is.\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Aubrey_HAPPY-GoRight[\"Aubrey: I love the river!\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Aubrey_NEUTRAL-Question --> PART1_Choice_Left",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Aubrey_NEUTRAL-Question --> PART1_Choice_Right",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Choice_Left --> PART1_Aubrey_NEUTRAL-GoLeft",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Choice_Right --> PART1_Aubrey_HAPPY-GoRight",
+                _codeStyle
+            );
+            EditorGUILayout.LabelField(
+                "The dialogue node plays first, then the player sees two buttons. Each choice leads to its own follow-up dialogue node.",
                 _bodyStyle
             );
-            GUILayout.Space(4);
+            DrawSeparator();
 
-            EditorGUILayout.LabelField("<b>Signal</b>", _bodyStyle);
-            GUILayout.Label("PART1_Signal_StartBattle", _codeStyle);
-            GUILayout.Label("Fires OnConversationSignal so other systems can react.", _bodyStyle);
-            GUILayout.Space(4);
+            EditorGUILayout.LabelField("Action", _sectionStyle);
+            GUILayout.Label(
+                "PART1_Action_GainSupport_Aubrey_PP[\"GAIN ++ SUPPORT WITH AUBREY\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Action_LoseSupport_Aubrey_M[\"LOSE - SUPPORT WITH AUBREY\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Action_UnlockBattle_TakeOutTheTrash[\"UNLOCK BATTLE\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Action_PlayerGainsItem_IronSword[\"GAIN IRON SWORD\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Action_PlayerLosesItem_RustyKey[\"LOSE RUSTY KEY\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Action_CharacterJoinsTeam_Aubrey[\"AUBREY JOINS TEAM\"]",
+                _codeStyle
+            );
+            GUILayout.Label(
+                "PART1_Action_CharacterLeavesTeam_TempAlly[\"TEMP ALLY LEAVES\"]",
+                _codeStyle
+            );
+            EditorGUILayout.LabelField(
+                "The ID tells the game what side effect to apply. The text inside the brackets is optional and is never shown to the player; it is only a note for the writer.",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "Support strength suffixes: PP/PlusPlus (+20), P/Plus (+10), MM/MinusMinus (-20), M/Minus (-10). Items load from Resources/Items. Characters load from Resources or the active roster.",
+                _bodyStyle
+            );
+            DrawSeparator();
 
-            EditorGUILayout.LabelField("<b>Start / Finish</b>", _bodyStyle);
-            GUILayout.Label("PART1_Start([START])", _codeStyle);
-            GUILayout.Label("PART1_Finish_NoUnlock([FINISH])", _codeStyle);
-            GUILayout.Label("Use Finish, not End — End is a Mermaid reserved word.", _bodyStyle);
+            EditorGUILayout.LabelField("Condition", _sectionStyle);
+            GUILayout.Label("PART2_Condition_FirstIsopod[FIRST ISOPOD ENCOUNTER]", _codeStyle);
+            EditorGUILayout.LabelField(
+                "Pauses the conversation until gameplay reports this moment. The condition name is the part after Condition_, not the full ID. For this node the condition name is <b>FirstIsopod</b>.",
+                _bodyStyle
+            );
+            EditorGUILayout.LabelField(
+                "From code, use the active Brain's ConversationalBrain:",
+                _bodyStyle
+            );
+            GUILayout.Label(
+                "brain.ConversationalBrain.NotifyConversationCondition(conversation, \"FirstIsopod\");",
+                _codeStyle
+            );
+            EditorGUILayout.LabelField(
+                "Conditions can also be chained. If a node points to several Condition nodes, reporting the name of any of them will jump straight to that condition's target, skipping the others.",
+                _bodyStyle
+            );
+            DrawSeparator();
+
+            EditorGUILayout.LabelField("Signal", _sectionStyle);
+            GUILayout.Label("PART1_Signal_StartBattle[SIGNAL: START BATTLE]", _codeStyle);
+            EditorGUILayout.LabelField(
+                "Fires OnConversationSignal so other systems such as combat, audio, or scene flow can react.",
+                _bodyStyle
+            );
 
             DrawSeparator();
         }
@@ -237,10 +376,9 @@ namespace Turnroot.Conversations.Editor
             EditorGUILayout.LabelField("ACTIONS", _sectionStyle);
 
             EditorGUILayout.LabelField("<b>GainSupport / LoseSupport</b>", _bodyStyle);
-            GUILayout.Label("Changes avatar-to-character support points.", _codeStyle);
             GUILayout.Label(
-                "Target is a speaker name from the conversation's People list. Strength suffixes (PP/P/MM/M) map to +/- 20/10.",
-                _bodyStyle
+                "Changes avatar-to-character support points. Target is a speaker name from the conversation's People list. Strength suffixes (PP/P/MM/M) map to +/- 20/10.",
+                _codeStyle
             );
             GUILayout.Space(4);
 
@@ -249,10 +387,9 @@ namespace Turnroot.Conversations.Editor
             GUILayout.Space(4);
 
             EditorGUILayout.LabelField("<b>PlayerGainsItem / PlayerLosesItem</b>", _bodyStyle);
-            GUILayout.Label("Adds or removes an item in the avatar's inventory.", _codeStyle);
             GUILayout.Label(
-                "Target is the ObjectItem asset name under Resources/Items. Lose removes the first matching instance.",
-                _bodyStyle
+                "Adds or removes an item in the avatar's inventory. Target is the ObjectItem asset name under Resources/Items. Lose removes the first matching instance.",
+                _codeStyle
             );
             GUILayout.Space(4);
 
@@ -260,10 +397,9 @@ namespace Turnroot.Conversations.Editor
                 "<b>CharacterJoinsTeam / CharacterLeavesTeam</b>",
                 _bodyStyle
             );
-            GUILayout.Label("Adds or removes a character from the player roster.", _codeStyle);
             GUILayout.Label(
-                "Target is a CharacterData asset name (Resources) or a display name in the active roster. Join creates the instance if needed.",
-                _bodyStyle
+                "Adds or removes a character from the player roster. Target is a CharacterData asset name (Resources) or a display name in the active roster. Join creates the instance if needed.",
+                _codeStyle
             );
 
             DrawSeparator();
@@ -286,15 +422,15 @@ namespace Turnroot.Conversations.Editor
             EditorGUILayout.LabelField("TIPS", _sectionStyle);
 
             EditorGUILayout.LabelField(
-                "• Speaker names in IDs can't have spaces; map them to CharacterData for real display names.",
+                "• Speaker names in IDs can't have spaces or underscores. Remove spaces for multi-word names (LadyOfTheLake) and map them to CharacterData for real display names.",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Emotion suffixes are portrait keys; unknown keys fall back to 'default'.",
+                "• Every dialogue ID must end with <b>-Descriptor</b>. Two lines from the same character and emotion must use different descriptors.",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Never use <b>End</b> in a node ID — it's a Mermaid reserved word. Use <b>Finish</b>.",
+                "• Emotion keywords are portrait keys; unknown keys fall back to 'default'.",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(

@@ -32,7 +32,9 @@ namespace Turnroot.Gameplay.GameStart
             {
                 var slot = SaveFileSlots[i];
                 if (slot == null)
+                {
                     continue;
+                }
 
                 if (i < saveFiles.Count)
                 {
@@ -56,7 +58,9 @@ namespace Turnroot.Gameplay.GameStart
                     slot.Deselect();
 
                     if (SaveFileSlots[0] != null && !preserveIndex)
+                    {
                         SaveFileSlots[0].Select();
+                    }
                 }
             }
 
@@ -73,22 +77,32 @@ namespace Turnroot.Gameplay.GameStart
             {
                 var slot = SaveFileSlots[i];
                 if (slot == null)
+                {
                     continue;
+                }
 
                 if (i == currentIndex)
+                {
                     slot.Select();
+                }
                 else
+                {
                     slot.Deselect();
+                }
             }
         }
 
         private void HandleSaveFileInput(string action)
         {
             if (_currentInputMode != InputModeNames.SaveFiles || !enabled)
+            {
                 return;
+            }
 
             if (InputProvider == null)
+            {
                 return;
+            }
 
             InputProvider.Navigate(
                 action,

@@ -12,6 +12,7 @@ namespace Turnroot.Conversations.Mermaid
     {
         public List<MermaidNode> Nodes = new();
         public List<MermaidEdge> Edges = new();
+        public List<string> Errors = new();
 
         [NonSerialized]
         private Dictionary<string, MermaidNode> _nodeLookup;
@@ -40,27 +41,9 @@ namespace Turnroot.Conversations.Mermaid
                 }
 
                 var incoming = _incomingCounts.TryGetValue(node.Id, out var count) ? count : 0;
-                if (incoming == 0 && node.Kind == MermaidNodeKind.Anchor)
+                if (incoming == 0 && node.Kind == MermaidNodeKind.Start)
                 {
                     entries.Add(node);
-                }
-            }
-
-            // If no explicit Start anchors were parsed, fall back to any node with no incoming edges.
-            if (entries.Count == 0)
-            {
-                foreach (var node in Nodes)
-                {
-                    if (node == null)
-                    {
-                        continue;
-                    }
-
-                    var incoming = _incomingCounts.TryGetValue(node.Id, out var count) ? count : 0;
-                    if (incoming == 0)
-                    {
-                        entries.Add(node);
-                    }
                 }
             }
 
@@ -162,7 +145,7 @@ namespace Turnroot.Conversations.Mermaid
         Action,
         Condition,
         Signal,
-        Anchor,
+        Start,
     }
 
     public enum SupportChangeOperation

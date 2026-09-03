@@ -14,6 +14,7 @@ namespace Turnroot.Conversations.Mermaid.Editor
     public class ConversationEditor : UnityEditor.Editor
     {
         private readonly List<string> _validationWarnings = new();
+        private readonly List<string> _parseErrors = new();
         private bool _showValidation;
 
         public override void OnInspectorGUI()
@@ -50,6 +51,16 @@ namespace Turnroot.Conversations.Mermaid.Editor
             var peopleProperty = serializedObject.FindProperty("<People>k__BackingField");
             EditorGUILayout.PropertyField(peopleProperty, new GUIContent("People"), true);
 
+            if (_parseErrors.Count > 0)
+            {
+                EditorGUILayout.Space(10);
+                EditorGUILayout.LabelField("Parse Errors", EditorStyles.boldLabel);
+                foreach (var error in _parseErrors)
+                {
+                    EditorGUILayout.HelpBox(error, MessageType.Error);
+                }
+            }
+
             if (_validationWarnings.Count > 0)
             {
                 EditorGUILayout.Space(10);
@@ -76,6 +87,7 @@ namespace Turnroot.Conversations.Mermaid.Editor
         private void ParseAndUpdatePeople(Conversation conversation)
         {
             _validationWarnings.Clear();
+            _parseErrors.Clear();
 
             if (conversation.MermaidSource == null)
             {
@@ -91,6 +103,18 @@ namespace Turnroot.Conversations.Mermaid.Editor
                 conversation.MermaidSource.text,
                 conversation.name
             );
+
+            _parseErrors.AddRange(graph.Errors);
+
+            if (_parseErrors.Count > 0)
+            {
+                EditorUtility.DisplayDialog(
+                    "Parse Failed",
+                    $"Parsing failed with {_parseErrors.Count} error(s). See the inspector and console for details.",
+                    "OK"
+                );
+                return;
+            }
 
             var speakers = graph
                 .Nodes.Where(n => n.Kind == MermaidNodeKind.Dialogue)
@@ -132,10 +156,18 @@ namespace Turnroot.Conversations.Mermaid.Editor
         private void ValidateOnly(Conversation conversation)
         {
             _validationWarnings.Clear();
+            _parseErrors.Clear();
             var graph = MermaidConversationParser.Parse(
                 conversation.MermaidSource.text,
                 conversation.name
             );
+            _parseErrors.AddRange(graph.Errors);
+
+            if (_parseErrors.Count > 0)
+            {
+                return;
+            }
+
             ValidateGraph(conversation, graph);
         }
 
@@ -230,7 +262,7 @@ namespace Turnroot.Conversations.Mermaid.Editor
             if (entries.Count == 0 && graph.Nodes.Count > 0)
             {
                 _validationWarnings.Add(
-                    "No entry node found. Add a PART<N>_Start node. Avoid PART<N>_End — 'End' is a Mermaid reserved word; use PART<N>_Finish instead."
+                    "No entry node found. Add a PART<N>_Start node to define where the conversation begins."
                 );
             }
         }
@@ -281,6 +313,16 @@ namespace Turnroot.Conversations.Mermaid.Editor
                 string.Equals(c.DisplayName, speakerName, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(c.name, speakerName, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(c.FullName, speakerName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(
+                    c.DisplayName?.Replace(" ", ""),
+                    speakerName,
+                    StringComparison.OrdinalIgnoreCase
+                )
+                || string.Equals(
+                    c.FullName?.Replace(" ", ""),
+                    speakerName,
+                    StringComparison.OrdinalIgnoreCase
+                )
             );
         }
     }
