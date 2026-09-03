@@ -70,42 +70,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             }
 
             var targetRotation = Quaternion.LookRotation(direction);
-            var turnClip = character?.CharacterTemplate?.HubTurnAnimation;
 
-            if (
-                turnClip != null
-                && unitModel.TryGetComponent<Animator>(out var anim)
-                && anim.runtimeAnimatorController != null
-            )
+            const float TurnDuration = 0.4f;
+            var startRotation = unitModel.transform.rotation;
+            float elapsed = 0f;
+
+            while (elapsed < TurnDuration)
             {
-                var overrideController = new AnimatorOverrideController(
-                    anim.runtimeAnimatorController
+                elapsed += Time.deltaTime;
+                unitModel.transform.rotation = Quaternion.Slerp(
+                    startRotation,
+                    targetRotation,
+                    Mathf.Clamp01(elapsed / TurnDuration)
                 );
-                const string TurnState = "Turn";
-                overrideController[TurnState] = turnClip;
-                anim.runtimeAnimatorController = overrideController;
-                anim.Play(Animator.StringToHash(TurnState), 0, 0f);
-
-                yield return new WaitForSeconds(turnClip.length);
-
-                _brain?.unitAppearanceBrain?.SetupHubIdleAnimation(unitModel, character);
-            }
-            else
-            {
-                const float TurnDuration = 0.4f;
-                var startRotation = unitModel.transform.rotation;
-                float elapsed = 0f;
-
-                while (elapsed < TurnDuration)
-                {
-                    elapsed += Time.deltaTime;
-                    unitModel.transform.rotation = Quaternion.Slerp(
-                        startRotation,
-                        targetRotation,
-                        Mathf.Clamp01(elapsed / TurnDuration)
-                    );
-                    yield return null;
-                }
+                yield return null;
             }
 
             unitModel.transform.rotation = Quaternion.Euler(0f, targetRotation.eulerAngles.y, 0f);
