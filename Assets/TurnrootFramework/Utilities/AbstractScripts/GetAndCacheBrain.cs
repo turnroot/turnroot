@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.Brain;
+using Turnroot.UI;
 
 namespace Turnroot.Utilities
 {
@@ -8,6 +9,8 @@ namespace Turnroot.Utilities
     public static class GetAndCacheBrain
     {
         private static Brain _cachedBrain;
+
+        private static UiInputProvider _cachedInputProvider;
 
         public static Brain GetBrain()
         {
@@ -26,6 +29,25 @@ namespace Turnroot.Utilities
                 "GetAndCacheBrain: No Brain instance found.".LogError();
             }
             return _cachedBrain;
+        }
+
+        public static UiInputProvider GetInputProvider()
+        {
+            if (_cachedInputProvider != null)
+            {
+                return _cachedInputProvider;
+            }
+            else
+            {
+                "GetAndCacheBrain: InputProvider instance not cached, searching".LogInfo();
+            }
+
+            _cachedInputProvider = UnityEngine.Object.FindFirstObjectByType<UiInputProvider>();
+            if (_cachedInputProvider == null)
+            {
+                "GetAndCacheBrain: No InputProvider instance found.".LogError();
+            }
+            return _cachedInputProvider;
         }
     }
 }

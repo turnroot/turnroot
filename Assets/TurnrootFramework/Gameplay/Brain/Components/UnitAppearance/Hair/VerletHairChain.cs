@@ -1,6 +1,5 @@
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain

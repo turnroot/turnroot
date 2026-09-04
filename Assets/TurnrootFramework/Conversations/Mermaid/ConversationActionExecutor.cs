@@ -13,7 +13,12 @@ namespace Turnroot.Conversations.Mermaid
     /// </summary>
     public static class ConversationActionExecutor
     {
-        public static void Execute(
+        /// <summary>
+        /// Executes the side-effect action declared on a Mermaid action node.
+        /// Returns <c>true</c> if the conversation should wait for
+        /// <see cref="Brain.OnPlayerAcknowledgedConversationEvent"/> before continuing.
+        /// </summary>
+        public static bool Execute(
             MermaidNode node,
             Conversation conversation,
             ConversationController controller
@@ -21,7 +26,7 @@ namespace Turnroot.Conversations.Mermaid
         {
             if (node == null)
             {
-                return;
+                return false;
             }
 
             switch (node.ActionType?.ToUpperInvariant())
@@ -29,29 +34,29 @@ namespace Turnroot.Conversations.Mermaid
                 case "GAINSUPPORT":
                 case "LOSESUPPORT":
                     ExecuteSupportChange(node, conversation);
-                    break;
+                    return true;
                 case "UNLOCKBATTLE":
                     ExecuteUnlockBattle(node);
-                    break;
+                    return true;
                 case "PLAYERGAINSITEM":
                 case "GAINSITEM":
                     ExecutePlayerGainsItem(node);
-                    break;
+                    return true;
                 case "PLAYERLOSESITEM":
                 case "LOSESITEM":
                     ExecutePlayerLosesItem(node);
-                    break;
+                    return true;
                 case "CHARACTERJOINSTEAM":
                 case "JOINTEAM":
                     ExecuteCharacterJoinsTeam(node);
-                    break;
+                    return true;
                 case "CHARACTERLEAVESTEAM":
                 case "LEAVETEAM":
                     ExecuteCharacterLeavesTeam(node);
-                    break;
+                    return true;
                 default:
                     $"ConversationActionExecutor: unknown action type '{node.ActionType}' in node '{node.Id}'.".LogWarning();
-                    break;
+                    return false;
             }
         }
 
