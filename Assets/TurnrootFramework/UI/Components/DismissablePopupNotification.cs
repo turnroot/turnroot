@@ -1,3 +1,4 @@
+using System;
 using NaughtyAttributes;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Utilities;
@@ -12,15 +13,9 @@ namespace Turnroot.UI.Components
     {
         /// <summary>
         /// UI popup that will require player input to dismiss, or auto-dismiss after a delay.
-        /// Shows based on an Brain event, is triggered by Conversation action nodes automatically,
-        /// can be used outside of conversations.
-        /// Matches by ID- one DismissablePopupNotification per needed popup
-        /// Temporarily subscribes to UiInputProvider.OnInput to detect player input, and unsubscribes when done
+        /// Triggered by <see cref="PopupManager"/> (or any other system) via <see cref="Show"/>.
+        /// temporarily subscribes to UiInputProvider.OnInput to detect player input
         /// </summary>
-        [InfoBox(
-            "The ID needs to match whatever is triggering; if it's a conversation event, it should be the same as the conversation Action ID"
-        )]
-        public string popupId;
         public bool RequiresPlayerInputToDismiss = true;
 
         [ShowIf(nameof(RequiresPlayerInputToDismiss), false)]
@@ -39,10 +34,12 @@ namespace Turnroot.UI.Components
 
         [ShowIf(nameof(PlayTimelineOnShow), true)]
         public PlayableDirector TimelineOnShow;
+        public event Action OnDismissed;
 
         private Brain _brain;
         private UiInputProvider _inputProvider;
         private bool _isShowing;
+        private bool _dismissalReported;
         private Coroutine _autoDismissCoroutine;
 
         private void Awake()
@@ -64,17 +61,30 @@ namespace Turnroot.UI.Components
 
         private void OnEnable()
         {
-            _brain.OnWaitForPlayerAcknowledgment += HandleWaitForPlayerAcknowledgment;
+            if (_fade != null)
+            {
+                _fade.OnHidden.AddListener(HandleFadeHidden);
+            }
         }
 
         private void OnDisable()
         {
-            _brain.OnWaitForPlayerAcknowledgment -= HandleWaitForPlayerAcknowledgment;
+            StopAutoDismissCoroutine();
             if (_inputProvider != null)
             {
                 _inputProvider.OnInput -= HandleInput;
             }
-            StopAutoDismissCoroutine();
+
+            if (_fade != null)
+            {
+                _fade.OnHidden.RemoveListener(HandleFadeHidden);
+            }
+
+            if (_isShowing)
+            {
+                _isShowing = false;
+                ReportDismissed();
+            }
         }
 
         private System.Collections.IEnumerator AutoDismissAfterDelay()
@@ -93,35 +103,15 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private void Done()
+        public void Show()
         {
-            if (!_isShowing)
-            {
-                return;
-            }
-
-            _isShowing = false;
-            StopAutoDismissCoroutine();
-            _fade.Hide();
-            _brain.PublishPlayerAcknowledgedConversationEvent();
-            if (_inputProvider != null)
-            {
-                _inputProvider.OnInput -= HandleInput;
-            }
-        }
-
-        /// <summary>
-        ///  Shows the popup along with whatever is enabled
-        /// </summary>
-        /// <param name="id"></param>
-        private void HandleWaitForPlayerAcknowledgment(string id)
-        {
-            if (id != popupId || _isShowing)
+            if (_isShowing)
             {
                 return;
             }
 
             _isShowing = true;
+            _dismissalReported = false;
 
             if (PlaysSoundOnShow && SoundOnShow != null && AudioSource != null)
             {
@@ -149,6 +139,41 @@ namespace Turnroot.UI.Components
                 StopAutoDismissCoroutine();
                 _autoDismissCoroutine = StartCoroutine(AutoDismissAfterDelay()); // auto dismiss
             }
+        }
+
+        private void Done()
+        {
+            if (!_isShowing)
+            {
+                return;
+            }
+
+            _isShowing = false;
+            StopAutoDismissCoroutine();
+            _brain.PublishPlayerAcknowledgedConversationEvent();
+            if (_inputProvider != null)
+            {
+                _inputProvider.OnInput -= HandleInput;
+            }
+
+            _fade.Hide();
+        }
+
+        private void HandleFadeHidden()
+        {
+            ReportDismissed();
+            Destroy(gameObject);
+        }
+
+        private void ReportDismissed()
+        {
+            if (_dismissalReported)
+            {
+                return;
+            }
+
+            _dismissalReported = true;
+            OnDismissed?.Invoke();
         }
 
         private void HandleInput(string action)
