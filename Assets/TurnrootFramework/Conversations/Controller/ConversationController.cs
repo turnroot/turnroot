@@ -66,6 +66,7 @@ namespace Turnroot.Conversations
         private Conversation _runningConversation;
         private MermaidConversationGraph _currentGraph;
         private string _resolvedConditionTarget;
+        private bool _waitingForAcknowledgment;
         private readonly Dictionary<string, ConversationLayer.ActiveSpeakerType> _speakerSlots =
             new();
         private int _tweenRunId;
@@ -82,6 +83,7 @@ namespace Turnroot.Conversations
         {
             UnsubscribeAdvanceInput();
             UnsubscribeConversationConditions();
+            UnsubscribePlayerAcknowledgment();
             CancelActiveTweens();
             StopRoutine(ref _conversationRoutine);
             StopRoutine(ref _oneShotRoutine);
@@ -180,6 +182,31 @@ namespace Turnroot.Conversations
             }
 
             _brain.OnConversationConditionMet -= OnConversationConditionMet;
+        }
+
+        private void SubscribePlayerAcknowledgment()
+        {
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _brain.OnPlayerAcknowledgedConversationEvent += OnPlayerAcknowledgedConversationEvent;
+        }
+
+        private void UnsubscribePlayerAcknowledgment()
+        {
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _brain.OnPlayerAcknowledgedConversationEvent -= OnPlayerAcknowledgedConversationEvent;
+        }
+
+        private void OnPlayerAcknowledgedConversationEvent()
+        {
+            _waitingForAcknowledgment = false;
         }
 
         private void OnConversationConditionMet(string conversationName, string conditionName)
@@ -413,6 +440,7 @@ namespace Turnroot.Conversations
 
             SubscribeAdvanceInput();
             SubscribeConversationConditions();
+            SubscribePlayerAcknowledgment();
             _conversationRoutine = StartCoroutine(
                 RunMermaidGraph(conversation, onFinished, startNodeId)
             );
@@ -483,23 +511,33 @@ namespace Turnroot.Conversations
                 switch (currentNode.Kind)
                 {
                     case MermaidNodeKind.Dialogue:
-                    {
-                        var layer = BuildLayerFromNode(currentNode, conversation.People);
-                        if (layer != null)
                         {
-                            yield return ProcessLayer(layer);
+                            var layer = BuildLayerFromNode(currentNode, conversation.People);
+                            if (layer != null)
+                            {
+                                yield return ProcessLayer(layer);
+                            }
+
+                            break;
                         }
 
-                        break;
-                    }
-
                     case MermaidNodeKind.Action:
-                        ConversationActionExecutor.Execute(currentNode, conversation, this);
-                        break;
+                        {
+                            var shouldWait = ConversationActionExecutor.Execute(
+                                currentNode,
+                                conversation,
+                                this
+                            );
+                            if (shouldWait)
+                            {
+                                _brain.PublishWaitForPlayerAcknowledgment(
+                                    currentNode.Id
+                                );
+                                yield return WaitForPlayerAcknowledgment();
+                            }
 
-                    case MermaidNodeKind.Signal:
-                        ConversationSignalEmitter.Emit(currentNode, conversation);
-                        break;
+                            break;
+                        }
 
                     case MermaidNodeKind.Condition:
                         yield return WaitForConditionNode();
@@ -558,6 +596,7 @@ namespace Turnroot.Conversations
             onFinished?.Invoke();
             UnsubscribeAdvanceInput();
             UnsubscribeConversationConditions();
+            UnsubscribePlayerAcknowledgment();
             OnAnyConversationFinished?.Invoke();
             _brain?.PublishConversationEnded(conversation);
 
@@ -619,6 +658,20 @@ namespace Turnroot.Conversations
 
             SetInterruptWaiting(true);
             yield return new WaitUntil(() => !string.IsNullOrEmpty(_resolvedConditionTarget));
+            SetInterruptWaiting(false);
+        }
+
+        private IEnumerator WaitForPlayerAcknowledgment()
+        {
+            if (_brain == null)
+            {
+                yield break;
+            }
+
+            _waitingForAcknowledgment = true;
+
+            SetInterruptWaiting(true);
+            yield return new WaitUntil(() => !_waitingForAcknowledgment);
             SetInterruptWaiting(false);
         }
 

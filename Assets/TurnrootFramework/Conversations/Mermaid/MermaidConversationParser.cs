@@ -224,9 +224,8 @@ namespace Turnroot.Conversations.Mermaid
 
             if (kindSegment.Equals("Signal", StringComparison.OrdinalIgnoreCase))
             {
-                node.Kind = MermaidNodeKind.Signal;
-                node.ActionTarget = segments.Length > 1 ? string.Join("_", segments.Skip(1)) : null;
-                return node;
+                $"MermaidConversationParser: '{tail}' is no longer supported. Signal nodes were removed; use an Action node to trigger side effects and wait for acknowledgement.".LogWarning();
+                return null;
             }
 
             // Default: Dialogue with Speaker_Emotion-Descriptor.

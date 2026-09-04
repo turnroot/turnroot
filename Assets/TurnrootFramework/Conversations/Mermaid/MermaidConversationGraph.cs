@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Turnroot.Conversations.Mermaid
 {
@@ -144,7 +143,6 @@ namespace Turnroot.Conversations.Mermaid
         Choice,
         Action,
         Condition,
-        Signal,
         Start,
     }
 

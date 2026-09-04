@@ -6,7 +6,7 @@ namespace Turnroot.Conversations
 {
     /// <summary>
     /// Defines a conversation as a Mermaid flowchart. The source text is parsed at runtime into
-    /// a directed graph of dialogue, choices, actions, conditions, and signals.
+    /// a directed graph of dialogue, choices, actions, and conditions.
     /// </summary>
     [CreateAssetMenu(fileName = "New Conversation", menuName = "Turnroot/Conversation")]
     public class Conversation : ScriptableObject

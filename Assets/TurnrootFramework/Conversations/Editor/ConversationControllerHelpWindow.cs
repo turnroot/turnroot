@@ -244,14 +244,8 @@ namespace Turnroot.Conversations.Editor
                 "PART1_Aubrey_NEUTRAL-Question[\"Aubrey: Which way should we go?\"]",
                 _codeStyle
             );
-            GUILayout.Label(
-                "PART1_Choice_Left[\"Left into the forest.\"]",
-                _codeStyle
-            );
-            GUILayout.Label(
-                "PART1_Choice_Right[\"Right toward the river.\"]",
-                _codeStyle
-            );
+            GUILayout.Label("PART1_Choice_Left[\"Left into the forest.\"]", _codeStyle);
+            GUILayout.Label("PART1_Choice_Right[\"Right toward the river.\"]", _codeStyle);
             GUILayout.Label(
                 "PART1_Aubrey_NEUTRAL-GoLeft[\"Aubrey: The forest it is.\"]",
                 _codeStyle
@@ -260,22 +254,10 @@ namespace Turnroot.Conversations.Editor
                 "PART1_Aubrey_HAPPY-GoRight[\"Aubrey: I love the river!\"]",
                 _codeStyle
             );
-            GUILayout.Label(
-                "PART1_Aubrey_NEUTRAL-Question --> PART1_Choice_Left",
-                _codeStyle
-            );
-            GUILayout.Label(
-                "PART1_Aubrey_NEUTRAL-Question --> PART1_Choice_Right",
-                _codeStyle
-            );
-            GUILayout.Label(
-                "PART1_Choice_Left --> PART1_Aubrey_NEUTRAL-GoLeft",
-                _codeStyle
-            );
-            GUILayout.Label(
-                "PART1_Choice_Right --> PART1_Aubrey_HAPPY-GoRight",
-                _codeStyle
-            );
+            GUILayout.Label("PART1_Aubrey_NEUTRAL-Question --> PART1_Choice_Left", _codeStyle);
+            GUILayout.Label("PART1_Aubrey_NEUTRAL-Question --> PART1_Choice_Right", _codeStyle);
+            GUILayout.Label("PART1_Choice_Left --> PART1_Aubrey_NEUTRAL-GoLeft", _codeStyle);
+            GUILayout.Label("PART1_Choice_Right --> PART1_Aubrey_HAPPY-GoRight", _codeStyle);
             EditorGUILayout.LabelField(
                 "The dialogue node plays first, then the player sees two buttons. Each choice leads to its own follow-up dialogue node.",
                 _bodyStyle
@@ -339,15 +321,6 @@ namespace Turnroot.Conversations.Editor
                 "Conditions can also be chained. If a node points to several Condition nodes, reporting the name of any of them will jump straight to that condition's target, skipping the others.",
                 _bodyStyle
             );
-            DrawSeparator();
-
-            EditorGUILayout.LabelField("Signal", _sectionStyle);
-            GUILayout.Label("PART1_Signal_StartBattle[SIGNAL: START BATTLE]", _codeStyle);
-            EditorGUILayout.LabelField(
-                "Fires OnConversationSignal so other systems such as combat, audio, or scene flow can react.",
-                _bodyStyle
-            );
-
             DrawSeparator();
         }
 
@@ -434,7 +407,7 @@ namespace Turnroot.Conversations.Editor
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
-                "• Use <b>Signal_</b> nodes to fire brain events and <b>Condition_</b> nodes to wait for triggers.",
+                "• Use <b>Action_</b> nodes to fire brain events and <b>Condition_</b> nodes to wait for triggers.",
                 _bodyStyle
             );
             EditorGUILayout.LabelField(
