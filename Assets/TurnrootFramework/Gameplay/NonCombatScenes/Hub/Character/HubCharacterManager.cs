@@ -15,6 +15,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
     /// When the player selects a unit POI, <see cref="NotifyCharacterVisited"/> receives the character
     /// at runtime; the unit model is resolved via <see cref="UnitAppearanceBrain.GetModelForUnit"/>.
     /// </summary>
+    [RequireComponent(typeof(HubCharacterInteraction))]
     public partial class HubCharacterManager : MonoBehaviour
     {
         [BoxGroup("Dialogue")]
