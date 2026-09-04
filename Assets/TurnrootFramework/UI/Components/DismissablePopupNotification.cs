@@ -18,21 +18,21 @@ namespace Turnroot.UI.Components
         /// </summary>
         public bool RequiresPlayerInputToDismiss = true;
 
-        [ShowIf(nameof(RequiresPlayerInputToDismiss), false)]
+        [HideIf(nameof(RequiresPlayerInputToDismiss))]
         public float DismissDelay = 5f;
         private UIFade _fade;
 
         public bool PlaysSoundOnShow = false;
 
-        [ShowIf(nameof(PlaysSoundOnShow), true)]
+        [ShowIf(nameof(PlaysSoundOnShow))]
         public AudioClip SoundOnShow;
 
-        [ShowIf(nameof(PlaysSoundOnShow), true)]
+        [ShowIf(nameof(PlaysSoundOnShow))]
         public AudioSource AudioSource;
 
         public bool PlayTimelineOnShow = false;
 
-        [ShowIf(nameof(PlayTimelineOnShow), true)]
+        [ShowIf(nameof(PlayTimelineOnShow))]
         public PlayableDirector TimelineOnShow;
         public event Action OnDismissed;
 
