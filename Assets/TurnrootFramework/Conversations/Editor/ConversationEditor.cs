@@ -25,11 +25,24 @@ namespace Turnroot.Conversations.Mermaid.Editor
 
             EditorGUILayout.Space(10);
             EditorGUILayout.LabelField("Mermaid Source", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(
-                serializedObject.FindProperty("<MermaidSource>k__BackingField"),
-                new GUIContent("Mermaid File"),
-                true
-            );
+            var mermaidSourceProperty = serializedObject.FindProperty("mermaidSource");
+            if (mermaidSourceProperty != null)
+            {
+                EditorGUILayout.PropertyField(
+                    mermaidSourceProperty,
+                    new GUIContent("Mermaid File"),
+                    true
+                );
+            }
+            else
+            {
+                EditorGUILayout.ObjectField(
+                    "Mermaid File",
+                    conversation.MermaidSource,
+                    typeof(TextAsset),
+                    false
+                );
+            }
 
             EditorGUILayout.Space(10);
             EditorGUILayout.BeginHorizontal();
@@ -48,8 +61,18 @@ namespace Turnroot.Conversations.Mermaid.Editor
 
             EditorGUILayout.Space(10);
             EditorGUILayout.LabelField("Conversation People", EditorStyles.boldLabel);
-            var peopleProperty = serializedObject.FindProperty("<People>k__BackingField");
-            EditorGUILayout.PropertyField(peopleProperty, new GUIContent("People"), true);
+            var peopleProperty = serializedObject.FindProperty("people");
+            if (peopleProperty != null)
+            {
+                EditorGUILayout.PropertyField(peopleProperty, new GUIContent("People"), true);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    "People data is not serialized on this asset and cannot be edited here.",
+                    MessageType.Info
+                );
+            }
 
             if (_parseErrors.Count > 0)
             {
