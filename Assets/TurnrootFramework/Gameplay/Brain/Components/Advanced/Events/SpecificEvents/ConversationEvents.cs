@@ -33,26 +33,26 @@ namespace Turnroot.Gameplay.Brain
         public event Action<string> OnWaitForPlayerAcknowledgment;
 
         public void PublishSupportPointsChanged(SupportRelationshipInstance relationship) =>
-            OnSupportPointsChanged.Invoke(relationship);
+            OnSupportPointsChanged?.Invoke(relationship);
 
         public void PublishSupportConversationAvailable(SupportRelationshipInstance relationship) =>
-            OnSupportConversationAvailable.Invoke(relationship);
+            OnSupportConversationAvailable?.Invoke(relationship);
 
         public void PublishSLevelSupportConversationAvailable(
             SupportRelationshipInstance relationship
-        ) => OnSLevelSupportConversationAvailable.Invoke(relationship);
+        ) => OnSLevelSupportConversationAvailable?.Invoke(relationship);
 
         public void PublishConversationStarted(Conversation conversation) =>
-            OnConversationStarted.Invoke(conversation);
+            OnConversationStarted?.Invoke(conversation);
 
         public void PublishConversationEnded(Conversation conversation) =>
-            OnConversationEnded.Invoke(conversation);
+            OnConversationEnded?.Invoke(conversation);
 
         public void PublishConversationLayerStarted(ConversationLayer layer) =>
-            OnConversationLayerStarted.Invoke(layer);
+            OnConversationLayerStarted?.Invoke(layer);
 
         public void PublishConversationLayerEnded(ConversationLayer layer) =>
-            OnConversationLayerEnded.Invoke(layer);
+            OnConversationLayerEnded?.Invoke(layer);
 
         public void PublishConversationSignal(string conversationName, string signalName) =>
             OnConversationSignal?.Invoke(conversationName, signalName);
@@ -65,7 +65,8 @@ namespace Turnroot.Gameplay.Brain
         public void PublishPlayerAcknowledgedConversationEvent() =>
             OnPlayerAcknowledgedConversationEvent?.Invoke();
 
-        public void PublishWaitForPlayerAcknowledgment(string id) => OnWaitForPlayerAcknowledgment?.Invoke(id);
+        public void PublishWaitForPlayerAcknowledgment(string id) =>
+            OnWaitForPlayerAcknowledgment?.Invoke(id);
         #endregion
     }
 }
