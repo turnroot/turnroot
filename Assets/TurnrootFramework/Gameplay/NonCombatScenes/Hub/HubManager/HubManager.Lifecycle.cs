@@ -3,6 +3,7 @@ using Turnroot.Gameplay.NonCombatScenes.Hub.Shop;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
+using Turnroot.Utilities.Weather;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
@@ -116,6 +117,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // Ensure all hub state is deterministic for this day.
             HubDayStateStore.Initialize(_brain, gameDate);
             HubDayRandom.Initialize(HubDayStateStore.Seed);
+
+            // Choose weather before other systems consume the deterministic RNG, so the
+            // saved weather stays the same across revisits to this day.
+            if (!HubDayStateStore.HasWeather)
+            {
+                if (_sceneSkyboxSetter == null)
+                {
+                    _sceneSkyboxSetter = FindFirstObjectByType<SceneSkyboxSetter>();
+                }
+
+                if (
+                    _sceneSkyboxSetter != null
+                    && _sceneSkyboxSetter.PossibleWeatherTypes.Length > 0
+                )
+                {
+                    int index = HubDayRandom.Range(
+                        0,
+                        _sceneSkyboxSetter.PossibleWeatherTypes.Length
+                    );
+                    WeatherType weather = _sceneSkyboxSetter.PossibleWeatherTypes[index];
+                    HubDayStateStore.SetWeather(_brain, weather);
+                    _sceneSkyboxSetter.CurrentWeatherType = weather;
+                    _sceneSkyboxSetter.SetSkybox(weather);
+                }
+            }
 
             var hasProcessed = HubDayStateStore.HasProcessedDailyUpdates;
             if (!hasProcessed)

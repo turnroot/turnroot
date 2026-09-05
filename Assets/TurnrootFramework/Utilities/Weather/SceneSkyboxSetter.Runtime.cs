@@ -464,26 +464,35 @@ namespace Turnroot.Utilities.Weather
             {
                 _lastSceneName = sceneName;
 
-                // Prefer persisted weather for this date (so it's the same across play sessions)
+                // Make sure the day's state is loaded for the current date before deciding weather
                 var brain = GetAndCacheBrain.GetBrain();
+                var date = brain?.ltm?.GetGameDate() ?? GameDate.Default;
+                if (date != GameDate.Default)
+                {
+                    HubDayStateStore.Initialize(brain, date);
+                }
+
+                // Prefer persisted weather for this date (so it's the same across play sessions)
                 if (brain != null && HubDayStateStore.HasWeather)
                 {
                     CurrentWeatherType = HubDayStateStore.Weather;
                 }
-                else if (PossibleWeatherTypes.Length > 0)
+                else if (
+                    PossibleWeatherTypes.Length > 0
+                    && HubDayStateStore.IsInitializedForDate(date)
+                )
                 {
                     int index = HubDayRandom.Range(0, PossibleWeatherTypes.Length);
                     CurrentWeatherType = PossibleWeatherTypes[index];
-
-                    if (brain != null)
-                    {
-                        HubDayStateStore.SetWeather(brain, CurrentWeatherType);
-                    }
+                    HubDayStateStore.SetWeather(brain, CurrentWeatherType);
                 }
             }
 
             ApplyDirectionalLightRotation();
-            SetSkybox(CurrentWeatherType);
+            SetSkybox(
+                CurrentWeatherType,
+                HubDayStateStore.HasSkyboxIndex ? HubDayStateStore.SkyboxIndex : (int?)null
+            );
 
             // Always refresh overlay weather after scene change
             var ltm2 = FindFirstObjectByType<LongTermMemory>();

@@ -23,6 +23,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public static bool IsInitialized => _currentState != null;
 
+        public static bool IsInitializedForDate(GameDate date) =>
+            _currentState != null
+            && _currentState.Year == date.year
+            && _currentState.Month == date.month
+            && _currentState.Day == date.day;
+
         public static int Seed => _currentState?.Seed ?? 0;
         public static bool HasProcessedDailyUpdates =>
             _currentState?.HasProcessedDailyUpdates ?? false;
