@@ -45,6 +45,21 @@ namespace Turnroot.Conversations.Mermaid.Editor
             }
 
             EditorGUILayout.Space(10);
+            var canRepeatProperty = serializedObject.FindProperty("canRepeat");
+            if (canRepeatProperty != null)
+            {
+                EditorGUILayout.PropertyField(
+                    canRepeatProperty,
+                    new GUIContent("Can Repeat"),
+                    true
+                );
+            }
+            else
+            {
+                EditorGUILayout.Toggle(new GUIContent("Can Repeat"), conversation.CanRepeat);
+            }
+
+            EditorGUILayout.Space(10);
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Parse & Update People", GUILayout.Height(28)))
             {
