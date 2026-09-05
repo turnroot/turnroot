@@ -17,7 +17,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (action is InputActionConstants.Cancel or InputActionConstants.Back)
             {
-                _hubManager?.BackFromBattleChoice();
+                _hubManager.BackFromBattleChoice();
                 return;
             }
 

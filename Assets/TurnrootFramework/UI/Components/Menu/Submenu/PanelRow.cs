@@ -234,9 +234,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         public bool HandleInput(SubmenuRowInput input)
         {
-            return !isSelected
-                ? false
-                : input switch
+            return isSelected && input switch
                 {
                     SubmenuRowInput.Left => HandleInputLeftRight(SubmenuRowInput.Left),
                     SubmenuRowInput.Right => HandleInputLeftRight(SubmenuRowInput.Right),

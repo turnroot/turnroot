@@ -9,17 +9,11 @@ namespace Turnroot.Utilities
     {
         public static bool CharacterDataMatches(CharacterData a, CharacterData b)
         {
-            return a == b
-                ? true
-                : a == null || b == null
-                ? false
-                : !string.IsNullOrEmpty(a.FullName)
+            return a == b || a != null && b != null && (!string.IsNullOrEmpty(a.FullName)
                 && !string.IsNullOrEmpty(b.FullName)
-                && string.Equals(a.FullName, b.FullName, StringComparison.Ordinal)
-                ? true
-                : !string.IsNullOrEmpty(a.name)
+                && string.Equals(a.FullName, b.FullName, StringComparison.Ordinal) || !string.IsNullOrEmpty(a.name)
                 && !string.IsNullOrEmpty(b.name)
-                && string.Equals(a.name, b.name, StringComparison.Ordinal);
+                && string.Equals(a.name, b.name, StringComparison.Ordinal));
         }
 
         public static bool Matches(this CharacterData a, CharacterData b) =>

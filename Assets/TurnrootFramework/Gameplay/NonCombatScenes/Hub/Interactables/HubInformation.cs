@@ -67,7 +67,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _hubManager?.SetInputMode(HubManager.HubInputMode.Chosen);
+            _hubManager.SetInputMode(HubManager.HubInputMode.Chosen);
             PlayPoiSelectSound();
 
             _specificUiHandler.ActivePageHandler = this;
@@ -131,7 +131,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _specificUiHandler.ActivePageHandler = null;
             }
 
-            _hubManager?.RevertToPreviousInputMode();
+            _hubManager.RevertToPreviousInputMode();
         }
     }
 }

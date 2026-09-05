@@ -18,15 +18,35 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _hubManager = HubManager.GetCurrent();
 
-            if (poiVisual == null)
+            DisableIfNeeded();
+            InitializeVisualMaterials();
+            Hide();
+        }
+
+        private void DisableIfNeeded()
+        {
+            if (
+                conversationPlayOnInteraction == null
+                || conversationPlayOnInteraction.MermaidSource == null
+                || poiVisual == null
+            )
             {
-                $"HubSimpleConversationTrigger on {gameObject.name} has no poiVisual assigned, disabling.".LogWarning();
+                $"HubSimpleConversationTrigger on {gameObject.name} has no conversation or poiVisual assigned, disabling.".LogError();
                 enabled = false;
                 return;
             }
 
-            InitializeVisualMaterials();
-            Hide();
+            if (!conversationPlayOnInteraction.CanRepeat)
+            {
+                var conversationalBrain =
+                    _hubManager._brain?.conversationalBrain
+                    ?? GetAndCacheBrain.GetBrain()?.conversationalBrain;
+                if (conversationalBrain.HasSeenConversation(conversationPlayOnInteraction))
+                {
+                    enabled = false;
+                    return;
+                }
+            }
         }
 
         public void Select()
@@ -45,7 +65,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _isConversationActive = true;
             PlayPoiSelectSound();
-            _hubManager?.SetInputMode(HubManager.HubInputMode.Chosen);
+            _hubManager.SetInputMode(HubManager.HubInputMode.Chosen);
             Hide();
 
             controller.PlayConversationDirect(
@@ -57,7 +77,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void OnConversationFinished()
         {
             _isConversationActive = false;
-            _hubManager?.RevertToPreviousInputMode();
+            _hubManager.RevertToPreviousInputMode();
             Show();
         }
 
