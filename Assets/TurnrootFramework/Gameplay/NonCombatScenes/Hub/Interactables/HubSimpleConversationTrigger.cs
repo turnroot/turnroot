@@ -78,7 +78,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             _isConversationActive = false;
             _hubManager.RevertToPreviousInputMode();
-            Show();
+
+            if (conversationPlayOnInteraction != null && !conversationPlayOnInteraction.CanRepeat)
+            {
+                enabled = false;
+            }
+            else
+            {
+                Show();
+            }
         }
 
         private void Update() => FaceCamera();

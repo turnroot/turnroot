@@ -16,15 +16,35 @@ namespace Turnroot.Conversations
         [SerializeField]
         private bool canRepeat;
 
-        private string _uniqueId;
+        [SerializeField]
+        private string uniqueId;
+
         public string UniqueId
         {
             get
             {
-                _uniqueId = System.Guid.NewGuid().ToString();
-                return _uniqueId;
+                if (string.IsNullOrEmpty(uniqueId))
+                {
+                    uniqueId = System.Guid.NewGuid().ToString();
+#if UNITY_EDITOR
+                    UnityEditor.EditorUtility.SetDirty(this);
+#endif
+                }
+
+                return uniqueId;
             }
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (string.IsNullOrEmpty(uniqueId))
+            {
+                uniqueId = System.Guid.NewGuid().ToString();
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+        }
+#endif
 
         public TextAsset MermaidSource
         {
