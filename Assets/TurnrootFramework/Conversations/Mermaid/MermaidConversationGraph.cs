@@ -107,9 +107,6 @@ namespace Turnroot.Conversations.Mermaid
         }
     }
 
-    /// <summary>
-    /// A single node inside a Mermaid conversation graph.
-    /// </summary>
     [Serializable]
     public class MermaidNode
     {
@@ -126,9 +123,6 @@ namespace Turnroot.Conversations.Mermaid
         public string ConditionName => Kind == MermaidNodeKind.Condition ? ActionTarget : null;
     }
 
-    /// <summary>
-    /// A directed edge between two Mermaid conversation nodes.
-    /// </summary>
     [Serializable]
     public class MermaidEdge
     {
@@ -160,9 +154,6 @@ namespace Turnroot.Conversations.Mermaid
         Minus,
     }
 
-    /// <summary>
-    /// Strongly-typed support change payload extracted from an action node.
-    /// </summary>
     public readonly struct SupportChangeAction
     {
         public SupportChangeOperation Operation { get; }

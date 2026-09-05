@@ -408,7 +408,7 @@ namespace Turnroot.Gameplay.Objects
             }
 
             int maxUses = _template.MaxUses;
-            return maxUses <= 0 ? false : RemainingUses < maxUses;
+            return maxUses > 0 && RemainingUses < maxUses;
         }
 
         public bool IsForgeableWeaponOrMagic()

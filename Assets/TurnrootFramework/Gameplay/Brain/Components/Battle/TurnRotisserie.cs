@@ -457,10 +457,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private bool HasPendingVisualForUnit(CharacterInstance unit)
         {
-            return unit == null
-                ? false
-                : _unitsWithPendingMoveAnimation.Contains(unit.Id)
-                    || _unitsWithPendingSwapAnimation.Contains(unit.Id);
+            return unit != null && (_unitsWithPendingMoveAnimation.Contains(unit.Id)
+                    || _unitsWithPendingSwapAnimation.Contains(unit.Id));
         }
 
         private void TryProgressDeferredEndTurn()

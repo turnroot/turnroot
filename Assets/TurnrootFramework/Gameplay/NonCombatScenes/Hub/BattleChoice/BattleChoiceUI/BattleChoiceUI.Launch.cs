@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _hubManager?.LoadingScreen?.Show();
+            _hubManager.LoadingScreen?.Show();
             _brain.sceneFlowBrain.TransitionToSceneByName(battle.BattleScene.SceneName);
         }
 

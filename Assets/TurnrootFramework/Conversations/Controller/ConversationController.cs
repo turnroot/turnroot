@@ -204,10 +204,7 @@ namespace Turnroot.Conversations
             _brain.OnPlayerAcknowledgedConversationEvent -= OnPlayerAcknowledgedConversationEvent;
         }
 
-        private void OnPlayerAcknowledgedConversationEvent()
-        {
-            _waitingForAcknowledgment = false;
-        }
+        private void OnPlayerAcknowledgedConversationEvent() => _waitingForAcknowledgment = false;
 
         private void OnConversationConditionMet(string conversationName, string conditionName)
         {
@@ -311,6 +308,11 @@ namespace Turnroot.Conversations
                 return;
             }
 
+            if (!CanBeginConversation(conversation))
+            {
+                return;
+            }
+
             BeginConversation(conversation, onFinished, null, nameof(PlayConversationDirect));
         }
 
@@ -321,6 +323,11 @@ namespace Turnroot.Conversations
         public void StartConversationById(string conversationId, string nodeId = null)
         {
             if (!TryLoadConversationById(conversationId, out var conversation))
+            {
+                return;
+            }
+
+            if (!CanBeginConversation(conversation))
             {
                 return;
             }
@@ -375,6 +382,29 @@ namespace Turnroot.Conversations
             return true;
         }
 
+        private bool CanBeginConversation(Conversation conversation)
+        {
+            if (conversation == null)
+            {
+                return false;
+            }
+
+            var conversationalBrain =
+                _brain?.conversationalBrain ?? GetAndCacheBrain.GetBrain()?.conversationalBrain;
+            if (conversationalBrain == null)
+            {
+                return true;
+            }
+
+            if (!conversationalBrain.CanStartConversation(conversation))
+            {
+                $"ConversationController: cannot start '{conversation.name}' because it has already been played and CanRepeat is false.".LogInfo();
+                return false;
+            }
+
+            return true;
+        }
+
         public void NextLayer()
         {
             if (_activeOneShotLayer != null)
@@ -398,8 +428,15 @@ namespace Turnroot.Conversations
         /// Intended for runtime-selected conversations (e.g. hub chitchat).
         /// <paramref name="onFinished"/> is called once the conversation completes.
         /// </summary>
-        public void PlayConversationDirect(Conversation conversation, Action onFinished = null) =>
+        public void PlayConversationDirect(Conversation conversation, Action onFinished = null)
+        {
+            if (!CanBeginConversation(conversation))
+            {
+                return;
+            }
+
             BeginConversation(conversation, onFinished, null, nameof(PlayConversationDirect));
+        }
 
         /// <summary>
         /// Plays a <see cref="Conversation"/> starting at a specific node id. Use this to resume
@@ -411,6 +448,11 @@ namespace Turnroot.Conversations
             Action onFinished = null
         )
         {
+            if (!CanBeginConversation(conversation))
+            {
+                return;
+            }
+
             BeginConversation(
                 conversation,
                 onFinished,
@@ -437,6 +479,7 @@ namespace Turnroot.Conversations
 
             OnAnyConversationStart?.Invoke();
             _brain?.PublishConversationStarted(conversation);
+            _brain?.conversationalBrain?.MarkConversationStarted(conversation);
 
             SubscribeAdvanceInput();
             SubscribeConversationConditions();
@@ -511,33 +554,31 @@ namespace Turnroot.Conversations
                 switch (currentNode.Kind)
                 {
                     case MermaidNodeKind.Dialogue:
+                    {
+                        var layer = BuildLayerFromNode(currentNode, conversation.People);
+                        if (layer != null)
                         {
-                            var layer = BuildLayerFromNode(currentNode, conversation.People);
-                            if (layer != null)
-                            {
-                                yield return ProcessLayer(layer);
-                            }
-
-                            break;
+                            yield return ProcessLayer(layer);
                         }
+
+                        break;
+                    }
 
                     case MermaidNodeKind.Action:
+                    {
+                        var shouldWait = ConversationActionExecutor.Execute(
+                            currentNode,
+                            conversation,
+                            this
+                        );
+                        if (shouldWait)
                         {
-                            var shouldWait = ConversationActionExecutor.Execute(
-                                currentNode,
-                                conversation,
-                                this
-                            );
-                            if (shouldWait)
-                            {
-                                _brain.PublishWaitForPlayerAcknowledgment(
-                                    currentNode.Id
-                                );
-                                yield return WaitForPlayerAcknowledgment();
-                            }
-
-                            break;
+                            _brain.PublishWaitForPlayerAcknowledgment(currentNode.Id);
+                            yield return WaitForPlayerAcknowledgment();
                         }
+
+                        break;
+                    }
 
                     case MermaidNodeKind.Condition:
                         yield return WaitForConditionNode();

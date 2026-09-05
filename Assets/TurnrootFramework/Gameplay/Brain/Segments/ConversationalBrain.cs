@@ -48,10 +48,10 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.name}";
+            var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.UniqueId}";
             _ltm.RememberBool(key, true);
 
-            $"ConversationalBrain: Marked conversation '{conversation.name}' as completed.".LogInfo();
+            $"ConversationalBrain: Marked conversation '{conversation.UniqueId}' as completed.".LogInfo();
         }
 
         public bool HasCompletedConversation(Conversation conversation)
@@ -61,7 +61,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.name}";
+            var key = $"{LtmKeys.ConversationCompletedPrefix}{conversation.UniqueId}";
             return _ltm.RecallBool(key);
         }
 
@@ -83,7 +83,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var key = $"{LtmKeys.ConversationSeenPrefix}{conversation.name}";
+            var key = $"{LtmKeys.ConversationSeenPrefix}{conversation.UniqueId}";
             _ltm.RememberBool(key, true);
         }
 
@@ -94,7 +94,7 @@ namespace Turnroot.Gameplay.Brain
                 return false;
             }
 
-            var key = $"{LtmKeys.ConversationSeenPrefix}{conversation.name}";
+            var key = $"{LtmKeys.ConversationSeenPrefix}{conversation.UniqueId}";
             return _ltm.RecallBool(key);
         }
 
@@ -156,20 +156,19 @@ namespace Turnroot.Gameplay.Brain
             }
 
             Brain.PublishConversationStarted(conversation);
-            $"ConversationalBrain: Started conversation '{conversation.name}'".LogInfo();
+            $"ConversationalBrain: Started conversation '{conversation.UniqueId}'".LogInfo();
         }
+
+        public bool CanStartConversation(Conversation conversation) =>
+            conversation != null && (conversation.CanRepeat || !HasSeenConversation(conversation));
+
+        public void MarkConversationStarted(Conversation conversation) =>
+            MarkConversationSeen(conversation);
 
         public void EndConversation(Conversation conversation)
         {
-            if (conversation == null)
-            {
-                "ConversationalBrain: Cannot end null conversation.".LogWarning();
-                return;
-            }
-
             Brain.PublishConversationEnded(conversation);
-
-            $"ConversationalBrain: Ended conversation '{conversation.name}'".LogInfo();
+            $"ConversationalBrain: Ended conversation '{conversation.UniqueId}'".LogInfo();
         }
 
         public void StartConversationLayer(ConversationLayer layer)
@@ -183,16 +182,8 @@ namespace Turnroot.Gameplay.Brain
             Brain.PublishConversationLayerStarted(layer);
         }
 
-        public void EndConversationLayer(ConversationLayer layer)
-        {
-            if (layer == null)
-            {
-                "ConversationalBrain: Cannot end null conversation layer.".LogWarning();
-                return;
-            }
-
+        public void EndConversationLayer(ConversationLayer layer) =>
             Brain.PublishConversationLayerEnded(layer);
-        }
 
         public void NotifySupportPointsChanged(SupportRelationshipInstance relationship)
         {
@@ -250,7 +241,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            Brain.PublishConversationSignal(conversation.name, signalName);
+            Brain.PublishConversationSignal(conversation.UniqueId, signalName);
         }
 
         /// <summary>
@@ -264,7 +255,7 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            Brain.PublishConversationConditionMet(conversation.name, conditionName);
+            Brain.PublishConversationConditionMet(conversation.UniqueId, conditionName);
         }
 
         #endregion
