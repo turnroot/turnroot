@@ -7,6 +7,15 @@ namespace Turnroot.Conversations
     [CreateAssetMenu(fileName = "New Conversation", menuName = "Turnroot/Conversation")]
     public class Conversation : ScriptableObject
     {
+        [SerializeField]
+        private TextAsset mermaidSource;
+
+        [SerializeField]
+        private List<ConversationPerson> people = new();
+
+        [SerializeField]
+        private bool canRepeat;
+
         private string _uniqueId;
         public string UniqueId
         {
@@ -16,9 +25,24 @@ namespace Turnroot.Conversations
                 return _uniqueId;
             }
         }
-        public TextAsset MermaidSource { get; set; }
-        public bool CanRepeat { get; set; } = false;
-        public List<ConversationPerson> People { get; set; } = new();
+
+        public TextAsset MermaidSource
+        {
+            get => mermaidSource;
+            set => mermaidSource = value;
+        }
+
+        public bool CanRepeat
+        {
+            get => canRepeat;
+            set => canRepeat = value;
+        }
+
+        public List<ConversationPerson> People
+        {
+            get => people ??= new List<ConversationPerson>();
+            set => people = value ?? new List<ConversationPerson>();
+        }
 
         [System.NonSerialized]
         private MermaidConversationGraph _cachedGraph;
