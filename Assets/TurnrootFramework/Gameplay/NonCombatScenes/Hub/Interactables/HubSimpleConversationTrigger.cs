@@ -32,7 +32,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             )
             {
                 $"HubSimpleConversationTrigger on {gameObject.name} has no conversation or poiVisual assigned, disabling.".LogError();
-                enabled = false;
+                gameObject.SetActive(false);
                 return;
             }
 
@@ -43,7 +43,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     ?? GetAndCacheBrain.GetBrain()?.conversationalBrain;
                 if (conversationalBrain.HasSeenConversation(conversationPlayOnInteraction))
                 {
-                    enabled = false;
+                    gameObject.SetActive(false);
                     return;
                 }
             }
@@ -81,7 +81,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (conversationPlayOnInteraction != null && !conversationPlayOnInteraction.CanRepeat)
             {
-                enabled = false;
+                gameObject.SetActive(false);
             }
             else
             {
