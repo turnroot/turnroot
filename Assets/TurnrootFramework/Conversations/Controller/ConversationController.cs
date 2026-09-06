@@ -532,6 +532,10 @@ namespace Turnroot.Conversations
             _speakerSlots.Clear();
             _resolvedConditionTarget = null;
 
+            $"[Conversation] Starting '{conversation?.name ?? "<null>"}' from node '{startNodeId ?? "<entry>"}'".LogInfo(
+                "ConversationController"
+            );
+
             OnAnyConversationStart?.Invoke();
             _brain?.PublishConversationStarted(conversation);
             _brain?.conversationalBrain?.MarkConversationStarted(conversation);
@@ -607,6 +611,9 @@ namespace Turnroot.Conversations
             while (currentNode != null)
             {
                 _activeBranchingNodeId = currentNode.Id;
+                $"[Conversation] Processing node '{currentNode.Id}' kind={currentNode.Kind} actionType='{currentNode.ActionType ?? "<none>"}'".LogInfo(
+                    "ConversationController"
+                );
 
                 switch (currentNode.Kind)
                 {
@@ -623,20 +630,21 @@ namespace Turnroot.Conversations
 
                     case MermaidNodeKind.Action:
                     {
+                        $"[Conversation] Executing action node '{currentNode.Id}' type='{currentNode.ActionType}' target='{currentNode.ActionTarget}'".LogInfo(
+                            "ConversationController"
+                        );
+
                         var actionResult = ConversationActionExecutor.Execute(
                             currentNode,
                             conversation,
                             this
                         );
 
-                        if (!actionResult.Success)
-                        {
-                            // The executor already logs the failure with OperationResult.
-                            // Continue without blocking the conversation on a failed action.
-                            break;
-                        }
+                        $"[Conversation] Action '{currentNode.Id}' result: success={actionResult.Success}, waitForAck={actionResult.Value}".LogInfo(
+                            "ConversationController"
+                        );
 
-                        if (actionResult.Value)
+                        if (actionResult.Success && actionResult.Value)
                         {
                             _brain?.PublishWaitForPlayerAcknowledgment(currentNode.Id);
                             yield return WaitForPlayerAcknowledgment(currentNode.Id);
@@ -666,11 +674,17 @@ namespace Turnroot.Conversations
                 {
                     _pendingChoiceTarget = null;
                     ShowChoices(outgoing);
+                    $"[Conversation] Showing {outgoing.Count} choice(s) for node '{currentNode.Id}'".LogInfo(
+                        "ConversationController"
+                    );
 
                     SetInterruptWaiting(true);
                     yield return new WaitUntil(() => !string.IsNullOrEmpty(_pendingChoiceTarget));
                     SetInterruptWaiting(false);
 
+                    $"[Conversation] Choice selected: '{_pendingChoiceTarget}' from node '{currentNode.Id}'".LogInfo(
+                        "ConversationController"
+                    );
                     currentNode = _currentGraph.GetNode(_pendingChoiceTarget);
                     ClearChoiceButtons();
                     continue;
@@ -771,11 +785,24 @@ namespace Turnroot.Conversations
         {
             if (_brain == null)
             {
+                $"[Conversation] Cannot wait for player acknowledgement on '{nodeId}' because Brain is null.".LogWarning(
+                    "ConversationController"
+                );
                 yield break;
             }
 
             _waitingForAcknowledgment = true;
             SetInterruptWaiting(true);
+            $"[Conversation] Waiting for player acknowledgement on action node '{nodeId}'".LogInfo(
+                "ConversationController"
+            );
+
+            yield return new WaitUntil(() => !_waitingForAcknowledgment);
+
+            $"[Conversation] Player acknowledged action node '{nodeId}'".LogInfo(
+                "ConversationController"
+            );
+            SetInterruptWaiting(false);
         }
 
         private ConversationLayer BuildLayerFromNode(
@@ -1131,6 +1158,9 @@ namespace Turnroot.Conversations
 
         private void OnChoiceSelected(string targetId)
         {
+            $"[Conversation] Choice selected target='{targetId ?? "<null>"}'".LogInfo(
+                "ConversationController"
+            );
             _pendingChoiceTarget = targetId;
             ClearChoiceButtons();
         }
