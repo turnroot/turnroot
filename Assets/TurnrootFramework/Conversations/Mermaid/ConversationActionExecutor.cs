@@ -15,10 +15,11 @@ namespace Turnroot.Conversations.Mermaid
     {
         /// <summary>
         /// Executes the side-effect action declared on a Mermaid action node.
-        /// Returns <c>true</c> if the conversation should wait for
-        /// <see cref="Brain.OnPlayerAcknowledgedConversationEvent"/> before continuing.
+        /// Returns an <see cref="OperationResult{T}"/> whose value indicates whether the
+        /// conversation should wait for <see cref="Brain.OnPlayerAcknowledgedConversationEvent"/>
+        /// before continuing.
         /// </summary>
-        public static bool Execute(
+        public static OperationResult<bool> Execute(
             MermaidNode node,
             Conversation conversation,
             ConversationController controller
@@ -26,46 +27,58 @@ namespace Turnroot.Conversations.Mermaid
         {
             if (node == null)
             {
-                return false;
+                return OperationResult<bool>.Failure(
+                    "ConversationActionExecutor: null node passed to Execute()."
+                );
             }
 
-            switch (node.ActionType?.ToUpperInvariant())
+            try
             {
-                case "GAINSUPPORT":
-                case "LOSESUPPORT":
-                    ExecuteSupportChange(node, conversation);
-                    return true;
-                case "UNLOCKBATTLE":
-                    ExecuteUnlockBattle(node);
-                    return true;
-                case "PLAYERGAINSITEM":
-                case "GAINSITEM":
-                    ExecutePlayerGainsItem(node);
-                    return true;
-                case "PLAYERLOSESITEM":
-                case "LOSESITEM":
-                    ExecutePlayerLosesItem(node);
-                    return true;
-                case "CHARACTERJOINSTEAM":
-                case "JOINTEAM":
-                    ExecuteCharacterJoinsTeam(node);
-                    return true;
-                case "CHARACTERLEAVESTEAM":
-                case "LEAVETEAM":
-                    ExecuteCharacterLeavesTeam(node);
-                    return true;
-                default:
-                    $"ConversationActionExecutor: unknown action type '{node.ActionType}' in node '{node.Id}'.".LogWarning();
-                    return false;
+                switch (node.ActionType?.ToUpperInvariant())
+                {
+                    case "GAINSUPPORT":
+                    case "LOSESUPPORT":
+                        return ExecuteSupportChange(node, conversation);
+                    case "UNLOCKBATTLE":
+                        return ExecuteUnlockBattle(node);
+                    case "PLAYERGAINSITEM":
+                    case "GAINSITEM":
+                        return ExecutePlayerGainsItem(node);
+                    case "PLAYERLOSESITEM":
+                    case "LOSESITEM":
+                        return ExecutePlayerLosesItem(node);
+                    case "CHARACTERJOINSTEAM":
+                    case "JOINTEAM":
+                        return ExecuteCharacterJoinsTeam(node);
+                    case "CHARACTERLEAVESTEAM":
+                    case "LEAVETEAM":
+                        return ExecuteCharacterLeavesTeam(node);
+                    default:
+                        return OperationResult<bool>.Failure(
+                            $"ConversationActionExecutor: unknown action type '{node.ActionType}' in node '{node.Id}'."
+                        );
+                }
+            }
+            catch (Exception exception)
+            {
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: action '{node.Id}' threw an exception.",
+                    exception
+                );
             }
         }
 
-        private static void ExecuteSupportChange(MermaidNode node, Conversation conversation)
+        private static OperationResult<bool> ExecuteSupportChange(
+            MermaidNode node,
+            Conversation conversation
+        )
         {
             var action = ParseSupportChange(node, conversation);
             if (!action.HasValue)
             {
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: support action node '{node.Id}' could not be parsed."
+                );
             }
 
             var person = conversation.People.FirstOrDefault(p =>
@@ -78,15 +91,24 @@ namespace Turnroot.Conversations.Mermaid
 
             if (person?.Character == null)
             {
-                $"ConversationActionExecutor: no character mapped for speaker '{action.Value.TargetSpeaker}' in node '{node.Id}'.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: no character mapped for speaker '{action.Value.TargetSpeaker}' in node '{node.Id}'."
+                );
             }
 
             var brain = GetAndCacheBrain.GetBrain();
             if (brain == null)
             {
-                "ConversationActionExecutor: could not find Brain.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    "ConversationActionExecutor: could not find Brain."
+                );
+            }
+
+            if (brain.charactersBrain == null)
+            {
+                return OperationResult<bool>.Failure(
+                    "ConversationActionExecutor: could not find CharactersBrain for support change."
+                );
             }
 
             var amount = action.Value.Magnitude switch
@@ -101,13 +123,15 @@ namespace Turnroot.Conversations.Mermaid
             var avatar = brain.gamewideContextBrain?.GetOrCreateAvatarInstance();
             if (avatar == null)
             {
-                "ConversationActionExecutor: could not resolve avatar instance for support change.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    "ConversationActionExecutor: could not resolve avatar instance for support change."
+                );
             }
 
-            brain.charactersBrain?.IncreaseSupport(avatar, person.Character, amount);
+            brain.charactersBrain.IncreaseSupport(avatar, person.Character, amount);
 
             $"ConversationActionExecutor: {action.Value.Operation} {action.Value.Magnitude} support with {person.Character.DisplayName} (amount: {amount}).".LogInfo();
+            return OperationResult<bool>.SuccessResult(false);
         }
 
         private static SupportChangeAction? ParseSupportChange(
@@ -154,79 +178,96 @@ namespace Turnroot.Conversations.Mermaid
             };
         }
 
-        private static void ExecuteUnlockBattle(MermaidNode node)
+        private static OperationResult<bool> ExecuteUnlockBattle(MermaidNode node)
         {
             var battleSceneId = node.ActionTarget;
             if (string.IsNullOrWhiteSpace(battleSceneId))
             {
-                $"ConversationActionExecutor: unlock battle node '{node.Id}' has no battle scene id.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: unlock battle node '{node.Id}' has no battle scene id."
+                );
             }
 
             var brain = GetAndCacheBrain.GetBrain();
             if (brain == null)
             {
-                "ConversationActionExecutor: could not find Brain for unlock battle.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    "ConversationActionExecutor: could not find Brain for unlock battle."
+                );
             }
 
-            brain.sceneFlowBrain?.SetBattleUnlocked(battleSceneId, true);
+            if (brain.sceneFlowBrain == null)
+            {
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: could not find SceneFlowBrain for battle '{battleSceneId}'."
+                );
+            }
+
+            brain.sceneFlowBrain.SetBattleUnlocked(battleSceneId, true);
             brain.PublishBattleUnlocked(battleSceneId);
 
             $"ConversationActionExecutor: unlocked battle '{battleSceneId}'.".LogInfo();
+            return OperationResult<bool>.SuccessResult(false);
         }
 
-        private static void ExecutePlayerGainsItem(MermaidNode node)
+        private static OperationResult<bool> ExecutePlayerGainsItem(MermaidNode node)
         {
             var itemId = node.ActionTarget;
             if (string.IsNullOrWhiteSpace(itemId))
             {
-                $"ConversationActionExecutor: gain item node '{node.Id}' has no item id.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: gain item node '{node.Id}' has no item id."
+                );
             }
 
             var itemTemplate = Resources.Load<ObjectItem>($"Items/{itemId}");
             if (itemTemplate == null)
             {
-                $"ConversationActionExecutor: could not find item '{itemId}'.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: could not find item '{itemId}'."
+                );
             }
 
             var brain = GetAndCacheBrain.GetBrain();
             var avatar = brain?.gamewideContextBrain?.GetOrCreateAvatarInstance();
             if (avatar == null || avatar.InventoryInstance == null)
             {
-                $"ConversationActionExecutor: could not find avatar inventory for item '{itemId}'.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: could not find avatar inventory for item '{itemId}'."
+                );
             }
 
             var itemInstance = new ObjectItemInstance(itemTemplate);
             var result = avatar.InventoryInstance.AddToInventory(itemInstance);
             if (!result.Success)
             {
-                $"ConversationActionExecutor: failed to add '{itemId}' to avatar inventory: {result.ErrorMessage}".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: failed to add '{itemId}' to avatar inventory: {result.ErrorMessage}"
+                );
             }
 
             brain.PublishItemTransferred(itemInstance, avatar.InventoryInstance);
             $"ConversationActionExecutor: added item '{itemId}' to avatar inventory.".LogInfo();
+            return OperationResult<bool>.SuccessResult(false);
         }
 
-        private static void ExecutePlayerLosesItem(MermaidNode node)
+        private static OperationResult<bool> ExecutePlayerLosesItem(MermaidNode node)
         {
             var itemId = node.ActionTarget;
             if (string.IsNullOrWhiteSpace(itemId))
             {
-                $"ConversationActionExecutor: lose item node '{node.Id}' has no item id.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: lose item node '{node.Id}' has no item id."
+                );
             }
 
             var brain = GetAndCacheBrain.GetBrain();
             var avatar = brain?.gamewideContextBrain?.GetOrCreateAvatarInstance();
             if (avatar == null || avatar.InventoryInstance == null)
             {
-                $"ConversationActionExecutor: could not find avatar inventory for item '{itemId}'.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: could not find avatar inventory for item '{itemId}'."
+                );
             }
 
             var itemInstance = avatar.InventoryInstance.InventoryItems.FirstOrDefault(i =>
@@ -235,35 +276,40 @@ namespace Turnroot.Conversations.Mermaid
 
             if (itemInstance == null)
             {
-                $"ConversationActionExecutor: avatar has no '{itemId}' to remove.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: avatar has no '{itemId}' to remove."
+                );
             }
 
             var result = avatar.InventoryInstance.RemoveFromInventory(itemInstance);
             if (!result.Success)
             {
-                $"ConversationActionExecutor: failed to remove '{itemId}' from avatar inventory: {result.ErrorMessage}".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: failed to remove '{itemId}' from avatar inventory: {result.ErrorMessage}"
+                );
             }
 
             brain.PublishItemDiscarded(itemInstance);
             $"ConversationActionExecutor: removed item '{itemId}' from avatar inventory.".LogInfo();
+            return OperationResult<bool>.SuccessResult(false);
         }
 
-        private static void ExecuteCharacterJoinsTeam(MermaidNode node)
+        private static OperationResult<bool> ExecuteCharacterJoinsTeam(MermaidNode node)
         {
             var characterId = node.ActionTarget;
             if (string.IsNullOrWhiteSpace(characterId))
             {
-                $"ConversationActionExecutor: join team node '{node.Id}' has no character id.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: join team node '{node.Id}' has no character id."
+                );
             }
 
             var brain = GetAndCacheBrain.GetBrain();
             if (brain == null)
             {
-                $"ConversationActionExecutor: could not find Brain for join team.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    "ConversationActionExecutor: could not find Brain for join team."
+                );
             }
 
             var characterTemplate =
@@ -286,8 +332,9 @@ namespace Turnroot.Conversations.Mermaid
 
             if (characterTemplate == null)
             {
-                $"ConversationActionExecutor: could not find character '{characterId}'.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: could not find character '{characterId}'."
+                );
             }
 
             var existingInstance = brain.gamewideContextBrain?.FindInstanceByTemplate(
@@ -299,8 +346,9 @@ namespace Turnroot.Conversations.Mermaid
                 brain.gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
             if (roster == null || rosterInstance == null)
             {
-                $"ConversationActionExecutor: could not access player roster to add '{characterId}'.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: could not access player roster to add '{characterId}'."
+                );
             }
 
             roster.AddCharacter(characterTemplate);
@@ -310,22 +358,25 @@ namespace Turnroot.Conversations.Mermaid
 
             brain.PublishHubCharacterRecruitCompleted(instance);
             $"ConversationActionExecutor: character '{characterId}' joined the team.".LogInfo();
+            return OperationResult<bool>.SuccessResult(false);
         }
 
-        private static void ExecuteCharacterLeavesTeam(MermaidNode node)
+        private static OperationResult<bool> ExecuteCharacterLeavesTeam(MermaidNode node)
         {
             var characterId = node.ActionTarget;
             if (string.IsNullOrWhiteSpace(characterId))
             {
-                $"ConversationActionExecutor: leave team node '{node.Id}' has no character id.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: leave team node '{node.Id}' has no character id."
+                );
             }
 
             var brain = GetAndCacheBrain.GetBrain();
             if (brain == null)
             {
-                $"ConversationActionExecutor: could not find Brain for leave team.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    "ConversationActionExecutor: could not find Brain for leave team."
+                );
             }
 
             var characterTemplate =
@@ -348,8 +399,9 @@ namespace Turnroot.Conversations.Mermaid
 
             if (characterTemplate == null)
             {
-                $"ConversationActionExecutor: could not find character '{characterId}'.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: could not find character '{characterId}'."
+                );
             }
 
             var roster = brain.gamewideContextBrain?.CreateOrRecallGamewidePersistentPlayerRoster();
@@ -357,8 +409,9 @@ namespace Turnroot.Conversations.Mermaid
                 brain.gamewideContextBrain?.GetPersistentPlayerTeamRosterInstance();
             if (roster == null || rosterInstance == null)
             {
-                $"ConversationActionExecutor: could not access player roster to remove '{characterId}'.".LogWarning();
-                return;
+                return OperationResult<bool>.Failure(
+                    $"ConversationActionExecutor: could not access player roster to remove '{characterId}'."
+                );
             }
 
             RemoveCharacterFromRoster(roster, characterTemplate);
@@ -372,6 +425,7 @@ namespace Turnroot.Conversations.Mermaid
 
             brain.PublishHubCharacterRecruitCompleted(instance);
             $"ConversationActionExecutor: character '{characterId}' left the team.".LogInfo();
+            return OperationResult<bool>.SuccessResult(false);
         }
 
         private static void RemoveCharacterFromRoster(
