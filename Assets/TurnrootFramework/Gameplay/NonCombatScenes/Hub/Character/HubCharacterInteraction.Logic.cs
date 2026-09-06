@@ -262,11 +262,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private void OnDisable()
         {
             var audioBrain =
-                CharacterManager._brain != null ? CharacterManager._brain.audioBrain : null;
-            if (audioBrain != null)
-            {
-                audioBrain.GetComponent<OneShotPlayer>()?.ClearPendingCallback();
-            }
+                CharacterManager._brain?.audioBrain;
+            audioBrain?.GetComponent<OneShotPlayer>()?.ClearPendingCallback();
             if (CharacterManager._brain != null)
             {
                 CharacterManager._brain.OnHubCharacterRecruitCompleted -=

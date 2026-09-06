@@ -97,10 +97,7 @@ namespace Turnroot.Characters.CharacterClass
                 if (cap.value > 0 && cap.isBounded)
                 {
                     var stat = character.GetBoundedStat(cap.boundedStatType);
-                    if (stat != null)
-                    {
-                        stat.SetMax(cap.value);
-                    }
+                    stat?.SetMax(cap.value);
                 }
             }
         }

@@ -262,10 +262,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             // Trigger fade-in animation
             var uiFade = UIFadeCache.Get(preBattleMenuLocation.activeInstance);
-            if (uiFade != null)
-            {
-                uiFade.Show();
-            }
+            uiFade?.Show();
         }
 
         #endregion

@@ -42,10 +42,7 @@ namespace Turnroot.Utilities.Ui
 
         public void OnDestroy()
         {
-            if (Audio != null)
-            {
-                Audio.Stop();
-            }
+            Audio?.Stop();
             StopAllCoroutines();
             CurrentNumber = StartNumber;
             currentTime = 0f;

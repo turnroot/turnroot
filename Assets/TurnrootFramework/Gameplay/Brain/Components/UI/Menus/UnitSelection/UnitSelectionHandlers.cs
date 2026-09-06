@@ -76,10 +76,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
             }
 
-            if (unitColumns != null)
-            {
-                unitColumns.RecomputeSelectedCount();
-            }
+            unitColumns?.RecomputeSelectedCount();
 
             // Persist choice in LTM so it survives across menu opens
             var template = item?.CharacterInstanceData?.CharacterTemplate;

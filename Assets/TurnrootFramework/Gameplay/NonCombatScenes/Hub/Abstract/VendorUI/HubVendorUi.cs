@@ -222,10 +222,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         public void HandleBackInput(string action)
         {
-            if (Vendor != null)
-            {
-                Vendor.HandleBackInput(action);
-            }
+            Vendor?.HandleBackInput(action);
         }
     }
 }

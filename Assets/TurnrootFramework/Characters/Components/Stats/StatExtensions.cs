@@ -136,18 +136,12 @@ namespace Turnroot.Characters.Stats
                     if (mod.isBounded)
                     {
                         var stat = stats.GetBoundedStat(mod.boundedStatType);
-                        if (stat != null)
-                        {
-                            stat.SetBonus(stat.Bonus + mod.value);
-                        }
+                        stat?.SetBonus(stat.Bonus + mod.value);
                     }
                     else
                     {
                         var stat = stats.GetUnboundedStat(mod.unboundedStatType);
-                        if (stat != null)
-                        {
-                            stat.SetBonus(stat.Bonus + mod.value);
-                        }
+                        stat?.SetBonus(stat.Bonus + mod.value);
                     }
                 }
             }
@@ -174,18 +168,12 @@ namespace Turnroot.Characters.Stats
                     if (mod.isBounded)
                     {
                         var stat = stats.GetBoundedStat(mod.boundedStatType);
-                        if (stat != null)
-                        {
-                            stat.SetBonus(stat.Bonus - mod.value);
-                        }
+                        stat?.SetBonus(stat.Bonus - mod.value);
                     }
                     else
                     {
                         var stat = stats.GetUnboundedStat(mod.unboundedStatType);
-                        if (stat != null)
-                        {
-                            stat.SetBonus(stat.Bonus - mod.value);
-                        }
+                        stat?.SetBonus(stat.Bonus - mod.value);
                     }
                 }
             }

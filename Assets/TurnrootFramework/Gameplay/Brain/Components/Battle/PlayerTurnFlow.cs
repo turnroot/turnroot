@@ -362,10 +362,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         {
             // Clear dynamic participant data (Targets and AdjacentUnits) when turn ends
             var context = _battleBrain?.BattleObject.Context;
-            if (context != null)
-            {
-                context.ClearParticipantDynamicData();
-            }
+            context?.ClearParticipantDynamicData();
 
             // Note: PlayerTurnEnded is published by TurnRotisserie.ProgressToNextPhase()
             // to ensure proper ordering with other phase transitions

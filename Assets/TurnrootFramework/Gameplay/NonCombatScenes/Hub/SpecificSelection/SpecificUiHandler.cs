@@ -267,10 +267,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 dockShipUi.DockShipUiFade.Hide();
             }
 
-            if (_activeHubCharacter != null)
-            {
-                _activeHubCharacter.NotifyCharacterExited();
-            }
+            _activeHubCharacter?.NotifyCharacterExited();
 
             // Restore the camera to the last user-controlled position/rotation (before selecting a POI)
             if (hasSavedCameraTransform && hubManager?.GeneralCamera != null)

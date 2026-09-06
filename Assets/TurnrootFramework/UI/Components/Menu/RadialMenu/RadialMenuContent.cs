@@ -35,15 +35,9 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public void ApplyVisibility(bool showIcon, bool showLabel)
         {
-            if (iconImage != null)
-            {
-                iconImage.gameObject.SetActive(showIcon);
-            }
+            iconImage?.gameObject.SetActive(showIcon);
 
-            if (labelText != null)
-            {
-                labelText.gameObject.SetActive(showLabel);
-            }
+            labelText?.gameObject.SetActive(showLabel);
         }
     }
 }

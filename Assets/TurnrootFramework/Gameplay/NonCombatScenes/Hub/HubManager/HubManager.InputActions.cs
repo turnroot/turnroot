@@ -148,13 +148,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             var context = contextResult.Value;
 
-            if (GeneralCamera != null)
-            {
-                GeneralCamera.transform.SetPositionAndRotation(
+            GeneralCamera?.transform.SetPositionAndRotation(
                     context.TraversalPoint.position,
                     context.TraversalPoint.rotation
                 );
-            }
 
             SetInputMode(HubInputMode.Traversal);
             BackButtonFade?.Show();
@@ -222,9 +219,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 var option = FastTravelLocations[i];
                 if (
                     !ValidateRequired(
-                        option.UnlockableLocation != null
-                            ? option.UnlockableLocation.fastTravelPoint
-                            : null,
+                        option.UnlockableLocation?.fastTravelPoint,
                         $"{nameof(FastTravelLocations)}[{i}].UnlockableLocation.fastTravelPoint",
                         nameof(ResolveTraversalEntryPoint)
                     )

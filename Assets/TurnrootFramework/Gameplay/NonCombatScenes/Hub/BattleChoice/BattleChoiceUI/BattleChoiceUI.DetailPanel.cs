@@ -108,20 +108,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     MapImage.sprite = battle.MapSprite;
                 }
 
-                if (MapQuadrantDisplay != null)
-                {
-                    MapQuadrantDisplay.gameObject.SetActive(false);
-                }
+                MapQuadrantDisplay?.gameObject.SetActive(false);
 
                 return;
             }
 
             // Unexplored maps: hide flat images, show quadrant blend display.
 
-            if (MapImage != null)
-            {
-                MapImage.gameObject.SetActive(false);
-            }
+            MapImage?.gameObject.SetActive(false);
 
             if (MapQuadrantDisplay == null)
             {

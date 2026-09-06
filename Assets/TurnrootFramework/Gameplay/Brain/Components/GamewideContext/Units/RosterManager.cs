@@ -148,10 +148,7 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
 
-            if (_persistence != null)
-            {
-                _persistence.RegisterPlayerRoster(roster);
-            }
+            _persistence?.RegisterPlayerRoster(roster);
 
             instance.OnRosterModified += () =>
                 _brain.PublishSavePlayerRosterRequested(

@@ -121,10 +121,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public void SetBadgeVisible(bool visible)
         {
-            if (Badge != null)
-            {
-                Badge.SetActive(visible);
-            }
+            Badge?.SetActive(visible);
         }
 
         public void SetBadgeTexture(Texture texture)
@@ -242,10 +239,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void SetupUiState()
         {
-            if (poiVisual != null)
-            {
-                poiVisual.SetActive(false);
-            }
+            poiVisual?.SetActive(false);
 
             SetLabel(LabelText);
             SetBadgeVisible(ShowBadge);

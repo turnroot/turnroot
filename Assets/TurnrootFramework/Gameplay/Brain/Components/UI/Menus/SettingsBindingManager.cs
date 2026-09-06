@@ -149,7 +149,7 @@ namespace Turnroot.Gameplay.Brain.Segments
                 {
                     panelRow.sliderComponent.gameObject.name,
                     panelRow.gameObject.name,
-                    panelRow.labelText != null ? panelRow.labelText.text : null,
+                    panelRow.labelText?.text,
                 };
 
                 foreach (var c in candidates)

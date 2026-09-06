@@ -193,10 +193,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 EnforceAlwaysDockedState();
             }
 
-            if (Ship != null)
-            {
-                Ship.SetActive(IsDocked);
-            }
+            Ship?.SetActive(IsDocked);
 
             return OperationResult.Successful();
         }
@@ -272,10 +269,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
                 _currentAtSeaTime = 0;
             }
 
-            if (Ship != null)
-            {
-                Ship.SetActive(docked);
-            }
+            Ship?.SetActive(docked);
 
             SaveState();
         }
@@ -298,10 +292,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             _currentAtSeaTime = 0;
             _daysToStayAtSea = HubDayRandom.Range(MinimumAtSeaTime, MaximumAtSeaTime + 1);
 
-            if (Ship != null)
-            {
-                Ship.SetActive(false);
-            }
+            Ship?.SetActive(false);
 
             SaveState();
         }
@@ -355,10 +346,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
 
             if (stateChanged)
             {
-                if (Ship != null)
-                {
-                    Ship.SetActive(IsDocked);
-                }
+                Ship?.SetActive(IsDocked);
                 SaveState();
             }
         }

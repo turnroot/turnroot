@@ -35,11 +35,7 @@ namespace Turnroot.Gameplay.Maps
 
             if (UseHeightMeshAsTerrainModel)
             {
-                if (_single3dHeightMesh != null)
-                {
-                    _single3dHeightMesh.SetActive(UseHeightMeshAsTerrainModel);
-                    // _single3dHeightMesh.GetComponent<Renderer>().renderingLayerMask = (uint)GetRenderingLayerMask.Get("Receive Map Grid Decals").value;
-                }
+                _single3dHeightMesh?.SetActive(UseHeightMeshAsTerrainModel);
             }
             else
             {
