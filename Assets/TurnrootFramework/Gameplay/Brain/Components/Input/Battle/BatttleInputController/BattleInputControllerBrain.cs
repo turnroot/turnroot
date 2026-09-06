@@ -115,7 +115,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 var inputVec = _inputActions.Navigate.ReadValue<Vector2>();
                 var camAngle = Brain.cameraBrain.CurrentAngle;
-                var steps = (((int)camAngle % 360) + 360) % 360 / 90;
+                var steps = ((camAngle % 360) + 360) % 360 / 90;
                 var direction = RotateVectorBy90StepsCW(inputVec, steps);
                 if (direction.magnitude > 0.1f)
                 {

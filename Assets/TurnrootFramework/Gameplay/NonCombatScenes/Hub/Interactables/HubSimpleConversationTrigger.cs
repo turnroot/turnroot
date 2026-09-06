@@ -65,7 +65,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _isConversationActive = true;
             PlayPoiSelectSound();
-            _hubManager.SetInputMode(HubManager.HubInputMode.Chosen);
+            _hubManager.SetInputMode(HubManager.HubInputMode.None);
             Hide();
 
             controller.PlayConversationDirect(

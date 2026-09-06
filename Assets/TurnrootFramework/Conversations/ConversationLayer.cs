@@ -12,13 +12,13 @@ namespace Turnroot.Conversations
     /// <summary>
     /// Represents a single layer of dialogue with speaker configuration, portraits, and lifecycle events.
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class ConversationLayer : BaseConversation
     {
         /// <summary>
         /// Represents a speaker configuration with character data, display name, and portrait selection.
         /// </summary>
-        [System.Serializable]
+        [Serializable]
         public class SpeakerSlot
         {
             [SerializeField, SerializeReference]
@@ -33,70 +33,8 @@ namespace Turnroot.Conversations
                 OnValueChanged("OnPortraitKeyChanged")
             ]
             public string PortraitKey;
-
-            private string[] GetAvailablePortraitKeys()
-            {
-                if (
-                    !ValidationHelper.ValidateNotNull(Speaker, nameof(Speaker))
-                    || Speaker.PortraitCount == 0
-                )
-                {
-                    if (!string.IsNullOrEmpty(PortraitKey))
-                    {
-                        PortraitKey = null;
-#if UNITY_EDITOR
-                        var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
-                        if (sel != null)
-                        {
-                            var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
-                            if (!string.IsNullOrEmpty(selPath))
-                            {
-                                UnityEditor.EditorUtility.SetDirty(sel);
-                            }
-                        }
-#endif
-                    }
-                    return new string[] { "No speaker selected" };
-                }
-
-                var keys = Speaker.GetPortraitKeys();
-                if (!string.IsNullOrEmpty(PortraitKey) && !keys.Contains(PortraitKey))
-                {
-                    PortraitKey = null;
-#if UNITY_EDITOR
-                    var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
-                    if (sel != null)
-                    {
-                        var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
-                        if (!string.IsNullOrEmpty(selPath))
-                        {
-                            UnityEditor.EditorUtility.SetDirty(sel);
-                        }
-                    }
-#endif
-                }
-                return keys.Length > 0 ? keys : new string[] { "No portraits available" };
-            }
-
-            [System.NonSerialized]
+            [NonSerialized]
             public Sprite CachedSprite;
-
-            private void OnPortraitKeyChanged()
-            {
-                CachedSprite = null;
-#if UNITY_EDITOR
-                // Ensure the change is recorded so the conversation asset is marked dirty and saved.
-                var sel = UnityEditor.Selection.activeObject as UnityEngine.Object;
-                if (sel != null)
-                {
-                    var selPath = UnityEditor.AssetDatabase.GetAssetPath(sel);
-                    if (!string.IsNullOrEmpty(selPath))
-                    {
-                        UnityEditor.EditorUtility.SetDirty(sel);
-                    }
-                }
-#endif
-            }
         }
 
         [SerializeField]

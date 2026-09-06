@@ -7,9 +7,9 @@ namespace Turnroot.Graphics3D
         // helper for indirect args array
         private void SetArgsFromMesh(Mesh mesh)
         {
-            _args[0] = (uint)mesh.GetIndexCount(0);
-            _args[2] = (uint)mesh.GetIndexStart(0);
-            _args[3] = (uint)mesh.GetBaseVertex(0);
+            _args[0] = mesh.GetIndexCount(0);
+            _args[2] = mesh.GetIndexStart(0);
+            _args[3] = mesh.GetBaseVertex(0);
             _args[4] = 0;
         }
 
@@ -122,7 +122,7 @@ namespace Turnroot.Graphics3D
             computeShader.SetTexture(
                 _generateKernel,
                 "_MaskTex",
-                hasMask ? (Texture)maskTexture : _whiteTex
+                hasMask ? maskTexture : _whiteTex
             );
 
             computeShader.SetBuffer(_generateKernel, "_MeshVerts", _meshVertsBuffer);

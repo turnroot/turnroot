@@ -115,7 +115,7 @@ namespace Turnroot.Graphics3D
                     );
                     return maskVal <= 0f;
                 }
-                : (Predicate<Vector2>)null;
+                : null;
 
             int poolCount = Mathf.RoundToInt(
                 totalArea * grassMixinDensity * grassMixinMaterials.Count
@@ -237,10 +237,10 @@ namespace Turnroot.Graphics3D
             g.args.SetData(
                 new uint[]
                 {
-                    (uint)_planeMesh.GetIndexCount(0),
+                    _planeMesh.GetIndexCount(0),
                     0,
-                    (uint)_planeMesh.GetIndexStart(0),
-                    (uint)_planeMesh.GetBaseVertex(0),
+                    _planeMesh.GetIndexStart(0),
+                    _planeMesh.GetBaseVertex(0),
                     0,
                 }
             );

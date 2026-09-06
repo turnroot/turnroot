@@ -54,7 +54,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         {
             return string.IsNullOrEmpty(unitId) ? null
                 : _unitIdToPosition.TryGetValue(unitId, out var position) ? position
-                : (Vector2Int?)null;
+                : null;
         }
 
         /// <summary>

@@ -557,7 +557,7 @@ namespace Turnroot.Graphics2D
                 if (_owner != null)
                 {
                     var ownerPath = UnityEditor.AssetDatabase.GetAssetPath(
-                        _owner as UnityEngine.Object
+                        _owner
                     );
                     if (!string.IsNullOrEmpty(ownerPath))
                     {
