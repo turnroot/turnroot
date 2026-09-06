@@ -80,7 +80,8 @@ namespace Turnroot.UI.Components
         {
             if (_brain != null)
             {
-                _brain.OnWaitForPlayerAcknowledgment += HandleWaitForPlayerAcknowledgment;
+                _brain.OnConversationActionNotificationRequested +=
+                    HandleActionNotificationRequested;
             }
         }
 
@@ -88,11 +89,12 @@ namespace Turnroot.UI.Components
         {
             if (_brain != null)
             {
-                _brain.OnWaitForPlayerAcknowledgment -= HandleWaitForPlayerAcknowledgment;
+                _brain.OnConversationActionNotificationRequested -=
+                    HandleActionNotificationRequested;
             }
         }
 
-        private void HandleWaitForPlayerAcknowledgment(string id) => ShowPopup(id);
+        private void HandleActionNotificationRequested(string id) => ShowPopup(id);
 
         public void ShowPopup(string id)
         {
@@ -112,6 +114,8 @@ namespace Turnroot.UI.Components
                 );
                 return;
             }
+
+            $"PopupManager: Showing popup '{strippedId}'.".LogInfo("PopupManager");
 
             if (!_activePopupIds.Add(strippedId))
             {
