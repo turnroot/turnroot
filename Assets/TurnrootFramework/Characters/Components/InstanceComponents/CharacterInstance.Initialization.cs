@@ -145,10 +145,7 @@ namespace Turnroot.Characters
                 var expStat = _runtimeBoundedStats.Find(s =>
                     s.StatType == BoundedStatType.LevelExperience
                 );
-                if (expStat != null)
-                {
-                    expStat.SetCurrent(_currentExp);
-                }
+                expStat?.SetCurrent(_currentExp);
             }
 
             RepairMissingStats();

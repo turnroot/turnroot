@@ -161,10 +161,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 foreach (var obj in ObjectsToEnableInWalkMode)
                 {
-                    if (obj != null)
-                    {
-                        obj.SetActive(enabled);
-                    }
+                    obj?.SetActive(enabled);
                 }
             }
 

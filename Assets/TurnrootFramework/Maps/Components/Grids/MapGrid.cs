@@ -252,10 +252,7 @@ namespace Turnroot.Gameplay.Maps
 
             foreach (var mgp in _cachedGridPoints.Values)
             {
-                if (mgp != null)
-                {
-                    mgp.Initialize(mgp.Row, mgp.Col);
-                }
+                mgp?.Initialize(mgp.Row, mgp.Col);
             }
 
             LoadFeatureLayer();
@@ -304,11 +301,8 @@ namespace Turnroot.Gameplay.Maps
         [Button("Remove Height Connection")]
         public void RemoveHeightConnection()
         {
-            if (_single3dHeightMesh != null)
-            {
-                _single3dHeightMesh.SetActive(false);
-                _single3dHeightMesh = null;
-            }
+            _single3dHeightMesh?.SetActive(false);
+            _single3dHeightMesh = null;
 
             _single3dHeightMeshRaycastPoints = null;
             _single3dHeightMeshRaycastIndices = null;

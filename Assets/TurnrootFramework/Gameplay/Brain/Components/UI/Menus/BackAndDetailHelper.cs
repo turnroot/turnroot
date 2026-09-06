@@ -186,10 +186,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             {
                 // Clean up and destroy the menu instance
                 var fade = UIFadeCache.Get(instance);
-                if (fade != null)
-                {
-                    fade.Hide();
-                }
+                fade?.Hide();
 
                 // Clean up any event subscriptions so we don't leak listeners
                 var menus = instance.GetComponentsInChildren<MenuBase>(true);

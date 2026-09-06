@@ -296,10 +296,7 @@ namespace Turnroot.UI.Components
                 var inst = gw.FindInstanceByTemplate(placement.Value);
                 if (inst != null && !string.IsNullOrEmpty(inst.Id))
                 {
-                    if (_prepObject.Brain != null)
-                    {
-                        _prepObject.Brain.unitAppearanceBrain.DespawnUnit(inst.Id);
-                    }
+                    _prepObject.Brain?.unitAppearanceBrain.DespawnUnit(inst.Id);
                 }
             }
         }

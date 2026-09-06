@@ -91,9 +91,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Docks
             {
                 SmuggleButtonUi.SetActive(true);
             }
-            else if (SmuggleButtonUi != null)
+            else
             {
-                SmuggleButtonUi.SetActive(false);
+                SmuggleButtonUi?.SetActive(false);
             }
 
             base.Awake();

@@ -85,10 +85,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                             ?? new List<ObjectItemInstance>()
                     )
                     {
-                        if (itemInstance != null)
-                        {
-                            itemInstance.SetBrain(brain);
-                        }
+                        itemInstance?.SetBrain(brain);
 
                         var pass = filter(itemInstance);
 
@@ -115,10 +112,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             {
                 foreach (var itemInstance in storehouseItems)
                 {
-                    if (itemInstance != null)
-                    {
-                        itemInstance.SetBrain(brain);
-                    }
+                    itemInstance?.SetBrain(brain);
 
                     var templateName = itemInstance?.Template?.name ?? "<null>";
                     var uses = itemInstance.Template.MaxUses - itemInstance.CurrentUses;

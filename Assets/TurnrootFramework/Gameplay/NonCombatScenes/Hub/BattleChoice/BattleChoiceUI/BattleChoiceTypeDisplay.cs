@@ -27,10 +27,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             foreach (var obj in objects)
             {
-                if (obj != null)
-                {
-                    obj.SetActive(active);
-                }
+                obj?.SetActive(active);
             }
         }
     }

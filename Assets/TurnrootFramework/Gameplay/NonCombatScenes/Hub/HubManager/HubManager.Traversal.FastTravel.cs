@@ -152,10 +152,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 option.available = IsFastTravelOptionAvailable(option);
                 FastTravelLocations[i] = option;
 
-                if (option.Choice != null)
-                {
-                    option.Choice.gameObject.SetActive(option.available);
-                }
+                option.Choice?.gameObject.SetActive(option.available);
 
                 if (option.Choice != null && option.available)
                 {
@@ -476,9 +473,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     "destination.UnlockableLocation"
                 ),
                 OperationResultGuards.RequireNotNull(
-                    destination.UnlockableLocation != null
-                        ? destination.UnlockableLocation.fastTravelPoint
-                        : null,
+                    destination.UnlockableLocation?.fastTravelPoint,
                     "destination.UnlockableLocation.fastTravelPoint"
                 )
             );

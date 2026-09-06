@@ -119,10 +119,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
             for (int i = 0; i < toggleComponents.Length; i++)
             {
-                if (toggleComponents[i] != null)
-                {
-                    toggleComponents[i].SetHighlighted(i == currentSelectionIndex);
-                }
+                toggleComponents[i]?.SetHighlighted(i == currentSelectionIndex);
             }
         }
 
@@ -196,10 +193,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
         private void UpdateCarouselVisuals()
         {
-            if (carouselComponent != null)
-            {
-                carouselComponent.UpdateDisplay();
-            }
+            carouselComponent?.UpdateDisplay();
         }
 
         public void SelectRow()
@@ -257,9 +251,9 @@ namespace Turnroot.UI.Components.Menu.Submenu
                     string normalized = string.Empty;
                     string[] candidates = new string[]
                     {
-                        sliderComponent != null ? sliderComponent.gameObject.name : null,
+                        sliderComponent?.gameObject.name,
                         gameObject.name,
-                        labelText != null ? labelText.text : null,
+                        labelText?.text,
                     };
 
                     foreach (var c in candidates)

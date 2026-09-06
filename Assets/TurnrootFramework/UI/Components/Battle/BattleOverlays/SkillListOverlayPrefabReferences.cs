@@ -27,10 +27,7 @@ namespace Turnroot.UI.Components
         public void ToggleDetails()
         {
             IsExpanded = !IsExpanded;
-            if (DetailsContainer != null)
-            {
-                DetailsContainer.SetActive(IsExpanded);
-            }
+            DetailsContainer?.SetActive(IsExpanded);
             var rt = SkillContainerRectTransform;
             if (rt != null)
             {

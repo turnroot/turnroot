@@ -99,10 +99,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )
         {
             SetTextures(
-                topLeft != null ? topLeft.texture : null,
-                topRight != null ? topRight.texture : null,
-                bottomLeft != null ? bottomLeft.texture : null,
-                bottomRight != null ? bottomRight.texture : null
+                topLeft?.texture,
+                topRight?.texture,
+                bottomLeft?.texture,
+                bottomRight?.texture
             );
         }
 

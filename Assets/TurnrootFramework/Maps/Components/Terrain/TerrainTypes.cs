@@ -79,10 +79,7 @@ namespace Turnroot.Gameplay.Maps
                 "_id",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
             );
-            if (idField != null)
-            {
-                idField.SetValue(newType, System.Guid.NewGuid().ToString());
-            }
+            idField?.SetValue(newType, System.Guid.NewGuid().ToString());
 
             var newList = new List<TerrainType>(Types ?? new TerrainType[0]) { newType };
             _types = newList.ToArray();

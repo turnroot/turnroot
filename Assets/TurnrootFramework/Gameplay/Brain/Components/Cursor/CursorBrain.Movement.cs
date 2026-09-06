@@ -352,10 +352,7 @@ namespace Turnroot.Gameplay.Brain
         public void SetCursorVisibility(bool visible)
         {
             IsVisible = visible;
-            if (_cursorInstance != null)
-            {
-                _cursorInstance.SetActive(visible);
-            }
+            _cursorInstance?.SetActive(visible);
         }
 
         #endregion

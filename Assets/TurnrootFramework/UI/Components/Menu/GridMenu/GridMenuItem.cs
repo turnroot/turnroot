@@ -1,6 +1,5 @@
 using Turnroot.UI.Components.Menu;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Turnroot.UI.Components.GridMenu
 {
@@ -9,10 +8,7 @@ namespace Turnroot.UI.Components.GridMenu
     /// </summary>
     [RequireComponent(typeof(UiChoice))]
     public class GridMenuItem
-        : MenuItemBase,
-            IPointerEnterHandler,
-            IPointerExitHandler,
-            IPointerClickHandler
+        : MenuItemBase
     {
         [HideInInspector]
         public MenuBase parentMenu;
@@ -33,25 +29,6 @@ namespace Turnroot.UI.Components.GridMenu
         private UiChoice _uiChoice;
 
         private void Awake() => _uiChoice = GetComponent<UiChoice>() ?? gameObject.AddComponent<UiChoice>();
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            _uiChoice.Select();
-            parentMenu?.NavigateToItem(this);
-            RaiseHoverEnter();
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            _uiChoice.Deselect();
-            RaiseHoverExit();
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            eventData.Use();
-            Select();
-        }
 
         public override void Select()
         {

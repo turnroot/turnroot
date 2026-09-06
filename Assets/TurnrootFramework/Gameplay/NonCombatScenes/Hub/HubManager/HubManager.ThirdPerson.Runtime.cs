@@ -201,7 +201,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            var appearanceBrain = _brain != null ? _brain.unitAppearanceBrain : null;
+            var appearanceBrain = _brain?.unitAppearanceBrain;
             if (appearanceBrain == null)
             {
                 return;

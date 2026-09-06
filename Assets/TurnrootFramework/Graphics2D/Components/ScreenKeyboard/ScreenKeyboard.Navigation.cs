@@ -13,10 +13,7 @@ namespace Turnroot.Graphics2D
             }
 
             // Unhighlight current button
-            if (buttons[currentRow, currentCol] != null)
-            {
-                buttons[currentRow, currentCol].SetHighlighted(false);
-            }
+            buttons[currentRow, currentCol]?.SetHighlighted(false);
 
             // Navigate
             if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
@@ -171,10 +168,7 @@ namespace Turnroot.Graphics2D
         {
             foreach (var button in buttons)
             {
-                if (button != null)
-                {
-                    button.FlashInvalid(msg, this);
-                }
+                button?.FlashInvalid(msg, this);
             }
 
             yield return null;
@@ -242,10 +236,7 @@ namespace Turnroot.Graphics2D
 
         private void HighlightCurrentButton()
         {
-            if (buttons[currentRow, currentCol] != null)
-            {
-                buttons[currentRow, currentCol].SetHighlighted(true);
-            }
+            buttons[currentRow, currentCol]?.SetHighlighted(true);
         }
 
         private void MoveUp()

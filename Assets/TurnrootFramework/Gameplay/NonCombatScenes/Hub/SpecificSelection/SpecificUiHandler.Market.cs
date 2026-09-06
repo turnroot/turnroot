@@ -9,10 +9,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public void HandleMarketSelection(string action)
         {
             var activeVendor = _activeShop as Abstract.HubVendor ?? _activeBlacksmith;
-            if (activeVendor != null)
-            {
-                activeVendor.HandleConfirmInput(action);
-            }
+            activeVendor?.HandleConfirmInput(action);
         }
 
         public void HandleMarketPageChange(string action)

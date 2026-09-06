@@ -13,6 +13,7 @@ using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 using UnityEngine.UI;
 using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
+using Image = UnityEngine.UI.Image;
 
 namespace Turnroot.Conversations
 {
@@ -1097,10 +1098,24 @@ namespace Turnroot.Conversations
                 }
 
                 var (choice, targetId) = CreateChoiceButton(choiceNode);
-                if (choice != null)
+                if (choice != null && !string.IsNullOrEmpty(targetId))
                 {
                     choices.Add(choice);
                     targets.Add(targetId);
+                    $"[Conversation] Choice '{choiceNode.Id}' -> target '{targetId}'".LogInfo(
+                        "ConversationController"
+                    );
+                }
+                else
+                {
+                    if (choice != null)
+                    {
+                        Destroy(choice.gameObject);
+                    }
+
+                    $"[Conversation] Choice '{choiceNode.Id}' was skipped: choice={(choice == null ? "null" : "ok")}, target='{targetId ?? "<null>"}'.".LogWarning(
+                        "ConversationController"
+                    );
                 }
             }
 
@@ -1116,18 +1131,32 @@ namespace Turnroot.Conversations
 
         private (UiChoice Choice, string TargetId) CreateChoiceButton(MermaidNode choiceNode)
         {
+            // Resolve the target from the graph immediately. UiChoice is purely visual;
+            // selection logic is handled by UiInputProvider/UiChoiceHandler, so a Button
+            // component is not required.
+            var outgoing = _currentGraph.GetOutgoing(choiceNode.Id);
+            var targetId = outgoing.Count > 0 ? outgoing[0].ToId : null;
+
             var go = Instantiate(_choiceButtonPrefab, _choiceButtonsContainer);
             if (go == null)
             {
-                return (null, null);
+                return (null, targetId);
             }
 
             go.SetActive(true);
 
-            var btn = go.GetComponent<Button>();
             var img = go.GetComponent<Image>();
             var label = go.GetComponentInChildren<TextMeshProUGUI>(true);
             var choice = go.GetComponent<UiChoice>();
+
+            if (choice == null)
+            {
+                $"ConversationController: choice prefab '{go.name}' is missing a UiChoice component. Destroying instance.".LogError(
+                    "ConversationController"
+                );
+                Destroy(go);
+                return (null, targetId);
+            }
 
             if (label != null)
             {
@@ -1140,16 +1169,6 @@ namespace Turnroot.Conversations
                 img.enabled = true;
             }
 
-            string targetId = null;
-            if (btn != null)
-            {
-                btn.gameObject.SetActive(true);
-                btn.interactable = true;
-                var outgoing = _currentGraph.GetOutgoing(choiceNode.Id);
-                targetId = outgoing.Count > 0 ? outgoing[0].ToId : null;
-                btn.onClick.AddListener(() => OnChoiceSelected(targetId));
-            }
-
             return (choice, targetId);
         }
 
@@ -1158,15 +1177,44 @@ namespace Turnroot.Conversations
 
         private void OnChoiceSelected(string targetId)
         {
-            $"[Conversation] Choice selected target='{targetId ?? "<null>"}'".LogInfo(
-                "ConversationController"
-            );
+            if (string.IsNullOrEmpty(targetId))
+            {
+                $"[Conversation] Choice rejected: target is null or empty.".LogWarning(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            $"[Conversation] Choice selected target='{targetId}'".LogInfo("ConversationController");
             _pendingChoiceTarget = targetId;
             ClearChoiceButtons();
         }
 
-        private void OnCurrentChoiceSelected() =>
-            OnChoiceSelected(_activeChoiceTargets[_currentChoiceIndex]);
+        private void OnCurrentChoiceSelected()
+        {
+            if (
+                _activeChoiceTargets == null
+                || _currentChoiceIndex < 0
+                || _currentChoiceIndex >= _activeChoiceTargets.Length
+            )
+            {
+                $"[Conversation] OnCurrentChoiceSelected: invalid state (index={_currentChoiceIndex}, targets={(_activeChoiceTargets == null ? "null" : _activeChoiceTargets.Length.ToString())}).".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            var targetId = _activeChoiceTargets[_currentChoiceIndex];
+            if (string.IsNullOrEmpty(targetId))
+            {
+                $"[Conversation] OnCurrentChoiceSelected: target is null/empty for choice index {_currentChoiceIndex}.".LogError(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            OnChoiceSelected(targetId);
+        }
 
         private Coroutine StartTween(IEnumerator routine)
         {

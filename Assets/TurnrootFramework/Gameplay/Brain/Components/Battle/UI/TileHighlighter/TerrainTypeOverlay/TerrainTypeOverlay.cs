@@ -151,10 +151,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         public void ResetDisplay()
         {
-            if (displayObj != null)
-            {
-                displayObj.SetActive(false);
-            }
+            displayObj?.SetActive(false);
         }
     }
 }

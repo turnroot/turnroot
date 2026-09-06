@@ -61,10 +61,7 @@ namespace Turnroot.UI.Components
 
         private void OnEnable()
         {
-            if (_fade != null)
-            {
-                _fade.OnHidden.AddListener(HandleFadeHidden);
-            }
+            _fade?.OnHidden.AddListener(HandleFadeHidden);
         }
 
         private void OnDisable()
@@ -75,10 +72,7 @@ namespace Turnroot.UI.Components
                 _inputProvider.OnInput -= HandleInput;
             }
 
-            if (_fade != null)
-            {
-                _fade.OnHidden.RemoveListener(HandleFadeHidden);
-            }
+            _fade?.OnHidden.RemoveListener(HandleFadeHidden);
 
             if (_isShowing)
             {

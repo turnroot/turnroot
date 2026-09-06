@@ -23,19 +23,13 @@ namespace Turnroot.UI
 
         public void Select()
         {
-            if (SelectedDecorator != null)
-            {
-                SelectedDecorator.SetActive(true);
-            }
+            SelectedDecorator?.SetActive(true);
             DisplayText.color = TextHighlightColor;
         }
 
         public void Deselect()
         {
-            if (SelectedDecorator != null)
-            {
-                SelectedDecorator.SetActive(false);
-            }
+            SelectedDecorator?.SetActive(false);
             DisplayText.color = originalTextColor;
         }
 

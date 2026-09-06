@@ -61,10 +61,10 @@ namespace Turnroot.Gameplay.Brain
 
         #region Roster Accessors
         public PlayerTeamRosterInstance PlayerTeamRoster =>
-            BattleObject != null ? BattleObject.PlayerTeamRoster : null;
+            BattleObject?.PlayerTeamRoster;
 
         public GenericRosterInstance ThirdPartyTeamRoster =>
-            BattleObject != null ? BattleObject.ThirdPartyTeamRoster : null;
+            BattleObject?.ThirdPartyTeamRoster;
 
         #endregion
 
@@ -76,10 +76,7 @@ namespace Turnroot.Gameplay.Brain
             base.Awake();
 
             turnRotisserie = GetComponent<TurnRotisserie>();
-            if (turnRotisserie != null)
-            {
-                turnRotisserie.BindToBattleBrain(this);
-            }
+            turnRotisserie?.BindToBattleBrain(this);
             playerTurnFlow = GetComponent<PlayerTurnFlow>();
             playerTurnFlow.Intialize();
 
@@ -283,10 +280,7 @@ namespace Turnroot.Gameplay.Brain
 
             var precomputeLoader =
                 FindFirstObjectByType<Combat.Precompute.BattlePrecomputeLoader>();
-            if (precomputeLoader != null)
-            {
-                precomputeLoader.ResetPrecomputeFlag();
-            }
+            precomputeLoader?.ResetPrecomputeFlag();
 
             "BattleBrain: Battle cleanup complete".LogInfo();
         }

@@ -28,10 +28,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 {
                     foreach (var p in location.UnitSpawnPoints)
                     {
-                        if (p.UnitSpawnPoint != null)
-                        {
-                            p.UnitSpawnPoint.gameObject.SetActive(false);
-                        }
+                        p.UnitSpawnPoint?.gameObject.SetActive(false);
                     }
                 }
 
@@ -55,10 +52,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             foreach (var p in location.UnitSpawnPoints)
             {
-                if (p.UnitSpawnPoint != null)
-                {
-                    p.UnitSpawnPoint.gameObject.SetActive(true);
-                }
+                p.UnitSpawnPoint?.gameObject.SetActive(true);
             }
 
             var spawnPointIndices = new int[location.UnitSpawnPoints.Length];
@@ -156,10 +150,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 foreach (var p in location.UnitSpawnPoints)
                 {
-                    if (p.UnitSpawnPoint != null)
-                    {
-                        p.UnitSpawnPoint.gameObject.SetActive(false);
-                    }
+                    p.UnitSpawnPoint?.gameObject.SetActive(false);
                 }
             }
 

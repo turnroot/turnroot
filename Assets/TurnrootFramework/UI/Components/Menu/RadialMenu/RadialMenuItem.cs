@@ -1,6 +1,5 @@
 using Turnroot.GameSettings;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.RadialMenu
@@ -9,11 +8,7 @@ namespace Turnroot.UI.Components.RadialMenu
     /// A segment item in a radial menu with material-based highlighting and optional content prefab support.
     /// </summary>
     [RequireComponent(typeof(Image))]
-    public class RadialMenuItem
-        : MenuItemBase,
-            IPointerEnterHandler,
-            IPointerExitHandler,
-            IPointerClickHandler
+    public class RadialMenuItem : MenuItemBase
     {
         [Header("Visual Settings")]
         [SerializeField]
@@ -161,7 +156,9 @@ namespace Turnroot.UI.Components.RadialMenu
 
             if (_contentRect != null)
             {
-                Canvas contentCanvas = (_contentRect.gameObject).GetComponent<Canvas>() ?? _contentRect.gameObject.AddComponent<Canvas>();
+                Canvas contentCanvas =
+                    (_contentRect.gameObject).GetComponent<Canvas>()
+                    ?? _contentRect.gameObject.AddComponent<Canvas>();
                 contentCanvas.overrideSorting = true;
                 contentCanvas.sortingOrder = 1; // Render above parent
 
@@ -180,22 +177,6 @@ namespace Turnroot.UI.Components.RadialMenu
                 Destroy(_material);
             }
         }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            _isHovered = true;
-            RaiseHoverEnter();
-            UpdateVisuals();
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            _isHovered = false;
-            RaiseHoverExit();
-            UpdateVisuals();
-        }
-
-        public void OnPointerClick(PointerEventData eventData) => RaiseClick();
 
         public override void Select()
         {
@@ -223,10 +204,7 @@ namespace Turnroot.UI.Components.RadialMenu
         public override void SetItemName(string name)
         {
             itemName = name;
-            if (_contentComponent != null)
-            {
-                _contentComponent.SetLabel(name);
-            }
+            _contentComponent?.SetLabel(name);
             if (_contentRect != null)
             {
                 _contentRect.anchoredPosition = Vector2.zero; // ensure centered
@@ -379,10 +357,7 @@ namespace Turnroot.UI.Components.RadialMenu
         public override void SetIsCenter(bool center)
         {
             isCenter = center;
-            if (_material != null)
-            {
-                _material.SetFloat("_IsCenter", center ? 1f : 0f);
-            }
+            _material?.SetFloat("_IsCenter", center ? 1f : 0f);
         }
     }
 }

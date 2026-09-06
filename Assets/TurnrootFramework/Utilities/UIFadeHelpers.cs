@@ -103,10 +103,7 @@ namespace Turnroot.Utilities
 
             go.SetActive(true);
             var fade = UIFadeCache.Get(go);
-            if (fade != null)
-            {
-                fade.Show();
-            }
+            fade?.Show();
             return OperationResult.Successful();
         }
 
