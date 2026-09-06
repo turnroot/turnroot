@@ -76,7 +76,7 @@ namespace Turnroot.Gameplay.Brain.Components
 
             var templateToken = CreateTemplateToken(instance.CharacterTemplate);
             token[FieldNames.CharacterTemplate] =
-                templateToken != null ? (JToken)templateToken : JValue.CreateNull();
+                templateToken != null ? templateToken : JValue.CreateNull();
 
             token[FieldNames.CurrentLevel] = JToken.FromObject(instance.CurrentLevel, serializer);
             token[FieldNames.CurrentExp] = JToken.FromObject(instance.CurrentExp, serializer);

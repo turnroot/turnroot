@@ -11,7 +11,6 @@ using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
 
@@ -36,6 +35,9 @@ namespace Turnroot.Conversations
         public Image _speakerPortraitImageActive;
 
         public Image _speakerPortraitImageInactive;
+
+        [Header("Input")]
+        public UiInputProvider InputProvider;
 
         [Header("Choice UI")]
         public GameObject _choiceButtonPrefab;
@@ -72,6 +74,10 @@ namespace Turnroot.Conversations
         private int _tweenRunId;
         private bool _inputSubscribed;
 
+        private UiChoice[] _activeChoiceButtons;
+        private string[] _activeChoiceTargets;
+        private int _currentChoiceIndex;
+
         private Brain _brain;
         private BattleSceneFlow _sceneFlow;
 
@@ -81,7 +87,7 @@ namespace Turnroot.Conversations
 
         private void OnDisable()
         {
-            UnsubscribeAdvanceInput();
+            UnsubscribeInput();
             UnsubscribeConversationConditions();
             UnsubscribePlayerAcknowledgment();
             CancelActiveTweens();
@@ -119,10 +125,22 @@ namespace Turnroot.Conversations
             }
         }
 
-        private void OnAdvanceInputPerformed(InputAction.CallbackContext context)
+        private void HandleInput(string action)
         {
             if (!gameObject.activeInHierarchy)
             {
+                return;
+            }
+
+            if (_activeChoiceButtons != null && _activeChoiceButtons.Length > 0)
+            {
+                InputProvider.Navigate(
+                    action,
+                    _activeChoiceButtons,
+                    ref _currentChoiceIndex,
+                    _activeChoiceButtons.Length,
+                    OnCurrentChoiceSelected
+                );
                 return;
             }
 
@@ -131,35 +149,72 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            NextLayer();
+            if (
+                action
+                is InputActionConstants.Submit
+                    or InputActionConstants.Select
+                    or InputActionConstants.Start
+                    or InputActionConstants.Confirm
+            )
+            {
+                NextLayer();
+            }
         }
 
-        private void SubscribeAdvanceInput()
+        private void EnsureInputProvider()
+        {
+            if (InputProvider != null)
+            {
+                return;
+            }
+
+            InputProvider = GetAndCacheBrain.GetInputProvider();
+            if (InputProvider != null)
+            {
+                return;
+            }
+
+            InputProvider = FindFirstObjectByType<UiInputProvider>();
+            if (InputProvider != null)
+            {
+                return;
+            }
+
+            "ConversationController: no UiInputProvider found in scene. Add a UiInputProvider to the scene (e.g. on the HubManager or battle input rig) so conversation input is consistent with the rest of the UI.".LogError(
+                "ConversationController"
+            );
+        }
+
+        private void SubscribeInput()
         {
             if (_inputSubscribed)
             {
                 return;
             }
 
-            var action = UIInputActionDefaults.Select;
-            if (action != null)
+            EnsureInputProvider();
+            if (InputProvider == null)
             {
-                action.performed += OnAdvanceInputPerformed;
-                _inputSubscribed = true;
+                "ConversationController: no UiInputProvider available; cannot handle input.".LogError(
+                    "ConversationController"
+                );
+                return;
             }
+
+            InputProvider.OnInput += HandleInput;
+            _inputSubscribed = true;
         }
 
-        private void UnsubscribeAdvanceInput()
+        private void UnsubscribeInput()
         {
             if (!_inputSubscribed)
             {
                 return;
             }
 
-            var action = UIInputActionDefaults.Select;
-            if (action != null)
+            if (InputProvider != null)
             {
-                action.performed -= OnAdvanceInputPerformed;
+                InputProvider.OnInput -= HandleInput;
             }
             _inputSubscribed = false;
         }
@@ -481,7 +536,7 @@ namespace Turnroot.Conversations
             _brain?.PublishConversationStarted(conversation);
             _brain?.conversationalBrain?.MarkConversationStarted(conversation);
 
-            SubscribeAdvanceInput();
+            SubscribeInput();
             SubscribeConversationConditions();
             SubscribePlayerAcknowledgment();
             _conversationRoutine = StartCoroutine(
@@ -493,6 +548,8 @@ namespace Turnroot.Conversations
         {
             StopRoutine(ref _conversationRoutine);
             CancelActiveTweens();
+            UnsubscribeInput();
+            ClearChoiceButtons();
             _tweenRunId++;
         }
 
@@ -635,7 +692,7 @@ namespace Turnroot.Conversations
             _resolvedConditionTarget = null;
 
             onFinished?.Invoke();
-            UnsubscribeAdvanceInput();
+            UnsubscribeInput();
             UnsubscribeConversationConditions();
             UnsubscribePlayerAcknowledgment();
             OnAnyConversationFinished?.Invoke();
@@ -840,7 +897,7 @@ namespace Turnroot.Conversations
 
             CleanupPreviousConversation();
             ResetUI();
-            SubscribeAdvanceInput();
+            SubscribeInput();
             _oneShotRoutine = StartCoroutine(RunOneShot(oneShot));
         }
 
@@ -856,6 +913,7 @@ namespace Turnroot.Conversations
 
             _activeOneShotLayer = null;
             _oneShotRoutine = null;
+            UnsubscribeInput();
             HideConversationUI();
         }
 
@@ -963,6 +1021,18 @@ namespace Turnroot.Conversations
 
         private void ClearChoiceButtons()
         {
+            if (_activeChoiceButtons != null)
+            {
+                foreach (var choice in _activeChoiceButtons)
+                {
+                    choice?.Deselect();
+                }
+            }
+
+            _activeChoiceButtons = null;
+            _activeChoiceTargets = null;
+            _currentChoiceIndex = 0;
+
             if (_choiceButtonsContainer == null)
             {
                 return;
@@ -983,6 +1053,9 @@ namespace Turnroot.Conversations
 
             ClearChoiceButtons();
 
+            var choices = new List<UiChoice>();
+            var targets = new List<string>();
+
             foreach (var edge in choiceEdges)
             {
                 var choiceNode = _currentGraph.GetNode(edge.ToId);
@@ -991,16 +1064,30 @@ namespace Turnroot.Conversations
                     continue;
                 }
 
-                CreateChoiceButton(choiceNode);
+                var (choice, targetId) = CreateChoiceButton(choiceNode);
+                if (choice != null)
+                {
+                    choices.Add(choice);
+                    targets.Add(targetId);
+                }
+            }
+
+            _activeChoiceButtons = choices.ToArray();
+            _activeChoiceTargets = targets.ToArray();
+            _currentChoiceIndex = 0;
+
+            if (_activeChoiceButtons.Length > 0)
+            {
+                _activeChoiceButtons[0].Select();
             }
         }
 
-        private void CreateChoiceButton(MermaidNode choiceNode)
+        private (UiChoice Choice, string TargetId) CreateChoiceButton(MermaidNode choiceNode)
         {
             var go = Instantiate(_choiceButtonPrefab, _choiceButtonsContainer);
             if (go == null)
             {
-                return;
+                return (null, null);
             }
 
             go.SetActive(true);
@@ -1008,6 +1095,7 @@ namespace Turnroot.Conversations
             var btn = go.GetComponent<Button>();
             var img = go.GetComponent<Image>();
             var label = go.GetComponentInChildren<TextMeshProUGUI>(true);
+            var choice = go.GetComponent<UiChoice>();
 
             if (label != null)
             {
@@ -1020,18 +1108,30 @@ namespace Turnroot.Conversations
                 img.enabled = true;
             }
 
+            string targetId = null;
             if (btn != null)
             {
                 btn.gameObject.SetActive(true);
                 btn.interactable = true;
                 var outgoing = _currentGraph.GetOutgoing(choiceNode.Id);
-                var targetId = outgoing.Count > 0 ? outgoing[0].ToId : null;
-                btn.onClick.AddListener(() => _pendingChoiceTarget = targetId);
+                targetId = outgoing.Count > 0 ? outgoing[0].ToId : null;
+                btn.onClick.AddListener(() => OnChoiceSelected(targetId));
             }
+
+            return (choice, targetId);
         }
 
         private string GetChoiceLabel(MermaidNode choiceNode) =>
             !string.IsNullOrEmpty(choiceNode?.Text) ? choiceNode.Text : "Choice";
+
+        private void OnChoiceSelected(string targetId)
+        {
+            _pendingChoiceTarget = targetId;
+            ClearChoiceButtons();
+        }
+
+        private void OnCurrentChoiceSelected() =>
+            OnChoiceSelected(_activeChoiceTargets[_currentChoiceIndex]);
 
         private Coroutine StartTween(IEnumerator routine)
         {

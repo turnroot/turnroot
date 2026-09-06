@@ -77,6 +77,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
+            HubManager.GetCurrent()?.SetInputMode(HubManager.HubInputMode.None);
             controller.PlayConversationDirect(conversation, OnChitChatFinished);
         }
 
@@ -277,6 +278,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
             CharacterManager._brain.PublishHubCharacterTalked(ActiveCharacter);
             ReturnToActionsMenu(false);
+            HubManager.GetCurrent()?.RevertToPreviousInputMode();
         }
 
         private void CleanUpItems()

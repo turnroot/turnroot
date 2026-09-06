@@ -33,14 +33,14 @@ namespace Turnroot.Skills.Nodes.Conditions
             var skillGraph = graph as SkillGraph;
             if (skillGraph == null || !Application.isPlaying)
             {
-                return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
+                return port.fieldName == "count" ? new FloatValue() : new BoolValue();
             }
 
             var context = GetContextFromGraph(skillGraph);
             if (context?.Participants?.AdjacentUnits == null)
             {
                 $"{NodeName}: No adjacent units in context".LogWarning();
-                return port.fieldName == "count" ? new FloatValue() : (object)new BoolValue();
+                return port.fieldName == "count" ? new FloatValue() : new BoolValue();
             }
 
             int adjacentCount = GetAdjacentCount(context);

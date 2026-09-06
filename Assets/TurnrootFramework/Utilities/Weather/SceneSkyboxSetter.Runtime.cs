@@ -491,7 +491,7 @@ namespace Turnroot.Utilities.Weather
             ApplyDirectionalLightRotation();
             SetSkybox(
                 CurrentWeatherType,
-                HubDayStateStore.HasSkyboxIndex ? HubDayStateStore.SkyboxIndex : (int?)null
+                HubDayStateStore.HasSkyboxIndex ? HubDayStateStore.SkyboxIndex : null
             );
 
             // Always refresh overlay weather after scene change
