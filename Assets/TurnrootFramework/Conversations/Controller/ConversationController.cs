@@ -623,15 +623,23 @@ namespace Turnroot.Conversations
 
                     case MermaidNodeKind.Action:
                     {
-                        var shouldWait = ConversationActionExecutor.Execute(
+                        var actionResult = ConversationActionExecutor.Execute(
                             currentNode,
                             conversation,
                             this
                         );
-                        if (shouldWait)
+
+                        if (!actionResult.Success)
                         {
-                            _brain.PublishWaitForPlayerAcknowledgment(currentNode.Id);
-                            yield return WaitForPlayerAcknowledgment();
+                            // The executor already logs the failure with OperationResult.
+                            // Continue without blocking the conversation on a failed action.
+                            break;
+                        }
+
+                        if (actionResult.Value)
+                        {
+                            _brain?.PublishWaitForPlayerAcknowledgment(currentNode.Id);
+                            yield return WaitForPlayerAcknowledgment(currentNode.Id);
                         }
 
                         break;
@@ -759,7 +767,7 @@ namespace Turnroot.Conversations
             SetInterruptWaiting(false);
         }
 
-        private IEnumerator WaitForPlayerAcknowledgment()
+        private IEnumerator WaitForPlayerAcknowledgment(string nodeId)
         {
             if (_brain == null)
             {
@@ -767,10 +775,7 @@ namespace Turnroot.Conversations
             }
 
             _waitingForAcknowledgment = true;
-
             SetInterruptWaiting(true);
-            yield return new WaitUntil(() => !_waitingForAcknowledgment);
-            SetInterruptWaiting(false);
         }
 
         private ConversationLayer BuildLayerFromNode(
