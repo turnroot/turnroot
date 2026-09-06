@@ -144,7 +144,7 @@ namespace Turnroot.UI.Components
 
             _isShowing = false;
             StopAutoDismissCoroutine();
-            _brain.PublishPlayerAcknowledgedConversationEvent();
+            _brain.PublishConversationActionNotificationCompleted();
             if (_inputProvider != null)
             {
                 _inputProvider.OnInput -= HandleInput;

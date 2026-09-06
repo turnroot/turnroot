@@ -22,6 +22,8 @@ namespace Turnroot.Conversations
     /// </summary>
     public class ConversationController : MonoBehaviour
     {
+        #region Serialized Fields
+
         [Header("Audio")]
         public AudioSource _audioSource;
 
@@ -45,6 +47,10 @@ namespace Turnroot.Conversations
 
         public Transform _choiceButtonsContainer;
 
+        #endregion
+
+        #region Events & Public Properties
+
         public event Action OnAnyConversationStart;
         public event Action OnAnyConversationFinished;
 
@@ -58,6 +64,10 @@ namespace Turnroot.Conversations
         /// </summary>
         public string ActiveNodeId => _activeBranchingNodeId;
 
+        #endregion
+
+        #region Private Fields
+
         private Coroutine _conversationRoutine;
         private Coroutine _oneShotRoutine;
         private readonly List<Coroutine> _activeTweens = new();
@@ -69,11 +79,10 @@ namespace Turnroot.Conversations
         private Conversation _runningConversation;
         private MermaidConversationGraph _currentGraph;
         private string _resolvedConditionTarget;
-        private bool _waitingForAcknowledgment;
+        private bool _waitingForActionNotification;
         private readonly Dictionary<string, ConversationLayer.ActiveSpeakerType> _speakerSlots =
             new();
         private int _tweenRunId;
-        private bool _inputSubscribed;
 
         private UiChoice[] _activeChoiceButtons;
         private string[] _activeChoiceTargets;
@@ -86,15 +95,23 @@ namespace Turnroot.Conversations
 
         private const string ConversationResourcesPath = "Conversations";
 
+        #endregion
+
+        #region Lifecycle
+
         private void OnDisable()
         {
             UnsubscribeInput();
             UnsubscribeConversationConditions();
-            UnsubscribePlayerAcknowledgment();
+            UnsubscribeActionNotifications();
             CancelActiveTweens();
             StopRoutine(ref _conversationRoutine);
             StopRoutine(ref _oneShotRoutine);
         }
+
+        #endregion
+
+        #region Utilities
 
         private void StopRoutine(ref Coroutine routine)
         {
@@ -186,19 +203,16 @@ namespace Turnroot.Conversations
             );
         }
 
+        #endregion
+
+        #region Event Subscription Helpers
+
+        private bool _inputSubscribed;
+
         private void SubscribeInput()
         {
-            if (_inputSubscribed)
+            if (_inputSubscribed || InputProvider == null)
             {
-                return;
-            }
-
-            EnsureInputProvider();
-            if (InputProvider == null)
-            {
-                "ConversationController: no UiInputProvider available; cannot handle input.".LogError(
-                    "ConversationController"
-                );
                 return;
             }
 
@@ -208,59 +222,58 @@ namespace Turnroot.Conversations
 
         private void UnsubscribeInput()
         {
-            if (!_inputSubscribed)
+            if (!_inputSubscribed || InputProvider == null)
             {
                 return;
             }
 
-            if (InputProvider != null)
-            {
-                InputProvider.OnInput -= HandleInput;
-            }
+            InputProvider.OnInput -= HandleInput;
             _inputSubscribed = false;
+        }
+
+        private void SubscribeBrainEvent(Action subscribe)
+        {
+            if (_brain == null)
+            {
+                return;
+            }
+
+            subscribe();
         }
 
         private void SubscribeConversationConditions()
         {
-            if (_brain == null)
-            {
-                return;
-            }
-
-            _brain.OnConversationConditionMet += OnConversationConditionMet;
+            SubscribeBrainEvent(() =>
+                _brain.OnConversationConditionMet += OnConversationConditionMet
+            );
         }
 
         private void UnsubscribeConversationConditions()
         {
-            if (_brain == null)
-            {
-                return;
-            }
-
-            _brain.OnConversationConditionMet -= OnConversationConditionMet;
+            SubscribeBrainEvent(() =>
+                _brain.OnConversationConditionMet -= OnConversationConditionMet
+            );
         }
 
-        private void SubscribePlayerAcknowledgment()
+        private void SubscribeActionNotifications()
         {
-            if (_brain == null)
-            {
-                return;
-            }
-
-            _brain.OnPlayerAcknowledgedConversationEvent += OnPlayerAcknowledgedConversationEvent;
+            SubscribeBrainEvent(() =>
+                _brain.OnConversationActionNotificationCompleted += OnActionNotificationCompleted
+            );
         }
 
-        private void UnsubscribePlayerAcknowledgment()
+        private void UnsubscribeActionNotifications()
         {
-            if (_brain == null)
-            {
-                return;
-            }
-
-            _brain.OnPlayerAcknowledgedConversationEvent -= OnPlayerAcknowledgedConversationEvent;
+            SubscribeBrainEvent(() =>
+                _brain.OnConversationActionNotificationCompleted -= OnActionNotificationCompleted
+            );
         }
 
-        private void OnPlayerAcknowledgedConversationEvent() => _waitingForAcknowledgment = false;
+        private void OnActionNotificationCompleted() => _waitingForActionNotification = false;
+
+        #endregion
+
+        #region Condition Resolution
 
         private void OnConversationConditionMet(string conversationName, string conditionName)
         {
@@ -298,7 +311,7 @@ namespace Turnroot.Conversations
 
             var outgoing = _currentGraph.GetOutgoing(currentNodeId);
 
-            // If we're standing on a condition node, check it first.
+            // If we're standing on a condition node, check it first
             if (currentNode.Kind == MermaidNodeKind.Condition)
             {
                 if (
@@ -312,13 +325,11 @@ namespace Turnroot.Conversations
                     return outgoing.Count > 0 ? outgoing[0].ToId : null;
                 }
 
-                // Otherwise, allow a more specific outgoing condition to match instead
-                // (e.g. AttackBoss -> FelicityAttacked).
                 return ResolveConditionTargetFromOutgoing(outgoing, conditionName);
             }
 
             // If we're on a non-condition node with outgoing condition branches, resolve
-            // directly to the node after the matching condition.
+            // directly to the node after the matching condition
             return ResolveConditionTargetFromOutgoing(outgoing, conditionName);
         }
 
@@ -351,12 +362,12 @@ namespace Turnroot.Conversations
             return null;
         }
 
+        #endregion
+
+        #region Public Entry Points
+
         public void Advance() => NextLayer();
 
-        /// <summary>
-        /// Plays a conversation loaded from Resources/Conversations by its asset name.
-        /// Use this from UnityEvents or code that only knows an id string.
-        /// </summary>
         public void PlayConversationById(string conversationId, Action onFinished = null)
         {
             if (!TryLoadConversationById(conversationId, out var conversation))
@@ -372,10 +383,6 @@ namespace Turnroot.Conversations
             BeginConversation(conversation, onFinished, null, nameof(PlayConversationDirect));
         }
 
-        /// <summary>
-        /// Starts a conversation loaded from Resources/Conversations by its asset name,
-        /// beginning at the specified Mermaid node id.
-        /// </summary>
         public void StartConversationById(string conversationId, string nodeId = null)
         {
             if (!TryLoadConversationById(conversationId, out var conversation))
@@ -517,6 +524,10 @@ namespace Turnroot.Conversations
             );
         }
 
+        #endregion
+
+        #region Conversation Lifecycle
+
         private void StartConversationInternal(
             Conversation conversation,
             Action onFinished,
@@ -543,7 +554,7 @@ namespace Turnroot.Conversations
 
             SubscribeInput();
             SubscribeConversationConditions();
-            SubscribePlayerAcknowledgment();
+            SubscribeActionNotifications();
             _conversationRoutine = StartCoroutine(
                 RunMermaidGraph(conversation, onFinished, startNodeId)
             );
@@ -567,6 +578,10 @@ namespace Turnroot.Conversations
             SetTextIfNotNull(_speakerNameText, string.Empty);
             ClearChoiceButtons();
         }
+
+        #endregion
+
+        #region Graph Execution
 
         private IEnumerator RunMermaidGraph(
             Conversation conversation,
@@ -641,14 +656,14 @@ namespace Turnroot.Conversations
                             this
                         );
 
-                        $"[Conversation] Action '{currentNode.Id}' result: success={actionResult.Success}, waitForAck={actionResult.Value}".LogInfo(
+                        $"[Conversation] Action '{currentNode.Id}' result: success={actionResult.Success}".LogInfo(
                             "ConversationController"
                         );
 
-                        if (actionResult.Success && actionResult.Value)
+                        if (actionResult.Success)
                         {
-                            _brain?.PublishWaitForPlayerAcknowledgment(currentNode.Id);
-                            yield return WaitForPlayerAcknowledgment(currentNode.Id);
+                            _brain?.PublishConversationActionNotificationRequested(currentNode.Id);
+                            yield return WaitForActionNotification(currentNode.Id);
                         }
 
                         break;
@@ -717,7 +732,7 @@ namespace Turnroot.Conversations
             onFinished?.Invoke();
             UnsubscribeInput();
             UnsubscribeConversationConditions();
-            UnsubscribePlayerAcknowledgment();
+            UnsubscribeActionNotifications();
             OnAnyConversationFinished?.Invoke();
             _brain?.PublishConversationEnded(conversation);
 
@@ -730,10 +745,20 @@ namespace Turnroot.Conversations
                 _sceneFlow.CompleteInterrupt();
             }
 
+            ResetUI();
+            HideConversationUI();
+            $"[Conversation] Conversation '{conversation.name}' finished; UI cleared and hidden.".LogInfo(
+                "ConversationController"
+            );
+
             _conversationRoutine = null;
             _runningConversation = null;
             _currentGraph = null;
         }
+
+        #endregion
+
+        #region Graph Helpers
 
         private bool AllTargetsAreChoices(List<MermaidEdge> edges)
         {
@@ -782,29 +807,33 @@ namespace Turnroot.Conversations
             SetInterruptWaiting(false);
         }
 
-        private IEnumerator WaitForPlayerAcknowledgment(string nodeId)
+        private IEnumerator WaitForActionNotification(string nodeId)
         {
             if (_brain == null)
             {
-                $"[Conversation] Cannot wait for player acknowledgement on '{nodeId}' because Brain is null.".LogWarning(
+                $"[Conversation] Cannot wait for action notification on '{nodeId}' because Brain is null.".LogWarning(
                     "ConversationController"
                 );
                 yield break;
             }
 
-            _waitingForAcknowledgment = true;
+            _waitingForActionNotification = true;
             SetInterruptWaiting(true);
-            $"[Conversation] Waiting for player acknowledgement on action node '{nodeId}'".LogInfo(
+            $"[Conversation] Waiting for action notification completion on node '{nodeId}'".LogInfo(
                 "ConversationController"
             );
 
-            yield return new WaitUntil(() => !_waitingForAcknowledgment);
+            yield return new WaitUntil(() => !_waitingForActionNotification);
 
-            $"[Conversation] Player acknowledged action node '{nodeId}'".LogInfo(
+            $"[Conversation] Action notification completed for node '{nodeId}'; continuing.".LogInfo(
                 "ConversationController"
             );
             SetInterruptWaiting(false);
         }
+
+        #endregion
+
+        #region Layer Processing
 
         private ConversationLayer BuildLayerFromNode(
             MermaidNode node,
@@ -1052,6 +1081,10 @@ namespace Turnroot.Conversations
             StartTween(tween);
         }
 
+        #endregion
+
+        #region Choices
+
         private void ClearChoiceButtons()
         {
             if (_activeChoiceButtons != null)
@@ -1175,6 +1208,10 @@ namespace Turnroot.Conversations
         private string GetChoiceLabel(MermaidNode choiceNode) =>
             !string.IsNullOrEmpty(choiceNode?.Text) ? choiceNode.Text : "Choice";
 
+        #endregion
+
+        #region Choice Handlers
+
         private void OnChoiceSelected(string targetId)
         {
             if (string.IsNullOrEmpty(targetId))
@@ -1216,6 +1253,10 @@ namespace Turnroot.Conversations
             OnChoiceSelected(targetId);
         }
 
+        #endregion
+
+        #region Tweens
+
         private Coroutine StartTween(IEnumerator routine)
         {
             if (routine == null)
@@ -1242,5 +1283,7 @@ namespace Turnroot.Conversations
         }
 
         private void OnDestroy() => CancelActiveTweens();
+
+        #endregion
     }
 }

@@ -15,22 +15,10 @@ namespace Turnroot.Gameplay.Brain
         public event Action<Conversation> OnConversationEnded;
         public event Action<ConversationLayer> OnConversationLayerStarted;
         public event Action<ConversationLayer> OnConversationLayerEnded;
-
-        /// <summary>
-        /// Fired when gameplay code reports a conversation signal.
-        /// Parameters: conversation name, signal name.
-        /// </summary>
         public event Action<string, string> OnConversationSignal;
-
-        /// <summary>
-        /// Fired when an external system reports that a conversation condition has been met.
-        /// Parameters: conversation name, condition name.
-        /// </summary>
         public event Action<string, string> OnConversationConditionMet;
-
-        public event Action OnPlayerAcknowledgedConversationEvent;
-
-        public event Action<string> OnWaitForPlayerAcknowledgment;
+        public event Action OnConversationActionNotificationCompleted;
+        public event Action<string> OnConversationActionNotificationRequested;
 
         public void PublishSupportPointsChanged(SupportRelationshipInstance relationship) =>
             OnSupportPointsChanged?.Invoke(relationship);
@@ -62,11 +50,11 @@ namespace Turnroot.Gameplay.Brain
             string conditionName
         ) => OnConversationConditionMet?.Invoke(conversationName, conditionName);
 
-        public void PublishPlayerAcknowledgedConversationEvent() =>
-            OnPlayerAcknowledgedConversationEvent?.Invoke();
+        public void PublishConversationActionNotificationCompleted() =>
+            OnConversationActionNotificationCompleted?.Invoke();
 
-        public void PublishWaitForPlayerAcknowledgment(string id) =>
-            OnWaitForPlayerAcknowledgment?.Invoke(id);
+        public void PublishConversationActionNotificationRequested(string id) =>
+            OnConversationActionNotificationRequested?.Invoke(id);
         #endregion
     }
 }
