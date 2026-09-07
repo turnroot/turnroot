@@ -40,12 +40,9 @@ namespace Turnroot.Gameplay.Brain
             UnifyBoneHierarchies(root);
 
             var animator = root.AddComponent<Animator>();
-            if (_settings.DefaultUnitAnimatorController != null)
-            {
-                animator.runtimeAnimatorController = _settings.DefaultUnitAnimatorController;
-            }
 
-            // Apply the shared Humanoid Avatar used for retargeting all character models
+            // Apply the shared Humanoid Avatar used for retargeting all character models.
+            // Per-character AnimatorControllers are created/assigned at runtime as needed.
             if (_settings.CharacterAvatar != null)
             {
                 animator.avatar = _settings.CharacterAvatar;

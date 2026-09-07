@@ -41,41 +41,5 @@ namespace Turnroot.Gameplay.Brain
 
             return instance;
         }
-
-        /// <summary>
-        /// Assigns a runtime animator controller if present, logs a single consistent warning if missing,
-        /// and optionally calls <see cref="SetupWalkAnimation"/> to complete setup.
-        /// </summary>
-        public void AssignAnimatorController(
-            Animator animator,
-            RuntimeAnimatorController controllerToUse,
-            GameObject model = null,
-            CharacterInstance unit = null,
-            bool callSetupWalk = false
-        )
-        {
-            if (animator == null)
-            {
-                return;
-            }
-
-            if (controllerToUse != null)
-            {
-                animator.runtimeAnimatorController = controllerToUse;
-            }
-            else
-            {
-                var displayName =
-                    unit?.CharacterTemplate?.DisplayName ?? model?.name ?? "<unknown>";
-                LogWarning(
-                    $"No animator controller available for {displayName}. Set MountAnimator on class or DefaultUnitAnimatorController in settings."
-                );
-            }
-
-            if (callSetupWalk && model != null && unit != null)
-            {
-                SetupWalkAnimation(model, unit);
-            }
-        }
     }
 }
