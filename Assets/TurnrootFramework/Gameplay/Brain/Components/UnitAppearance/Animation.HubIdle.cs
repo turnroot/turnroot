@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using UnityEditor.Animations;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -10,10 +11,10 @@ namespace Turnroot.Gameplay.Brain
 
         /// <summary>
         /// Configures a hub unit model to play the current class's idle animations
-        /// on loop, blending randomly through them.
+        /// on loop, blending randomly through them
         ///
         /// Call this after <see cref="CreateModelForUnit"/> both when HubTeamLocations spawns hub
-        /// unit models and when HubCharacter spawns its avatar model.
+        /// unit models and when HubCharacter spawns its avatar model
         /// </summary>
         public void SetupHubIdleAnimation(GameObject model, CharacterInstance unit)
         {
@@ -22,26 +23,21 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            if (!model.TryGetComponent<Animator>(out var animator))
-            {
-                LogWarning($"SetupHubIdleAnimation: model '{model.name}' has no Animator.");
-                return;
-            }
+            var animator = model.GetComponent<Animator>();
 
-            var baseController = animator.runtimeAnimatorController;
-            if (baseController == null)
-            {
-                LogWarning(
-                    $"SetupHubIdleAnimation: Animator on '{model.name}' has no controller assigned."
-                );
-                return;
-            }
+            // CreateModelForUnit doesn't create an controller, just use the override
+
+            var baseController = new AnimatorController();
+            animator.runtimeAnimatorController = baseController;
 
             var idleClips = ResolveHubIdleClips(unit);
             if (idleClips == null || idleClips.Length == 0)
             {
                 return;
             }
+
+            // so we make the base controller so the AOC has something to override,
+            // then immediately just override it. Seems sloppy but I don't know a better way at the moment
 
             var overrideController = new AnimatorOverrideController(baseController);
 
@@ -51,7 +47,7 @@ namespace Turnroot.Gameplay.Brain
                 overrideController[IdleState] = firstClip;
             }
 
-            // Stop any existing idle loop for this model before starting a new one.
+            // Stop any existing idle loop for this model before starting a new one
             int modelId = model.GetInstanceID();
             if (
                 _hubIdleCoroutines.TryGetValue(modelId, out var existingRoutine)
