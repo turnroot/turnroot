@@ -63,7 +63,7 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void HandleBattleObjectSet(BattleGameObject battleObject) => HandleBattleStarted();
+        private void HandleBattleObjectSet(BattleGameObject battleObject) { }
 
         /// <summary>
         /// Keeps model tracking in sync after a pre-battle unit swap.
@@ -85,20 +85,6 @@ namespace Turnroot.Gameplay.Brain
                     $"HandleModelSwappedEvent: Failed to swap model positions: {result.ErrorMessage}".LogWarning();
                 }
             }
-        }
-
-        private OperationResult HandleBattleStarted()
-        {
-            // ARCHITECTURAL BOUNDARY: This method no longer needs to clear models.
-            // Pre-battle models are despawned by BattleBrain.HandleStartBattle() line 137 BEFORE battle models spawn.
-            // By the time this method runs, SpawnRosterUnitsOntoGrid() has already spawned battle models.
-            // Any models in dictionaries at this point are the BATTLE models - do NOT clear them!
-            //
-            // SINGLE SOURCE OF TRUTH for model spawning:
-            // BattleBrain.SpawnRosterUnitsOntoGrid() → SpawnCommand → UnitSpawnedEvent → HandleUnitSpawnedEvent → SpawnUnitAtPosition
-
-            $"HandleBattleStarted: Battle models already spawned by SpawnRosterUnitsOntoGrid()".LogInfo();
-            return OperationResult.Successful();
         }
 
         private Vector3 GetWorldPosition(Vector2Int pos, bool prebattle)

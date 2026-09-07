@@ -59,23 +59,20 @@ namespace Turnroot.Gameplay.Brain
             );
             mountInstance.transform.localScale = unitModel.transform.localScale;
 
-            // Set up animator - use MountAnimator if provided, otherwise use default
+            // Set up animator - use MountAnimator if provided
             var animator =
                 mountInstance.GetComponent<Animator>() ?? mountInstance.AddComponent<Animator>();
 
-            // Assign animator controller - prefer mount-specific, fall back to default
-            var controllerToUse =
-                classData.Identity.MountAnimator ?? _settings?.DefaultUnitAnimatorController;
-
-            if (controllerToUse != null)
+            // Assign mount-specific animator controller if configured.
+            if (classData.Identity.MountAnimator != null)
             {
-                animator.runtimeAnimatorController = controllerToUse;
+                animator.runtimeAnimatorController = classData.Identity.MountAnimator;
             }
             else
             {
                 var displayName = unit.CharacterTemplate?.DisplayName ?? "<unknown>";
                 LogWarning(
-                    $"No animator controller available for mount of {displayName}. Set MountAnimator on class or DefaultUnitAnimatorController in settings."
+                    $"No animator controller available for mount of {displayName}. Set MountAnimator on the class identity."
                 );
             }
 
