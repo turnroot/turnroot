@@ -37,19 +37,8 @@ namespace Turnroot.Gameplay.Brain
 
             if (walkClip != null)
             {
-                // Ensure the walk animation loops at runtime; some imported clips
-                // forget to enable Loop Time which causes characters to freeze
-                // after a single frame.  We modify the wrap mode here rather than
-                // relying on the import settings so prototypes don't break.
                 walkClip.wrapMode = WrapMode.Loop;
                 overrideController[WalkState] = walkClip;
-
-#if UNITY_EDITOR
-                if (!walkClip.isLooping)
-                {
-                    $"[UnitAppearance] Walk clip '{walkClip.name}' is not set to loop, characters may stop animating during movement.".LogWarning();
-                }
-#endif
             }
 
             animator.runtimeAnimatorController = overrideController;
