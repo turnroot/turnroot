@@ -47,21 +47,17 @@ namespace Turnroot.Conversations
 
         public Transform _choiceButtonsContainer;
 
+        [Header("Hide During Conversation")]
+        public GameObject[] ObjectsToHideDuringConversation;
+        private Dictionary<GameObject, bool> _originalVisibilityState = new();
+
         #endregion
 
         #region Events & Public Properties
 
         public event Action OnAnyConversationStart;
         public event Action OnAnyConversationFinished;
-
-        /// <summary>
-        /// The conversation currently being played, or null if none is active.
-        /// </summary>
         public Conversation ActiveConversation => _runningConversation;
-
-        /// <summary>
-        /// The id of the currently executing Mermaid node, or null if no conversation is active.
-        /// </summary>
         public string ActiveNodeId => _activeBranchingNodeId;
 
         #endregion
@@ -108,6 +104,8 @@ namespace Turnroot.Conversations
             StopRoutine(ref _conversationRoutine);
             StopRoutine(ref _oneShotRoutine);
         }
+
+        private void Awake() => EnsureInputProvider();
 
         #endregion
 
@@ -534,6 +532,11 @@ namespace Turnroot.Conversations
             string startNodeId = null
         )
         {
+            ManageObjectsEnabled.SetVisibilityStateOfObjectsToHide(
+                _originalVisibilityState,
+                ObjectsToHideDuringConversation
+            );
+            ManageObjectsEnabled.HideObjectsToHide(ObjectsToHideDuringConversation);
             CleanupPreviousConversation();
             ResetUI();
             ShowConversationUI();
@@ -747,6 +750,10 @@ namespace Turnroot.Conversations
 
             ResetUI();
             HideConversationUI();
+            ManageObjectsEnabled.RestoreVisibilityStateOfObjectsThatWereHidden(
+                _originalVisibilityState
+            );
+
             $"[Conversation] Conversation '{conversation.name}' finished; UI cleared and hidden.".LogInfo(
                 "ConversationController"
             );
@@ -951,6 +958,11 @@ namespace Turnroot.Conversations
             }
 
             ShowConversationUI();
+            ManageObjectsEnabled.SetVisibilityStateOfObjectsToHide(
+                _originalVisibilityState,
+                ObjectsToHideDuringConversation
+            );
+            ManageObjectsEnabled.HideObjectsToHide(ObjectsToHideDuringConversation);
 
             if (oneShot.Audio != null && _audioSource != null)
             {
@@ -959,6 +971,9 @@ namespace Turnroot.Conversations
 
             CleanupPreviousConversation();
             ResetUI();
+            ManageObjectsEnabled.RestoreVisibilityStateOfObjectsThatWereHidden(
+                _originalVisibilityState
+            );
             SubscribeInput();
             _oneShotRoutine = StartCoroutine(RunOneShot(oneShot));
         }
