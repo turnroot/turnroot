@@ -638,6 +638,7 @@ namespace Turnroot.Conversations
                 {
                     case MermaidNodeKind.Dialogue:
                     {
+                        _uiFade.Show();
                         var layer = BuildLayerFromNode(currentNode, conversation.People);
                         if (layer != null)
                         {
@@ -649,6 +650,7 @@ namespace Turnroot.Conversations
 
                     case MermaidNodeKind.Action:
                     {
+                        _uiFade.Hide();
                         $"[Conversation] Executing action node '{currentNode.Id}' type='{currentNode.ActionType}' target='{currentNode.ActionTarget}'".LogInfo(
                             "ConversationController"
                         );
@@ -673,13 +675,22 @@ namespace Turnroot.Conversations
                     }
 
                     case MermaidNodeKind.Condition:
+                    {
+                        _uiFade.Show();
                         yield return WaitForConditionNode();
                         currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
                         continue;
+                    }
 
                     case MermaidNodeKind.Start:
+                    {
+                        _uiFade.Show();
+                        break;
+                    }
                     case MermaidNodeKind.Choice:
-                        // Routing for Choice is handled below; Start is a pass-through marker.
+                        {
+                            _uiFade.Show();
+                        }
                         break;
                 }
 
