@@ -48,7 +48,7 @@ namespace Turnroot.Conversations
         public Transform _choiceButtonsContainer;
 
         [Header("Hide During Conversation")]
-        public GameObject[] _objectsToHideDuringConversation;
+        public GameObject[] ObjectsToHideDuringConversation;
         private Dictionary<GameObject, bool> _originalVisibilityState = new();
 
         #endregion
@@ -103,35 +103,6 @@ namespace Turnroot.Conversations
             CancelActiveTweens();
             StopRoutine(ref _conversationRoutine);
             StopRoutine(ref _oneShotRoutine);
-        }
-
-        private void SetVisibilityStateOfObjectsToHideDuringConversation()
-        {
-            _originalVisibilityState.Clear();
-            if (_objectsToHideDuringConversation != null)
-            {
-                foreach (var obj in _objectsToHideDuringConversation)
-                {
-                    if (obj != null)
-                    {
-                        _originalVisibilityState[obj] = obj.activeSelf;
-                    }
-                }
-            }
-        }
-
-        private void RestoreVisibilityStateOfObjectsThatWereHiddenDuringConversation()
-        {
-            if (_originalVisibilityState != null)
-            {
-                foreach (var kvp in _originalVisibilityState)
-                {
-                    if (kvp.Key != null)
-                    {
-                        kvp.Key.SetActive(kvp.Value);
-                    }
-                }
-            }
         }
 
         private void Awake() => EnsureInputProvider();
@@ -561,7 +532,11 @@ namespace Turnroot.Conversations
             string startNodeId = null
         )
         {
-            SetVisibilityStateOfObjectsToHideDuringConversation();
+            ManageObjectsEnabled.SetVisibilityStateOfObjectsToHide(
+                _originalVisibilityState,
+                ObjectsToHideDuringConversation
+            );
+            ManageObjectsEnabled.HideObjectsToHide(ObjectsToHideDuringConversation);
             CleanupPreviousConversation();
             ResetUI();
             ShowConversationUI();
@@ -775,7 +750,9 @@ namespace Turnroot.Conversations
 
             ResetUI();
             HideConversationUI();
-            RestoreVisibilityStateOfObjectsThatWereHiddenDuringConversation();
+            ManageObjectsEnabled.RestoreVisibilityStateOfObjectsThatWereHidden(
+                _originalVisibilityState
+            );
 
             $"[Conversation] Conversation '{conversation.name}' finished; UI cleared and hidden.".LogInfo(
                 "ConversationController"
@@ -981,7 +958,11 @@ namespace Turnroot.Conversations
             }
 
             ShowConversationUI();
-            SetVisibilityStateOfObjectsToHideDuringConversation();
+            ManageObjectsEnabled.SetVisibilityStateOfObjectsToHide(
+                _originalVisibilityState,
+                ObjectsToHideDuringConversation
+            );
+            ManageObjectsEnabled.HideObjectsToHide(ObjectsToHideDuringConversation);
 
             if (oneShot.Audio != null && _audioSource != null)
             {
@@ -990,7 +971,9 @@ namespace Turnroot.Conversations
 
             CleanupPreviousConversation();
             ResetUI();
-            RestoreVisibilityStateOfObjectsThatWereHiddenDuringConversation();
+            ManageObjectsEnabled.RestoreVisibilityStateOfObjectsThatWereHidden(
+                _originalVisibilityState
+            );
             SubscribeInput();
             _oneShotRoutine = StartCoroutine(RunOneShot(oneShot));
         }
