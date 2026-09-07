@@ -47,21 +47,17 @@ namespace Turnroot.Conversations
 
         public Transform _choiceButtonsContainer;
 
+        [Header("Hide During Conversation")]
+        public GameObject[] _objectsToHideDuringConversation;
+        private Dictionary<GameObject, bool> _originalVisibilityState = new();
+
         #endregion
 
         #region Events & Public Properties
 
         public event Action OnAnyConversationStart;
         public event Action OnAnyConversationFinished;
-
-        /// <summary>
-        /// The conversation currently being played, or null if none is active.
-        /// </summary>
         public Conversation ActiveConversation => _runningConversation;
-
-        /// <summary>
-        /// The id of the currently executing Mermaid node, or null if no conversation is active.
-        /// </summary>
         public string ActiveNodeId => _activeBranchingNodeId;
 
         #endregion
@@ -108,6 +104,37 @@ namespace Turnroot.Conversations
             StopRoutine(ref _conversationRoutine);
             StopRoutine(ref _oneShotRoutine);
         }
+
+        private void SetVisibilityStateOfObjectsToHideDuringConversation()
+        {
+            _originalVisibilityState.Clear();
+            if (_objectsToHideDuringConversation != null)
+            {
+                foreach (var obj in _objectsToHideDuringConversation)
+                {
+                    if (obj != null)
+                    {
+                        _originalVisibilityState[obj] = obj.activeSelf;
+                    }
+                }
+            }
+        }
+
+        private void RestoreVisibilityStateOfObjectsThatWereHiddenDuringConversation()
+        {
+            if (_originalVisibilityState != null)
+            {
+                foreach (var kvp in _originalVisibilityState)
+                {
+                    if (kvp.Key != null)
+                    {
+                        kvp.Key.SetActive(kvp.Value);
+                    }
+                }
+            }
+        }
+
+        private void Awake() => EnsureInputProvider();
 
         #endregion
 
@@ -534,6 +561,7 @@ namespace Turnroot.Conversations
             string startNodeId = null
         )
         {
+            SetVisibilityStateOfObjectsToHideDuringConversation();
             CleanupPreviousConversation();
             ResetUI();
             ShowConversationUI();
@@ -747,6 +775,8 @@ namespace Turnroot.Conversations
 
             ResetUI();
             HideConversationUI();
+            RestoreVisibilityStateOfObjectsThatWereHiddenDuringConversation();
+
             $"[Conversation] Conversation '{conversation.name}' finished; UI cleared and hidden.".LogInfo(
                 "ConversationController"
             );
@@ -951,6 +981,7 @@ namespace Turnroot.Conversations
             }
 
             ShowConversationUI();
+            SetVisibilityStateOfObjectsToHideDuringConversation();
 
             if (oneShot.Audio != null && _audioSource != null)
             {
@@ -959,6 +990,7 @@ namespace Turnroot.Conversations
 
             CleanupPreviousConversation();
             ResetUI();
+            RestoreVisibilityStateOfObjectsThatWereHiddenDuringConversation();
             SubscribeInput();
             _oneShotRoutine = StartCoroutine(RunOneShot(oneShot));
         }
