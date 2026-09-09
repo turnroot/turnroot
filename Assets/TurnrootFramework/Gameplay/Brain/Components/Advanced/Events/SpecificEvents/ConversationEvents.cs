@@ -19,6 +19,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action<string, string> OnConversationConditionMet;
         public event Action OnConversationActionNotificationCompleted;
         public event Action<string> OnConversationActionNotificationRequested;
+        public event Action<string, Conversation> OnGenericConversationEvent;
 
         public void PublishSupportPointsChanged(SupportRelationshipInstance relationship) =>
             OnSupportPointsChanged?.Invoke(relationship);
@@ -55,6 +56,10 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishConversationActionNotificationRequested(string id) =>
             OnConversationActionNotificationRequested?.Invoke(id);
+
+        public void PublishGenericConversationEvent(string eventId, Conversation conversation) =>
+            OnGenericConversationEvent?.Invoke(eventId, conversation);
+            
         #endregion
     }
 }

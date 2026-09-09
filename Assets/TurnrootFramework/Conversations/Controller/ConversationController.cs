@@ -47,6 +47,9 @@ namespace Turnroot.Conversations
 
         public Transform _choiceButtonsContainer;
 
+        [Header("Generic Conversation Events")]
+        public GenericConversationAction[] GenericConversationActions;
+
         [Header("Hide During Conversation")]
         public GameObject[] ObjectsToHideDuringConversation;
         private Dictionary<GameObject, bool> _originalVisibilityState = new();
@@ -98,6 +101,7 @@ namespace Turnroot.Conversations
         private void OnDisable()
         {
             UnsubscribeInput();
+            UnsubscribeGenericConversationEvents();
             UnsubscribeConversationConditions();
             UnsubscribeActionNotifications();
             CancelActiveTweens();
@@ -250,6 +254,20 @@ namespace Turnroot.Conversations
         {
             SubscribeBrainEvent(() =>
                 _brain.OnConversationConditionMet -= OnConversationConditionMet
+            );
+        }
+
+        private void SubscribeGenericConversationEvents()
+        {
+            SubscribeBrainEvent(() =>
+                _brain.OnGenericConversationEvent += OnGenericConversationEvent
+            );
+        }
+
+        private void UnsubscribeGenericConversationEvents()
+        {
+            SubscribeBrainEvent(() =>
+                _brain.OnGenericConversationEvent -= OnGenericConversationEvent
             );
         }
 
@@ -556,6 +574,7 @@ namespace Turnroot.Conversations
             _brain?.conversationalBrain?.MarkConversationStarted(conversation);
 
             SubscribeInput();
+            SubscribeGenericConversationEvents();
             SubscribeConversationConditions();
             SubscribeActionNotifications();
             _conversationRoutine = StartCoroutine(
@@ -745,6 +764,7 @@ namespace Turnroot.Conversations
 
             onFinished?.Invoke();
             UnsubscribeInput();
+            UnsubscribeGenericConversationEvents();
             UnsubscribeConversationConditions();
             UnsubscribeActionNotifications();
             OnAnyConversationFinished?.Invoke();
@@ -1310,6 +1330,39 @@ namespace Turnroot.Conversations
 
         private void OnDestroy() => CancelActiveTweens();
 
+        #endregion
+
+        #region Generic Conversation Events
+        public void OnGenericConversationEvent(string eventId, Conversation conversation)
+        {
+            if (string.IsNullOrEmpty(eventId))
+            {
+                $"ConversationController: OnGenericConversationEvent called with null/empty eventId.".LogWarning(
+                    "ConversationController"
+                );
+                return;
+            }
+
+            $"ConversationController: OnGenericConversationEvent called with eventId='{eventId}' and conversation='{conversation?.name ?? "<null>"}'.".LogInfo(
+                "ConversationController"
+            );
+
+            foreach (var action in GenericConversationActions)
+            {
+                // check if the conversation matches
+                if (action.Conversation != null && action.Conversation != conversation)
+                {
+                    continue;
+                }
+                // check if the segmentId == eventId
+                if (!string.Equals(action.SegmentId, eventId, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                // let's go
+                action.Invoke();
+            }
+        }
         #endregion
     }
 }
