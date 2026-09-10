@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using Turnroot.Gameplay.Objects;
+using Turnroot.CommonAncestors;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -826,7 +827,11 @@ namespace Turnroot.Gameplay.Maps
 
                 GUILayout.Space(10);
 
-                if (point.FeatureType == MapGridPointFeature.FeatureType.Door)
+                if (
+                    point.FeatureType
+                    is MapGridPointFeature.FeatureType.Door
+                        or MapGridPointFeature.FeatureType.Treasure
+                )
                 {
                     EditorGUI.BeginChangeCheck();
                     bool newLocked = EditorGUILayout.Toggle("Locked", point.FeatureLocked);
@@ -954,9 +959,22 @@ namespace Turnroot.Gameplay.Maps
                     int range = EditorGUILayout.IntField("Range", point.RangedRange);
                     int dmg = EditorGUILayout.IntField("Damage", point.RangedDamage);
                     float hit = EditorGUILayout.FloatField("Hit %", point.RangedHit);
+                    int hitsub = EditorGUILayout.IntField(
+                        "-Hit Per Range Tile",
+                        point.HitLostPerRangeTile
+                    );
                     bool ride = EditorGUILayout.Toggle("Allows Riding", point.RangedAllowsRiding);
                     bool fly = EditorGUILayout.Toggle("Allows Flying", point.RangedAllowsFlying);
                     bool magic = EditorGUILayout.Toggle("Magic Only", point.RangedMagicOnly);
+                    bool minexp = EditorGUILayout.Toggle(
+                        "Min Bow Experience",
+                        point.RangedMinimumBowExperience
+                    );
+                    RangedExperienceLevels minExpLevel = (RangedExperienceLevels)
+                        EditorGUILayout.EnumPopup(
+                            "Min Bow Exp Level",
+                            point.RangedMinimumBowExperienceLevel
+                        );
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(point, "Edit Ranged Properties");
@@ -966,13 +984,17 @@ namespace Turnroot.Gameplay.Maps
                         point.RangedAllowsRiding = ride;
                         point.RangedAllowsFlying = fly;
                         point.RangedMagicOnly = magic;
+                        point.RangedMinimumBowExperience = minexp;
+                        point.HitLostPerRangeTile = hitsub;
+                        point.RangedMinimumBowExperienceLevel = minExpLevel;
                         _grid?.SaveFeatureLayer();
                         MarkDirty();
                     }
                 }
                 else if (
-                    point.FeatureType == MapGridPointFeature.FeatureType.Treasure
-                    || point.FeatureType == MapGridPointFeature.FeatureType.Underground
+                    point.FeatureType
+                    is MapGridPointFeature.FeatureType.Treasure
+                        or MapGridPointFeature.FeatureType.Underground
                 )
                 {
                     EditorGUI.BeginChangeCheck();

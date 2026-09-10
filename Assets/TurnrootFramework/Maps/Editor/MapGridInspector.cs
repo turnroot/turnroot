@@ -27,8 +27,8 @@ namespace Turnroot.Gameplay.Maps
             {
                 enterChildren = false;
                 if (
-                    prop.name == "_single3dHeightMeshRaycastPoints"
-                    || prop.name == "_single3dHeightMeshRaycastIndices"
+                    prop.name is "_single3dHeightMeshRaycastPoints"
+                    or "_single3dHeightMeshRaycastIndices"
                 )
                 {
                     continue;

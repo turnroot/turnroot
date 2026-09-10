@@ -1,14 +1,23 @@
 using System.Collections.Generic;
+using Turnroot.CommonAncestors;
 using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Maps
 {
+    [System.Serializable]
+    public enum RangedExperienceLevels
+    {
+        E,
+        D,
+        C,
+        B,
+        A,
+        S,
+    }
+
     public partial class MapGridPoint : MonoBehaviour
     {
-        // ---------------------------------------------------------------------
-        // Feature-specific state
-        // ---------------------------------------------------------------------
         [SerializeField]
         [Tooltip("Feature display name (optional).")]
         private string _featureName = string.Empty;
@@ -31,7 +40,6 @@ namespace Turnroot.Gameplay.Maps
         [SerializeField]
         private int _activeWarpIndex = 0;
 
-        // shelter targeting restrictions
         [SerializeField]
         private bool _shelterNoFly = false;
 
@@ -41,17 +49,17 @@ namespace Turnroot.Gameplay.Maps
         [SerializeField]
         private bool _shelterNoInfantry = false;
 
-        // breakable-specific state
         [SerializeField]
         private int _breakableHealth = 0;
 
-        // healing-specific state
         [SerializeField]
         private float _healingPercentPerTurn = 0f;
 
-        // ranged-specific state
         [SerializeField]
         private int _rangedRange = 0;
+
+        [SerializeField]
+        private int _hitLostPerRangeTile = 0;
 
         [SerializeField]
         private int _rangedDamage = 0;
@@ -67,6 +75,12 @@ namespace Turnroot.Gameplay.Maps
 
         [SerializeField]
         private bool _rangedMagicOnly = false;
+
+        [SerializeField]
+        private bool _rangedMinimumBowExperience = false;
+
+        [SerializeField]
+        private RangedExperienceLevels _rangedMinimumBowExperienceLevel = RangedExperienceLevels.E;
 
         public bool FeatureLocked
         {
@@ -88,9 +102,6 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        /// <summary>
-        /// For treasure/underground features, the common item reward.
-        /// </summary>
         public ObjectItem FeatureCommonItem
         {
             get => _featureCommonItem;
@@ -101,9 +112,6 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        /// <summary>
-        /// For treasure/underground features, the rare item reward.
-        /// </summary>
         public ObjectItem FeatureRareItem
         {
             get => _featureRareItem;
@@ -114,14 +122,8 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        /// <summary>
-        /// Destination coordinates for warp features.
-        /// </summary>
         public List<Vector2Int> WarpDestinations => _warpDestinations;
 
-        /// <summary>
-        /// Index into <see cref="WarpDestinations"/> identifying the active exit.
-        /// </summary>
         public int ActiveWarpIndex
         {
             get => _activeWarpIndex;
@@ -131,8 +133,6 @@ namespace Turnroot.Gameplay.Maps
                 ParentGrid?.IncrementStateVersion();
             }
         }
-
-        // Miscellaneous feature state properties
         public int BreakableHealth
         {
             get => _breakableHealth;
@@ -243,7 +243,36 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 
-        // Properties related to feature identification
+        public bool RangedMinimumBowExperience
+        {
+            get => _rangedMinimumBowExperience;
+            set
+            {
+                _rangedMinimumBowExperience = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public RangedExperienceLevels RangedMinimumBowExperienceLevel
+        {
+            get => _rangedMinimumBowExperienceLevel;
+            set
+            {
+                _rangedMinimumBowExperienceLevel = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
+        public int HitLostPerRangeTile
+        {
+            get => _hitLostPerRangeTile;
+            set
+            {
+                _hitLostPerRangeTile = value;
+                ParentGrid?.IncrementStateVersion();
+            }
+        }
+
         [SerializeField]
         [Tooltip("Feature type")]
         private string _featureTypeId = string.Empty;
@@ -265,8 +294,6 @@ namespace Turnroot.Gameplay.Maps
         public void SetFeatureTypeId(string id)
         {
             _featureTypeId = id ?? string.Empty;
-            // if the feature type changes we clear any door-locked state, item rewards,
-            // any warp destinations, and specialized values
             _featureLocked = false;
             _unlockItem = null;
             _featureCommonItem = null;
@@ -284,6 +311,9 @@ namespace Turnroot.Gameplay.Maps
             _shelterNoFly = false;
             _shelterNoRide = false;
             _shelterNoInfantry = false;
+            _rangedMinimumBowExperience = false;
+            _rangedMinimumBowExperienceLevel = RangedExperienceLevels.E;
+            _hitLostPerRangeTile = 0;
             ParentGrid?.IncrementStateVersion();
         }
 
@@ -308,7 +338,6 @@ namespace Turnroot.Gameplay.Maps
 
             _featureTypeId = selId;
             _featureName = name ?? string.Empty;
-            // clear per-feature state from previous feature
             _featureLocked = false;
             _unlockItem = null;
             _featureCommonItem = null;
@@ -326,6 +355,9 @@ namespace Turnroot.Gameplay.Maps
             _shelterNoFly = false;
             _shelterNoRide = false;
             _shelterNoInfantry = false;
+            _rangedMinimumBowExperience = false;
+            _rangedMinimumBowExperienceLevel = RangedExperienceLevels.E;
+            _hitLostPerRangeTile = 0;
             ParentGrid?.IncrementStateVersion();
 
 #if UNITY_EDITOR
@@ -350,6 +382,9 @@ namespace Turnroot.Gameplay.Maps
             _rangedAllowsRiding = false;
             _rangedAllowsFlying = false;
             _rangedMagicOnly = false;
+            _rangedMinimumBowExperience = false;
+            _rangedMinimumBowExperienceLevel = RangedExperienceLevels.E;
+            _hitLostPerRangeTile = 0;
             ParentGrid?.IncrementStateVersion();
 
 #if UNITY_EDITOR
