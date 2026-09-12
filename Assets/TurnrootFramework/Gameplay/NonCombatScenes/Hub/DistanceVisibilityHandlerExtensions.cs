@@ -14,21 +14,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (handler.AvatarPosition == null)
             {
-                if (!handler.MissingAvatarWarningLogged)
-                {
-                    $"{handler.GetType().Name} on {handler.DistanceVisibilityOwnerName} has no AvatarPosition assigned.".LogWarning();
-                    handler.MissingAvatarWarningLogged = true;
-                }
-
-                if (handler.HideWhenAvatarMissing && handler.IsDistanceVisible)
-                {
-                    handler.Hide();
-                    handler.IsDistanceVisible = false;
-                }
                 return;
             }
-
-            handler.MissingAvatarWarningLogged = false;
 
             float showDistance = Mathf.Max(0f, handler.ShowDistance);
             float hideDistance = Mathf.Max(showDistance, handler.HideDistance);
