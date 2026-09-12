@@ -1,10 +1,8 @@
 using System;
-using System.Linq;
 using NaughtyAttributes;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Characters;
 using Turnroot.Characters.Subclasses;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Conversations
