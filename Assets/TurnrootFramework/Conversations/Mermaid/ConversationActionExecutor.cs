@@ -186,7 +186,7 @@ namespace Turnroot.Conversations.Mermaid
                 );
             }
 
-            var itemTemplate = Resources.Load<ObjectItem>($"Items/{itemId}");
+            var itemTemplate = Resources.Load<ObjectItem>($"Items/{itemId}"); // TODO: This lookup is bad!!!
             if (itemTemplate == null)
             {
                 return OperationResult.Failure(

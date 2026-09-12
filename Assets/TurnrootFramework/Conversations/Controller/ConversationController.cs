@@ -11,7 +11,6 @@ using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
-using UnityEngine.UI;
 using Ease = Turnroot.AbstractScripts.Graphics2D.Graphics2DUtils.Ease;
 using Image = UnityEngine.UI.Image;
 
