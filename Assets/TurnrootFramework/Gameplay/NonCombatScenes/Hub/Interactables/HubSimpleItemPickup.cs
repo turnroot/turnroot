@@ -7,7 +7,10 @@ using UnityEngine;
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     [RequireComponent(typeof(Collider))]
-    public class HubSimpleItemPickup : HubFadableVisualBase, IHubSelectable
+    public class HubSimpleItemPickup
+        : HubFadableVisualBase,
+            IHubSelectable,
+            IDistanceVisibilityHandler
     {
         public bool CanSelect;
         private HubManager _hubManager;
@@ -19,6 +22,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public HubSimpleItem[] Items;
 
         bool IHubSelectable.CanSelect => CanSelect;
+
+        public Transform AvatarPosition;
+
+        public float ShowDistance = 8f;
+        public float HideDistance = 10f;
+
+        public bool IsDistanceVisible { get; set; }
+
+        Transform IDistanceVisibilityHandler.AvatarPosition => AvatarPosition;
+        float IDistanceVisibilityHandler.ShowDistance => ShowDistance;
+        float IDistanceVisibilityHandler.HideDistance => HideDistance;
+        public Vector3 DistanceVisibilityPosition => transform.position;
+        public string DistanceVisibilityOwnerName => gameObject.name;
 
         private void Awake()
         {
@@ -81,6 +97,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _hubManager.RevertToPreviousInputMode();
         }
 
-        private void Update() => FaceCamera();
+        private void Update()
+        {
+            FaceCamera();
+            this.UpdateDistanceVisibility();
+        }
     }
 }
