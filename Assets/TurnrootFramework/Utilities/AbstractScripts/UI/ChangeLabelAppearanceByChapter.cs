@@ -49,12 +49,6 @@ namespace Turnroot.Utilities.UI
         private void OnEnable()
         {
             _brain = GetAndCacheBrain.GetBrain();
-            if (_brain == null)
-            {
-                $"ChangeLabelAppearanceByChapter: Brain instance not found, cannot subscribe to OnLongTermMemoryInitialized".LogWarning();
-                return;
-            }
-
             if (_brain.ltm != null && _brain.ltm.Initialized)
             {
                 TryUpdateFromActiveSaveFile();
@@ -64,6 +58,8 @@ namespace Turnroot.Utilities.UI
                 _brain.OnLongTermMemoryInitialized += HandleLongTermMemoryInitialized;
             }
         }
+
+        private void Awake() => _brain = GetAndCacheBrain.GetBrain();
 
         private void OnDisable()
         {
@@ -81,28 +77,11 @@ namespace Turnroot.Utilities.UI
                 _brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
             }
 
-            if (_brain == null)
-            {
-                $"ChangeLabelAppearanceByChapter: Brain instance is null in HandleLongTermMemoryInitialized".LogWarning();
-                return;
-            }
-
-            if (_brain.saveFileBrain == null)
-            {
-                $"ChangeLabelAppearanceByChapter: SaveFileBrain is null, cannot update label appearance".LogWarning();
-                return;
-            }
-
             TryUpdateFromActiveSaveFile();
         }
 
         private void TryUpdateFromActiveSaveFile()
         {
-            if (_brain == null || _brain.saveFileBrain == null)
-            {
-                return;
-            }
-
             var activeSaveFile = _brain.saveFileBrain.ActiveSaveFile;
             UpdateLabelAppearance(activeSaveFile.ChapterNumber);
         }
