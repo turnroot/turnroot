@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using NaughtyAttributes;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Characters;
 using Turnroot.Conversations.Mermaid;
 using Turnroot.Gameplay.Brain;
+using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
@@ -22,29 +24,17 @@ namespace Turnroot.Conversations
     public class ConversationController : MonoBehaviour
     {
         #region Serialized Fields
+        private GameObject _universalConversationUiPrefab =>
+            GamewideUiSettings.Instance.ConversationUiPrefab;
+
+        private GameObject _universalConversationUiObject;
+        private UniversalConversationUi _conversationUi;
 
         [Header("Audio")]
         public AudioSource _audioSource;
 
-        [Header("Conversation UI")]
-        public UIFade _uiFade;
-
-        [Header("Dialogue UI")]
-        public TextMeshProUGUI _dialogueText;
-
-        public TextMeshProUGUI _speakerNameText;
-
-        public Image _speakerPortraitImageActive;
-
-        public Image _speakerPortraitImageInactive;
-
         [Header("Input")]
         public UiInputProvider InputProvider;
-
-        [Header("Choice UI")]
-        public GameObject _choiceButtonPrefab;
-
-        public Transform _choiceButtonsContainer;
 
         [Header("Generic Conversation Events")]
         public GenericConversationAction[] GenericConversationActions;
@@ -108,7 +98,25 @@ namespace Turnroot.Conversations
             StopRoutine(ref _oneShotRoutine);
         }
 
-        private void Awake() => EnsureInputProvider();
+        private void Awake()
+        {
+            EnsureInputProvider();
+            if (_universalConversationUiPrefab == null)
+            {
+                $"ConversationController: UniversalConversationUiPrefab is not set on {name}. Conversation UI will not be displayed.".LogError(
+                    "ConversationController"
+                );
+            }
+            else
+            {
+                _universalConversationUiObject = Instantiate(
+                    _universalConversationUiPrefab,
+                    transform
+                );
+                _conversationUi =
+                    _universalConversationUiObject.GetComponent<UniversalConversationUi>();
+            }
+        }
 
         #endregion
 
@@ -592,11 +600,11 @@ namespace Turnroot.Conversations
 
         private void ResetUI()
         {
-            Graphics2DUtils.ResetImage(_speakerPortraitImageActive);
-            Graphics2DUtils.ResetImage(_speakerPortraitImageInactive);
+            Graphics2DUtils.ResetImage(_conversationUi._speakerPortraitImageActive);
+            Graphics2DUtils.ResetImage(_conversationUi._speakerPortraitImageInactive);
             _lastActiveSprite = null;
-            SetTextIfNotNull(_dialogueText, string.Empty);
-            SetTextIfNotNull(_speakerNameText, string.Empty);
+            SetTextIfNotNull(_conversationUi._dialogueText, string.Empty);
+            SetTextIfNotNull(_conversationUi._speakerNameText, string.Empty);
             ClearChoiceButtons();
         }
 
@@ -656,7 +664,7 @@ namespace Turnroot.Conversations
                 {
                     case MermaidNodeKind.Dialogue:
                     {
-                        _uiFade.Show();
+                        _conversationUi._uiFade.Show();
                         var layer = BuildLayerFromNode(currentNode, conversation.People);
                         if (layer != null)
                         {
@@ -668,7 +676,7 @@ namespace Turnroot.Conversations
 
                     case MermaidNodeKind.Action:
                     {
-                        _uiFade.Hide();
+                        _conversationUi._uiFade.Hide();
                         $"[Conversation] Executing action node '{currentNode.Id}' type='{currentNode.ActionType}' target='{currentNode.ActionTarget}'".LogInfo(
                             "ConversationController"
                         );
@@ -694,7 +702,7 @@ namespace Turnroot.Conversations
 
                     case MermaidNodeKind.Condition:
                     {
-                        _uiFade.Show();
+                        _conversationUi._uiFade.Show();
                         yield return WaitForConditionNode();
                         currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
                         continue;
@@ -702,12 +710,12 @@ namespace Turnroot.Conversations
 
                     case MermaidNodeKind.Start:
                     {
-                        _uiFade.Show();
+                        _conversationUi._uiFade.Show();
                         break;
                     }
                     case MermaidNodeKind.Choice:
                         {
-                            _uiFade.Show();
+                            _conversationUi._uiFade.Show();
                         }
                         break;
                 }
@@ -971,9 +979,9 @@ namespace Turnroot.Conversations
             _activeBranchingLayer = null;
         }
 
-        private void ShowConversationUI() => _uiFade?.Show();
+        private void ShowConversationUI() => _conversationUi._uiFade?.Show();
 
-        private void HideConversationUI() => _uiFade?.Hide();
+        private void HideConversationUI() => _conversationUi._uiFade?.Hide();
 
         /// <summary>
         /// Play a short, one‑layer conversation (e.g. a single NPC quip).
@@ -1043,8 +1051,11 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            SetTextIfNotNull(_dialogueText, layer.Dialogue);
-            SetTextIfNotNull(_speakerNameText, GetSpeakerName(layer.GetActiveSlot()));
+            SetTextIfNotNull(_conversationUi._dialogueText, layer.Dialogue);
+            SetTextIfNotNull(
+                _conversationUi._speakerNameText,
+                GetSpeakerName(layer.GetActiveSlot())
+            );
 
             var (activeSprite, _, _, _) = layer.GetActiveAndInactivePortraits();
             if (_lastActiveSprite != activeSprite)
@@ -1065,7 +1076,7 @@ namespace Turnroot.Conversations
 
         private void ApplyPortraitForLayer(ConversationLayer layer)
         {
-            if (layer == null || _speakerPortraitImageActive == null)
+            if (layer == null || _conversationUi._speakerPortraitImageActive == null)
             {
                 return;
             }
@@ -1086,18 +1097,21 @@ namespace Turnroot.Conversations
             if (GfxSettings?.AnimatePortraitTransitions ?? true)
             {
                 Graphics2DUtils.KillImageTweens(
-                    _speakerPortraitImageActive,
-                    _speakerPortraitImageInactive
+                    _conversationUi._speakerPortraitImageActive,
+                    _conversationUi._speakerPortraitImageInactive
                 );
             }
 
-            Graphics2DUtils.SetSprite(_speakerPortraitImageActive, activeSprite);
-            Graphics2DUtils.SetSprite(_speakerPortraitImageInactive, inactiveSprite);
+            Graphics2DUtils.SetSprite(_conversationUi._speakerPortraitImageActive, activeSprite);
+            Graphics2DUtils.SetSprite(
+                _conversationUi._speakerPortraitImageInactive,
+                inactiveSprite
+            );
 
-            _speakerPortraitImageActive.color = activeTint;
-            if (_speakerPortraitImageInactive != null)
+            _conversationUi._speakerPortraitImageActive.color = activeTint;
+            if (_conversationUi._speakerPortraitImageInactive != null)
             {
-                _speakerPortraitImageInactive.color = Color.white;
+                _conversationUi._speakerPortraitImageInactive.color = Color.white;
             }
 
             var duration = GfxSettings?.PortraitTransitionDuration ?? 0.4f;
@@ -1108,8 +1122,8 @@ namespace Turnroot.Conversations
 
             var tween = shouldTintInactive
                 ? Graphics2DUtils.TintCoroutine(
-                    _speakerPortraitImageActive,
-                    _speakerPortraitImageInactive,
+                    _conversationUi._speakerPortraitImageActive,
+                    _conversationUi._speakerPortraitImageInactive,
                     activeTint,
                     inactiveTint,
                     duration,
@@ -1117,7 +1131,7 @@ namespace Turnroot.Conversations
                     _tweenRunId
                 )
                 : Graphics2DUtils.HideCoroutine(
-                    _speakerPortraitImageInactive,
+                    _conversationUi._speakerPortraitImageInactive,
                     duration,
                     ease,
                     _tweenRunId
@@ -1144,20 +1158,23 @@ namespace Turnroot.Conversations
             _activeChoiceTargets = null;
             _currentChoiceIndex = 0;
 
-            if (_choiceButtonsContainer == null)
+            if (_conversationUi.ChoiceButtonsContainer == null)
             {
                 return;
             }
 
-            for (int i = _choiceButtonsContainer.childCount - 1; i >= 0; i--)
+            for (int i = _conversationUi.ChoiceButtonsContainer.childCount - 1; i >= 0; i--)
             {
-                Destroy(_choiceButtonsContainer.GetChild(i).gameObject);
+                Destroy(_conversationUi.ChoiceButtonsContainer.GetChild(i).gameObject);
             }
         }
 
         private void ShowChoices(List<MermaidEdge> choiceEdges)
         {
-            if (_choiceButtonPrefab == null || _choiceButtonsContainer == null)
+            if (
+                _conversationUi._choiceButtonPrefab == null
+                || _conversationUi.ChoiceButtonsContainer == null
+            )
             {
                 return;
             }
@@ -1215,7 +1232,10 @@ namespace Turnroot.Conversations
             var outgoing = _currentGraph.GetOutgoing(choiceNode.Id);
             var targetId = outgoing.Count > 0 ? outgoing[0].ToId : null;
 
-            var go = Instantiate(_choiceButtonPrefab, _choiceButtonsContainer);
+            var go = Instantiate(
+                _conversationUi._choiceButtonPrefab,
+                _conversationUi.ChoiceButtonsContainer
+            );
             if (go == null)
             {
                 return (null, targetId);

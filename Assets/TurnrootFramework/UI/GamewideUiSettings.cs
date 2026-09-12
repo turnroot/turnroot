@@ -352,5 +352,9 @@ namespace Turnroot.GameSettings
         public Color GetMapLightGrayTerrainColor() => MapLightGrayTerrainColor;
 
         public Color GetMapBlueSpawnColor() => MapBlueSpawnColor;
+
+        [Header("Conversation UI"), HorizontalLine(color: EColor.Pink)]
+        public GameObject ConversationUiPrefab;
+        public GameObject ConversationChoiceButtonPrefab;
     }
 }
