@@ -49,8 +49,8 @@ MonoBehaviour:
     _defenseBonusRiding: 0
     _defenseBonusFlying: 0
     _defenseBonusArmor: 0
-    _avoidBonusWalk: 0
-    _avoidBonusRiding: 0
+    _avoidBonusWalk: -1
+    _avoidBonusRiding: -1
     _avoidBonusFlying: 0
     _avoidBonusArmor: 0
     _editorColor: {r: 0.54509807, g: 0.84731025, b: 0.9529412, a: 1}
@@ -72,7 +72,7 @@ MonoBehaviour:
     _defenseBonusArmor: 0
     _avoidBonusWalk: 0
     _avoidBonusRiding: 0
-    _avoidBonusFlying: 0
+    _avoidBonusFlying: -5
     _avoidBonusArmor: 0
     _editorColor: {r: 0, g: 0.2507449, b: 0.695, a: 1}
     Description: 
@@ -108,12 +108,12 @@ MonoBehaviour:
     _healthChangePerTurnRiding: 0
     _healthChangePerTurnFlying: 0
     _healthChangePerTurnArmor: 0
-    _defenseBonusWalk: 0
-    _defenseBonusRiding: 0
+    _defenseBonusWalk: 1
+    _defenseBonusRiding: 1
     _defenseBonusFlying: 0
     _defenseBonusArmor: 0
-    _avoidBonusWalk: 0
-    _avoidBonusRiding: 0
+    _avoidBonusWalk: -2
+    _avoidBonusRiding: -2
     _avoidBonusFlying: 0
     _avoidBonusArmor: 0
     _editorColor: {r: 1, g: 1, b: 1, a: 1}
@@ -129,13 +129,13 @@ MonoBehaviour:
     _healthChangePerTurnRiding: 0
     _healthChangePerTurnFlying: 0
     _healthChangePerTurnArmor: 0
-    _defenseBonusWalk: 0
-    _defenseBonusRiding: 0
+    _defenseBonusWalk: 2
+    _defenseBonusRiding: 2
     _defenseBonusFlying: 0
     _defenseBonusArmor: 0
-    _avoidBonusWalk: 0
-    _avoidBonusRiding: 0
-    _avoidBonusFlying: 0
+    _avoidBonusWalk: 2
+    _avoidBonusRiding: 2
+    _avoidBonusFlying: -2
     _avoidBonusArmor: 0
     _editorColor: {r: 0.18039216, g: 0.30980393, b: 0.18039216, a: 1}
     Description: 
@@ -150,13 +150,13 @@ MonoBehaviour:
     _healthChangePerTurnRiding: 0
     _healthChangePerTurnFlying: 0
     _healthChangePerTurnArmor: 0
-    _defenseBonusWalk: 0
-    _defenseBonusRiding: 0
+    _defenseBonusWalk: 1
+    _defenseBonusRiding: 1
     _defenseBonusFlying: 0
     _defenseBonusArmor: 0
-    _avoidBonusWalk: 0
-    _avoidBonusRiding: 0
-    _avoidBonusFlying: 0
+    _avoidBonusWalk: 1
+    _avoidBonusRiding: 1
+    _avoidBonusFlying: 1
     _avoidBonusArmor: 0
     _editorColor: {r: 0.26435444, g: 0.45400003, b: 0.26435444, a: 1}
     Description: 
@@ -167,8 +167,8 @@ MonoBehaviour:
     _costRide: 1
     _costMagic: 1
     _costArmor: 1
-    _healthChangePerTurnWalk: 0
-    _healthChangePerTurnRiding: 0
+    _healthChangePerTurnWalk: -20
+    _healthChangePerTurnRiding: -20
     _healthChangePerTurnFlying: 0
     _healthChangePerTurnArmor: 0
     _defenseBonusWalk: 0
@@ -217,9 +217,9 @@ MonoBehaviour:
     _defenseBonusRiding: 0
     _defenseBonusFlying: 0
     _defenseBonusArmor: 0
-    _avoidBonusWalk: 0
-    _avoidBonusRiding: 0
-    _avoidBonusFlying: 0
+    _avoidBonusWalk: -2
+    _avoidBonusRiding: -4
+    _avoidBonusFlying: -2
     _avoidBonusArmor: 0
     _editorColor: {r: 0.41799998, g: 0.2854634, b: 0.16312194, a: 1}
     Description: 
@@ -234,13 +234,13 @@ MonoBehaviour:
     _healthChangePerTurnRiding: 0
     _healthChangePerTurnFlying: 0
     _healthChangePerTurnArmor: 0
-    _defenseBonusWalk: 0
-    _defenseBonusRiding: 0
+    _defenseBonusWalk: 1
+    _defenseBonusRiding: 1
     _defenseBonusFlying: 0
     _defenseBonusArmor: 0
-    _avoidBonusWalk: 0
-    _avoidBonusRiding: 0
-    _avoidBonusFlying: 0
+    _avoidBonusWalk: 1
+    _avoidBonusRiding: 1
+    _avoidBonusFlying: 1
     _avoidBonusArmor: 0
     _editorColor: {r: 0.291, g: 0.22795, b: 0.1746, a: 1}
     Description: 
@@ -255,13 +255,13 @@ MonoBehaviour:
     _healthChangePerTurnRiding: 0
     _healthChangePerTurnFlying: 0
     _healthChangePerTurnArmor: 0
-    _defenseBonusWalk: 0
+    _defenseBonusWalk: 1
     _defenseBonusRiding: 0
     _defenseBonusFlying: 0
     _defenseBonusArmor: 0
-    _avoidBonusWalk: 0
-    _avoidBonusRiding: 0
-    _avoidBonusFlying: 0
+    _avoidBonusWalk: 2
+    _avoidBonusRiding: 2
+    _avoidBonusFlying: 2
     _avoidBonusArmor: 0
     _editorColor: {r: 0.4616471, g: 0.5294118, b: 0.5251278, a: 1}
     Description: 
@@ -314,16 +314,16 @@ MonoBehaviour:
     _costRide: 1.5
     _costMagic: 1
     _costArmor: 1.5
-    _healthChangePerTurnWalk: 0
-    _healthChangePerTurnRiding: 0
+    _healthChangePerTurnWalk: -10
+    _healthChangePerTurnRiding: -10
     _healthChangePerTurnFlying: 0
     _healthChangePerTurnArmor: 0
     _defenseBonusWalk: 0
     _defenseBonusRiding: 0
     _defenseBonusFlying: 0
     _defenseBonusArmor: 0
-    _avoidBonusWalk: 0
-    _avoidBonusRiding: 0
+    _avoidBonusWalk: -4
+    _avoidBonusRiding: -4
     _avoidBonusFlying: 0
     _avoidBonusArmor: 0
     _editorColor: {r: 0.6502509, g: 1, b: 0, a: 1}
