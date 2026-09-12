@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
-using UnityEditor.Animations;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
@@ -27,7 +26,7 @@ namespace Turnroot.Gameplay.Brain
 
             // CreateModelForUnit doesn't create an controller, just use the override
 
-            var baseController = new AnimatorController();
+            var baseController = new RuntimeAnimatorController();
             animator.runtimeAnimatorController = baseController;
 
             var idleClips = ResolveHubIdleClips(unit);
