@@ -32,7 +32,6 @@ namespace Turnroot.Gameplay.Maps
         [InfoBox(
             "Models that are only visible in top-down view (e.g. tree bases). Hidden during combat animations"
         )]
-
         public GameObject[] ShowOnTopDownLayerModels;
 
         [Header("Player Team Spawn Points"), HorizontalLine(color: EColor.Yellow)]
@@ -386,9 +385,12 @@ namespace Turnroot.Gameplay.Maps
         public int rangedRange;
         public int rangedDamage;
         public float rangedHit;
+        public int hitLostPerRangeTile;
         public bool rangedAllowsRiding;
         public bool rangedAllowsFlying;
         public bool rangedMagicOnly;
+        public bool rangedMinimumBowExperience;
+        public RangedExperienceLevels rangedMinimumBowExperienceLevel;
         public bool shelterNoFly;
         public bool shelterNoRide;
         public bool shelterNoInfantry;

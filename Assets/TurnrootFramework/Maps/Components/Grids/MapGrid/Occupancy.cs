@@ -14,18 +14,68 @@ namespace Turnroot.Gameplay.Maps
             (int MapStateVersion, Dictionary<MapGridPoint, float> Costs)
         > _movementCostCaches = new();
 
+        public static (
+            bool Walking,
+            bool Flying,
+            bool Riding,
+            bool Magic,
+            bool Armored
+        ) NormalizeMovementMode(
+            bool isWalking,
+            bool isFlying,
+            bool isRiding,
+            bool isMagic,
+            bool isArmored
+        )
+        {
+            // The editor and callers are supposed to be single-mode, but stale state can still cause
+            // multiple bools to be true. Normalize to one active mode so the cost cache and traversal
+            // logic remain consistent across all movement types.
+            if (isFlying)
+            {
+                return (false, true, false, false, false);
+            }
+
+            if (isRiding)
+            {
+                return (false, false, true, false, false);
+            }
+
+            if (isArmored)
+            {
+                return (false, false, false, false, true);
+            }
+
+            if (isMagic)
+            {
+                return (false, false, false, true, false);
+            }
+
+            return (true, false, false, false, false);
+        }
+
         public static string MakeMovementModeKey(
             bool isWalking,
             bool isFlying,
             bool isRiding,
             bool isMagic,
             bool isArmored
-        ) =>
-            (isWalking ? "W" : "w")
-            + (isFlying ? "F" : "f")
-            + (isRiding ? "R" : "r")
-            + (isMagic ? "M" : "m")
-            + (isArmored ? "A" : "a");
+        )
+        {
+            var (Walking, Flying, Riding, Magic, Armored) = NormalizeMovementMode(
+                isWalking,
+                isFlying,
+                isRiding,
+                isMagic,
+                isArmored
+            );
+
+            return (Walking ? "W" : "w")
+                + (Flying ? "F" : "f")
+                + (Riding ? "R" : "r")
+                + (Magic ? "M" : "m")
+                + (Armored ? "A" : "a");
+        }
 
         public bool TryGetMovementCostCache(string key, out Dictionary<MapGridPoint, float> cache)
         {
@@ -89,7 +139,6 @@ namespace Turnroot.Gameplay.Maps
                 // If we are overwriting an existing occupant log it to help diagnose conflicting writes.
                 if (mgp.CurrentInstance != null && mgp.CurrentInstance != occupier)
                 {
-
                     $"MapGrid: Overwriting occupant at ({mgp.Row}, {mgp.Col}) - {mgp.CurrentInstance.Id} -> {occupier?.Id}".LogWarning();
                 }
 
@@ -150,4 +199,3 @@ namespace Turnroot.Gameplay.Maps
         #endregion
     }
 }
-

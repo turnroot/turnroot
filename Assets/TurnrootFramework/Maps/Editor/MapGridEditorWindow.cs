@@ -37,7 +37,6 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using Turnroot.Gameplay.Objects;
-using Turnroot.CommonAncestors;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -827,11 +826,7 @@ namespace Turnroot.Gameplay.Maps
 
                 GUILayout.Space(10);
 
-                if (
-                    point.FeatureType
-                    is MapGridPointFeature.FeatureType.Door
-                        or MapGridPointFeature.FeatureType.Treasure
-                )
+                if (point.FeatureType == MapGridPointFeature.FeatureType.Door)
                 {
                     EditorGUI.BeginChangeCheck();
                     bool newLocked = EditorGUILayout.Toggle("Locked", point.FeatureLocked);
@@ -991,11 +986,7 @@ namespace Turnroot.Gameplay.Maps
                         MarkDirty();
                     }
                 }
-                else if (
-                    point.FeatureType
-                    is MapGridPointFeature.FeatureType.Treasure
-                        or MapGridPointFeature.FeatureType.Underground
-                )
+                else if (point.FeatureType is MapGridPointFeature.FeatureType.Underground)
                 {
                     EditorGUI.BeginChangeCheck();
                     var common = (ObjectItem)
@@ -1017,6 +1008,43 @@ namespace Turnroot.Gameplay.Maps
                         Undo.RecordObject(point, "Edit Feature Items");
                         point.FeatureCommonItem = common;
                         point.FeatureRareItem = rare;
+                        _grid?.SaveFeatureLayer();
+                        MarkDirty();
+                    }
+                }
+                else if (point.FeatureType is MapGridPointFeature.FeatureType.Treasure)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var common = (ObjectItem)
+                        EditorGUILayout.ObjectField(
+                            "Common Item",
+                            point.FeatureCommonItem,
+                            typeof(ObjectItem),
+                            false
+                        );
+                    var rare = (ObjectItem)
+                        EditorGUILayout.ObjectField(
+                            "Rare Item",
+                            point.FeatureRareItem,
+                            typeof(ObjectItem),
+                            false
+                        );
+                    var locked = EditorGUILayout.Toggle("Locked", point.FeatureLocked);
+                    var unlock = (ObjectItem)
+                        EditorGUILayout.ObjectField(
+                            "Unlock Item",
+                            point.UnlockItem,
+                            typeof(ObjectItem),
+                            false
+                        );
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(point, "Edit Feature Items");
+                        point.FeatureCommonItem = common;
+                        point.FeatureRareItem = rare;
+                        point.UnlockItem = unlock;
+                        point.FeatureLocked = locked;
                         _grid?.SaveFeatureLayer();
                         MarkDirty();
                     }

@@ -337,18 +337,13 @@ namespace Turnroot.Conversations
             // If we're standing on a condition node, check it first
             if (currentNode.Kind == MermaidNodeKind.Condition)
             {
-                if (
-                    string.Equals(
+                return string.Equals(
                         currentNode.ConditionName,
                         conditionName,
                         StringComparison.OrdinalIgnoreCase
                     )
-                )
-                {
-                    return outgoing.Count > 0 ? outgoing[0].ToId : null;
-                }
-
-                return ResolveConditionTargetFromOutgoing(outgoing, conditionName);
+                    ? outgoing.Count > 0 ? outgoing[0].ToId : null
+                    : ResolveConditionTargetFromOutgoing(outgoing, conditionName);
             }
 
             // If we're on a non-condition node with outgoing condition branches, resolve
