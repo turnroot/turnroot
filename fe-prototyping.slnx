@@ -4,10 +4,10 @@
   <Project Path="Mischief.MDV.Editor.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.Conditions.csproj" />
   <Project Path="TurnrootFramework.Editor.UI.csproj" />
+  <Project Path="TurnrootFramework.Editor.Maps.csproj" />
   <Project Path="TurnrootFramework.Editor.Utilities.CommonAncestors.csproj" />
   <Project Path="TurnrootFramework.Editor.Utilities.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.csproj" />
-  <Project Path="TurnrootFramework.Editor.Maps.csproj" />
   <Project Path="TurnrootFramework.Editor.Core.FolderIcons.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.Events.csproj" />
