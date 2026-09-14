@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Gameplay.Combat;
+using Turnroot.Gameplay.Maps;
 using Turnroot.Gameplay.PlayerSettings;
 
 namespace Turnroot.EditorTools
@@ -139,6 +140,7 @@ namespace Turnroot.EditorTools
 
             CheckGameplayGeneralSettings();
             CheckGameplayInputSettings();
+            CheckTerrainTypesOverride();
             CheckGamewideUiSettings();
             CheckGraphics2DSettings();
             CheckGameplayPlayerSettings();
@@ -217,6 +219,35 @@ namespace Turnroot.EditorTools
                 new CheckResult
                 {
                     Label = "GameplayInputSettings",
+                    Note = $"Found: {AssetDatabase.GetAssetPath(asset)}",
+                    Color = Color.green,
+                    Asset = asset,
+                }
+            );
+        }
+
+        private void CheckTerrainTypesOverride()
+        {
+            var asset = Resources.Load<TerrainTypes>("TurnrootOverrides/TerrainTypes");
+            if (asset == null)
+            {
+                _results.Add(
+                    new CheckResult
+                    {
+                        Label = "TerrainTypes override",
+                        Note =
+                            "Asset not found in Resources/TurnrootOverrides/TerrainTypes. "
+                            + "This override is required so the project uses the custom terrain costs instead of the package default.",
+                        Color = Color.red,
+                    }
+                );
+                return;
+            }
+
+            _results.Add(
+                new CheckResult
+                {
+                    Label = "TerrainTypes override",
                     Note = $"Found: {AssetDatabase.GetAssetPath(asset)}",
                     Color = Color.green,
                     Asset = asset,
