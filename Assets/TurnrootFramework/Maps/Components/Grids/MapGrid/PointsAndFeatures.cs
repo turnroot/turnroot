@@ -116,9 +116,12 @@ namespace Turnroot.Gameplay.Maps
                         rangedRange = mgp.RangedRange,
                         rangedDamage = mgp.RangedDamage,
                         rangedHit = mgp.RangedHit,
+                        hitLostPerRangeTile = mgp.HitLostPerRangeTile,
                         rangedAllowsRiding = mgp.RangedAllowsRiding,
                         rangedAllowsFlying = mgp.RangedAllowsFlying,
                         rangedMagicOnly = mgp.RangedMagicOnly,
+                        rangedMinimumBowExperience = mgp.RangedMinimumBowExperience,
+                        rangedMinimumBowExperienceLevel = mgp.RangedMinimumBowExperienceLevel,
                         shelterNoFly = mgp.ShelterNoFly,
                         shelterNoRide = mgp.ShelterNoRide,
                         shelterNoInfantry = mgp.ShelterNoInfantry,
@@ -193,9 +196,12 @@ namespace Turnroot.Gameplay.Maps
                 mgp.RangedRange = rec.rangedRange;
                 mgp.RangedDamage = rec.rangedDamage;
                 mgp.RangedHit = rec.rangedHit;
+                mgp.HitLostPerRangeTile = rec.hitLostPerRangeTile;
                 mgp.RangedAllowsRiding = rec.rangedAllowsRiding;
                 mgp.RangedAllowsFlying = rec.rangedAllowsFlying;
                 mgp.RangedMagicOnly = rec.rangedMagicOnly;
+                mgp.RangedMinimumBowExperience = rec.rangedMinimumBowExperience;
+                mgp.RangedMinimumBowExperienceLevel = rec.rangedMinimumBowExperienceLevel;
                 mgp.ShelterNoFly = rec.shelterNoFly;
                 mgp.ShelterNoRide = rec.shelterNoRide;
                 mgp.ShelterNoInfantry = rec.shelterNoInfantry;

@@ -47,13 +47,24 @@ namespace Turnroot.Gameplay.Maps
         )
         {
             var terrainType = GetCachedTerrainType();
-            return terrainType == null ? 1f
-                : isWalking ? terrainType.CostWalk
-                : isFlying ? terrainType.CostFly
-                : isRiding ? terrainType.CostRide
-                : isMagic ? terrainType.CostMagic
-                : isArmored ? terrainType.CostArmor
-                : 1f;
+            if (terrainType == null)
+            {
+                return 1f;
+            }
+
+            var normalized = MapGrid.NormalizeMovementMode(
+                isWalking,
+                isFlying,
+                isRiding,
+                isMagic,
+                isArmored
+            );
+
+            return normalized.Flying ? terrainType.CostFly
+                : normalized.Riding ? terrainType.CostRide
+                : normalized.Armored ? terrainType.CostArmor
+                : normalized.Magic ? terrainType.CostMagic
+                : terrainType.CostWalk;
         }
     }
 }
