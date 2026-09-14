@@ -117,21 +117,46 @@ namespace Turnroot.Gameplay.Maps
         public static TerrainTypes LoadDefault(string resourcesName = "TerrainTypes")
         {
 #if UNITY_EDITOR
-            // In the editor, prefer any asset outside Assets/TurnrootFramework/ so a project-level
-            // override takes precedence over the package default without needing a Resources folder.
+            // Prefer the project-owned asset in Assets/ so the editor and pathfinding use the
+            // same terrain table as the map data being edited. Ignore library/package-cache copies.
             var guids = UnityEditor.AssetDatabase.FindAssets("t:TerrainTypes");
+            string projectPath = null;
             string fallbackPath = null;
+
             foreach (var guid in guids)
             {
                 var p = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-                if (!p.StartsWith("Assets/TurnrootFramework/"))
+                if (string.IsNullOrEmpty(p))
                 {
-                    return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(p);
+                    continue;
                 }
 
-                fallbackPath ??= p;
+                // Ignore library/package-cache copies. They are not the editable project asset.
+                if (
+                    p.StartsWith("Library/", System.StringComparison.OrdinalIgnoreCase)
+                    || p.StartsWith("Packages/", System.StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    continue;
+                }
+
+                if (p.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    projectPath ??= p;
+                    if (!p.Contains("TurnrootFramework/"))
+                    {
+                        return UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(p);
+                    }
+                }
+                else
+                {
+                    fallbackPath ??= p;
+                }
             }
-            return fallbackPath != null ? UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(fallbackPath) : null;
+
+            return !string.IsNullOrEmpty(projectPath)
+                ? UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(projectPath)
+                : !string.IsNullOrEmpty(fallbackPath) ? UnityEditor.AssetDatabase.LoadAssetAtPath<TerrainTypes>(fallbackPath) : null;
 #else
             // At runtime, check a well-known override path first so the project can shadow the
             // package default by placing a TerrainTypes asset at:
