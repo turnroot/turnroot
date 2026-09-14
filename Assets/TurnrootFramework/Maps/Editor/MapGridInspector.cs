@@ -14,6 +14,16 @@ namespace Turnroot.Gameplay.Maps
         private string _filterRow = string.Empty;
         private string _filterCol = string.Empty;
 
+        // Export settings
+        private GridPointMeshExporter.MeshType _exportMeshType = GridPointMeshExporter
+            .MeshType
+            .Cube;
+        private GridPointMeshExporter.ExportFormat _exportFormat = GridPointMeshExporter
+            .ExportFormat
+            .UnityMesh;
+        private float _exportMeshScale = 0.8f;
+        private bool _showExportOptions = false;
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -27,8 +37,9 @@ namespace Turnroot.Gameplay.Maps
             {
                 enterChildren = false;
                 if (
-                    prop.name is "_single3dHeightMeshRaycastPoints"
-                    or "_single3dHeightMeshRaycastIndices"
+                    prop.name
+                    is "_single3dHeightMeshRaycastPoints"
+                        or "_single3dHeightMeshRaycastIndices"
                 )
                 {
                     continue;
@@ -247,6 +258,52 @@ namespace Turnroot.Gameplay.Maps
                     Undo.RecordObject(mg, "Render Map Images");
                     mg.RenderMapImages();
                     EditorUtility.SetDirty(mg);
+                }
+            }
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Export Grid Points", EditorStyles.boldLabel);
+
+            _showExportOptions = EditorGUILayout.Foldout(_showExportOptions, "Export Settings");
+            if (_showExportOptions)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+                _exportMeshType = (GridPointMeshExporter.MeshType)
+                    EditorGUILayout.EnumPopup("Mesh Shape", _exportMeshType);
+
+                _exportFormat = (GridPointMeshExporter.ExportFormat)
+                    EditorGUILayout.EnumPopup("Export Format", _exportFormat);
+
+                _exportMeshScale = EditorGUILayout.Slider("Mesh Scale", _exportMeshScale, 0.1f, 5f);
+
+                EditorGUILayout.HelpBox(
+                    _exportFormat switch
+                    {
+                        GridPointMeshExporter.ExportFormat.OBJ =>
+                            "Exports to OBJ format with vertex colors. Colors stored in extended OBJ format.",
+                        GridPointMeshExporter.ExportFormat.FBX =>
+                            "Creates temporary GameObjects in the scene that can be exported to FBX via File > Export Model or dragged to Assets folder.",
+                        GridPointMeshExporter.ExportFormat.UnityMesh =>
+                            "Creates temporary GameObjects in the scene for visualization and reference in Blender import workflow.",
+                        _ => "Select an export format",
+                    },
+                    MessageType.Info
+                );
+
+                EditorGUILayout.EndVertical();
+            }
+
+            if (GUILayout.Button("Export Grid Points as 3D Model", GUILayout.Height(30)))
+            {
+                if (mg != null)
+                {
+                    GridPointMeshExporter.ExportGridPoints(
+                        mg,
+                        _exportMeshType,
+                        _exportFormat,
+                        _exportMeshScale
+                    );
                 }
             }
         }

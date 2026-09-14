@@ -29,6 +29,19 @@ namespace Turnroot.Gameplay.Maps
             float sameDirectionMultiplier = 0.95f
         )
         {
+            var normalized = MapGrid.NormalizeMovementMode(
+                isWalking,
+                isFlying,
+                isRiding,
+                isMagic,
+                isArmored
+            );
+            isWalking = normalized.Walking;
+            isFlying = normalized.Flying;
+            isRiding = normalized.Riding;
+            isMagic = normalized.Magic;
+            isArmored = normalized.Armored;
+
             if (!ValidateInputs(graph, start, goal))
             {
                 return new List<MapGridPoint>();
@@ -87,6 +100,19 @@ namespace Turnroot.Gameplay.Maps
             float sameDirectionMultiplier = 0.95f
         )
         {
+            var normalized = MapGrid.NormalizeMovementMode(
+                isWalking,
+                isFlying,
+                isRiding,
+                isMagic,
+                isArmored
+            );
+            isWalking = normalized.Walking;
+            isFlying = normalized.Flying;
+            isRiding = normalized.Riding;
+            isMagic = normalized.Magic;
+            isArmored = normalized.Armored;
+
             totalCost = 0f;
             if (!ValidateInputs(graph, start, goal))
             {
@@ -149,6 +175,19 @@ namespace Turnroot.Gameplay.Maps
             int maxRange = 0
         )
         {
+            var normalized = MapGrid.NormalizeMovementMode(
+                isWalking,
+                isFlying,
+                isRiding,
+                isMagic,
+                isArmored
+            );
+            isWalking = normalized.Walking;
+            isFlying = normalized.Flying;
+            isRiding = normalized.Riding;
+            isMagic = normalized.Magic;
+            isArmored = normalized.Armored;
+
             var result = new Dictionary<MapGridPoint, float>();
             if (graph == null || start == null)
             {
