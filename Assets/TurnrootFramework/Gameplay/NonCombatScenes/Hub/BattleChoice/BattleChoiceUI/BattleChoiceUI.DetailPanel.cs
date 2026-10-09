@@ -35,7 +35,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void UpdateDetailPanel(AllGameBattlesTable.BattleEntry battle)
+        private void UpdateDetailPanel(GameFlowRegistry.BattleEntry battle)
         {
             if (BattleName != null)
             {
@@ -94,7 +94,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             UpdateRewardItems(battle);
         }
 
-        private void UpdateMapImages(AllGameBattlesTable.BattleEntry battle)
+        private void UpdateMapImages(GameFlowRegistry.BattleEntry battle)
         {
             bool useUnexplored =
                 GameplayGeneralSettings.Instance != null
@@ -131,16 +131,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             );
         }
 
-        private ExploredStatus GetExplorationStatus(AllGameBattlesTable.BattleEntry battle)
+        private ExploredStatus GetExplorationStatus(GameFlowRegistry.BattleEntry battle)
         {
-            if (AllGameBattlesTable.Instance == null)
+            if (GameFlowRegistry.Instance == null)
             {
-                "BattleChoiceUI: AllGameBattlesTable not found. Create one in a Resources folder.".LogWarning();
+                "BattleChoiceUI: GameFlowRegistry not found. Create one in a Resources folder.".LogWarning();
                 return default;
             }
 
             var ltm = _brain?.GetComponent<LongTermMemory>();
-            return AllGameBattlesTable.Instance.Initialize(battle.BattleScene?.SceneName, ltm);
+            return GameFlowRegistry.Instance.Initialize(battle.BattleScene?.SceneName, ltm);
         }
 
         #endregion

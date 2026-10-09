@@ -55,12 +55,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void TryActivateHubManagerForCurrentScene()
         {
             _brain ??= Utilities.GetAndCacheBrain.GetBrain();
-            if (_brain?.sceneFlowBrain?.CurrentScene == null)
+            if (_brain?.sceneFlowBrain == null)
             {
                 return;
             }
 
-            var currentChapterNumber = _brain.sceneFlowBrain.CurrentScene.ChapterNumber;
+            var currentChapterNumber = _brain.sceneFlowBrain.CurrentChapterNumber;
             var selectedHubManager = GetHubManagerForChapter(currentChapterNumber);
             if (selectedHubManager == null)
             {

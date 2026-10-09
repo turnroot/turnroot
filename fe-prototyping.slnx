@@ -19,13 +19,13 @@
   <Project Path="TurnrootFramework.Editor.Conversations.csproj" />
   <Project Path="TurnrootFramework.Editor.GraphicPacks.DefaultShaders.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Objects.csproj" />
-  <Project Path="TurnrootFramework.Editor.Utilities.SceneFlows.csproj" />
   <Project Path="TurnrootFramework.Editor.Characters.csproj" />
   <Project Path="TurnrootFramework.Editor.Characters.Inventory.csproj" />
   <Project Path="TurnrootFramework.Editor.Graphics2D.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Badges.csproj" />
   <Project Path="TurnrootFramework.Editor.Characters.Behavior.csproj" />
   <Project Path="TurnrootFramework.Editor.CharacterClass.csproj" />
+  <Project Path="TurnrootFramework.Editor.Utilities.SceneFlows.csproj" />
   <Project Path="TurnrootFramework.Editor.UI.Notifications.csproj" />
   <Project Path="TurnrootFramework.Editor.Utilities.AbstractScripts.csproj" />
 </Solution>

@@ -12,11 +12,30 @@ using static Turnroot.Gameplay.Brain.GamewideContextBrainHelpers;
 
 namespace Turnroot.Gameplay.Combat
 {
+    /// <summary>
+    /// The role a loaded scene plays in the game loop.
+    /// </summary>
+    public enum GameSceneKind
+    {
+        Other,
+        GameStart,
+        Hub,
+        EndOfHubDay,
+        Battle,
+        Credits,
+    }
+
+    /// <summary>
+    /// The single source of truth for the game's scene flow:
+    /// game start -> (hub -> end of hub day -> hub ... with battles as needed) -> credits.
+    /// Holds the core scenes and every battle in the game. The SceneFlowBrain tracks which
+    /// battles are unlocked/completed at runtime.
+    /// </summary>
     [CreateAssetMenu(
-        fileName = "AllGameBattlesTable",
-        menuName = "Turnroot/Gameplay/All Game Battles Table"
+        fileName = "GameFlowRegistry",
+        menuName = "Turnroot/Gameplay/Game Flow Registry"
     )]
-    public partial class AllGameBattlesTable : SingletonScriptableObject<AllGameBattlesTable>
+    public partial class GameFlowRegistry : SingletonScriptableObject<GameFlowRegistry>
     {
         [Serializable]
         public struct BattleEntry
@@ -37,7 +56,24 @@ namespace Turnroot.Gameplay.Combat
             [Range(0, 100)]
             public int ExtraExperienceReward;
 
+            [Tooltip(
+                "Available from the start of the game. Otherwise the battle must be unlocked at runtime "
+                    + "(e.g. by a conversation unlock node)."
+            )]
+            public bool UnlockedByDefault;
+
             public bool RequiredStoryBattle;
+
+            [ShowIf(nameof(RequiredStoryBattle))]
+            [Tooltip(
+                "Chapter number this story battle belongs to. The current chapter is the chapter of the "
+                    + "first Required Story Battle (in list order) that has not been completed yet."
+            )]
+            public int ChapterNumber;
+
+            [ShowIf(nameof(RequiredStoryBattle))]
+            [Tooltip("Chapter name shown in the UI and written to the save file.")]
+            public string ChapterName;
 
             [ShowIf(nameof(RequiredStoryBattle))]
             [Tooltip(
@@ -77,12 +113,67 @@ namespace Turnroot.Gameplay.Combat
 
         // ── Inspector fields ─────────────────────────────────────────────────
 
+        [Header("Core Scenes")]
+        [Tooltip("Main menu / game start scene. The game flow begins here.")]
+        public SceneReference GameStartScene;
+
+        [Tooltip("The hub scene the player returns to between battles.")]
+        public SceneReference HubScene;
+
+        [Tooltip("Scene played when a hub day ends. It returns to the hub when finished.")]
+        public SceneReference EndOfHubDayScene;
+
+        [Tooltip("Credits scene.")]
+        public SceneReference CreditsScene;
+
+        [Header("Battles")]
         [InfoBox(
             "One entry per battle in the game. Drag the scene asset into BattleScene — "
-                + "name matching is automatic. The Scene Flow Editor controls which entries are available to the player."
+                + "name matching is automatic. The brain tracks which battles are unlocked and completed."
         )]
         [ReorderableList]
         public List<BattleEntry> Battles = new();
+
+        // ── Scene lookup ─────────────────────────────────────────────────────
+
+        public string GameStartSceneName => GameStartScene?.SceneName ?? string.Empty;
+        public string HubSceneName => HubScene?.SceneName ?? string.Empty;
+        public string EndOfHubDaySceneName => EndOfHubDayScene?.SceneName ?? string.Empty;
+        public string CreditsSceneName => CreditsScene?.SceneName ?? string.Empty;
+
+        /// <summary>
+        /// Classifies <paramref name="sceneName"/> by its role in the game loop.
+        /// Returns <see cref="GameSceneKind.Other"/> for scenes not listed in this registry.
+        /// </summary>
+        public GameSceneKind GetSceneKind(string sceneName)
+        {
+            if (string.IsNullOrEmpty(sceneName))
+            {
+                return GameSceneKind.Other;
+            }
+
+            if (sceneName == GameStartSceneName)
+            {
+                return GameSceneKind.GameStart;
+            }
+
+            if (sceneName == HubSceneName)
+            {
+                return GameSceneKind.Hub;
+            }
+
+            if (sceneName == EndOfHubDaySceneName)
+            {
+                return GameSceneKind.EndOfHubDay;
+            }
+
+            if (sceneName == CreditsSceneName)
+            {
+                return GameSceneKind.Credits;
+            }
+
+            return TryGetBattle(sceneName, out _) ? GameSceneKind.Battle : GameSceneKind.Other;
+        }
 
         // ── Public API ───────────────────────────────────────────────────────
 
