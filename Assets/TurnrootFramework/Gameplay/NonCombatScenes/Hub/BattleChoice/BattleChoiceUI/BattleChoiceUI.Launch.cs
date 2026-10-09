@@ -7,7 +7,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     {
         #region Battle Launch
 
-        private void StartBattle(AllGameBattlesTable.BattleEntry battle)
+        private void StartBattle(GameFlowRegistry.BattleEntry battle)
         {
             if (_brain?.sceneFlowBrain == null)
             {
@@ -16,7 +16,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             _hubManager.LoadingScreen?.Show();
-            _brain.sceneFlowBrain.TransitionToSceneByName(battle.BattleScene.SceneName);
+            _brain.sceneFlowBrain.GoToBattle(battle.BattleScene.SceneName);
         }
 
         #endregion
@@ -36,7 +36,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _rewardItemLabels.Clear();
         }
 
-        private void UpdateRewardItems(AllGameBattlesTable.BattleEntry battle)
+        private void UpdateRewardItems(GameFlowRegistry.BattleEntry battle)
         {
             ClearRewardItems();
 

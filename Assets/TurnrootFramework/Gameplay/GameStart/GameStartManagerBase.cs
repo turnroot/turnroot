@@ -126,9 +126,7 @@ namespace Turnroot.Gameplay.GameStart
             }
 
             saveFileBrain.Brain.OnSceneReadyToDisplay += HandleSceneReadyToDisplay;
-            sceneFlowBrain.SetCurrentScene(
-                GameplayGeneralSettings.Instance?.StartingSceneId ?? "scene_1"
-            );
+            sceneFlowBrain.SetCurrentSceneByName(gameObject.scene.name);
             InitializeSaveFiles();
 
             saveFileBrain.Brain.OnUpdateSaveFileName += OnSaveFileNameChanged;
@@ -211,17 +209,7 @@ namespace Turnroot.Gameplay.GameStart
                 LoadingFade?.Show();
             }
 
-            var availableScenes = sceneFlowBrain.GetAvailableScenes();
-            if (availableScenes == null || availableScenes.Count == 0)
-            {
-                "GameStartManagerBase: No available scenes to transition to!".LogError(
-                    "GameStartManagerBase"
-                );
-                LoadingFade?.Hide();
-                return;
-            }
-
-            sceneFlowBrain.TransitionToScene(availableScenes[0].sceneId);
+            sceneFlowBrain.GoToHub();
         }
 
         public void CheckLoadingProgress(float progress)

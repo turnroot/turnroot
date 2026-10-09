@@ -106,7 +106,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private Brain.Brain _brain;
 
         private readonly List<UiChoice> _battleChoices = new();
-        private readonly List<AllGameBattlesTable.BattleEntry> _availableBattles = new();
+        private readonly List<GameFlowRegistry.BattleEntry> _availableBattles = new();
         private readonly List<GameObject> _rewardItemLabels = new();
 
         private int _currentIndex;

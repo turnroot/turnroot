@@ -1,5 +1,4 @@
-using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Turnroot.GameSettings;
 using UnityEngine;
@@ -11,24 +10,10 @@ namespace Turnroot.Utilities.SceneFlows
     {
         #region Helper Methods
 
-        private SceneTransition FindTransition(string fromSceneId, string toSceneId)
-        {
-            return string.IsNullOrEmpty(fromSceneId) || sceneFlowGraph == null
-                ? null
-                : sceneFlowGraph.transitions.Find(t =>
-                    t.fromSceneId == fromSceneId && t.toSceneId == toSceneId
-                    || (
-                        t.isBidirectional
-                        && t.toSceneId == fromSceneId
-                        && t.fromSceneId == toSceneId
-                    )
-                );
-        }
-
-        private IEnumerator LoadSceneAsync(SceneNode targetScene, SceneTransition transition)
+        private IEnumerator LoadSceneAsync(string targetSceneName, string targetDisplayName)
         {
             // Publish scene transition started event
-            Brain.PublishSceneTransitionStarted(targetScene.sceneName, targetScene.displayName);
+            Brain.PublishSceneTransitionStarted(targetSceneName, targetDisplayName);
 
             float startTime = Time.time;
 
@@ -37,8 +22,7 @@ namespace Turnroot.Utilities.SceneFlows
             yield return new WaitForSeconds(GamewideUiSettings.Instance.LoadingFadeInTime);
 
             // Store the previous scene for unloading checks (preserve Brain scene)
-            SceneNode previousSceneNode = _currentScene;
-            string previousSceneName = _currentScene?.sceneName;
+            string previousSceneName = _currentSceneName;
 
             // Snapshot the hash of every currently loaded scene BEFORE the additive load.
             // This lets us identify the new scene instance even when old and new share the
@@ -51,14 +35,11 @@ namespace Turnroot.Utilities.SceneFlows
             }
 
             // Start loading the scene additively to preserve Brain scene
-            var asyncLoad = SceneManager.LoadSceneAsync(
-                targetScene.sceneName,
-                LoadSceneMode.Additive
-            );
+            var asyncLoad = SceneManager.LoadSceneAsync(targetSceneName, LoadSceneMode.Additive);
 
             if (asyncLoad == null)
             {
-                $"SceneFlowBrain: Failed to start loading scene '{targetScene.sceneName}'!".LogError();
+                $"SceneFlowBrain: Failed to start loading scene '{targetSceneName}'!".LogError();
                 _isTransitioning = false;
                 yield break;
             }
@@ -82,7 +63,7 @@ namespace Turnroot.Utilities.SceneFlows
                 int hash = s.GetHashCode();
                 bool isNew = !sceneHandlesBeforeLoad.Contains(hash);
 
-                if (isNew && !newScene.IsValid() && s.name == targetScene.sceneName)
+                if (isNew && !newScene.IsValid() && s.name == targetSceneName)
                 {
                     newScene = s;
                 }
@@ -94,7 +75,7 @@ namespace Turnroot.Utilities.SceneFlows
             // Fallback for the edge case where the scene was already unloaded or renamed.
             if (!newScene.IsValid())
             {
-                newScene = SceneManager.GetSceneByName(targetScene.sceneName);
+                newScene = SceneManager.GetSceneByName(targetSceneName);
             }
 
             if (!oldScene.IsValid() && !string.IsNullOrEmpty(previousSceneName))
@@ -152,29 +133,18 @@ namespace Turnroot.Utilities.SceneFlows
             yield return _waitForSeconds0_3;
 
             // Signal that the scene is ready to display - loading UIs should hide now
-            Brain.PublishSceneReadyToDisplay(targetScene.sceneName, targetScene.displayName);
+            Brain.PublishSceneReadyToDisplay(targetSceneName, targetDisplayName);
 
-            // Determine whether to unload the previous scene.
-            // Priority: persistWhenLeaving on the node overrides everything; otherwise the
-            // transition's unloadPreviousScene flag controls it (defaults to true when no
-            // transition is provided, e.g. GoBackToPreviousScene).
-            bool shouldKeepPrevious =
-                (previousSceneNode?.persistWhenLeaving ?? false)
-                || !(transition?.unloadPreviousScene ?? true);
-
+            // The previous scene is always unloaded, except for the Brain scene.
             AsyncOperation unloadOperation = null;
-            if (oldScene.IsValid() && previousSceneName != BrainSceneName && !shouldKeepPrevious)
+            if (oldScene.IsValid() && previousSceneName != BrainSceneName)
             {
                 $"SceneFlowBrain: Unloading previous scene '{previousSceneName}'".LogInfo();
                 unloadOperation = SceneManager.UnloadSceneAsync(oldScene);
             }
-            else if (!oldScene.IsValid() || previousSceneName == BrainSceneName)
-            {
-                $"SceneFlowBrain: Skipping unload — no previous scene or it is the Brain scene.".LogInfo();
-            }
             else
             {
-                $"SceneFlowBrain: Keeping '{previousSceneName}' loaded (persist={previousSceneNode?.persistWhenLeaving}, transition.unload={transition?.unloadPreviousScene ?? true}).".LogInfo();
+                "SceneFlowBrain: Skipping unload â€” no previous scene or it is the Brain scene.".LogInfo();
             }
 
             // Ensure transition completion fires only after the previous scene has finished
@@ -187,19 +157,19 @@ namespace Turnroot.Utilities.SceneFlows
                 }
             }
 
-            // Update current scene and apply all arrival side effects (date, hub flags,
-            // HubDayCompleted event, chapter).  ApplySceneArrivalSideEffects is guarded by
-            // _lastSideEffectsSceneId, so if the scene component also calls SetCurrentScene
-            // for this same transition the effects will not double-fire.
-            _currentScene = targetScene;
-            ApplySceneArrivalSideEffects(targetScene);
+            // Update current scene and apply arrival side effects (hub flags, HubDayCompleted
+            // event, chapter). ApplySceneArrivalSideEffects is guarded by
+            // _lastSideEffectsSceneName, so if the scene component also calls
+            // SetCurrentSceneByName for this same transition the effects will not double-fire.
+            _currentSceneName = targetSceneName;
+            ApplySceneArrivalSideEffects(targetSceneName);
 
             // Publish scene transition completed event
-            Brain.PublishSceneTransitionCompleted(targetScene.sceneName, targetScene.displayName);
-            Brain.PublishSceneChanged(targetScene.sceneName, targetScene.displayName);
+            Brain.PublishSceneTransitionCompleted(targetSceneName, targetDisplayName);
+            Brain.PublishSceneChanged(targetSceneName, targetDisplayName);
 
             _isTransitioning = false;
-            $"SceneFlowBrain: Loaded scene '{targetScene.displayName}' ({targetScene.sceneName})".LogInfo();
+            $"SceneFlowBrain: Loaded scene '{targetDisplayName}' ({targetSceneName})".LogInfo();
         }
 
         /// <summary>
@@ -237,161 +207,5 @@ namespace Turnroot.Utilities.SceneFlows
         }
 
         #endregion
-
-        #region Condition Evaluator Implementation
-
-        /// <summary>
-        /// Internal implementation of condition evaluator that has access to Brain state.
-        /// </summary>
-        internal class SceneFlowConditionEvaluatorImpl : SceneFlowConditionEvaluator
-        {
-            private readonly SceneFlowBrain _brain;
-
-            public SceneFlowConditionEvaluatorImpl(SceneFlowBrain brain)
-            {
-                _brain = brain;
-            }
-
-            public override bool EvaluateCondition(SceneCondition condition)
-            {
-                switch (condition.conditionType)
-                {
-                    case SceneConditionType.Always:
-                        return true;
-
-                    case SceneConditionType.BrainStateBool:
-                        return EvaluateBrainStateBool(condition);
-
-                    case SceneConditionType.BrainStateInt:
-
-                        return EvaluateBrainStateInt(condition);
-
-                    case SceneConditionType.BrainStateString:
-                        return EvaluateBrainStateString(condition);
-
-                    case SceneConditionType.CustomFlag:
-                        return _brain.GetCustomFlag(condition.conditionKey)
-                            == condition.expectedBoolValue;
-
-                    default:
-                        $"SceneFlowBrain: Unknown condition type {condition.conditionType}".LogWarning();
-                        return false;
-                }
-            }
-
-            private bool EvaluateBrainStateBool(SceneCondition condition)
-            {
-                // Check if a specific brain state is currently active
-                // conditionKey should be a state name like "Hub", "Combat", "Paused", etc.
-                // expectedBoolValue = true means "state should be active", false means "state should NOT be active"
-                var stateBrain = _brain.Brain?.stateBrain;
-                if (stateBrain == null)
-                {
-                    // Fall back to custom flags if StateBrain not available
-                    return _brain.GetCustomFlag(condition.conditionKey)
-                        == condition.expectedBoolValue;
-                }
-
-                var currentState = stateBrain.CurrentState;
-                if (currentState == null)
-                {
-                    return !condition.expectedBoolValue; // No active state = false
-                }
-
-                // Check if the condition key matches either the current state name or its full path
-                bool stateIsActive =
-                    currentState.Name == condition.conditionKey
-                    || currentState.GetFullPath() == condition.conditionKey;
-
-                // If not current state, check if it matches the parent state
-                if (!stateIsActive && currentState.Parent != null)
-                {
-                    stateIsActive = currentState.Parent.Name == condition.conditionKey;
-                }
-
-                if (stateIsActive)
-                {
-                    return stateIsActive == condition.expectedBoolValue;
-                }
-
-                // If the key isn't a real brain state, fall back to custom flags so designers can use
-                // BrainStateBool condition type with a custom flag key.
-                return _brain.GetCustomFlag(condition.conditionKey) == condition.expectedBoolValue;
-            }
-
-            private bool EvaluateBrainStateInt(SceneCondition condition)
-            {
-                // StateBrain doesn't use integer values, so fall back to custom int values
-                // This could be extended in the future for things like state depth, child count, etc.
-                var actualValue = _brain.GetCustomIntValue(condition.conditionKey);
-                return CompareInt(
-                    actualValue,
-                    condition.expectedIntValue,
-                    condition.comparisonOperator
-                );
-            }
-
-            private bool EvaluateBrainStateString(SceneCondition condition)
-            {
-                // Check if the current brain state matches a specific name/path
-                // conditionKey options:
-                //   - "CurrentStateName" - checks current state name
-                //   - "CurrentStatePath" - checks current state full path
-                //   - Any other key falls back to custom string values
-                var stateBrain = _brain.Brain?.stateBrain;
-
-                if (
-                    stateBrain?.CurrentState == null
-                    || (
-                        condition.conditionKey != "CurrentStateName"
-                        && condition.conditionKey != "CurrentStatePath"
-                    )
-                )
-                {
-                    // Fall back to custom string values
-                    var actualValue = _brain.GetCustomStringValue(condition.conditionKey);
-                    return actualValue == condition.expectedStringValue;
-                }
-
-                // Special case: check current state name or path
-                var stateValue =
-                    condition.conditionKey == "CurrentStateName"
-                        ? stateBrain.CurrentState.Name
-                        : stateBrain.CurrentState.GetFullPath();
-
-                return stateValue == condition.expectedStringValue;
-            }
-
-            private bool CompareInt(int actual, int expected, ComparisonOperator op)
-            {
-                return op switch
-                {
-                    ComparisonOperator.Equal => actual == expected,
-                    ComparisonOperator.NotEqual => actual != expected,
-                    ComparisonOperator.GreaterThan => actual > expected,
-                    ComparisonOperator.GreaterThanOrEqual => actual >= expected,
-                    ComparisonOperator.LessThan => actual < expected,
-                    ComparisonOperator.LessThanOrEqual => actual <= expected,
-                    _ => false,
-                };
-            }
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// Represents an available scene option for UI/dynamic selection.
-    /// </summary>
-    [Serializable]
-    public class SceneOption
-    {
-        public string sceneId;
-        public string sceneName;
-        public string displayName;
-        public string label;
-        public SceneTransition transition;
-
-        public override string ToString() => $"{displayName} - {label}";
     }
 }

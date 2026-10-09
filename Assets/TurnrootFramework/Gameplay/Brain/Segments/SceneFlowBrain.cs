@@ -3,42 +3,33 @@ using System.Collections.Generic;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.Brain.Events;
+using Turnroot.Gameplay.Combat;
 using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.Utilities.SceneFlows
 {
     /// <summary>
-    /// Brain component that manages scene flow through a graph-based network system.
-    /// Handles scene transitions, navigation history, and condition evaluation.
-    /// Provides UnityEvent-compatible methods for inspector-based scene flow triggers.
+    /// Brain component that drives the game loop defined by <see cref="GameFlowRegistry"/>:
+    /// game start -> hub &lt;-&gt; end of hub day (with battles as needed) -> credits.
+    /// Tracks the current scene, which battles are unlocked/completed, the current chapter,
+    /// and custom flags. Provides UnityEvent-compatible navigation methods.
     /// </summary>
     [RequireComponent(typeof(Brain))]
     public partial class SceneFlowBrain : BrainComponent
     {
         private static WaitForSeconds _waitForSeconds0_3 = new(0.3f);
 
-        // reference to storage system for dates/etc.
+        // reference to storage system for dates/flags
         private LongTermMemory _ltm;
 
-        [HideInInspector]
-        public SceneFlowGraph sceneFlowGraph; // this is auto-set
-
-        [SerializeField, HideInInspector]
-        private SceneNode _currentScene;
-        private Stack<string> _sceneHistory = new();
-        private Dictionary<string, bool> _customFlags = new();
-        private Dictionary<string, int> _customIntValues = new();
-        private Dictionary<string, string> _customStringValues = new();
-
-        // Condition evaluator instance
-        private SceneFlowConditionEvaluatorImpl _conditionEvaluator;
+        private string _currentSceneName;
+        private readonly Dictionary<string, bool> _customFlags = new();
 
         // Tracks which scene last had arrival side-effects applied, so that when both
-        // LoadSceneAsync and a scene component call SetCurrentScene for the same transition
-        // the side effects (hub flag reset, HubDayCompleted, date advance, chapter) only
-        // fire once.
-        private string _lastSideEffectsSceneId;
+        // LoadSceneAsync and a scene component call SetCurrentSceneByName for the same
+        // transition the side effects only fire once.
+        private string _lastSideEffectsSceneName;
 
         // Guards against concurrent scene transitions (e.g. player spam-clicking a button).
         // Set to true when a transition starts; cleared when LoadSceneAsync finishes or aborts.
@@ -48,6 +39,8 @@ namespace Turnroot.Utilities.SceneFlows
         private const string BrainSceneName = "TurnrootBrain";
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
+
+        private static GameFlowRegistry Registry => GameFlowRegistry.Instance;
 
         private Brain EnsureBrainReference()
         {
@@ -62,23 +55,13 @@ namespace Turnroot.Utilities.SceneFlows
         protected override void Awake()
         {
             base.Awake();
-            _conditionEvaluator = new SceneFlowConditionEvaluatorImpl(this);
 
             _ltm = GetComponent<LongTermMemory>();
             if (_ltm != null && _ltm.Initialized)
             {
-                // LTM already ready, replicate logic from OnLtmInitialized
-                var existing = _ltm.GetGameDate();
-                if (existing.year == 0)
-                {
-                    // write user-configurable starting date
-                    var start =
-                        GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
-                    _ltm.SetGameDate(start.year, (Month)(start.month - 1), start.day);
-                    existing = _ltm.GetGameDate();
-                }
-                _brain?.PublishGameDateChanged(existing.year, existing.month, existing.day);
+                EnsureStartingDate();
                 LoadFlagsFromLtm();
+                RefreshChapter(force: true);
             }
 
             if (_brain != null)
@@ -86,66 +69,119 @@ namespace Turnroot.Utilities.SceneFlows
                 _brain.OnLongTermMemoryInitialized += OnLtmInitialized;
             }
 
-            if (sceneFlowGraph == null)
+            if (Registry == null)
             {
-                // scan resources, it's a singleton SO so there can only be one
-                sceneFlowGraph = Resources.Load<SceneFlowGraph>("SceneFlowGraph");
-                if (sceneFlowGraph == null)
-                {
-                    "SceneFlowBrain: No SceneFlowGraph assigned or found in Resources!".LogError();
-                }
+                "SceneFlowBrain: No GameFlowRegistry found in Resources!".LogError();
             }
         }
 
-        protected override void SubscribeToBrainEvents() { }
+        protected override void SubscribeToBrainEvents()
+        {
+            _brain.OnBattleCompleted += HandleBattleCompleted;
+        }
 
         protected override void UnsubscribeFromBrainEvents()
         {
             if (_brain != null)
             {
                 _brain.OnLongTermMemoryInitialized -= OnLtmInitialized;
+                _brain.OnBattleCompleted -= HandleBattleCompleted;
             }
         }
 
-        #region Current Scene & History
+        #region Current Scene
+
+        public string CurrentSceneName => _currentSceneName;
+
+        public GameSceneKind CurrentSceneKind =>
+            Registry != null ? Registry.GetSceneKind(_currentSceneName) : GameSceneKind.Other;
+
+        /// <summary>
+        /// Records <paramref name="sceneName"/> as the current scene (typically called by a scene's
+        /// own component when it loads, e.g. the game start scene) and applies arrival side effects.
+        /// </summary>
+        public void SetCurrentSceneByName(string sceneName)
+        {
+            if (string.IsNullOrEmpty(sceneName))
+            {
+                return;
+            }
+
+            _currentSceneName = sceneName;
+            ApplySceneArrivalSideEffects(sceneName);
+            EnsureBrainReference()?.PublishSceneChanged(sceneName, GetDisplayName(sceneName));
+        }
+
+        private static string GetDisplayName(string sceneName)
+        {
+            if (Registry != null && Registry.TryGetBattle(sceneName, out var battle))
+            {
+                return string.IsNullOrEmpty(battle.BattleName) ? sceneName : battle.BattleName;
+            }
+
+            return sceneName;
+        }
+
+        /// <summary>
+        /// Applies side effects of arriving at <paramref name="sceneName"/>: the
+        /// <c>HubDayCompleted</c> event when the End Of Hub Day scene is entered, and a chapter
+        /// refresh. Guarded by <see cref="_lastSideEffectsSceneName"/> so it fires once per arrival.
+        /// </summary>
+        private void ApplySceneArrivalSideEffects(string sceneName)
+        {
+            if (string.IsNullOrEmpty(sceneName) || _lastSideEffectsSceneName == sceneName)
+            {
+                return;
+            }
+
+            _lastSideEffectsSceneName = sceneName;
+
+            if (Registry != null && Registry.GetSceneKind(sceneName) == GameSceneKind.EndOfHubDay)
+            {
+                EnsureBrainReference()?.PublishHubDayCompleted();
+            }
+
+            RefreshChapter(force: false);
+        }
+
+        #endregion
+
+        #region LTM / Date
 
         private void OnLtmInitialized()
         {
-            if (_ltm != null)
-            {
-                var date = _ltm.GetGameDate();
-                if (date.year == 0)
-                {
-                    var start =
-                        GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
-                    _ltm.SetGameDate(start.year, (Month)(start.month - 1), start.day);
-                    date = _ltm.GetGameDate();
-                }
-                _brain?.PublishGameDateChanged(date.year, date.month, date.day);
-            }
-
-            // Re-publish the chapter for the current scene now that a save file is active.
-            // ApplySceneArrivalSideEffects already ran for the current scene (e.g. game_start)
-            // but at that point no save file existed yet, so PublishSetSaveFileChapter was a
-            // no-op. Publishing directly here (bypassing the dedup guard) ensures the chapter
-            // is correctly written as soon as the player's save slot becomes active.
-            if (_currentScene != null && _currentScene.SpecificChapter)
-            {
-                _brain?.PublishSetSaveFileChapter(
-                    _currentScene.ChapterName,
-                    _currentScene.ChapterNumber
-                );
-            }
-
+            EnsureStartingDate();
             LoadFlagsFromLtm();
+
+            // A save file is now active, so the chapter must be (re)published even if it
+            // has not changed since it was last computed.
+            RefreshChapter(force: true);
+        }
+
+        private void EnsureStartingDate()
+        {
+            if (_ltm == null)
+            {
+                return;
+            }
+
+            var date = _ltm.GetGameDate();
+            if (date.year == 0)
+            {
+                // write user-configurable starting date
+                var start = GameplayGeneralSettings.Instance?.StartingGameDate ?? GameDate.Default;
+                _ltm.SetGameDate(start.year, (Month)(start.month - 1), start.day);
+                date = _ltm.GetGameDate();
+            }
+
+            _brain?.PublishGameDateChanged(date.year, date.month, date.day);
         }
 
         private const string LtmFlagPrefix = "sceneflow.flag.";
 
         /// <summary>
         /// Restores any custom flags that were previously persisted to LTM into the
-        /// in-memory <see cref="_customFlags"/> dictionary. Called both on Awake (when LTM
-        /// is already initialised) and from <see cref="OnLtmInitialized"/>.
+        /// in-memory <see cref="_customFlags"/> dictionary.
         /// </summary>
         private void LoadFlagsFromLtm()
         {
@@ -163,191 +199,23 @@ namespace Turnroot.Utilities.SceneFlows
             }
         }
 
-        public SceneNode CurrentScene => _currentScene;
-
-        public string CurrentSceneId => _currentScene?.id;
-
-        public string CurrentSceneName => _currentScene?.sceneName;
-
-        public bool CanGoBack => _sceneHistory.Count > 0;
-
-        /// <summary>
-        /// Set the current scene (typically called after a scene loads).
-        /// </summary>
-        public void SetCurrentScene(string sceneId)
-        {
-            if (sceneFlowGraph == null)
-            {
-                "SceneFlowBrain: No scene flow graph assigned!".LogError();
-                return;
-            }
-
-            var scene = sceneFlowGraph.GetScene(sceneId);
-            if (scene == null)
-            {
-                $"SceneFlowBrain: Scene '{sceneId}' not found in graph!".LogError();
-                return;
-            }
-
-            _currentScene = scene;
-            ApplySceneArrivalSideEffects(scene);
-            EnsureBrainReference()?.PublishSceneChanged(scene.sceneName, scene.displayName);
-        }
-
-        /// <summary>
-        /// Set current scene by scene name instead of ID.
-        /// When multiple graph nodes share the same Unity scene name (e.g. multiple hub day
-        /// instances), prefers the node already resolved by LoadSceneAsync, then the one
-        /// reachable via a transition from the current scene.
-        /// </summary>
-        public void SetCurrentSceneByName(string sceneName)
-        {
-            if (sceneFlowGraph == null)
-            {
-                "SceneFlowBrain: No scene flow graph assigned!".LogError();
-                return;
-            }
-
-            SceneNode scene;
-            if (_currentScene != null && _currentScene.sceneName == sceneName)
-            {
-                // LoadSceneAsync already resolved the correct node — reuse it.
-                scene = _currentScene;
-            }
-            else
-            {
-                var matches = sceneFlowGraph.scenes.FindAll(s => s.sceneName == sceneName);
-                if (matches.Count == 0)
-                {
-                    $"SceneFlowBrain: Scene with name '{sceneName}' not found in graph!".LogError();
-                    return;
-                }
-
-                // With multiple nodes, prefer the one directly reachable from the current scene.
-                scene =
-                    matches.Count == 1
-                        ? matches[0]
-                        : matches.Find(s =>
-                            sceneFlowGraph.transitions.Exists(t =>
-                                (t.toSceneId == s.id && t.fromSceneId == _currentScene?.id)
-                                || (
-                                    t.isBidirectional
-                                    && t.fromSceneId == s.id
-                                    && t.toSceneId == _currentScene?.id
-                                )
-                            )
-                        ) ?? matches[0];
-            }
-
-            _currentScene = scene;
-            ApplySceneArrivalSideEffects(scene);
-            EnsureBrainReference()?.PublishSceneChanged(scene.sceneName, scene.displayName);
-        }
-
-        public void ReturnToGameStartScreen() => SetCurrentScene(sceneFlowGraph.StartingSceneId);
-
         #endregion
 
-        #region Date Helpers
+        #region Flags
 
-        /// <summary>
-        /// Applies the date metadata from <paramref name="scene"/> to long-term memory.
-        /// When <see cref="SceneNode.IncrementDate"/> is true the current date is advanced by
-        /// <see cref="SceneNode.IncrementDays"/> days; otherwise the absolute month/day (and
-        /// optionally year) values on the node are written directly.
-        /// Must only be called when <c>scene.TimePasses</c> is true.
-        /// </summary>
-        private void ApplySceneDateToLtm(SceneNode scene)
+        public void SetCustomFlag(string key, bool value)
         {
-            var oldDate = _ltm.GetGameDate();
-
-            int newYear;
-            Month newMonth;
-            int newDay;
-
-            if (scene.IncrementDate)
+            _customFlags[key] = value;
+            if (_ltm != null && _ltm.Initialized)
             {
-                // Advance the current date by the configured number of days.
-                var dt = new DateTime(oldDate.year, oldDate.month, oldDate.day).AddDays(
-                    scene.IncrementDays
-                );
-                newYear = dt.Year;
-                newMonth = (Month)(dt.Month - 1);
-                newDay = dt.Day;
-            }
-            else
-            {
-                // Set to the absolute date recorded on the node.
-                newMonth = scene.MonthForThisScene;
-                newDay = scene.DayForThisScene;
-
-                if (scene.HasYear)
-                {
-                    newYear = scene.YearForThisScene;
-                }
-                else
-                {
-                    // No year pinned — advance to the next *occurrence* of this month/day.
-                    // If the target falls later in the same calendar year, keep the current year.
-                    // If it has already passed (or is the same day and the intent is to
-                    // stay in place), roll forward to the next year.
-                    int targetMonthInt = (int)newMonth + 1; // Month enum is 0-based; LTM is 1-based
-                    bool alreadyPassedThisYear =
-                        targetMonthInt < oldDate.month
-                        || (targetMonthInt == oldDate.month && newDay < oldDate.day);
-                    newYear = alreadyPassedThisYear ? oldDate.year + 1 : oldDate.year;
-                }
+                _ltm.RememberBool(LtmFlagPrefix + key, value);
             }
 
-            int newMonthInt = (int)newMonth + 1;
-            if (newYear != oldDate.year || newMonthInt != oldDate.month || newDay != oldDate.day)
-            {
-                _ltm.SetGameDate(newYear, newMonth, newDay);
-                EnsureBrainReference()?.PublishGameDateChanged(newYear, newMonthInt, newDay);
-            }
+            $"SceneFlowBrain: Set flag '{key}' = {value}".LogInfo();
         }
 
-        /// <summary>
-        /// Applies all side effects triggered by arriving at <paramref name="scene"/>:
-        /// date advancement, hub flag resets, <c>HubDayCompleted</c> event, and chapter changes.
-        /// Uses <see cref="_lastSideEffectsSceneId"/> as a dedup guard so that when both
-        /// <c>LoadSceneAsync</c> and a scene component call <c>SetCurrentScene</c> for the
-        /// same transition the side effects only fire once.
-        /// </summary>
-        private void ApplySceneArrivalSideEffects(SceneNode scene)
-        {
-            if (scene == null || _lastSideEffectsSceneId == scene.id)
-            {
-                return;
-            }
-
-            _lastSideEffectsSceneId = scene.id;
-
-            // Advance or set the game date when the scene metadata requires it.
-            if (scene.TimePasses && _ltm != null && _ltm.Initialized)
-            {
-                ApplySceneDateToLtm(scene);
-            }
-
-            // Arriving at a hub resets the end-of-day flags so they can be re-triggered.
-            if (scene.isHub)
-            {
-                SetCustomFlag(SceneFlowConditionKeys.ReturnToHub, false);
-                SetCustomFlag(SceneFlowConditionKeys.EndHubDay, false);
-            }
-
-            // Entering the End Of Hub Day scene signals that the current hub day is done.
-            if (scene.isEndOfHubDay)
-            {
-                EnsureBrainReference()?.PublishHubDayCompleted();
-            }
-
-            if (scene.SpecificChapter)
-            {
-                EnsureBrainReference()
-                    ?.PublishSetSaveFileChapter(scene.ChapterName, scene.ChapterNumber);
-            }
-        }
+        public bool GetCustomFlag(string key) =>
+            _customFlags.TryGetValue(key, out bool value) && value;
 
         #endregion
     }

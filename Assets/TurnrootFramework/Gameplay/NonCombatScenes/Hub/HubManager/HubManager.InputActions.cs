@@ -149,9 +149,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var context = contextResult.Value;
 
             GeneralCamera?.transform.SetPositionAndRotation(
-                    context.TraversalPoint.position,
-                    context.TraversalPoint.rotation
-                );
+                context.TraversalPoint.position,
+                context.TraversalPoint.rotation
+            );
 
             SetInputMode(HubInputMode.Traversal);
             BackButtonFade?.Show();
@@ -260,36 +260,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void HandleEndDaySelected()
         {
-            // Advance the day (persisted via LTM) and transition via SceneFlowBrain.
-            // The EndOfDay scene is responsible for doing end-of-day work and
-            // then returning to the hub when ready.
+            // Advance the day (persisted via LTM) and transition to the End Of Hub Day scene.
+            // That scene is responsible for doing end-of-day work and then returning to the hub.
             IncrementForcedBattleDaysSpent();
             IncrementGameDateForHubLoad();
             _brain.storehouseBrain.SaveCurrentStorehouse();
             _brain.storehouseBrain.SaveGoldToLTM();
 
-            if (_brain?.sceneFlowBrain != null)
+            if (_brain?.sceneFlowBrain == null)
             {
-                // Show the shared loading screen (if configured) while the transition happens.
-                LoadingScreen?.Show();
-
-                // Flag tells the scene flow graph that the next transition should return to hub
-                _brain.sceneFlowBrain.SetCustomFlag(
-                    Utilities.SceneFlows.SceneFlowConditionKeys.EndHubDay,
-                    true
-                );
-
-                var available = _brain.sceneFlowBrain.GetAvailableScenes();
-                if (available != null && available.Count > 0)
-                {
-                    // Use the first available transition (scene flow graph should order this appropriately)
-                    _brain.sceneFlowBrain.TransitionToScene(available[0].sceneId);
-                    return;
-                }
-
-                "HubManager: No available next scene found in SceneFlowBrain".LogWarning();
+                "HubManager: SceneFlowBrain is unavailable; cannot end the day.".LogWarning();
                 return;
             }
+
+            // Show the shared loading screen (if configured) while the transition happens.
+            LoadingScreen?.Show();
+            _brain.sceneFlowBrain.EndHubDay();
         }
 
         private OperationResult HandleExitSelected()
@@ -299,10 +285,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 OperationResultGuards.RequireNotNull(
                     _brain?.sceneFlowBrain,
                     "_brain.sceneFlowBrain"
-                ),
-                OperationResultGuards.RequireNotNull(
-                    _brain?.sceneFlowBrain?.sceneFlowGraph,
-                    "_brain.sceneFlowBrain.sceneFlowGraph"
                 )
             );
             if (!validation.Success)
@@ -311,9 +293,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             LoadingScreen?.Show();
-            _brain.sceneFlowBrain.TransitionToScene(
-                _brain.sceneFlowBrain.sceneFlowGraph.StartingSceneId
-            );
+            _brain.sceneFlowBrain.GoToGameStart();
             return OperationResult.Successful();
         }
 

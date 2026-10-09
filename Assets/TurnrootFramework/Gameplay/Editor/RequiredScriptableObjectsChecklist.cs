@@ -147,7 +147,7 @@ namespace Turnroot.EditorTools
             CheckGamePackageSettings();
             CheckPersistentPlayerRoster();
             CheckSupportRelationshipTable();
-            CheckAllGameBattlesTable();
+            CheckGameFlowRegistry();
 
             int critical = 0,
                 warn = 0,
@@ -489,31 +489,45 @@ namespace Turnroot.EditorTools
             );
         }
 
-        private void CheckAllGameBattlesTable()
+        private void CheckGameFlowRegistry()
         {
-            var asset = FindSingleton<AllGameBattlesTable>("AllGameBattlesTable");
+            var asset = FindSingleton<GameFlowRegistry>("GameFlowRegistry");
             if (asset == null)
             {
                 _results.Add(
                     new CheckResult
                     {
-                        Label = "AllGameBattlesTable",
+                        Label = "GameFlowRegistry",
                         Note =
-                            "Asset not found in Resources. Required — defines all battles in the game and seeds LongTermMemory exploration state on first play.",
+                            "Asset not found in Resources. Required — defines the core scenes (game start, hub, end of hub day, credits) and every battle in the game.",
                         Color = Color.red,
                     }
                 );
                 return;
             }
 
+            var missing = new System.Collections.Generic.List<string>();
+            if (asset.GameStartScene == null || asset.GameStartScene.IsEmpty)
+                missing.Add("Game Start");
+            if (asset.HubScene == null || asset.HubScene.IsEmpty)
+                missing.Add("Hub");
+            if (asset.EndOfHubDayScene == null || asset.EndOfHubDayScene.IsEmpty)
+                missing.Add("End Of Hub Day");
+            if (asset.CreditsScene == null || asset.CreditsScene.IsEmpty)
+                missing.Add("Credits");
+
             int entryCount = asset.Battles?.Count ?? 0;
+            string found =
+                $"Found: {AssetDatabase.GetAssetPath(asset)} ({entryCount} battle{(entryCount == 1 ? "" : "s")})";
             _results.Add(
                 new CheckResult
                 {
-                    Label = "AllGameBattlesTable",
+                    Label = "GameFlowRegistry",
                     Note =
-                        $"Found: {AssetDatabase.GetAssetPath(asset)} ({entryCount} battle{(entryCount == 1 ? "" : "s")})",
-                    Color = Color.green,
+                        missing.Count == 0
+                            ? found
+                            : $"{found}. Missing scene references: {string.Join(", ", missing)}",
+                    Color = missing.Count == 0 ? Color.green : Color.yellow,
                     Asset = asset,
                 }
             );

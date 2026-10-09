@@ -5,7 +5,7 @@ using static Turnroot.Gameplay.Brain.GamewideContextBrainHelpers;
 
 namespace Turnroot.Gameplay.Combat
 {
-    public partial class AllGameBattlesTable
+    public partial class GameFlowRegistry
     {
         // ── Exploration setters (LTM-persisted) ──────────────────────────────
 

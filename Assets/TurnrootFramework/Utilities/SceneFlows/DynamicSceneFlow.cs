@@ -408,19 +408,6 @@ namespace Turnroot.Utilities.AbstractScripts
                 return;
             }
 
-            var available = flowBrain.GetAvailableScenes();
-
-            if (available == null || available.Count == 0)
-            {
-                "DynamicSceneFlow: MarkSceneCompleteAndAdvance — no available transitions from the current scene.".LogError();
-                return;
-            }
-
-            if (available.Count > 1)
-            {
-                $"DynamicSceneFlow: MarkSceneCompleteAndAdvance — {available.Count} transitions available; taking the first ('{available[0].sceneId}'). Use TransitionToScene to pick explicitly.".LogWarning();
-            }
-
             var loadingScreen = FindFirstObjectByType<LoadingScreenController>();
 
             if (!showLoadingScreen)
@@ -436,11 +423,27 @@ namespace Turnroot.Utilities.AbstractScripts
                 loadingScreen?.Show();
             }
 
-            flowBrain.TransitionToScene(available[0].sceneId);
+            flowBrain.AdvanceToNextScene();
         }
 
         public void MarkSceneCompleteAndAdvanceLoadingScreen() =>
             MarkSceneCompleteAndAdvance(showLoadingScreen: true);
+
+        /// <summary>
+        /// Leaves the current scene for the credits scene.
+        /// </summary>
+        public void GoToCredits()
+        {
+            var flowBrain = brain?.sceneFlowBrain;
+            if (flowBrain == null)
+            {
+                "DynamicSceneFlow: GoToCredits called but SceneFlowBrain is unavailable.".LogError();
+                return;
+            }
+
+            FindFirstObjectByType<LoadingScreenController>()?.Show();
+            flowBrain.GoToCredits();
+        }
 
         #endregion
 
