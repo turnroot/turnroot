@@ -136,6 +136,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             if (_isTransitioning)
             {
+                "Start battle ignored: already transitioning.".LogInfo();
                 return;
             }
 

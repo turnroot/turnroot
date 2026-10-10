@@ -10,29 +10,16 @@ namespace Turnroot.UI.Components
     /// </summary>
     public abstract class MenuItemBase : MonoBehaviour
     {
-        // Hover / click events
-        public event Action OnHoverEnter;
-        public event Action OnHoverExit;
-        public event Action OnClick;
-
         // Notify content when selection changes (true = selected, false = deselected)
         public event Action<bool> OnSelectedChanged;
 
         protected bool _isSelected = false;
-        protected bool _isHovered = false;
 
         [SerializeField]
         protected bool isCenter = false;
 
         public virtual string ItemName => (this as Component)?.name ?? gameObject.name;
         public virtual bool IsCenter => isCenter;
-
-        // Helper methods so derived classes can raise the public events
-        protected void RaiseHoverEnter() => OnHoverEnter?.Invoke();
-
-        protected void RaiseHoverExit() => OnHoverExit?.Invoke();
-
-        protected void RaiseClick() => OnClick?.Invoke();
 
         protected void RaiseSelectedChanged(bool s) => OnSelectedChanged?.Invoke(s);
 
@@ -71,8 +58,7 @@ namespace Turnroot.UI.Components
             float endAngle,
             float innerRadius,
             float gapSize
-        )
-        { }
+        ) { }
 
         public virtual void PositionContent(
             float centerAngleDeg,
@@ -80,7 +66,6 @@ namespace Turnroot.UI.Components
             float outerRadiusPct,
             float menuRadius,
             float radialOffsetPct = 0f
-        )
-        { }
+        ) { }
     }
 }

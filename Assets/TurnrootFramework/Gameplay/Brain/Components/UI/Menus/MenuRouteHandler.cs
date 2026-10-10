@@ -39,7 +39,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Settings menu routes
             _menuActionRoutes[MenuRouteNames.Graphics] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsGraphicsLocation);
-            _menuActionRoutes[MenuRouteNames.Explore] = _ => 
+            _menuActionRoutes[MenuRouteNames.Explore] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsExploreLocation);
             _menuActionRoutes[MenuRouteNames.Gameplay] = _ =>
                 TransitionToSubmenu(_brain.gameSettingsGameplayLocation);
@@ -60,6 +60,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Debounce rapid repeated selections to avoid accidental double-activation
             if (Time.time - _lastSelectTime < SelectDebounceSeconds)
             {
+                $"Debounced selection of '{item.ItemName}'.".LogInfo();
                 return;
             }
             _lastSelectTime = Time.time;

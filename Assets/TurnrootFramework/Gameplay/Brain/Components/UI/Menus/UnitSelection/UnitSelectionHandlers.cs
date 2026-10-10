@@ -97,7 +97,14 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        public void HandlePreBattleMenuSelect(MenuItemBase item) =>
-            _routeHandler?.HandleMenuSelect(item);
+        public void HandlePreBattleMenuSelect(MenuItemBase item)
+        {
+            if (_routeHandler == null)
+            {
+                "Menu item selected but route handler is null.".LogWarning();
+                return;
+            }
+            _routeHandler.HandleMenuSelect(item);
+        }
     }
 }

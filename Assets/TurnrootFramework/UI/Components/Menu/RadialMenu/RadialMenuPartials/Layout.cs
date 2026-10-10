@@ -89,18 +89,6 @@ namespace Turnroot.UI.Components.RadialMenu
             centerItem?.EnsureContentOnTop();
         }
 
-        public void SetContentRadialOffset(float offset)
-        {
-            contentRadialOffset = Mathf.Clamp(offset, -0.5f, 0.5f);
-            RefreshLayout();
-        }
-
-        public void SetMenuRadius(float radiusPixels)
-        {
-            menuRadiusPixels = radiusPixels;
-            RefreshLayout();
-        }
-
         private void ShowMenu()
         {
             if (_canvasGroup == null)
@@ -111,8 +99,7 @@ namespace Turnroot.UI.Components.RadialMenu
             // If we're not configured to hide the menu until ready, just notify immediately.
             if (!hideUntilReady)
             {
-                NotifyMenuReady();
-                return;
+                                return;
             }
 
             // Stop any existing reveal coroutine
@@ -125,10 +112,7 @@ namespace Turnroot.UI.Components.RadialMenu
             if (showFadeTime <= 0f)
             {
                 _canvasGroup.alpha = 1f;
-                _canvasGroup.interactable = true;
-                _canvasGroup.blocksRaycasts = true;
-                NotifyMenuReady();
-            }
+                            }
             else
             {
                 _showCoroutine = StartCoroutine(FadeIn(_canvasGroup, showFadeTime));
@@ -138,8 +122,6 @@ namespace Turnroot.UI.Components.RadialMenu
         private IEnumerator FadeIn(CanvasGroup cg, float duration)
         {
             float t = 0f;
-            cg.blocksRaycasts = false;
-            cg.interactable = false;
             while (t < duration)
             {
                 t += Time.deltaTime;
@@ -147,12 +129,8 @@ namespace Turnroot.UI.Components.RadialMenu
                 yield return null;
             }
             cg.alpha = 1f;
-            cg.interactable = true;
-            cg.blocksRaycasts = true;
             _showCoroutine = null;
-            NotifyMenuReady();
-        }
+                    }
 
-        private void NotifyMenuReady() => OnMenuReady?.Invoke(this);
     }
 }
