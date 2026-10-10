@@ -144,9 +144,11 @@ namespace Turnroot.UI.Components.RadialMenu
 
             if (_contentRect != null)
             {
-                Canvas contentCanvas =
-                    (_contentRect.gameObject).GetComponent<Canvas>()
-                    ?? _contentRect.gameObject.AddComponent<Canvas>();
+                var contentObject = _contentRect.gameObject;
+                if (!contentObject.TryGetComponent<Canvas>(out var contentCanvas))
+                {
+                    contentCanvas = contentObject.AddComponent<Canvas>();
+                }
                 contentCanvas.overrideSorting = true;
                 contentCanvas.sortingOrder = 1; // Render above parent
             }
