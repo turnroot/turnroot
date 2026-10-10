@@ -337,9 +337,10 @@ namespace Turnroot.Utilities.AbstractScripts
 
         protected override void SubscribeToBrainEvents()
         {
+            base.SubscribeToBrainEvents();
             if (brain != null)
             {
-                brain.OnStateChanged += HandleStateChanged;
+                brain.OnPrecomputeCompleted -= HandlePrecomputeCompleted;
                 brain.OnPrecomputeCompleted += HandlePrecomputeCompleted;
             }
         }
@@ -348,9 +349,9 @@ namespace Turnroot.Utilities.AbstractScripts
         {
             if (brain != null)
             {
-                brain.OnStateChanged -= HandleStateChanged;
                 brain.OnPrecomputeCompleted -= HandlePrecomputeCompleted;
             }
+            base.UnsubscribeFromBrainEvents();
         }
 
         protected void HandlePrecomputeCompleted()
