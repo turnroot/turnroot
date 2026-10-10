@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Turnroot.UI.Components.RadialMenu
@@ -13,12 +12,7 @@ namespace Turnroot.UI.Components.RadialMenu
     /// Can also be used standalone as a center item.
     /// </summary>
     [RequireComponent(typeof(Image))]
-    public class RadialMenuItemSprite
-        : MenuItemBase,
-            IRadialMenuContent,
-            IPointerEnterHandler,
-            IPointerExitHandler,
-            IPointerClickHandler
+    public class RadialMenuItemSprite : MenuItemBase, IRadialMenuContent
     {
         [Header("Sprite Settings")]
         [SerializeField]
@@ -35,7 +29,6 @@ namespace Turnroot.UI.Components.RadialMenu
         private Image targetImage;
 
         private MenuItemBase _ownerItem;
-        private bool _isStandalone = false;
 
         private void Awake()
         {
@@ -61,15 +54,9 @@ namespace Turnroot.UI.Components.RadialMenu
                 // Subscribe to selection changes if available
                 _ownerItem.OnSelectedChanged += HandleOwnerSelectedChanged;
             }
-            else
+            else if (targetImage != null)
             {
-                // We're a standalone item (e.g., center item)
-                _isStandalone = true;
-                // Enable raycast target for mouse interaction
-                if (targetImage != null)
-                {
-                    targetImage.raycastTarget = true;
-                }
+                targetImage.raycastTarget = false;
             }
 
             // Initialize sprite to unselected
@@ -81,33 +68,6 @@ namespace Turnroot.UI.Components.RadialMenu
             if (_ownerItem != null && _ownerItem != this)
             {
                 _ownerItem.OnSelectedChanged -= HandleOwnerSelectedChanged;
-            }
-        }
-
-        // IPointerEventHandlers for standalone usage
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            if (_isStandalone)
-            {
-                _isHovered = true;
-                RaiseHoverEnter();
-            }
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            if (_isStandalone)
-            {
-                _isHovered = false;
-                RaiseHoverExit();
-            }
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            if (_isStandalone)
-            {
-                RaiseClick();
             }
         }
 

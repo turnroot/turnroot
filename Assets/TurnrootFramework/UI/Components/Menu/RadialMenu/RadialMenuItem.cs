@@ -61,8 +61,7 @@ namespace Turnroot.UI.Components.RadialMenu
                 _material = new Material(backgroundImage.material);
                 backgroundImage.material = _material;
 
-                // Enable raycast target so mouse works
-                backgroundImage.raycastTarget = true;
+                backgroundImage.raycastTarget = false;
             }
 
             /*             // Initialize default colors from global settings if available
@@ -138,17 +137,6 @@ namespace Turnroot.UI.Components.RadialMenu
 
                     // keep a reference to the content rect if found
                     _contentRect = contentTransform ?? instance.GetComponent<RectTransform>();
-
-                    // Warn if prefab contains a Canvas which can break draw order
-                    var prefabCanvas = instance.GetComponentInChildren<Canvas>();
-                    if (prefabCanvas != null)
-                    {
-#if UNITY_EDITOR
-                        Debug.LogWarning(
-                            $"RadialMenuItem '{name}' instantiated content prefab contains a Canvas. This may override draw order; consider removing it."
-                        );
-#endif
-                    }
                 }
             }
 
@@ -161,12 +149,6 @@ namespace Turnroot.UI.Components.RadialMenu
                     ?? _contentRect.gameObject.AddComponent<Canvas>();
                 contentCanvas.overrideSorting = true;
                 contentCanvas.sortingOrder = 1; // Render above parent
-
-                // Also add GraphicRaycaster so it still receives input
-                if (_contentRect.GetComponent<GraphicRaycaster>() == null)
-                {
-                    _contentRect.gameObject.AddComponent<GraphicRaycaster>();
-                }
             }
         }
 

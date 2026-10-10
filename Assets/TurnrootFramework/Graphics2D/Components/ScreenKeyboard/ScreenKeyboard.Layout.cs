@@ -42,9 +42,7 @@ namespace Turnroot.Graphics2D
                         key,
                         normalColor,
                         highlightColor,
-                        pressedColor,
-                        OnButtonClicked,
-                        OnButtonHovered
+                        pressedColor
                     );
                     buttons[row, col] = button;
                 }
@@ -83,9 +81,7 @@ namespace Turnroot.Graphics2D
                 shiftKey,
                 normalColor,
                 highlightColor,
-                pressedColor,
-                OnButtonClicked,
-                OnButtonHovered
+                pressedColor
             );
             buttons[bottomRow, 0] = shiftButton;
 
@@ -104,9 +100,7 @@ namespace Turnroot.Graphics2D
                 spaceKey,
                 normalColor,
                 highlightColor,
-                pressedColor,
-                OnButtonClicked,
-                OnButtonHovered
+                pressedColor
             );
             buttons[bottomRow, 1] = spaceButton;
 
@@ -126,9 +120,7 @@ namespace Turnroot.Graphics2D
                 backKey,
                 normalColor,
                 highlightColor,
-                pressedColor,
-                OnButtonClicked,
-                OnButtonHovered
+                pressedColor
             );
             buttons[bottomRow, 2] = backButton;
         }
@@ -153,9 +145,7 @@ namespace Turnroot.Graphics2D
                 backKey,
                 normalColor,
                 highlightColor,
-                pressedColor,
-                OnButtonClicked,
-                OnButtonHovered
+                pressedColor
             );
             buttons[bottomRow, 0] = backButton;
 
@@ -174,9 +164,7 @@ namespace Turnroot.Graphics2D
                 zeroKey,
                 normalColor,
                 highlightColor,
-                pressedColor,
-                OnButtonClicked,
-                OnButtonHovered
+                pressedColor
             );
             buttons[bottomRow, 1] = zeroButton;
 
@@ -195,9 +183,7 @@ namespace Turnroot.Graphics2D
                 submitKey,
                 normalColor,
                 highlightColor,
-                pressedColor,
-                OnButtonClicked,
-                OnButtonHovered
+                pressedColor
             );
             buttons[bottomRow, 2] = submitButton;
         }
@@ -223,9 +209,7 @@ namespace Turnroot.Graphics2D
                 submitKey,
                 normalColor,
                 highlightColor,
-                pressedColor,
-                OnButtonClicked,
-                OnButtonHovered
+                pressedColor
             );
             buttons[submitRow, 0] = submitButton;
         }
