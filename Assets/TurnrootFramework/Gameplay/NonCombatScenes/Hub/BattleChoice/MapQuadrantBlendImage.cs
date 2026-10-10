@@ -70,25 +70,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (topLeft != null)
-            {
-                _materialInstance.SetTexture(TopLeftId, topLeft);
-            }
-
-            if (topRight != null)
-            {
-                _materialInstance.SetTexture(TopRightId, topRight);
-            }
-
-            if (bottomLeft != null)
-            {
-                _materialInstance.SetTexture(BottomLeftId, bottomLeft);
-            }
-
-            if (bottomRight != null)
-            {
-                _materialInstance.SetTexture(BottomRightId, bottomRight);
-            }
+            _materialInstance.SetTexture(TopLeftId, topLeft);
+            _materialInstance.SetTexture(TopRightId, topRight);
+            _materialInstance.SetTexture(BottomLeftId, bottomLeft);
+            _materialInstance.SetTexture(BottomRightId, bottomRight);
         }
 
         public void SetSprites(
@@ -112,22 +97,61 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         /// A quadrant is shown as explored when its state is
         /// <see cref="QuadrantExploredState.FullyExplored"/>.
         /// </summary>
+        public static bool HasAnySprite(ExploreStatusSprites sprites)
+        {
+            return sprites.TopLeftExploredSprite != null
+                || sprites.TopLeftUnexploredSprite != null
+                || sprites.TopRightExploredSprite != null
+                || sprites.TopRightUnexploredSprite != null
+                || sprites.BottomLeftExploredSprite != null
+                || sprites.BottomLeftUnexploredSprite != null
+                || sprites.BottomRightExploredSprite != null
+                || sprites.BottomRightUnexploredSprite != null;
+        }
+
         public void SetFromExplorationStatus(ExploreStatusSprites sprites, ExploredStatus status)
         {
+            if (!HasAnySprite(sprites))
+            {
+                return;
+            }
+
             SetSprites(
-                IsExplored(status.TopLeft)
-                    ? sprites.TopLeftExploredSprite
-                    : sprites.TopLeftUnexploredSprite,
-                IsExplored(status.TopRight)
-                    ? sprites.TopRightExploredSprite
-                    : sprites.TopRightUnexploredSprite,
-                IsExplored(status.BottomLeft)
-                    ? sprites.BottomLeftExploredSprite
-                    : sprites.BottomLeftUnexploredSprite,
-                IsExplored(status.BottomRight)
-                    ? sprites.BottomRightExploredSprite
-                    : sprites.BottomRightUnexploredSprite
+                GetQuadrantSprite(
+                    IsExplored(status.TopLeft),
+                    sprites.TopLeftExploredSprite,
+                    sprites.TopLeftUnexploredSprite
+                ),
+                GetQuadrantSprite(
+                    IsExplored(status.TopRight),
+                    sprites.TopRightExploredSprite,
+                    sprites.TopRightUnexploredSprite
+                ),
+                GetQuadrantSprite(
+                    IsExplored(status.BottomLeft),
+                    sprites.BottomLeftExploredSprite,
+                    sprites.BottomLeftUnexploredSprite
+                ),
+                GetQuadrantSprite(
+                    IsExplored(status.BottomRight),
+                    sprites.BottomRightExploredSprite,
+                    sprites.BottomRightUnexploredSprite
+                )
             );
+        }
+
+        private static Sprite GetQuadrantSprite(
+            bool isExplored,
+            Sprite exploredSprite,
+            Sprite unexploredSprite
+        )
+        {
+            if (isExplored)
+            {
+                return exploredSprite != null ? exploredSprite : unexploredSprite;
+            }
+
+            return unexploredSprite != null ? unexploredSprite : exploredSprite;
         }
 
         private static bool IsExplored(QuadrantExploredState state) =>

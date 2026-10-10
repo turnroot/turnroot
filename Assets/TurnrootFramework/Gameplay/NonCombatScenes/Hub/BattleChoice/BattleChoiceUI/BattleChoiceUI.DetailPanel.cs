@@ -122,6 +122,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            if (!MapQuadrantBlendImage.HasAnySprite(battle.MapExplorationSprites))
+            {
+                if (MapImage != null)
+                {
+                    MapImage.gameObject.SetActive(true);
+                    MapImage.sprite = battle.MapSprite;
+                }
+
+                MapQuadrantDisplay.gameObject.SetActive(false);
+                return;
+            }
+
             MapQuadrantDisplay.gameObject.SetActive(true);
 
             var explorationStatus = GetExplorationStatus(battle);
