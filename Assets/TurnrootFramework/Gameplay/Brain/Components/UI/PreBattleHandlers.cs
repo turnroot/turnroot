@@ -44,36 +44,12 @@ namespace Turnroot.Gameplay.Brain.Segments
                 uiSettings.MenuFadeTime
             );
 
-            var menuStyle = preBattleMenuLocation.style;
-            if (menuStyle is not MenuStyle.Pie and not MenuStyle.Grid)
+            if (
+                preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(out var radialMenu)
+            )
             {
-                menuStyle = MenuStyle.Grid;
-            }
-            if (menuStyle == MenuStyle.Pie)
-            {
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
-                        out var radialMenu
-                    )
-                )
-                {
-                    radialMenu.uiBrain = this;
-                    radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
-                    // Disable input initially until scene transition completes
-                    radialMenu.enabled = false;
-                }
-            }
-            else if (menuStyle == MenuStyle.Grid)
-            {
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var gridMenu)
-                )
-                {
-                    gridMenu.uiBrain = this;
-                    gridMenu.OnItemSelected += HandlePreBattleMenuSelect;
-                    // Disable input initially until scene transition completes
-                    gridMenu.enabled = false;
-                }
+                radialMenu.uiBrain = this;
+                radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
             }
 
             // Hide the menu initially to prevent UI from showing through during scene transition
@@ -238,27 +214,18 @@ namespace Turnroot.Gameplay.Brain.Segments
             // Show the menu now that scene transition is complete
             preBattleMenuLocation.activeInstance.SetActive(true);
 
-            // Re-enable input
-            var menuStyle = preBattleMenuLocation.style;
-            if (menuStyle == MenuStyle.Pie)
+            // Re-enable input (independent of configured style so a mismatch can't leave it disabled)
+            if (
+                preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(out var radialMenu)
+            )
             {
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(
-                        out var radialMenu
-                    )
-                )
-                {
-                    radialMenu.enabled = true;
-                }
+                radialMenu.enabled = true;
             }
-            else if (menuStyle == MenuStyle.Grid)
+            else if (
+                preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var gridMenu)
+            )
             {
-                if (
-                    preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var gridMenu)
-                )
-                {
-                    gridMenu.enabled = true;
-                }
+                gridMenu.enabled = true;
             }
 
             // Trigger fade-in animation
