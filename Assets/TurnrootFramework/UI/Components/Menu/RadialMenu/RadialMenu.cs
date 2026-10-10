@@ -60,6 +60,7 @@ namespace Turnroot.UI.Components.RadialMenu
         private bool _centerSelected = false;
         private float _rotStep;
 
+        [HideInInspector]
         public UiBrain uiBrain;
 
         public event Action<MenuItemBase> OnNavigate;
@@ -94,10 +95,18 @@ namespace Turnroot.UI.Components.RadialMenu
             {
                 _canvasGroup.alpha = 0f;
             }
+            if (uiBrain == null)
+            {
+                uiBrain = GetAndCacheBrain.GetBrain().uiBrain;
+            }
         }
 
         private void OnEnable()
         {
+            if (uiBrain == null)
+            {
+                uiBrain = GetAndCacheBrain.GetBrain().uiBrain;
+            }
             SubscribeSelect();
             if (!_initialized)
             {
