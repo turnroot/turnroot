@@ -35,7 +35,7 @@ namespace Turnroot.GameSettings
     [System.Serializable]
     public class MenuEntry
     {
-        [Tooltip("The type/name of this menu")]
+        [HideInInspector]
         public MenuName menuName;
 
         [Tooltip("Prefab to instantiate for this menu")]
@@ -52,26 +52,26 @@ namespace Turnroot.GameSettings
     public class GamewideUiSettings : SingletonScriptableObject<GamewideUiSettings>
     {
         [Header("Menu Prefabs"), HorizontalLine(color: EColor.Blue)]
-        public MenuEntry MainMenu;
-        public MenuEntry HubActionsMenu;
-        public MenuEntry SaveFileMenu;
-        public MenuEntry GameSettingsMenu;
-        public MenuEntry GraphicsMenu;
-        public MenuEntry ExploreMenu;
-        public MenuEntry AudioMenu;
-        public MenuEntry ControlsMenu;
-        public MenuEntry GameplayMenu;
-        public MenuEntry NewGameMenu;
-        public MenuEntry AvatarSettingsMenu;
-        public MenuEntry PreBattleMenu;
-        public MenuEntry PreBattleTeamMenu;
-        public MenuEntry PreBattleItemsMenu;
-        public MenuEntry PreBattleSkillsMenu;
-        public MenuEntry PreBattleSettingsMenu;
-        public MenuEntry PreBattleMapMenu;
-        public MenuEntry PreBattleSupportMenu;
-        public MenuEntry PrebattleUnitPositionsMenu;
-        public MenuEntry BattleActionSelectMenu;
+        public MenuEntry MainMenu = new() { menuName = MenuName.MainMenu, prefab = null };
+        public MenuEntry HubActionsMenu = new() { menuName = MenuName.HubActionsMenu, prefab = null };
+        public MenuEntry SaveFileMenu = new() { menuName = MenuName.SaveFileMenu, prefab = null };
+        public MenuEntry GameSettingsMenu = new() { menuName = MenuName.GameSettingsMenu, prefab = null };
+        public MenuEntry GraphicsMenu = new() { menuName = MenuName.GraphicsMenu, prefab = null };
+        public MenuEntry ExploreMenu = new() { menuName = MenuName.ExploreMenu, prefab = null };
+        public MenuEntry AudioMenu = new() { menuName = MenuName.AudioMenu, prefab = null };
+        public MenuEntry ControlsMenu = new() { menuName = MenuName.ControlsMenu, prefab = null };
+        public MenuEntry GameplayMenu = new() { menuName = MenuName.GameplayMenu, prefab = null };
+        public MenuEntry NewGameMenu = new() { menuName = MenuName.NewGameMenu, prefab = null };
+        public MenuEntry AvatarSettingsMenu = new() { menuName = MenuName.AvatarSettingsMenu, prefab = null };
+        public MenuEntry PreBattleMenu = new() { menuName = MenuName.PreBattleMenu, prefab = null };
+        public MenuEntry PreBattleTeamMenu = new() { menuName = MenuName.PreBattleTeamMenu, prefab = null };
+        public MenuEntry PreBattleItemsMenu = new() { menuName = MenuName.PreBattleItemsMenu, prefab = null };
+        public MenuEntry PreBattleSkillsMenu = new() { menuName = MenuName.PreBattleSkillsMenu, prefab = null };
+        public MenuEntry PreBattleSettingsMenu = new() { menuName = MenuName.PreBattleSettingsMenu, prefab = null };
+        public MenuEntry PreBattleMapMenu = new() { menuName = MenuName.PreBattleMapMenu, prefab = null };
+        public MenuEntry PreBattleSupportMenu = new() { menuName = MenuName.PreBattleSupportMenu, prefab = null };
+        public MenuEntry PrebattleUnitPositionsMenu = new() { menuName = MenuName.PrebattleUnitPositionsMenu, prefab = null };
+        public MenuEntry BattleActionSelectMenu = new() { menuName = MenuName.BattleActionSelectMenu, prefab = null };
 
         // Runtime cache of menu entries resolved from the per-menu serialized fields
         private readonly Dictionary<MenuName, MenuEntry> _menuEntryCache = new();
