@@ -12,13 +12,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private MenuEntry GetHubMenuPlaceholder()
         {
-            // Placeholder used to track the hub as a "parent" menu when
-            // opening a settings menu directly from the hub (no menu stack exists).
-            _hubMenuPlaceholder ??= new MenuEntry
-            {
-                menuName = MenuName.HubActionsMenu,
-                style = MenuStyle.List,
-            };
+            _hubMenuPlaceholder ??= new MenuEntry { menuName = MenuName.HubActionsMenu };
             return _hubMenuPlaceholder;
         }
 

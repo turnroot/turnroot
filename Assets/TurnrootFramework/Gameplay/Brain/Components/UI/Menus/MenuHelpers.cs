@@ -54,30 +54,9 @@ namespace Turnroot.Gameplay.Brain.Segments
                 _brain.GetComponent<GamewideContextBrain>()
             );
 
-        public void ApplyMenuColors(GameObject instance, MenuStyle style)
+        public void ApplyMenuColors(GameObject instance)
         {
-            if (uiSettings == null)
-            {
-                return;
-            }
-
-            if (style == MenuStyle.Pie)
-            {
-                // Radial menus pull colors automatically
-                return;
-            }
-
-            // Apply grid/list/filmstrip colors
-            var buttons = instance.GetComponentsInChildren<UnityEngine.UI.Button>();
-            foreach (var button in buttons)
-            {
-                var colorBlock = button.colors;
-                colorBlock.normalColor = uiSettings.GridListFilmstripButtonNormalColor;
-                colorBlock.highlightedColor = uiSettings.GridListFilmstripButtonHoveredColor;
-                colorBlock.selectedColor = uiSettings.GridListFilmstripButtonSelectedColor;
-                colorBlock.fadeDuration = uiSettings.ButtonTransitionDuration;
-                button.colors = colorBlock;
-            }
+            // TODO: Fix this to work with SimpleChoice
         }
 
         public void TransitionToSubmenu(MenuEntry from, MenuEntry to)
