@@ -101,44 +101,6 @@ namespace Turnroot.Gameplay.Brain
 
         [HideInInspector]
         public LongTermMemory ltm;
-
         private ConversationController _sceneConversationController;
-
-        public static bool HubModuleEnabled =>
-#if TURNROOT_HUB_MODULE
-            true;
-#else
-            false;
-#endif
-        public static bool BloodlinesModuleEnabled =>
-#if TURNROOT_BLOODLINES_MODULE
-            true;
-#else
-            false;
-#endif
-        public static bool RetroModuleEnabled =>
-#if TURNROOT_RETRO_MODULE
-            true;
-#else
-            false;
-#endif
-        public static bool UnwindModuleEnabled =>
-#if TURNROOT_UNWIND_MODULE
-            true;
-#else
-            false;
-#endif
-        public static bool TroopsModuleEnabled =>
-#if TURNROOT_TROOPS_MODULE
-            true;
-#else
-            false;
-#endif
-        public static bool MonstersModuleEnabled =>
-#if TURNROOT_MONSTERS_MODULE
-            true;
-#else
-            false;
-#endif
     }
 }

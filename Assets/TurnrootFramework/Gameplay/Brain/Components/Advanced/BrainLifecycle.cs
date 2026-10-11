@@ -85,7 +85,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 IsFullyInitialized = false;
                 InitializeLongTermMemory();
-                InitializeModules();
                 InitializeAdvancedSystems();
                 TryLinkConversationController();
                 _awake = MakeInitialConnections();
@@ -101,23 +100,6 @@ namespace Turnroot.Gameplay.Brain
             return ltm == null
                 ? OperationResult.Failure("Failed to initialize LongTermMemory.")
                 : OperationResult.Successful();
-        }
-
-        public OperationResult InitializeModules()
-        {
-            var modules = new[]
-            {
-                (HubModuleEnabled, "Hub"),
-                (BloodlinesModuleEnabled, "Bloodlines"),
-                (UnwindModuleEnabled, "Unwind"),
-                (TroopsModuleEnabled, "Troops"),
-                (MonstersModuleEnabled, "Monsters"),
-                (RetroModuleEnabled, "Retro"),
-            };
-            var enabled = string.Join(", ", modules.Where(m => m.Item1).Select(m => m.Item2));
-
-            $"Turnroot modules: {(string.IsNullOrEmpty(enabled) ? "None" : enabled)}".LogInfo();
-            return OperationResult.Successful();
         }
 
         #region Conversation Controller Management

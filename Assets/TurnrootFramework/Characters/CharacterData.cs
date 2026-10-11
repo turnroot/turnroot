@@ -5,6 +5,7 @@ using NaughtyAttributes;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
 using Turnroot.Characters.Components.Behavior;
+using Turnroot.Characters.Configuration;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.CommonAncestors;
@@ -63,11 +64,8 @@ namespace Turnroot.Characters
         public string Notes { get; private set; } =
             "Take private notes (only in the editor) about this unit";
 
-#if TURNROOT_BLOODLINES_MODULE
-
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsAllyOrRecruitable))]
         public bool CanHaveChildren { get; private set; } = false;
-#endif
 
         [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowRecruitable))]
         public bool IsRecruitable { get; private set; } = false;
@@ -118,13 +116,11 @@ namespace Turnroot.Characters
         [field: Foldout("Visual"), SerializeField]
         public Color SkinColor { get; private set; }
 
-#if TURNROOT_BLOODLINES_MODULE
         [Foldout("Visual"), SerializeField]
         private Color _hairColor;
 
         [Foldout("Visual"), SerializeField]
         private Color _eyeColor;
-#endif
 
         [field: Foldout("Visual"), SerializeField]
         public Color AccentColor1 { get; private set; }
@@ -290,7 +286,6 @@ namespace Turnroot.Characters
         ]
         public CharacterBehavior BehaviorSettings { get; private set; }
 
-#if TURNROOT_BLOODLINES_MODULE
         [Foldout("Heredity"), SerializeField]
         [HorizontalLine(color: EColor.Indigo)]
         private HereditaryTraits _passedDownTraits = new();
@@ -300,7 +295,6 @@ namespace Turnroot.Characters
 
         [Foldout("Heredity"), SerializeField, ShowIf(nameof(_hasDesignatedChildUnit))]
         private CharacterData _childUnitId;
-#endif
 
         [field: SerializeField]
         public List<InventorySlot> StartingInventory { get; private set; } = new();
@@ -412,11 +406,10 @@ namespace Turnroot.Characters
         [field: HideInInspector]
         public List<ExperienceRank> ExperienceRanks { get; private set; } = new();
 
-        // NOTE: properties are declared inline with field-targeted attributes.
-#if TURNROOT_BLOODLINES_MODULE
+
         public Color HairColor => _hairColor;
         public Color EyeColor => _eyeColor;
-#endif
+
         public bool IsNotAvatar => Which != CharacterWhich.AVATAR;
         public bool IsEnemyOrNPC => Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
 
@@ -451,12 +444,12 @@ namespace Turnroot.Characters
             }
         }
 
-#if TURNROOT_BLOODLINES_MODULE
+
         public HereditaryTraits PassedDownTraits => _passedDownTraits;
 
         public bool HasDesignatedChildUnit => _hasDesignatedChildUnit;
         public CharacterData ChildUnitId => _childUnitId;
-#endif
+
 
         /// <summary>
         /// Represents an item slot in a character's inventory with an item and slot index.
