@@ -7,21 +7,6 @@ using UnityEngine;
 
 namespace Turnroot.GameSettings
 {
-    /// <summary>
-    /// Visual presentation styles available for game menus.
-    /// </summary>
-    public enum MenuStyle
-    {
-        Pie,
-        List,
-        Filmstrip,
-        Grid,
-        None,
-    }
-
-    /// <summary>
-    /// Identifiers for all menu locations in the game.
-    /// </summary>
     public enum MenuName
     {
         None,
@@ -47,56 +32,51 @@ namespace Turnroot.GameSettings
         BattleActionSelectMenu,
     }
 
-    /// <summary>
-    /// Represents a menu definition (name, prefab, style, and runtime instance).
-    /// </summary>
     [System.Serializable]
     public class MenuEntry
     {
         [Tooltip("The type/name of this menu")]
         public MenuName menuName;
 
-        [Tooltip("Visual style for this menu")]
-        public MenuStyle style;
-
         [Tooltip("Prefab to instantiate for this menu")]
         public GameObject prefab;
 
-        // Track the active instance of this menu
         [System.NonSerialized]
         public GameObject activeInstance;
     }
 
-    /// <summary>
-    /// Global UI configuration for menus, menu hierarchy, and UI element settings.
-    /// </summary>
     [CreateAssetMenu(
         fileName = "GamewideUiSettings",
         menuName = "Turnroot/Game Settings/UI/Gamewide UI Settings"
     )]
     public class GamewideUiSettings : SingletonScriptableObject<GamewideUiSettings>
     {
-        [System.Serializable]
-        public class MenuPrefabBinding
-        {
-            public MenuName menuName;
-            public MenuStyle style = MenuStyle.List;
-            public GameObject prefab;
-        }
+        [Header("Menu Prefabs"), HorizontalLine(color: EColor.Blue)]
+        public MenuEntry MainMenu;
+        public MenuEntry HubActionsMenu;
+        public MenuEntry SaveFileMenu;
+        public MenuEntry GameSettingsMenu;
+        public MenuEntry GraphicsMenu;
+        public MenuEntry ExploreMenu;
+        public MenuEntry AudioMenu;
+        public MenuEntry ControlsMenu;
+        public MenuEntry GameplayMenu;
+        public MenuEntry NewGameMenu;
+        public MenuEntry AvatarSettingsMenu;
+        public MenuEntry PreBattleMenu;
+        public MenuEntry PreBattleTeamMenu;
+        public MenuEntry PreBattleItemsMenu;
+        public MenuEntry PreBattleSkillsMenu;
+        public MenuEntry PreBattleSettingsMenu;
+        public MenuEntry PreBattleMapMenu;
+        public MenuEntry PreBattleSupportMenu;
+        public MenuEntry PrebattleUnitPositionsMenu;
+        public MenuEntry BattleActionSelectMenu;
 
-        [Header("Menus"), HorizontalLine(color: EColor.Blue)]
-        public List<MenuPrefabBinding> MenuPrefabs;
-
-        // Runtime cache of created MenuEntry objects created from MenuPrefabs.
-        // This allows the menu system to maintain runtime state (activeInstance, etc.)
-        // without requiring a complex serialized hierarchy.
+        // Runtime cache of menu entries resolved from the per-menu serialized fields
         private readonly Dictionary<MenuName, MenuEntry> _menuEntryCache = new();
 
-        [
-            Header("Portraits"),
-            SerializeField,
-            Tooltip("Sprite to use when a unit portrait is missing")
-        ]
+        [Header("Portraits"), Tooltip("Sprite to use when a unit portrait is missing")]
         public Sprite NoPortraitSprite;
 
         [System.Serializable]
@@ -138,9 +118,34 @@ namespace Turnroot.GameSettings
         protected override void OnEnable()
         {
             base.OnEnable();
-            MenuPrefabs ??= new List<MenuPrefabBinding>();
             _menuEntryCache.Clear();
         }
+
+        private MenuEntry GetMenuBinding(MenuName menuName) =>
+            menuName switch
+            {
+                MenuName.MainMenu => MainMenu,
+                MenuName.HubActionsMenu => HubActionsMenu,
+                MenuName.SaveFileMenu => SaveFileMenu,
+                MenuName.GameSettingsMenu => GameSettingsMenu,
+                MenuName.GraphicsMenu => GraphicsMenu,
+                MenuName.ExploreMenu => ExploreMenu,
+                MenuName.AudioMenu => AudioMenu,
+                MenuName.ControlsMenu => ControlsMenu,
+                MenuName.GameplayMenu => GameplayMenu,
+                MenuName.NewGameMenu => NewGameMenu,
+                MenuName.AvatarSettingsMenu => AvatarSettingsMenu,
+                MenuName.PreBattleMenu => PreBattleMenu,
+                MenuName.PreBattleTeamMenu => PreBattleTeamMenu,
+                MenuName.PreBattleItemsMenu => PreBattleItemsMenu,
+                MenuName.PreBattleSkillsMenu => PreBattleSkillsMenu,
+                MenuName.PreBattleSettingsMenu => PreBattleSettingsMenu,
+                MenuName.PreBattleMapMenu => PreBattleMapMenu,
+                MenuName.PreBattleSupportMenu => PreBattleSupportMenu,
+                MenuName.PrebattleUnitPositionsMenu => PrebattleUnitPositionsMenu,
+                MenuName.BattleActionSelectMenu => BattleActionSelectMenu,
+                _ => null,
+            };
 
         public MenuEntry GetMenuEntry(MenuName menuName)
         {
@@ -155,13 +160,8 @@ namespace Turnroot.GameSettings
                 return cached;
             }
 
-            var binding = MenuPrefabs?.Find(b => b.menuName == menuName);
-            var entry = new MenuEntry
-            {
-                menuName = menuName,
-                prefab = binding?.prefab,
-                style = binding?.style ?? MenuStyle.List,
-            };
+            var binding = GetMenuBinding(menuName);
+            var entry = binding ?? new MenuEntry { menuName = menuName, prefab = null };
 
             _menuEntryCache[menuName] = entry;
             return entry;

@@ -180,7 +180,7 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
 
             _brain.SetupSettingsUIBindings(instance);
-            _brain.ApplyMenuColors(instance, location.style);
+            _brain.ApplyMenuColors(instance);
         }
 
         private void HandleCreatedMenuInstance(MenuEntry to)

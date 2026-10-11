@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
+using Turnroot.Gameplay.Objects;
 using UnityEditor;
 using UnityEngine;
 
@@ -60,6 +61,25 @@ namespace Turnroot.Conversations.Mermaid.Editor
             }
 
             EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("Item ID Mapping", EditorStyles.boldLabel);
+            var itemTemplatesProperty = serializedObject.FindProperty("itemTemplates");
+            if (itemTemplatesProperty != null)
+            {
+                EditorGUILayout.PropertyField(
+                    itemTemplatesProperty,
+                    new GUIContent("Item Templates"),
+                    true
+                );
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    "Item template mapping is not serialized on this asset and cannot be edited here.",
+                    MessageType.Info
+                );
+            }
+
+            EditorGUILayout.Space(10);
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Parse & Update People", GUILayout.Height(28)))
             {
@@ -67,6 +87,11 @@ namespace Turnroot.Conversations.Mermaid.Editor
             }
 
             GUI.enabled = conversation.MermaidSource != null;
+            if (GUILayout.Button("Sync Item IDs", GUILayout.Height(28)))
+            {
+                SyncItemIds(conversation);
+            }
+
             if (GUILayout.Button("Validate Only", GUILayout.Height(28)))
             {
                 ValidateOnly(conversation);
@@ -180,6 +205,7 @@ namespace Turnroot.Conversations.Mermaid.Editor
             }
 
             conversation.People = people;
+            SyncItemIds(conversation, graph);
             EditorUtility.SetDirty(conversation);
 
             ValidateGraph(conversation, graph);
@@ -207,6 +233,80 @@ namespace Turnroot.Conversations.Mermaid.Editor
             }
 
             ValidateGraph(conversation, graph);
+        }
+
+        private static void SyncItemIds(Conversation conversation)
+        {
+            if (conversation == null || conversation.MermaidSource == null)
+            {
+                return;
+            }
+
+            var graph = MermaidConversationParser.Parse(
+                conversation.MermaidSource.text,
+                conversation.name
+            );
+            SyncItemIds(conversation, graph);
+        }
+
+        private static void SyncItemIds(Conversation conversation, MermaidConversationGraph graph)
+        {
+            if (conversation == null || graph == null)
+            {
+                return;
+            }
+
+            foreach (var node in graph.Nodes)
+            {
+                if (node?.Kind != MermaidNodeKind.Action)
+                {
+                    continue;
+                }
+
+                var upper = node.ActionType?.ToUpperInvariant();
+                if (
+                    upper != "PLAYERGAINSITEM"
+                    && upper != "GAINSITEM"
+                    && upper != "PLAYERLOSESITEM"
+                    && upper != "LOSESITEM"
+                )
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(node.ActionTarget))
+                {
+                    continue;
+                }
+
+                var template = Resources
+                    .FindObjectsOfTypeAll<ObjectItem>()
+                    .FirstOrDefault(item =>
+                        item != null
+                        && (
+                            string.Equals(
+                                item.Id,
+                                node.ActionTarget,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                            || string.Equals(
+                                item.name,
+                                node.ActionTarget,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                            || string.Equals(
+                                item.Name,
+                                node.ActionTarget,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                    );
+
+                if (template != null)
+                {
+                    conversation.RegisterItemTemplate(node.ActionTarget, template);
+                }
+            }
         }
 
         private void ValidateGraph(Conversation conversation, MermaidConversationGraph graph)
@@ -308,35 +408,34 @@ namespace Turnroot.Conversations.Mermaid.Editor
         private static bool IsKnownActionType(string actionType)
         {
             var upper = actionType.ToUpperInvariant();
-            return upper == "GAINSUPPORT"
-                || upper == "LOSESUPPORT"
-                || upper == "UNLOCKBATTLE"
-                || upper == "PLAYERGAINSITEM"
-                || upper == "GAINSITEM"
-                || upper == "PLAYERLOSESITEM"
-                || upper == "LOSESITEM"
-                || upper == "CHARACTERJOINSTEAM"
-                || upper == "JOINTEAM"
-                || upper == "CHARACTERLEAVESTEAM"
-                || upper == "LEAVETEAM";
+            return upper
+                is "GAINSUPPORT"
+                    or "LOSESUPPORT"
+                    or "UNLOCKBATTLE"
+                    or "PLAYERGAINSITEM"
+                    or "GAINSITEM"
+                    or "PLAYERLOSESITEM"
+                    or "LOSESITEM"
+                    or "CHARACTERJOINSTEAM"
+                    or "JOINTEAM"
+                    or "CHARACTERLEAVESTEAM"
+                    or "LEAVETEAM";
         }
 
         private static bool IsItemAction(string actionType)
         {
             var upper = actionType.ToUpperInvariant();
-            return upper == "PLAYERGAINSITEM"
-                || upper == "GAINSITEM"
-                || upper == "PLAYERLOSESITEM"
-                || upper == "LOSESITEM";
+            return upper is "PLAYERGAINSITEM" or "GAINSITEM" or "PLAYERLOSESITEM" or "LOSESITEM";
         }
 
         private static bool IsCharacterAction(string actionType)
         {
             var upper = actionType.ToUpperInvariant();
-            return upper == "CHARACTERJOINSTEAM"
-                || upper == "JOINTEAM"
-                || upper == "CHARACTERLEAVESTEAM"
-                || upper == "LEAVETEAM";
+            return upper
+                is "CHARACTERJOINSTEAM"
+                    or "JOINTEAM"
+                    or "CHARACTERLEAVESTEAM"
+                    or "LEAVETEAM";
         }
 
         private static CharacterData TryFindCharacterByDisplayName(string speakerName)

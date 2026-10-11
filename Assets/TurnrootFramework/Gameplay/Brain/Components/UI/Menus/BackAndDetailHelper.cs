@@ -57,13 +57,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                 state => state == stateName
             );
 
-            // If the pre-battle menu (radial/pie) is the current active menu, hide Details button
             var preBattleMenu = uiSettings?.GetPreBattleMenu();
-            if (
-                preBattleMenu?.activeInstance != null
-                && IsInPreBattleMenu()
-                && preBattleMenu.style == MenuStyle.Pie
-            )
+            if (preBattleMenu?.activeInstance != null && IsInPreBattleMenu())
             {
                 "UiBrain: Hiding Details button because pre-battle radial menu is active.".LogInfo();
                 needsDetailsButton = false;

@@ -17,6 +17,7 @@ namespace Turnroot.Conversations.Mermaid
     public static class ConversationActionExecutor
     {
         public static Brain brain => GetAndCacheBrain.GetBrain();
+
         public static OperationResult Execute(
             MermaidNode node,
             Conversation conversation,
@@ -36,14 +37,14 @@ namespace Turnroot.Conversations.Mermaid
                 {
                     "GAINSUPPORT" or "LOSESUPPORT" => ExecuteSupportChange(node, conversation),
                     "UNLOCKBATTLE" => ExecuteUnlockBattle(node),
-                    "PLAYERGAINSITEM" or "GAINSITEM" => ExecutePlayerGainsItem(node),
-                    "PLAYERLOSESITEM" or "LOSESITEM" => ExecutePlayerLosesItem(node),
+                    "PLAYERGAINSITEM" or "GAINSITEM" => ExecutePlayerGainsItem(node, conversation),
+                    "PLAYERLOSESITEM" or "LOSESITEM" => ExecutePlayerLosesItem(node, conversation),
                     "CHARACTERJOINSTEAM" or "JOINTEAM" => ExecuteCharacterJoinsTeam(node),
                     "CHARACTERLEAVESTEAM" or "LEAVETEAM" => ExecuteCharacterLeavesTeam(node),
                     "GENERICEVENT" => ExecuteGenericEvent(node, conversation),
                     _ => OperationResult.Failure(
-                                                $"ConversationActionExecutor: unknown action type '{node.ActionType}' in node '{node.Id}'."
-                                            ),
+                        $"ConversationActionExecutor: unknown action type '{node.ActionType}' in node '{node.Id}'."
+                    ),
                 };
             }
             catch (Exception exception)
@@ -176,7 +177,10 @@ namespace Turnroot.Conversations.Mermaid
             return OperationResult.Successful();
         }
 
-        private static OperationResult ExecutePlayerGainsItem(MermaidNode node)
+        private static OperationResult ExecutePlayerGainsItem(
+            MermaidNode node,
+            Conversation conversation
+        )
         {
             var itemId = node.ActionTarget;
             if (string.IsNullOrWhiteSpace(itemId))
@@ -186,11 +190,17 @@ namespace Turnroot.Conversations.Mermaid
                 );
             }
 
-            var itemTemplate = Resources.Load<ObjectItem>($"Items/{itemId}"); // TODO: This lookup is bad!!!
-            if (itemTemplate == null)
+            if (conversation == null)
             {
                 return OperationResult.Failure(
-                    $"ConversationActionExecutor: could not find item '{itemId}'."
+                    $"ConversationActionExecutor: gain item node '{node.Id}' has no conversation context."
+                );
+            }
+
+            if (!conversation.TryGetItemTemplate(itemId, out var itemTemplate))
+            {
+                return OperationResult.Failure(
+                    $"ConversationActionExecutor: could not find item '{itemId}' in the conversation mapping or item catalog."
                 );
             }
 
@@ -216,13 +226,23 @@ namespace Turnroot.Conversations.Mermaid
             return OperationResult.Successful();
         }
 
-        private static OperationResult ExecutePlayerLosesItem(MermaidNode node)
+        private static OperationResult ExecutePlayerLosesItem(
+            MermaidNode node,
+            Conversation conversation
+        )
         {
             var itemId = node.ActionTarget;
             if (string.IsNullOrWhiteSpace(itemId))
             {
                 return OperationResult.Failure(
                     $"ConversationActionExecutor: lose item node '{node.Id}' has no item id."
+                );
+            }
+
+            if (conversation == null)
+            {
+                return OperationResult.Failure(
+                    $"ConversationActionExecutor: lose item node '{node.Id}' has no conversation context."
                 );
             }
 
@@ -235,7 +255,9 @@ namespace Turnroot.Conversations.Mermaid
             }
 
             var itemInstance = avatar.InventoryInstance.InventoryItems.FirstOrDefault(i =>
-                string.Equals(i?.Template?.name, itemId, StringComparison.OrdinalIgnoreCase)
+                string.Equals(i?.Template?.Id, itemId, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(i?.Template?.name, itemId, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(i?.Template?.Name, itemId, StringComparison.OrdinalIgnoreCase)
             );
 
             if (itemInstance == null)
