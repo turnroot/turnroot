@@ -247,16 +247,6 @@ namespace Turnroot.Gameplay.Combat
             {
                 condition.CheckCondition();
             }
-
-#if TURNROOT_MONSTERS_MODULE
-            foreach (var condition in BattleConditions.OfType<DefeatAllMonstersBattleCondition>())
-            {
-                condition.CheckCondition();
-            }
-
-            foreach (var condition in BattleConditions.OfType<DefeatMonsterBattleCondition>())
-                condition.CheckCondition();
-#endif
         }
 
         private void HandleUnitMoved(CharacterInstance unit, Vector2Int newPos)
