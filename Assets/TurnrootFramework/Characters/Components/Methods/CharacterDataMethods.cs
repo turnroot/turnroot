@@ -9,9 +9,6 @@ using UnityEngine;
 
 namespace Turnroot.Characters
 {
-    /// <summary>
-    /// CharacterData methods for portrait defaults, skill management, and support relationships.
-    /// </summary>
     public partial class CharacterData : ScriptableObject, IHasStats
     {
         public void InvalidatePortraitArrayCache() => InvalidatePortraitLookupCache();
@@ -21,6 +18,15 @@ namespace Turnroot.Characters
             DisplayName = displayName;
             FullName = fullName;
             CharacterPronouns = pronouns;
+        }
+
+        public void SetAvatarAppearanceColors(Color skinColor, Color hairColor, Color eyeColor)
+        {
+            SkinColor = skinColor;
+            _hairColor = hairColor;
+            _eyeColor = eyeColor;
+            AccentColor1 = hairColor;
+            AccentColor2 = eyeColor;
         }
 
         public void SaveDefaults()

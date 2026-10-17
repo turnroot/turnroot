@@ -104,18 +104,32 @@ namespace Turnroot.Gameplay.Brain
                     ? settings.AvatarSkinColorChoices[0]
                     : Color.white;
 
-            AvatarHairColor = ParseColorOrFallback(ltm.Recall("Avatar/HairColor"), fallbackHair);
-            AvatarEyeColor = ParseColorOrFallback(ltm.Recall("Avatar/EyeColor"), fallbackEye);
-            AvatarSkinColor = ParseColorOrFallback(ltm.Recall("Avatar/SkinColor"), fallbackSkin);
+            AvatarHairColor = ParseColorOrFallback(
+                ltm.Recall(LtmKeys.AvatarHairColor),
+                fallbackHair
+            );
+            AvatarEyeColor = ParseColorOrFallback(ltm.Recall(LtmKeys.AvatarEyeColor), fallbackEye);
+            AvatarSkinColor = ParseColorOrFallback(
+                ltm.Recall(LtmKeys.AvatarSkinColor),
+                fallbackSkin
+            );
 
-            var displayName = ltm.Recall("Avatar/DisplayName");
-            if (string.IsNullOrEmpty(displayName))
+            var avatar = GetOrCreateAvatarInstance();
+            if (avatar?.CharacterTemplate == null)
             {
                 return;
             }
 
-            var avatar = GetOrCreateAvatarInstance();
-            if (avatar?.CharacterTemplate == null)
+            // Apply restored colors to the template — SO mutations are in-memory only,
+            // so this must run every session before any model is created.
+            avatar.CharacterTemplate.SetAvatarAppearanceColors(
+                AvatarSkinColor,
+                AvatarHairColor,
+                AvatarEyeColor
+            );
+
+            var displayName = ltm.Recall("Avatar/DisplayName");
+            if (string.IsNullOrEmpty(displayName))
             {
                 return;
             }

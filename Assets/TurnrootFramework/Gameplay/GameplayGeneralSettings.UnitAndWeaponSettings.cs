@@ -33,18 +33,8 @@ namespace Turnroot.GameSettings
         ]
         public Material UnitOutfitMaterialTemplate;
 
-        [
-            BoxGroup("Animations"),
-            InfoBox(
-                "Shared Humanoid Avatar used for retargeting animations across all character models. All rigs must share the same bone orientations / T-pose."
-            )
-        ]
-        public Avatar CharacterAvatar;
-
         [BoxGroup("Animations")]
         public bool ProceduralHairSimulation;
-
-        public CharacterClassData GetDefaultStartingClass() => DefaultStartingClass;
 
         [BoxGroup("Weapons"), InfoBox("Put all of the weapon types your game uses here")]
         public WeaponType[] WeaponTypes;

@@ -125,5 +125,23 @@ namespace Turnroot.UI
             }
             return false;
         }
+
+        public Color GetSelectedColor(ScrollerType type)
+        {
+            foreach (var connector in AppearanceScrollers)
+            {
+                if (connector == null || connector.scrollerType != type)
+                {
+                    continue;
+                }
+
+                var choice = connector.scroller?.SelectedChoice;
+                return string.IsNullOrEmpty(choice)
+                    ? Color.white
+                    : connector.GetColorFromChoice(choice);
+            }
+
+            return Color.white;
+        }
     }
 }

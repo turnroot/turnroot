@@ -46,17 +46,17 @@ namespace Turnroot.Characters.CharacterClass
 
         [HorizontalLine(color: EColor.Green)]
         [Tooltip(
-            "Walk animation for this class. Shared Humanoid Avatar retargeting makes this work for all proportions."
+            "Walk animation for this class. Humanoid retargeting makes this work for all rigs and proportions."
         )]
         public AnimationClip WalkAnimation;
 
         [Tooltip(
-            "Run animation for this class. Shared Humanoid Avatar retargeting makes this work for all proportions."
+            "Run animation for this class. Humanoid retargeting makes this work for all rigs and proportions."
         )]
         public AnimationClip RunAnimation;
 
         [Tooltip(
-            "Idle animations for this class. If multiple, one is chosen at random. Shared Humanoid Avatar retargeting makes this work for all proportions."
+            "Idle animations for this class. If multiple, one is chosen at random. Humanoid retargeting makes this work for all rigs and proportions."
         )]
         public AnimationClip[] IdleAnimations = new AnimationClip[0];
 
