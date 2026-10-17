@@ -24,6 +24,8 @@ namespace Turnroot.GameSettings
         [BoxGroup("Unit Classes"), InfoBox("Units without a class assigned will use this class")]
         public CharacterClassData DefaultStartingClass;
 
+        public CharacterClassData GetDefaultStartingClass() => DefaultStartingClass;
+
         [
             BoxGroup("Unit Classes"),
             InfoBox(
