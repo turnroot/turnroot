@@ -126,15 +126,16 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
 
-            var material = baseMat != null
-                ? new Material(baseMat)
-                {
-                    name = $"{unit.CharacterTemplate.DisplayName}_{className}_Outfit",
-                }
-                : new Material(_settings.UnitOutfitMaterialTemplate)
-                {
-                    name = $"{unit.CharacterTemplate.DisplayName}_{className}_OutfitMaterial",
-                };
+            var material =
+                baseMat != null
+                    ? new Material(baseMat)
+                    {
+                        name = $"{unit.CharacterTemplate.DisplayName}_{className}_Outfit",
+                    }
+                    : new Material(_settings.UnitOutfitMaterialTemplate)
+                    {
+                        name = $"{unit.CharacterTemplate.DisplayName}_{className}_OutfitMaterial",
+                    };
             unit.classNameToOutfitMaterials[className] = material;
 
             return material;
@@ -168,15 +169,18 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void ApplyColorSettings(Material material, CharacterInstance unit)
+        public static void ApplyColorSettings(Material material, CharacterInstance unit) =>
+            ApplyColorSettings(material, unit.CharacterTemplate);
+
+        public static void ApplyColorSettings(Material material, CharacterData template)
         {
-            material.SetColor("_Accent_Color_1", unit.CharacterTemplate.AccentColor1);
+            material.SetColor("_Accent_Color_1", template.AccentColor1);
 
-            material.SetColor("_Accent_Color_2", unit.CharacterTemplate.AccentColor2);
+            material.SetColor("_Accent_Color_2", template.AccentColor2);
 
-            material.SetColor("_Accent_Color_3", unit.CharacterTemplate.AccentColor3);
+            material.SetColor("_Accent_Color_3", template.AccentColor3);
 
-            material.SetColor("_Skin_Color", unit.CharacterTemplate.SkinColor);
+            material.SetColor("_Skin_Color", template.SkinColor);
         }
 
         private void ApplyClassTextures(Material material, CharacterClassDataInstance classInst)
