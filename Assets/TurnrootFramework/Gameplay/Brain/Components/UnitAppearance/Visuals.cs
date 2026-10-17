@@ -174,13 +174,18 @@ namespace Turnroot.Gameplay.Brain
 
         public static void ApplyColorSettings(Material material, CharacterData template)
         {
+            // Two shaders with different property naming
             material.SetColor("_Accent_Color_1", template.AccentColor1);
+            material.SetColor("_AccentColor1", template.AccentColor1);
 
             material.SetColor("_Accent_Color_2", template.AccentColor2);
+            material.SetColor("_AccentColor2", template.AccentColor2);
 
             material.SetColor("_Accent_Color_3", template.AccentColor3);
+            material.SetColor("_AccentColor3", template.AccentColor3);
 
             material.SetColor("_Skin_Color", template.SkinColor);
+            material.SetColor("_SkinColor", template.SkinColor);
         }
 
         private void ApplyClassTextures(Material material, CharacterClassDataInstance classInst)
