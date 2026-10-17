@@ -18,8 +18,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
         [Header(Accent Tinting)]
         // Tint colors provided by Visuals.cs. _TintMask's R/G/B channels
         // select which accent color replaces the base map's color in that
-        // region; a near-white vertex color flags a "skin" region and
-        // substitutes Skin Color for whichever accent channel applies there.
+        // region; where ALL three mask channels are ~1, the pixel is a
+        // "skin" region and Skin Color is used instead of the accents.
         _TintMask("Tint Mask (RGB)", 2D) = "black" {}
         _AccentColor1("Accent Color 1", Color) = (1, 1, 1, 1)
         _AccentColor2("Accent Color 2", Color) = (1, 1, 1, 1)
@@ -286,7 +286,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 float2 uv         : TEXCOORD0;
                 float3 normalOS   : NORMAL;
                 float4 tangentOS  : TANGENT;
-                float4 color      : COLOR; // vertex color: flags skin regions
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -300,7 +299,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 float3 bitangentWS : TEXCOORD4;
                 float4 shadowCoord : TEXCOORD5;
                 float  fogFactor   : TEXCOORD6;
-                float4 color       : COLOR;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -320,7 +318,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 output.bitangentWS = normalInput.bitangentWS;
 
                 output.uv = input.uv;
-                output.color = input.color;
                 output.shadowCoord = GetShadowCoord(vertexInput);
                 output.fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
@@ -337,20 +334,22 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 baseTex.rgb *= _BaseColor.rgb;
 
                 // ── Accent tinting ───────────────────────────────────────
-                // Tint mask R/G/B selects Accent 1/2/3 replacement. A near-
-                // white vertex color signals a "skin" area and substitutes
-                // Skin Color for whichever accent channel applies there.
+                // Tint mask R/G/B selects Accent 1/2/3 replacement. Where all
+                // three mask channels are ~1, the pixel is skin and Skin Color
+                // is used instead of the accent colors.
                 float4 tintMask = SAMPLE_TEXTURE2D(_TintMask, sampler_TintMask, TRANSFORM_TEX(input.uv, _TintMask));
-                float3 vcol = input.color.rgb;
-                float useSkin = step(0.99, min(vcol.r, min(vcol.g, vcol.b)));
+                float useSkin = step(0.99, min(tintMask.r, min(tintMask.g, tintMask.b)));
 
                 float3 tintColor1 = lerp(_AccentColor1.rgb, _SkinColor.rgb, useSkin);
                 float3 tintColor2 = lerp(_AccentColor2.rgb, _SkinColor.rgb, useSkin);
                 float3 tintColor3 = lerp(_AccentColor3.rgb, _SkinColor.rgb, useSkin);
 
-                baseTex.rgb = lerp(baseTex.rgb, tintColor1, tintMask.r);
-                baseTex.rgb = lerp(baseTex.rgb, tintColor2, tintMask.g);
-                baseTex.rgb = lerp(baseTex.rgb, tintColor3, tintMask.b);
+                // Skin regions (all channels ~1) end up as pure Skin Color;
+                // otherwise each channel lerps toward its accent.
+                baseTex.rgb = lerp(baseTex.rgb, tintColor1, tintMask.r * (1.0 - useSkin));
+                baseTex.rgb = lerp(baseTex.rgb, tintColor2, tintMask.g * (1.0 - useSkin));
+                baseTex.rgb = lerp(baseTex.rgb, tintColor3, tintMask.b * (1.0 - useSkin));
+                baseTex.rgb = lerp(baseTex.rgb, _SkinColor.rgb, useSkin);
 
                 // Night tint, driven externally (e.g. by a time-of-day controller).
                 baseTex.rgb = lerp(baseTex.rgb, _NightTintColor.rgb, _NightTintIntensity);
