@@ -9,6 +9,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
 
         [Header(Surface)]
         _BaseMap("Base Map", 2D) = "white" {}
+        _BaseColor("Base Color Tint", Color) = (1, 1, 1, 1)
         _BumpMap("Normal Map", 2D) = "bump" {}
         _BumpScale("Normal Scale", Float) = 1
         _Cutoff("Alpha Clip Threshold", Range(0, 1)) = 0.5
@@ -222,8 +223,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
             float4 _MatcapMaskTex_ST;
             float4 _MatcapEmissiveTex_ST;
             float4 _TintMask_ST;
-            float4 _MSEMap_ST;
 
+            float4 _BaseColor;
             float  _BumpScale;
             float  _Cutoff;
 
@@ -278,7 +279,6 @@ Shader "Turnroot/Class Outfit Cel Shader"
             TEXTURE2D(_MatcapMaskTex);     SAMPLER(sampler_MatcapMaskTex);
             TEXTURE2D(_MatcapEmissiveTex); SAMPLER(sampler_MatcapEmissiveTex);
             TEXTURE2D(_TintMask);          SAMPLER(sampler_TintMask);
-            TEXTURE2D(_MSEMap);            SAMPLER(sampler_MSEMap);
 
             struct Attributes
             {
@@ -334,7 +334,7 @@ Shader "Turnroot/Class Outfit Cel Shader"
                 // ── Base color / alpha clip ─────────────────────────────
                 float2 uv_Base = TRANSFORM_TEX(input.uv, _BaseMap);
                 float4 baseTex = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv_Base);
-                clip(baseTex.a - _Cutoff);
+                baseTex.rgb *= _BaseColor.rgb;
 
                 // ── Accent tinting ───────────────────────────────────────
                 // Tint mask R/G/B selects Accent 1/2/3 replacement. A near-
@@ -354,6 +354,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
 
                 // Night tint, driven externally (e.g. by a time-of-day controller).
                 baseTex.rgb = lerp(baseTex.rgb, _NightTintColor.rgb, _NightTintIntensity);
+
+                clip(baseTex.a - _Cutoff);
 
                 float3 albedo = baseTex.rgb;
 
@@ -406,8 +408,8 @@ Shader "Turnroot/Class Outfit Cel Shader"
                     // "How lit" this pixel is, 0..1. A pixel that's either facing
                     // away from the light OR occluded by the shadow map lands at 0
                     // (shadow band) — not a mid-tone remap artefact.
-                    float lit = ndl * atten;
-                    float litNoised = lit + noiseOffset;
+                    float lit = saturate(ndl) * atten;
+                    float litNoised = saturate(lit + noiseOffset);
 
                     float shadowEdge    = max(_ShadowSoftness, 0.0001);
                     float highlightEdge = max(_HighlightSoftness, 0.0001);
