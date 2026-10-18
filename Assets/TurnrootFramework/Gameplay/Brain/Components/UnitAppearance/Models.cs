@@ -39,6 +39,10 @@ namespace Turnroot.Gameplay.Brain
 
             UnifyBoneHierarchies(root);
 
+            // Hair uses its own material and is excluded from outfit tinting,
+            // so apply the character's colors (hair -> accent 1) directly.
+            TintHairMaterials(unit, root);
+
             var animator = root.AddComponent<Animator>();
             animator.avatar = ResolveHumanoidAvatar(root, animator);
 

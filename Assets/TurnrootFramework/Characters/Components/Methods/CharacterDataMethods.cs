@@ -29,6 +29,9 @@ namespace Turnroot.Characters
             AccentColor2 = eyeColor;
         }
 
+        /// Avatar-only
+        public void SetAvatarHairPrefab(GameObject hairPrefab) => HairPrefab = hairPrefab;
+
         public void SaveDefaults()
         {
             TaggedLayerDefaults.Clear();

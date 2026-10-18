@@ -77,6 +77,9 @@ namespace Turnroot.GameSettings
         public Color[] AvatarSkinColorChoices;
 
         [BoxGroup("Avatar Settings")]
+        public GameObject[] AvatarHairStyleChoices;
+
+        [BoxGroup("Avatar Settings")]
         public AvatarUnlockable[] AvatarUnlockables;
 
         public AvatarUnlockable[] GetAnyAvailableAvatarUnlockables(

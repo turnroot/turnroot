@@ -45,6 +45,7 @@ namespace Turnroot.UI
                     case ScrollerType.HairStyle:
                         scroller.scroller.OnChange += style =>
                         {
+                            var modelValue = scroller.GetModelFromChoice(style);
                             SelectedHairStyle = style;
                         };
                         break;
@@ -142,6 +143,22 @@ namespace Turnroot.UI
             }
 
             return Color.white;
+        }
+
+        public GameObject GetSelectedModel(ScrollerType type)
+        {
+            foreach (var connector in AppearanceScrollers)
+            {
+                if (connector == null || connector.scrollerType != type)
+                {
+                    continue;
+                }
+
+                var choice = connector.scroller?.SelectedChoice;
+                return string.IsNullOrEmpty(choice) ? null : connector.GetModelFromChoice(choice);
+            }
+
+            return null;
         }
     }
 }

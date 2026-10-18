@@ -28,11 +28,10 @@ namespace Turnroot.Gameplay.Brain
         public const string AvatarDisplayName = "CharactersBrain.AvatarDisplayName";
         public const string AvatarFullName = "CharactersBrain.AvatarFullName";
         public const string AvatarPronouns = "CharactersBrain.AvatarPronouns";
-
-        // Serialized (HTML) avatar color values, restored by GamewideContextBrain.RestoreAvatarProfileFromLtm.
         public const string AvatarHairColor = "Avatar/HairColor";
         public const string AvatarEyeColor = "Avatar/EyeColor";
         public const string AvatarSkinColor = "Avatar/SkinColor";
+        public const string AvatarHairStyleIndex = "Avatar/HairStyleIndex";
 
         #endregion
 
