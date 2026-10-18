@@ -128,6 +128,18 @@ namespace Turnroot.Gameplay.Brain
                 AvatarEyeColor
             );
 
+            if (
+                int.TryParse(ltm.Recall(LtmKeys.AvatarHairStyleIndex), out var hairStyleIndex)
+                && settings.AvatarHairStyleChoices != null
+                && hairStyleIndex >= 0
+                && hairStyleIndex < settings.AvatarHairStyleChoices.Length
+            )
+            {
+                avatar.CharacterTemplate.SetAvatarHairPrefab(
+                    settings.AvatarHairStyleChoices[hairStyleIndex]
+                );
+            }
+
             var displayName = ltm.Recall("Avatar/DisplayName");
             if (string.IsNullOrEmpty(displayName))
             {

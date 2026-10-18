@@ -172,6 +172,28 @@ namespace Turnroot.Gameplay.Brain
         public static void ApplyColorSettings(Material material, CharacterInstance unit) =>
             ApplyColorSettings(material, unit.CharacterTemplate);
 
+        private void TintHairMaterials(CharacterInstance unit, GameObject root)
+        {
+            var hair = root.transform.Find("Hair");
+            if (hair == null)
+            {
+                return;
+            }
+
+            foreach (var renderer in hair.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                foreach (var material in renderer.materials)
+                {
+                    ApplyColorSettings(material, unit);
+                }
+            }
+        }
+
         public static void ApplyColorSettings(Material material, CharacterData template)
         {
             // Two shaders with different property naming

@@ -30,6 +30,7 @@ namespace Turnroot.UI
         public UiScroller scroller { get; private set; }
 
         private Dictionary<string, Color> colorDict = new();
+        private Dictionary<string, GameObject> modelDict = new();
 
         private void Awake()
         {
@@ -58,6 +59,10 @@ namespace Turnroot.UI
 
                 // TODO: add data for these
                 case ScrollerType.HairStyle:
+                    ParseModelList(
+                        GameplayGeneralSettings.Instance.AvatarHairStyleChoices,
+                        "Hair Style"
+                    );
                     break;
                 case ScrollerType.Voice:
                     break;
@@ -80,6 +85,17 @@ namespace Turnroot.UI
             ColorPreviewImage.color = colorList[0];
         }
 
+        private void ParseModelList(GameObject[] modelList, string prefix)
+        {
+            var choices = new string[modelList.Length];
+            for (int i = 0; i < modelList.Length; i++)
+            {
+                modelDict.Add(prefix + " " + i.ToString(), modelList[i]);
+                choices[i] = prefix + " " + i.ToString();
+            }
+            scroller.SetChoices(choices, selected: StartsSelected);
+        }
+
         public Color GetColorFromChoice(string choice)
         {
             if (colorDict.TryGetValue(choice, out Color color))
@@ -90,6 +106,19 @@ namespace Turnroot.UI
             {
                 $"Color not found: {choice}".LogError();
                 return Color.white;
+            }
+        }
+
+        public GameObject GetModelFromChoice(string choice)
+        {
+            if (modelDict.TryGetValue(choice, out GameObject model))
+            {
+                return model;
+            }
+            else
+            {
+                $"Model not found: {choice}".LogError();
+                return null;
             }
         }
 
