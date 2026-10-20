@@ -75,7 +75,6 @@ namespace Turnroot.Gameplay.Brain
             }
             _awake = true;
 
-            PublishBrainReady(this);
             return true;
         }
 
@@ -83,7 +82,6 @@ namespace Turnroot.Gameplay.Brain
         {
             if (!_awake)
             {
-                IsFullyInitialized = false;
                 InitializeLongTermMemory();
                 InitializeAdvancedSystems();
                 TryLinkConversationController();
@@ -153,7 +151,6 @@ namespace Turnroot.Gameplay.Brain
 
         private void OnDestroy()
         {
-            ClearBrainReadyState();
             CleanupAdvancedSystems();
         }
 

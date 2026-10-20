@@ -35,8 +35,8 @@ namespace Turnroot.Utilities.SceneFlows
         // Set to true when a transition starts; cleared when LoadSceneAsync finishes or aborts.
         private bool _isTransitioning;
 
-        // The Brain scene name (matches BrainLoader constant)
-        private const string BrainSceneName = "TurnrootBrain";
+        // The Brain scene name (matches BrainBootstrap.BrainSceneName)
+        private const string BrainSceneName = BrainBootstrap.BrainSceneName;
 
         protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
 
