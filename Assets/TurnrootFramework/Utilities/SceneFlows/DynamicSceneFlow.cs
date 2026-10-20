@@ -63,6 +63,17 @@ namespace Turnroot.Utilities.AbstractScripts
         protected int _index = 0;
         public FlowSegment CurrentSegment => segments.Count > _index ? segments[_index] : null;
 
+        protected int Index
+        {
+            get => _index;
+            set
+            {
+                StopAllCoroutines();
+                _index = value;
+                OnSegmentReached(_index);
+            }
+        }
+
         [HideInInspector]
         public Brain brain;
 
@@ -82,28 +93,26 @@ namespace Turnroot.Utilities.AbstractScripts
         private int _lastInvokedIndex = -1;
         private bool _sceneStartTriggersApplied;
         private bool _brainEventsSubscribed;
-        private bool _brainReadySubscribed;
         private bool _loadingControllerSubscribed;
         private LoadingScreenController _pendingLoadingScreenRestore;
 
         protected virtual void OnEnable()
         {
-            SubscribeToBrainReady();
             TryBindBrain();
         }
 
         protected virtual void OnDisable()
         {
-            UnsubscribeFromBrainReady();
             UnsubscribeFromBrainEvents();
             UnsubscribeFromLoadingController();
         }
 
         private void TryBindBrain()
         {
-            var candidateBrain = brain ?? Brain.ReadyBrain ?? FindFirstObjectByType<Brain>();
+            var candidateBrain = brain ?? FindFirstObjectByType<Brain>();
             if (candidateBrain == null)
             {
+                $"{nameof(DynamicSceneFlow)}: No Brain found. The TurnrootBrain scene should load before any scene via BrainBootstrap.".LogError();
                 return;
             }
 
@@ -114,11 +123,6 @@ namespace Turnroot.Utilities.AbstractScripts
                 brain = candidateBrain;
             }
 
-            if (!IsBrainReady(brain))
-            {
-                return;
-            }
-
             loadingController = brain.GetComponent<LoadingController>();
 
             SubscribeToBrainEvents();
@@ -126,45 +130,6 @@ namespace Turnroot.Utilities.AbstractScripts
 
             ApplySceneStartTriggersIfNeeded();
             CatchUpToCurrentSceneIfNeeded();
-        }
-
-        private static bool IsBrainReady(Brain candidateBrain) =>
-            candidateBrain != null
-            && candidateBrain.IsFullyInitialized
-            && candidateBrain.stateBrain != null
-            && candidateBrain.sceneFlowBrain != null;
-
-        private void SubscribeToBrainReady()
-        {
-            if (_brainReadySubscribed)
-            {
-                return;
-            }
-
-            Brain.OnBrainReady += HandleBrainReady;
-            _brainReadySubscribed = true;
-        }
-
-        private void UnsubscribeFromBrainReady()
-        {
-            if (!_brainReadySubscribed)
-            {
-                return;
-            }
-
-            Brain.OnBrainReady -= HandleBrainReady;
-            _brainReadySubscribed = false;
-        }
-
-        private void HandleBrainReady(Brain readyBrain)
-        {
-            if (readyBrain == null)
-            {
-                return;
-            }
-
-            brain = readyBrain;
-            TryBindBrain();
         }
 
         private void CatchUpToCurrentSceneIfNeeded()
@@ -218,17 +183,6 @@ namespace Turnroot.Utilities.AbstractScripts
             }
 
             flowBrain.SetCurrentSceneByName(sceneName);
-        }
-
-        protected int Index
-        {
-            get => _index;
-            set
-            {
-                StopAllCoroutines();
-                _index = value;
-                OnSegmentReached(_index);
-            }
         }
 
         #region Event Subscriptions
