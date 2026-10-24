@@ -48,11 +48,9 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            // TODO: Actually transfer the item before publishing the event.
-            // Need an inventory transfer API, e.g.:
-            //   var stolen = target.InventoryInstance.TakeItem(itemType);
-            //   if (stolen != null) context.Unit.UnitInstance.InventoryInstance.AddItem(stolen);
-            // PublishItemStolen should only fire after the transfer succeeds.
+            // The transfer itself is performed synchronously by the Brain's OnItemStolen
+            // handler (BattleBrain.HandleItemStolenLogic), which picks the most valuable
+            // stealable item and moves it via InventoryBrain.TransferItem.
             context.Brain.PublishItemStolen(context.Unit.UnitInstance, target);
 
             $"Steal: {context.Unit.UnitInstance.CharacterTemplate.DisplayName} attempted to steal {itemType} from {target.CharacterTemplate.DisplayName}".LogInfo();

@@ -56,7 +56,15 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         public void ApplyMenuColors(GameObject instance)
         {
-            // TODO: Fix this to work with SimpleChoice
+            if (uiSettings == null || instance == null)
+            {
+                return;
+            }
+
+            foreach (var choice in instance.GetComponentsInChildren<UiChoice>(true))
+            {
+                choice.TextHighlightColor = uiSettings.GridListFilmstripButtonSelectedColor;
+            }
         }
 
         public void TransitionToSubmenu(MenuEntry from, MenuEntry to)

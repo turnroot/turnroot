@@ -399,12 +399,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 target?.Id,
                 Brain?.battleBrain.CurrentTurnNumber ?? 0
             );
-            var success = Brain.ExecuteCommand(command);
-            if (success)
-            {
-                Brain?.PublishUseItemLogicCompleted(user, item);
-            }
-            return success;
+            // UseItemLogicCompleted is published by the command on success
+            return Brain.ExecuteCommand(command);
         }
 
         public bool HealUnit(
