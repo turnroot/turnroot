@@ -80,6 +80,7 @@ namespace Turnroot.Gameplay.Brain
 
         public void Awake()
         {
+            Instance = this;
             if (!_awake)
             {
                 InitializeLongTermMemory();
@@ -152,6 +153,10 @@ namespace Turnroot.Gameplay.Brain
         private void OnDestroy()
         {
             CleanupAdvancedSystems();
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
 
         #endregion

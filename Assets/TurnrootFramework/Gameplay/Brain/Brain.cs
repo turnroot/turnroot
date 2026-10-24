@@ -47,6 +47,13 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(SceneFlowBrain))]
     public partial class Brain : MonoBehaviour
     {
+        /// <summary>
+        /// The singleton Brain instance for this session. Guaranteed non-null at
+        /// runtime: BrainBootstrap loads the TurnrootBrain scene before any other
+        /// scene runs. Set in Awake, cleared in OnDestroy.
+        /// </summary>
+        public static Brain Instance { get; private set; }
+
         // Core components
         [HideInInspector]
         public StateBrain stateBrain;

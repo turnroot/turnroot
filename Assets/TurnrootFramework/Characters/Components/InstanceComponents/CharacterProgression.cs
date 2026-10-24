@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Stats;
+using Turnroot.Gameplay.Brain;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -184,8 +185,7 @@ namespace Turnroot.Characters
         {
             try
             {
-                var brain = GetAndCacheBrain.GetBrain();
-                var ltm = brain?.GetComponent<Gameplay.Brain.Components.LongTermMemory>();
+                var ltm = Brain.Instance.GetComponent<Gameplay.Brain.Components.LongTermMemory>();
                 if (ltm == null)
                 {
                     return null;
@@ -234,7 +234,7 @@ namespace Turnroot.Characters
         {
             try
             {
-                var brain = GetAndCacheBrain.GetBrain();
+                var brain = Brain.Instance;
                 var ltm = brain.ltm;
                 if (ltm == null)
                 {

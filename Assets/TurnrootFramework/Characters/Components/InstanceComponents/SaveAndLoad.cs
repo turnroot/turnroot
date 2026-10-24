@@ -15,6 +15,8 @@ namespace Turnroot.Characters
     /// </summary>
     public partial class CharacterInstance : Serialization.IPostDeserialize, IHasStats
     {
+        private static Brain CurrentBrain => Brain.Instance;
+
         #region Stat Persistence
 
         // DTOs for serializing stats into LTM
@@ -57,14 +59,13 @@ namespace Turnroot.Characters
         {
             try
             {
-                var brain = GetAndCacheBrain.GetBrain();
-                var ltm = brain?.ltm;
+                var ltm = CurrentBrain.ltm;
                 if (ltm == null)
                 {
                     return;
                 }
 
-                if (!IsLtmReady(ltm, brain))
+                if (!IsLtmReady(ltm, CurrentBrain))
                 {
                     return;
                 }
@@ -79,14 +80,14 @@ namespace Turnroot.Characters
 
                 if (string.IsNullOrEmpty(json))
                 {
-                    HandleNoExistingEntry(ltm, key, runtimeDto, brain);
+                    HandleNoExistingEntry(ltm, key, runtimeDto, CurrentBrain);
                     return;
                 }
 
-                json = brain.DecodeString(json);
+                json = CurrentBrain.DecodeString(json);
                 if (string.IsNullOrEmpty(json))
                 {
-                    HandleNoExistingEntry(ltm, key, runtimeDto, brain);
+                    HandleNoExistingEntry(ltm, key, runtimeDto, CurrentBrain);
                     return;
                 }
 
@@ -94,14 +95,14 @@ namespace Turnroot.Characters
                 if (existingDto == null)
                 {
                     // Nothing valid in LTM; initialize from runtime
-                    ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(runtimeDto)));
+                    ltm.Remember(key, CurrentBrain.EncodeString(JsonUtility.ToJson(runtimeDto)));
                     existingDto = runtimeDto;
                 }
 
                 var mergedDto = MergeWithRequiredStats(existingDto, runtimeDto, out var changed);
                 if (changed)
                 {
-                    ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(mergedDto)));
+                    ltm.Remember(key, CurrentBrain.EncodeString(JsonUtility.ToJson(mergedDto)));
                 }
 
                 EnsureRuntimeContains(mergedDto);
@@ -368,11 +369,7 @@ namespace Turnroot.Characters
             {
                 try
                 {
-                    var brain = GetAndCacheBrain.GetBrain();
-                    if (brain != null)
-                    {
-                        brain.OnLtmKeyCacheUpdated -= OnBrainLtmKeyCacheUpdated;
-                    }
+                    CurrentBrain.OnLtmKeyCacheUpdated -= OnBrainLtmKeyCacheUpdated;
                 }
                 catch (Exception ex)
                 {
@@ -443,8 +440,7 @@ namespace Turnroot.Characters
 
             try
             {
-                var brain = GetAndCacheBrain.GetBrain();
-                var ltm = brain?.GetComponent<LongTermMemory>();
+                var ltm = CurrentBrain.GetComponent<LongTermMemory>();
                 if (ltm == null || !ltm.Initialized)
                 {
                     return;
@@ -453,7 +449,7 @@ namespace Turnroot.Characters
                 DeduplicateRuntimeStats();
                 var dto = BuildRuntimeDto();
                 string key = $"CharacterInstance/{Id}/Stats";
-                ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(dto)));
+                ltm.Remember(key, CurrentBrain.EncodeString(JsonUtility.ToJson(dto)));
             }
             catch (Exception ex)
             {
@@ -476,14 +472,13 @@ namespace Turnroot.Characters
 
             try
             {
-                var brain = GetAndCacheBrain.GetBrain();
-                var ltm = brain.ltm;
+                var ltm = CurrentBrain.ltm;
 
                 if (ltm == null || !ltm.Initialized)
                 {
-                    if (brain != null && !_deferredPersistRegistered)
+                    if (!_deferredPersistRegistered)
                     {
-                        brain.OnLtmKeyCacheUpdated += OnBrainLtmStatRestoreDeferred;
+                        CurrentBrain.OnLtmKeyCacheUpdated += OnBrainLtmStatRestoreDeferred;
                         _deferredPersistRegistered = true;
                     }
                     return;
@@ -496,7 +491,7 @@ namespace Turnroot.Characters
                     return;
                 }
 
-                json = brain.DecodeString(json);
+                json = CurrentBrain.DecodeString(json);
                 if (string.IsNullOrEmpty(json))
                 {
                     return;
@@ -524,11 +519,7 @@ namespace Turnroot.Characters
             {
                 try
                 {
-                    var brain = GetAndCacheBrain.GetBrain();
-                    if (brain != null)
-                    {
-                        brain.OnLtmKeyCacheUpdated -= OnBrainLtmStatRestoreDeferred;
-                    }
+                    CurrentBrain.OnLtmKeyCacheUpdated -= OnBrainLtmStatRestoreDeferred;
                 }
                 catch (Exception ex)
                 {

@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using System;
 using System.Collections.Generic;
 using Turnroot.Utilities;
@@ -202,7 +203,7 @@ namespace Turnroot.Characters.Stats
                 return false;
             }
 
-            var cb = GetAndCacheBrain.GetBrain()?.charactersBrain;
+            var cb = Brain.Instance.charactersBrain;
             return cb?.TryGetTemplateBoundedDefault(templateId, type, out values) ?? false;
         }
 
@@ -217,7 +218,7 @@ namespace Turnroot.Characters.Stats
                 return;
             }
 
-            GetAndCacheBrain.GetBrain()
+            Brain.Instance
                 ?.charactersBrain.SaveTemplateBoundedDefault(
                     templateId,
                     type,
@@ -237,7 +238,7 @@ namespace Turnroot.Characters.Stats
                 return false;
             }
 
-            var cb = GetAndCacheBrain.GetBrain()?.charactersBrain;
+            var cb = Brain.Instance.charactersBrain;
             return cb?.TryGetTemplateUnboundedDefault(templateId, type, out value) ?? false;
         }
 
@@ -252,7 +253,7 @@ namespace Turnroot.Characters.Stats
                 return;
             }
 
-            GetAndCacheBrain.GetBrain()
+            Brain.Instance
                 ?.charactersBrain.SaveTemplateUnboundedDefault(templateId, type, stat.Current);
         }
         #endregion

@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using System;
 using Newtonsoft.Json;
 using Turnroot.Utilities;
@@ -63,8 +64,7 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            var brain = GetAndCacheBrain.GetBrain();
-            brain.PublishCharacterClassBonusesApplied(character, classData);
+            Brain.Instance.PublishCharacterClassBonusesApplied(character, classData);
 
             return OperationResult.Successful();
         }
@@ -103,8 +103,7 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            var brain = GetAndCacheBrain.GetBrain();
-            brain.PublishCharacterClassBonusesRemoved(character, classData);
+            Brain.Instance.PublishCharacterClassBonusesRemoved(character, classData);
 
             return OperationResult.Successful();
         }

@@ -63,7 +63,6 @@ namespace Turnroot.Utilities.Weather
 
         private float TimeOfYear = 0f;
 
-        private Brain _brain;
         private string _lastSceneName;
 
         private bool _handledSceneChange = false;
@@ -138,11 +137,7 @@ namespace Turnroot.Utilities.Weather
                     chosenIndex = HubDayRandom.Range(0, selectedSkyboxes.Length);
 
                     // Persist the chosen skybox index so it stays consistent across exits
-                    var brain = GetAndCacheBrain.GetBrain();
-                    if (brain != null)
-                    {
-                        HubDayStateStore.SetSkyboxIndex(brain, chosenIndex);
-                    }
+                    HubDayStateStore.SetSkyboxIndex(Brain.Instance, chosenIndex);
                 }
 
                 _instantiatedSkyboxMaterial = Instantiate(selectedSkyboxes[chosenIndex]);
@@ -388,21 +383,14 @@ namespace Turnroot.Utilities.Weather
 
             CacheCelMaterialBaseColors();
 
-            _brain = GetAndCacheBrain.GetBrain();
-            if (_brain != null)
-            {
-                // only the generic change event is needed; it fires after the new
-                // scene has been fully established and avoids double-randomisation.
-                _brain.OnSceneChanged += HandleSceneChanged;
-            }
+            // only the generic change event is needed; it fires after the new
+            // scene has been fully established and avoids double-randomisation.
+            Brain.Instance.OnSceneChanged += HandleSceneChanged;
         }
 
         public void OnDestroy()
         {
-            if (_brain != null)
-            {
-                _brain.OnSceneChanged -= HandleSceneChanged;
-            }
+            Brain.Instance.OnSceneChanged -= HandleSceneChanged;
 
             CurrentWeatherType = WeatherType.Sunny;
 
@@ -450,10 +438,7 @@ namespace Turnroot.Utilities.Weather
 
             _handledSceneChange = true;
             // unsubscribe since we don't want to run again
-            if (_brain != null)
-            {
-                _brain.OnSceneChanged -= HandleSceneChanged;
-            }
+            Brain.Instance.OnSceneChanged -= HandleSceneChanged;
             SetupForScene(sceneName);
         }
 
@@ -465,15 +450,15 @@ namespace Turnroot.Utilities.Weather
                 _lastSceneName = sceneName;
 
                 // Make sure the day's state is loaded for the current date before deciding weather
-                var brain = GetAndCacheBrain.GetBrain();
-                var date = brain?.ltm?.GetGameDate() ?? GameDate.Default;
+                var brain = Brain.Instance;
+                var date = brain.ltm.GetGameDate();
                 if (date != GameDate.Default)
                 {
                     HubDayStateStore.Initialize(brain, date);
                 }
 
                 // Prefer persisted weather for this date (so it's the same across play sessions)
-                if (brain != null && HubDayStateStore.HasWeather)
+                if (HubDayStateStore.HasWeather)
                 {
                     CurrentWeatherType = HubDayStateStore.Weather;
                 }

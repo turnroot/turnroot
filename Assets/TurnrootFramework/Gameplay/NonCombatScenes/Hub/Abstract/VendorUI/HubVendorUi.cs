@@ -67,7 +67,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
         protected List<int> itemChoiceToVendorIndex;
 
         private Brain.Brain ResolveBrain() =>
-            brain ??= BrainReference ?? Vendor?.brain ?? FindFirstObjectByType<Brain.Brain>();
+            brain ??= BrainReference ?? Vendor?.brain ?? Brain.Brain.Instance;
 
         protected virtual void Awake() => ResolveBrain();
 

@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using System;
 using Newtonsoft.Json;
 using Turnroot.GameSettings;
@@ -63,8 +64,7 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            var brain = GetAndCacheBrain.GetBrain();
-            brain.PublishCharacterClassMasteryTargetUnlocked(owner, classData, 0, skill);
+            Brain.Instance.PublishCharacterClassMasteryTargetUnlocked(owner, classData, 0, skill);
         }
 
         /// <summary>
@@ -123,8 +123,7 @@ namespace Turnroot.Characters.CharacterClass
 
             _progressPercent = Math.Clamp(_progressPercent + effectivePoints, 0, 100);
 
-            var brain = GetAndCacheBrain.GetBrain();
-            brain.PublishCharacterClassMasteryProgressChanged(
+            Brain.Instance.PublishCharacterClassMasteryProgressChanged(
                 owner,
                 classData,
                 0,

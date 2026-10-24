@@ -39,7 +39,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             ApplyLookPitch = GameplayPlayerSettings.Instance.ExploreVerticalTilt;
             gameDate = GameplayGeneralSettings.Instance.StartingGameDate;
 
-            _brain = FindFirstObjectByType<Brain.Brain>();
+            _brain = Brain.Brain.Instance;
 
             if (!ValidateRequired(_brain, nameof(_brain)))
             {

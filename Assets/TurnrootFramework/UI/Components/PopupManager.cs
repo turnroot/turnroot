@@ -32,7 +32,7 @@ namespace Turnroot.UI.Components
 
         private void Awake()
         {
-            _brain = GetAndCacheBrain.GetBrain();
+            _brain = Brain.Instance;
             BuildPrefabLookup();
 
             if (_container == null)

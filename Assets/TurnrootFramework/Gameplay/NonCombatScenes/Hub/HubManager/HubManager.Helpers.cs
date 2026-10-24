@@ -281,13 +281,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             void DoReturn()
             {
-                var brainValidation = OperationResultGuards.RequireNotNull(_brain, nameof(_brain));
-                if (!brainValidation.Success)
-                {
-                    $"HubManager: TransitionBackToHub aborted. {brainValidation.ErrorMessage}".LogError();
-                    return;
-                }
-
                 var allPoi = FindObjectsByType<HubPoiUi>(FindObjectsSortMode.None);
                 foreach (var poi in allPoi)
                 {

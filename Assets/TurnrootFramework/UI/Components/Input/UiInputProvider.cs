@@ -15,6 +15,9 @@ namespace Turnroot.UI
     /// </summary>
     public class UiInputProvider : MonoBehaviour
     {
+        /// <summary>The singleton UiInputProvider instance for this session.</summary>
+        public static UiInputProvider Instance { get; private set; }
+
         /// <summary>Fired whenever one of the common UI actions is performed.</summary>
         public event Action<string> OnInput;
 
@@ -45,6 +48,8 @@ namespace Turnroot.UI
 
         private void Awake()
         {
+            Instance = this;
+
             // Always register for initialization so we can bind once the shared actions are ready.
             if (!_initializedHandlerRegistered)
             {
@@ -57,7 +62,14 @@ namespace Turnroot.UI
 
         private void OnDisable() => StopAllHeldRepeats();
 
-        private void OnDestroy() => Unsubscribe();
+        private void OnDestroy()
+        {
+            Unsubscribe();
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
 
         private void Subscribe()
         {

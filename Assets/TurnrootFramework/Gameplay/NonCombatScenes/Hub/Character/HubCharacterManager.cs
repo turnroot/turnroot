@@ -61,7 +61,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void Awake()
         {
-            _brain = GetAndCacheBrain.GetBrain();
+            _brain = Brain.Brain.Instance;
             _audioBrain = _brain.audioBrain;
             _hubManager = HubManager.GetCurrent();
 
@@ -95,7 +95,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 || _brain.unitAppearanceBrain == null
             )
             {
-                _brain ??= FindFirstObjectByType<Brain.Brain>();
+                _brain ??= Brain.Brain.Instance;
                 yield return null;
             }
 

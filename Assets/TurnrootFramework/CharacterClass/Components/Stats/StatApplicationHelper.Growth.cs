@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using System.Collections.Generic;
 using Turnroot.Characters.Stats;
 using Turnroot.GameSettings;
@@ -27,7 +28,6 @@ namespace Turnroot.Characters.CharacterClass
             List<UnboundedStatModifier> classCaps = null
         )
         {
-            var brain = GetAndCacheBrain.GetBrain();
             var increasedStats = new List<UnboundedStatType>();
 
             if (character == null || baseGrowths == null)
@@ -91,15 +91,15 @@ namespace Turnroot.Characters.CharacterClass
                 }
             }
 
-            if (brain != null)
+            if (CurrentBrain != null)
             {
                 if (increasedStats.Count <= 2)
                 {
-                    brain.PublishBadLevelUp(character);
+                    CurrentBrain.PublishBadLevelUp(character);
                 }
                 else
                 {
-                    brain.PublishGoodLevelUp(character);
+                    CurrentBrain.PublishGoodLevelUp(character);
                 }
             }
             // if brain is null (e.g. running inside editor test window), skip event publishing

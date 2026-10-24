@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using System.Collections.Generic;
 using Turnroot.Utilities;
 
@@ -5,6 +6,9 @@ namespace Turnroot.Characters.CharacterClass
 {
     public static partial class StatApplicationHelper
     {
+        // May be null inside editor test windows where no Brain scene is loaded.
+        private static Brain CurrentBrain => Brain.Instance;
+
         #region Stat Enforcement
 
         /// <summary>
@@ -24,7 +28,6 @@ namespace Turnroot.Characters.CharacterClass
                 );
             }
 
-            var brain = GetAndCacheBrain.GetBrain();
 
             foreach (var minimum in minimums)
             {
@@ -44,7 +47,7 @@ namespace Turnroot.Characters.CharacterClass
                                 $"Enforced minimum: {minimum.boundedStatType} raised to {minimum.value}".LogInfo();
                             }
 
-                            brain?.PublishCharacterBoundedStatChanged(
+                            CurrentBrain?.PublishCharacterBoundedStatChanged(
                                 character,
                                 minimum.boundedStatType,
                                 oldVal,
@@ -66,7 +69,7 @@ namespace Turnroot.Characters.CharacterClass
                                 $"Enforced minimum: {minimum.unboundedStatType} raised to {minimum.value}".LogInfo();
                             }
 
-                            brain?.PublishCharacterUnboundedStatChanged(
+                            CurrentBrain?.PublishCharacterUnboundedStatChanged(
                                 character,
                                 minimum.unboundedStatType,
                                 oldVal,
