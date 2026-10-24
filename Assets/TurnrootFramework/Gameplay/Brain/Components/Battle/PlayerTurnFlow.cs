@@ -1,5 +1,6 @@
 using Turnroot.Characters;
 using Turnroot.Gameplay.Maps;
+using Turnroot.Gameplay.Objects;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
     {
         private PlayerTurnState _currentState;
         private CharacterInstance _activePlayerUnit;
+        private ObjectItemInstance _selectedItem;
         private BattleBrain _battleBrain;
         private Utilities.AbstractScripts.BattleSceneFlow _cachedSceneFlow;
 
@@ -82,6 +84,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
             _cachedSceneFlow = null;
             _activePlayerUnit = null;
+            _selectedItem = null;
         }
 
         public void StartPlayerTurn()
@@ -105,6 +108,15 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         public void DeselectUnit() => TransitionAndPublish(PlayerTurnStates.NoUnitSelected);
 
         public void ActionChosen(PlayerTurnStates actionState) => TransitionAndPublish(actionState);
+
+        /// <summary>
+        /// Records the item chosen from the item menu and advances to the ItemSelected state.
+        /// </summary>
+        public void SelectItem(ObjectItemInstance item)
+        {
+            _selectedItem = item;
+            TransitionAndPublish(PlayerTurnStates.UseItemActionChosenItemSelected);
+        }
 
         public void SelectTargetOrDestination(PlayerTurnStates targetSelectedState) =>
             TransitionAndPublish(targetSelectedState);
@@ -181,8 +193,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                             _battleBrain.Brain.PublishHealStarted(_activePlayerUnit);
                             break;
                         case PlayerTurnStates.UseItemActionChosenItemSelected:
-                            // TODO: pass item; this flow currently doesn't track item in flow
-                            _battleBrain.Brain.PublishUseItemStarted(_activePlayerUnit, null);
+                            _battleBrain.Brain.PublishUseItemStarted(_activePlayerUnit, _selectedItem);
+                            _selectedItem = null;
                             break;
                         case PlayerTurnStates.WaitActionChosen:
                             var playerSettings = _battleBrain

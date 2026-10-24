@@ -22,15 +22,47 @@ namespace Turnroot.Gameplay.Brain.Commands
 
         public override bool Execute(BattleContext context)
         {
-            $"[UseItemCommand] {UserId} used item {ItemId} on {TargetId ?? "self"}".LogInfo();
-            // TODO: Use item command
+            var user = FindUnit(context, UserId);
+            var item = user?.InventoryInstance?.InventoryItems?.Find(i =>
+                i != null && i.InstanceID == ItemId
+            );
+            if (item == null || context?.Brain?.inventoryBrain == null)
+            {
+                $"[UseItemCommand] Could not resolve user {UserId} or item {ItemId}".LogWarning();
+                return false;
+            }
+
+            UndoState[UndoStateKeys.PrevUses] = item.CurrentUses;
+
+            // InventoryBrain.UseItem decrements durability and publishes ItemUsed/ItemBroken
+            context.Brain.inventoryBrain.UseItem(item);
+
+            var target = TargetId != null ? FindUnit(context, TargetId) : null;
+            context.Brain.PublishUseItemLogicCompleted(user, item);
+
+            $"[UseItemCommand] {user.CharacterTemplate.DisplayName} used {item.Template.name} on {(target != null ? target.CharacterTemplate.DisplayName : "self")}".LogInfo();
             return true;
         }
 
         public override bool Undo(BattleContext context)
         {
-            "[UseItemCommand] Item use cannot be undone".LogWarning();
-            return false;
+            var user = FindUnit(context, UserId);
+            var item = user?.InventoryInstance?.InventoryItems?.Find(i =>
+                i != null && i.InstanceID == ItemId
+            );
+            if (
+                item == null
+                || !UndoState.TryGetValue(UndoStateKeys.PrevUses, out var prevUses)
+                || item.Template?.Durability != true
+            )
+            {
+                "[UseItemCommand] Item use cannot be undone".LogWarning();
+                return false;
+            }
+
+            item.ReplenishUses(item.CurrentUses - (int)prevUses);
+            context.Brain.PublishItemUsed(item, item.RemainingUses);
+            return true;
         }
     }
 }

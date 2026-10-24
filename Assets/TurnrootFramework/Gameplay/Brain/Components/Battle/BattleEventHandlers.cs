@@ -259,26 +259,15 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("BattleBrain: No stealable items found on target");
             }
 
-            // Perform the steal
-            var resRemove = targetInventory.RemoveFromInventory(bestItem);
-            if (!resRemove.Success)
+            // Perform the steal via InventoryBrain.TransferItem, which validates, moves the
+            // item (restoring on failure), and publishes OnItemTransferred
+            var transferResult = _brain.inventoryBrain.TransferItem(bestItem, thiefInventory);
+            if (!transferResult.Success)
             {
-                return resRemove;
-            }
-
-            var resAdd = thiefInventory.AddToInventory(bestItem);
-            if (!resAdd.Success)
-            {
-                targetInventory.AddToInventory(bestItem);
-                return OperationResult.Failure(
-                    "BattleBrain: Failed to add stolen item to thief, restored to target"
-                );
+                return transferResult;
             }
 
             $"BattleBrain: {thief.CharacterTemplate.DisplayName} stole {bestItem.Template.name} from {target.CharacterTemplate.DisplayName}!".LogInfo();
-
-            // Publish transfer event
-            _brain.inventoryBrain.TransferItem(bestItem, thiefInventory);
 
             return OperationResult.Successful();
         }

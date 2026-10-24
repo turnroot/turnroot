@@ -21,6 +21,9 @@ namespace Turnroot.Gameplay.Brain.Commands
         public const string PrevLastAttackerOfTarget = "prevLastAttackerOfTarget";
         public const string PrevTargetLastAttacker = "prevTargetLastAttacker";
 
+        // items
+        public const string PrevUses = "prevUses";
+
         // add more keys here as needed
     }
 }
