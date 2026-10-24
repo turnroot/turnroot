@@ -1,5 +1,6 @@
-using Turnroot.Gameplay.Brain;
+using BrainType = Turnroot.Gameplay.Brain.Brain;
 using UnityEngine;
+using Turnroot.Gameplay.Brain;
 
 namespace Turnroot.Gameplay.Combat.Precompute
 {
@@ -11,7 +12,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
     {
         #region Fields
         // core fields
-        private Brain.Brain _brain;
+        private BrainType _brain;
         private LoadingController _loadingController;
         private FundamentalComponents.Battles.BattleContext _battleContext;
         private bool _initialized = false;

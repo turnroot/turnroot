@@ -1,5 +1,6 @@
-using Turnroot.Gameplay.Brain;
+using BrainType = Turnroot.Gameplay.Brain.Brain;
 using Turnroot.Utilities;
+using Turnroot.Gameplay.Brain;
 
 namespace Turnroot.Gameplay.Combat.Precompute
 {
@@ -7,7 +8,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
     {
         #region Initialization
         public OperationResult Initialize(
-            Brain.Brain brain,
+            BrainType brain,
             FundamentalComponents.Battles.BattleContext context = null
         )
         {
@@ -32,7 +33,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 return;
             }
 
-            var res = Initialize(Brain.Instance);
+            var res = Initialize(BrainType.Instance);
             if (!res.Success)
             {
                 $"BattlePrecomputeLoader: Auto-initialize failed: {res.ErrorMessage}".LogWarning();
