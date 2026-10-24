@@ -195,7 +195,7 @@ namespace Turnroot.Conversations
                 return;
             }
 
-            InputProvider = GetAndCacheBrain.GetInputProvider();
+            InputProvider = UiInputProvider.Instance;
             if (InputProvider != null)
             {
                 return;
@@ -471,7 +471,7 @@ namespace Turnroot.Conversations
             }
 
             var conversationalBrain =
-                _brain?.conversationalBrain ?? GetAndCacheBrain.GetBrain()?.conversationalBrain;
+                _brain?.conversationalBrain ?? Brain.Instance.conversationalBrain;
             if (conversationalBrain == null)
             {
                 return true;
@@ -562,7 +562,7 @@ namespace Turnroot.Conversations
             ShowConversationUI();
 
             _runningConversation = conversation;
-            _brain = GetAndCacheBrain.GetBrain();
+            _brain = Brain.Instance;
             _sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
             _speakerSlots.Clear();
             _resolvedConditionTarget = null;
@@ -1014,7 +1014,7 @@ namespace Turnroot.Conversations
         private IEnumerator RunOneShot(OneShot oneShot)
         {
             _activeOneShotLayer = CreateOneShotLayer(oneShot);
-            _brain = GetAndCacheBrain.GetBrain();
+            _brain = Brain.Instance;
             _sceneFlow = FindFirstObjectByType<BattleSceneFlow>();
 
             OnAnyConversationStart?.Invoke();

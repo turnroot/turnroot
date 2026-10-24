@@ -45,10 +45,10 @@ namespace Turnroot.UI.Components
         private void Awake()
         {
             _fade = GetComponent<UIFade>();
-            _brain = GetAndCacheBrain.GetBrain();
+            _brain = Brain.Instance;
             if (_inputProvider == null)
             {
-                _inputProvider = GetAndCacheBrain.GetInputProvider();
+                _inputProvider = UiInputProvider.Instance;
                 if (_inputProvider == null)
                 {
                     "DismissablePopupNotification: InputProvider not found! Cannot handle input. Disabling".LogError(

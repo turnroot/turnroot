@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using Coffee.UIEffects;
 using TMPro;
 using UnityEngine;
@@ -48,7 +49,7 @@ namespace Turnroot.Utilities.UI
 
         private void OnEnable()
         {
-            _brain = GetAndCacheBrain.GetBrain();
+            _brain = Brain.Instance;
             if (_brain.ltm != null && _brain.ltm.Initialized)
             {
                 TryUpdateFromActiveSaveFile();
@@ -59,7 +60,7 @@ namespace Turnroot.Utilities.UI
             }
         }
 
-        private void Awake() => _brain = GetAndCacheBrain.GetBrain();
+        private void Awake() => _brain = Brain.Instance;
 
         private void OnDisable()
         {

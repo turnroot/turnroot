@@ -40,7 +40,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 var conversationalBrain =
                     _hubManager._brain?.conversationalBrain
-                    ?? GetAndCacheBrain.GetBrain()?.conversationalBrain;
+                    ?? Brain.Brain.Instance.conversationalBrain;
                 if (conversationalBrain.HasSeenConversation(conversationPlayOnInteraction))
                 {
                     gameObject.SetActive(false);

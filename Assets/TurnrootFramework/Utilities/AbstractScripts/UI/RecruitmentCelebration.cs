@@ -24,7 +24,7 @@ namespace Turnroot.Utilities.AbstractScripts.UI
         public void Activate(CharacterInstance character = null)
         {
             characterInstance = character;
-            _brain = GetAndCacheBrain.GetBrain();
+            _brain = Brain.Instance;
             if (audioSource != null && recruitmentFanfare != null)
             {
                 audioSource.PlayOneShot(recruitmentFanfare);

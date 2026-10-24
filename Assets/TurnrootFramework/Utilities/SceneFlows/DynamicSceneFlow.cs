@@ -4,6 +4,7 @@ using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Utilities.SceneFlows;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -77,6 +78,15 @@ namespace Turnroot.Utilities.AbstractScripts
         [HideInInspector]
         public Brain brain;
 
+        private SceneFlowBrain _flowBrain;
+
+        /// <summary>
+        /// Cached accessor for the bound Brain's SceneFlowBrain. Guaranteed non-null:
+        /// BrainBootstrap forces the Brain to load and the Brain always has a
+        /// SceneFlowBrain, and binding retries until the Brain is available.
+        /// </summary>
+        protected SceneFlowBrain FlowBrain => _flowBrain ??= brain?.sceneFlowBrain;
+
         [HideInInspector]
         public LoadingController loadingController;
 
@@ -95,25 +105,53 @@ namespace Turnroot.Utilities.AbstractScripts
         private bool _brainEventsSubscribed;
         private bool _loadingControllerSubscribed;
         private LoadingScreenController _pendingLoadingScreenRestore;
+        private Coroutine _bindBrainCoroutine;
 
         protected virtual void OnEnable()
         {
-            TryBindBrain();
+            if (!TryBindBrain())
+            {
+                _bindBrainCoroutine = StartCoroutine(BindBrainWhenReady());
+            }
         }
 
         protected virtual void OnDisable()
         {
+            if (_bindBrainCoroutine != null)
+            {
+                StopCoroutine(_bindBrainCoroutine);
+                _bindBrainCoroutine = null;
+            }
             UnsubscribeFromBrainEvents();
             UnsubscribeFromLoadingController();
         }
 
-        private void TryBindBrain()
+        // BrainBootstrap loads the brain scene synchronously, but when the Editor
+        // enters Play Mode with a default play-mode scene the additive load is
+        // deferred, so the Brain may not be discoverable yet during OnEnable.
+        private System.Collections.IEnumerator BindBrainWhenReady()
         {
-            var candidateBrain = brain ?? FindFirstObjectByType<Brain>();
+            const int maxFrames = 120;
+            for (int i = 0; i < maxFrames; i++)
+            {
+                yield return null;
+                if (TryBindBrain())
+                {
+                    _bindBrainCoroutine = null;
+                    yield break;
+                }
+            }
+
+            _bindBrainCoroutine = null;
+            $"{nameof(DynamicSceneFlow)}: No Brain found after {maxFrames} frames. The TurnrootBrain scene should load before any scene via BrainBootstrap.".LogError();
+        }
+
+        private bool TryBindBrain()
+        {
+            var candidateBrain = brain != null ? brain : Brain.Instance;
             if (candidateBrain == null)
             {
-                $"{nameof(DynamicSceneFlow)}: No Brain found. The TurnrootBrain scene should load before any scene via BrainBootstrap.".LogError();
-                return;
+                return false;
             }
 
             if (brain != candidateBrain)
@@ -121,6 +159,7 @@ namespace Turnroot.Utilities.AbstractScripts
                 UnsubscribeFromBrainEvents();
                 UnsubscribeFromLoadingController();
                 brain = candidateBrain;
+                _flowBrain = null;
             }
 
             loadingController = brain.GetComponent<LoadingController>();
@@ -130,15 +169,16 @@ namespace Turnroot.Utilities.AbstractScripts
 
             ApplySceneStartTriggersIfNeeded();
             CatchUpToCurrentSceneIfNeeded();
+            return true;
         }
 
         private void CatchUpToCurrentSceneIfNeeded()
         {
-            var currentSceneName = brain?.sceneFlowBrain?.CurrentSceneName;
+            var currentSceneName = FlowBrain.CurrentSceneName;
             if (string.IsNullOrEmpty(currentSceneName))
             {
                 TryBootstrapCurrentScene();
-                currentSceneName = brain?.sceneFlowBrain?.CurrentSceneName;
+                currentSceneName = FlowBrain.CurrentSceneName;
                 if (_lastInvokedIndex >= 0)
                 {
                     return;
@@ -170,8 +210,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         private void TryBootstrapCurrentScene()
         {
-            var flowBrain = brain?.sceneFlowBrain;
-            if (flowBrain == null || !string.IsNullOrEmpty(flowBrain.CurrentSceneName))
+            if (!string.IsNullOrEmpty(FlowBrain.CurrentSceneName))
             {
                 return;
             }
@@ -182,7 +221,7 @@ namespace Turnroot.Utilities.AbstractScripts
                 return;
             }
 
-            flowBrain.SetCurrentSceneByName(sceneName);
+            FlowBrain.SetCurrentSceneByName(sceneName);
         }
 
         #region Event Subscriptions
@@ -275,12 +314,6 @@ namespace Turnroot.Utilities.AbstractScripts
                 return;
             }
 
-            var flowBrain = brain?.sceneFlowBrain;
-            if (flowBrain == null)
-            {
-                return;
-            }
-
             for (int i = 0; i < sceneFlowFlagTriggers.Count; i++)
             {
                 var trigger = sceneFlowFlagTriggers[i];
@@ -295,19 +328,13 @@ namespace Turnroot.Utilities.AbstractScripts
                     continue;
                 }
 
-                flowBrain.SetCustomFlag(key, trigger.value);
+                FlowBrain.SetCustomFlag(key, trigger.value);
             }
         }
 
         protected void ApplySceneStartTriggersIfNeeded()
         {
             if (_sceneStartTriggersApplied)
-            {
-                return;
-            }
-
-            var flowBrain = brain?.sceneFlowBrain;
-            if (flowBrain == null)
             {
                 return;
             }
@@ -355,13 +382,6 @@ namespace Turnroot.Utilities.AbstractScripts
         #region Scene Flow Completion
         public void MarkSceneCompleteAndAdvance(bool showLoadingScreen = true)
         {
-            var flowBrain = brain.sceneFlowBrain;
-            if (flowBrain == null)
-            {
-                "DynamicSceneFlow: MarkSceneCompleteAndAdvance called but SceneFlowBrain is unavailable.".LogError();
-                return;
-            }
-
             var loadingScreen = FindFirstObjectByType<LoadingScreenController>();
 
             if (!showLoadingScreen)
@@ -377,26 +397,16 @@ namespace Turnroot.Utilities.AbstractScripts
                 loadingScreen?.Show();
             }
 
-            flowBrain.AdvanceToNextScene();
+            FlowBrain.AdvanceToNextScene();
         }
 
         public void MarkSceneCompleteAndAdvanceLoadingScreen() =>
             MarkSceneCompleteAndAdvance(showLoadingScreen: true);
 
-        /// <summary>
-        /// Leaves the current scene for the credits scene.
-        /// </summary>
         public void GoToCredits()
         {
-            var flowBrain = brain?.sceneFlowBrain;
-            if (flowBrain == null)
-            {
-                "DynamicSceneFlow: GoToCredits called but SceneFlowBrain is unavailable.".LogError();
-                return;
-            }
-
             FindFirstObjectByType<LoadingScreenController>()?.Show();
-            flowBrain.GoToCredits();
+            FlowBrain.GoToCredits();
         }
 
         #endregion

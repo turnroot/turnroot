@@ -32,14 +32,10 @@ namespace Turnroot.Gameplay.Combat.Precompute
                 return;
             }
 
-            var brain = GetAndCacheBrain.GetBrain();
-            if (brain != null)
+            var res = Initialize(Brain.Instance);
+            if (!res.Success)
             {
-                var res = Initialize(brain);
-                if (!res.Success)
-                {
-                    $"BattlePrecomputeLoader: Auto-initialize failed: {res.ErrorMessage}".LogWarning();
-                }
+                $"BattlePrecomputeLoader: Auto-initialize failed: {res.ErrorMessage}".LogWarning();
             }
         }
 

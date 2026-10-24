@@ -70,9 +70,6 @@ namespace Turnroot.UI.Components
             var brain = prep.Brain;
             if (brain != null)
             {
-                // Unsubscribe via the wrapper delegate that was actually passed to the event,
-                // not the _Impl method directly (which is a different delegate instance and
-                // would silently fail to unsubscribe, leaving the handler firing indefinitely).
                 brain.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
             }
 

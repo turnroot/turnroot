@@ -41,7 +41,6 @@ namespace Turnroot.Utilities
         [Tooltip("Optional extra delay after the scene is ready before hiding the loading screen.")]
         public float hideDelayAfterReady = 0.1f;
 
-        private Brain _brain;
         private LoadingController _loadingController;
         private float _visibleSinceTime;
 
@@ -61,14 +60,7 @@ namespace Turnroot.Utilities
 
         private void Start()
         {
-            _brain = FindFirstObjectByType<Brain>();
-            if (_brain == null)
-            {
-                "LoadingScreenController: No Brain found in scene".LogWarning();
-                return;
-            }
-
-            _loadingController = _brain.GetComponent<LoadingController>();
+            _loadingController = Brain.Instance.GetComponent<LoadingController>();
             SubscribeToBrainEvents();
             SubscribeToLoadingController();
 
@@ -86,26 +78,16 @@ namespace Turnroot.Utilities
 
         private void SubscribeToBrainEvents()
         {
-            if (_brain == null)
-            {
-                return;
-            }
-
-            _brain.OnSceneTransitionStarted += HandleSceneTransitionStarted;
-            _brain.OnSceneLoadProgress += HandleSceneLoadProgress;
-            _brain.OnSceneReadyToDisplay += HandleSceneReadyToDisplay;
+            Brain.Instance.OnSceneTransitionStarted += HandleSceneTransitionStarted;
+            Brain.Instance.OnSceneLoadProgress += HandleSceneLoadProgress;
+            Brain.Instance.OnSceneReadyToDisplay += HandleSceneReadyToDisplay;
         }
 
         private void UnsubscribeFromBrainEvents()
         {
-            if (_brain == null)
-            {
-                return;
-            }
-
-            _brain.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
-            _brain.OnSceneLoadProgress -= HandleSceneLoadProgress;
-            _brain.OnSceneReadyToDisplay -= HandleSceneReadyToDisplay;
+            Brain.Instance.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
+            Brain.Instance.OnSceneLoadProgress -= HandleSceneLoadProgress;
+            Brain.Instance.OnSceneReadyToDisplay -= HandleSceneReadyToDisplay;
         }
 
         private void SubscribeToLoadingController()

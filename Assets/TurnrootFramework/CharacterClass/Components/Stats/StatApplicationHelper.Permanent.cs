@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using System.Collections.Generic;
 using Turnroot.Utilities;
 
@@ -25,7 +26,6 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            var brain = GetAndCacheBrain.GetBrain();
 
             foreach (var modifier in modifiers)
             {
@@ -45,7 +45,7 @@ namespace Turnroot.Characters.CharacterClass
                                 $"Class change bonus: {modifier.boundedStatType} +{modifier.value} (now {stat.Current})".LogInfo();
                             }
 
-                            brain?.PublishCharacterBoundedStatChanged(
+                            CurrentBrain?.PublishCharacterBoundedStatChanged(
                                 character,
                                 modifier.boundedStatType,
                                 oldVal,
@@ -67,7 +67,7 @@ namespace Turnroot.Characters.CharacterClass
                                 $"Class change bonus: {modifier.unboundedStatType} +{modifier.value} (now {stat.Current})".LogInfo();
                             }
 
-                            brain?.PublishCharacterUnboundedStatChanged(
+                            CurrentBrain?.PublishCharacterUnboundedStatChanged(
                                 character,
                                 modifier.unboundedStatType,
                                 oldVal,

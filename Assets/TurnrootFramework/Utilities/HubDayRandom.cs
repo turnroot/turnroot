@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
 
 namespace Turnroot.Utilities
@@ -24,8 +25,8 @@ namespace Turnroot.Utilities
                 return;
             }
 
-            var brain = GetAndCacheBrain.GetBrain();
-            if (brain == null || brain.ltm == null)
+            var brain = Brain.Instance;
+            if (brain.ltm == null)
             {
                 return;
             }

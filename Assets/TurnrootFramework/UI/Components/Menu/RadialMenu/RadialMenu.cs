@@ -1,3 +1,4 @@
+using Turnroot.Gameplay.Brain;
 using System;
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Segments;
@@ -97,7 +98,7 @@ namespace Turnroot.UI.Components.RadialMenu
             }
             if (uiBrain == null)
             {
-                uiBrain = GetAndCacheBrain.GetBrain().uiBrain;
+                uiBrain = Brain.Instance.uiBrain;
             }
         }
 
@@ -105,7 +106,7 @@ namespace Turnroot.UI.Components.RadialMenu
         {
             if (uiBrain == null)
             {
-                uiBrain = GetAndCacheBrain.GetBrain().uiBrain;
+                uiBrain = Brain.Instance.uiBrain;
             }
             SubscribeSelect();
             if (!_initialized)

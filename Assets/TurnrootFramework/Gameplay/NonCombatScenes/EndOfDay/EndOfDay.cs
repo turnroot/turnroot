@@ -15,14 +15,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 "EndOfDay: Weather reference is missing".LogError();
             }
 
-            var brain = GetAndCacheBrain.GetBrain();
-            if (brain != null)
+            var brain = Brain.Brain.Instance;
+            var date = brain.ltm.GetGameDate();
+            if (date != GameDate.Default)
             {
-                var date = brain.ltm.GetGameDate();
-                if (date != GameDate.Default)
-                {
-                    HubDayStateStore.Initialize(brain, date);
-                }
+                HubDayStateStore.Initialize(brain, date);
             }
 
             Weather.SetupForScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);

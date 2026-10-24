@@ -24,7 +24,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            _brain ??= Utilities.GetAndCacheBrain.GetBrain();
+            _brain ??= Brain.Brain.Instance;
             if (_brain == null)
             {
                 return;
@@ -54,7 +54,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void TryActivateHubManagerForCurrentScene()
         {
-            _brain ??= Utilities.GetAndCacheBrain.GetBrain();
+            _brain ??= Brain.Brain.Instance;
             if (_brain?.sceneFlowBrain == null)
             {
                 return;

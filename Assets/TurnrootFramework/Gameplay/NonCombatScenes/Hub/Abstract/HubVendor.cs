@@ -26,7 +26,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         protected Brain.Brain EnsureBrainReference()
         {
-            brain ??= FindFirstObjectByType<Brain.Brain>();
+            brain ??= Brain.Brain.Instance;
             audioBrain ??= brain?.audioBrain;
             return brain;
         }

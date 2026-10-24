@@ -16,7 +16,7 @@ namespace Turnroot.Conversations.Mermaid
     /// </summary>
     public static class ConversationActionExecutor
     {
-        public static Brain brain => GetAndCacheBrain.GetBrain();
+        public static Brain brain => Brain.Instance;
 
         public static OperationResult Execute(
             MermaidNode node,

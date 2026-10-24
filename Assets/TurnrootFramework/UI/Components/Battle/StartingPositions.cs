@@ -116,13 +116,9 @@ namespace Turnroot.UI.Components
         {
             if (_prepObject.Brain == null)
             {
-                var anyBrain = FindFirstObjectByType<Brain>();
-                if (anyBrain != null)
-                {
-                    // Ensure single subscription
-                    anyBrain.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
-                    anyBrain.OnBattlePrepObjectInitialized += HandleBrainPrepInitialized;
-                }
+                // Ensure single subscription
+                Brain.Instance.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
+                Brain.Instance.OnBattlePrepObjectInitialized += HandleBrainPrepInitialized;
                 return;
             }
 
@@ -136,11 +132,7 @@ namespace Turnroot.UI.Components
 
         private void UnsubscribeFromEvents()
         {
-            var anyBrain = FindFirstObjectByType<Brain>();
-            if (anyBrain != null)
-            {
-                anyBrain.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
-            }
+            Brain.Instance.OnBattlePrepObjectInitialized -= HandleBrainPrepInitialized;
 
             if (_prepObject.Brain == null)
             {
