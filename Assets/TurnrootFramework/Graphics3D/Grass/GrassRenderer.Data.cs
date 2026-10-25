@@ -106,6 +106,7 @@ namespace Turnroot.Graphics3D
             int triCount = tris.Length / 3;
 
             bool hasGrassMask = maskTexture != null && maskTexture.isReadable;
+            var maskRng = new System.Random(54321);
             Predicate<Vector2> reject = hasGrassMask
                 ? uv =>
                 {
@@ -113,7 +114,7 @@ namespace Turnroot.Graphics3D
                     float maskVal = Mathf.Clamp01(
                         (raw - maskFloor) / Mathf.Max(1f - maskFloor, 0.0001f)
                     );
-                    return maskVal <= 0f;
+                    return maskVal <= (float)maskRng.NextDouble();
                 }
                 : null;
 
