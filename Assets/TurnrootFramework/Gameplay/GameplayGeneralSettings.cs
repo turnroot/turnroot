@@ -1,4 +1,4 @@
-﻿using NaughtyAttributes;
+using NaughtyAttributes;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 
@@ -162,5 +162,23 @@ namespace Turnroot.GameSettings
             SpeedOnly,
             Custom,
         }
+
+        [BoxGroup("Audio"), HorizontalLine(color: EColor.Blue)]
+        public AudioClip HubGrassFootstep;
+
+        [BoxGroup("Audio")]
+        public AudioClip HubSandFootstep;
+
+        [BoxGroup("Audio")]
+        public AudioClip HubRockFootstep;
+
+        [BoxGroup("Audio")]
+        public AudioClip HubSnowFootstep;
+
+        [BoxGroup("Audio")]
+        public float FootstepIntervalScale = 0.5f;
+
+        public float GetFootstepInterval(float movementSpeed) =>
+            Mathf.Max(movementSpeed * FootstepIntervalScale, 0.01f);
     }
 }

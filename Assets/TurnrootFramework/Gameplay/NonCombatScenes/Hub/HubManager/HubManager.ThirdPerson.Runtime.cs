@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.PlayerSettings;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -6,6 +7,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubManager : MonoBehaviour
     {
+        private Mesh _cachedGroundMesh;
+        private int[] _cachedGroundTriangles;
+        private Color[] _cachedGroundColors;
+
         private void HandleWalk()
         {
             if (!_walkMode || !ConsumeHubInput)
@@ -35,10 +40,123 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             ApplyLook(_lookInput);
             ApplyMovement(_moveInput);
+            UpdateGroundSurface();
 
             SetWalkingState(
                 _moveInput.sqrMagnitude >= (WalkingInputThreshold * WalkingInputThreshold)
             );
+        }
+
+        private void UpdateGroundSurface()
+        {
+            isOnGrass = true;
+            isOnSand = false;
+            isOnRock = false;
+            isOnSnow = false;
+
+            if (GroundMeshFilter == null || GroundMeshFilter.sharedMesh == null)
+            {
+                return;
+            }
+
+            var meshCollider = GroundMeshFilter.GetComponent<MeshCollider>();
+            if (meshCollider == null || !meshCollider.enabled)
+            {
+                return;
+            }
+
+            Mesh mesh = GroundMeshFilter.sharedMesh;
+            if (meshCollider.sharedMesh != mesh)
+            {
+                return;
+            }
+
+            if (_cachedGroundMesh != mesh)
+            {
+                _cachedGroundMesh = mesh;
+                _cachedGroundTriangles = mesh.triangles;
+                _cachedGroundColors = mesh.colors;
+            }
+
+            if (_cachedGroundColors == null || _cachedGroundColors.Length == 0)
+            {
+                return;
+            }
+
+            float agentHeight = NavMeshAgent != null ? NavMeshAgent.height : 0f;
+            Vector3 rayOrigin = MovementRig.position + (Vector3.up * (agentHeight + 0.5f));
+            float rayDistance = agentHeight + 1.5f;
+            if (
+                !meshCollider.Raycast(
+                    new Ray(rayOrigin, Vector3.down),
+                    out RaycastHit hit,
+                    rayDistance
+                )
+            )
+            {
+                return;
+            }
+
+            int triangleStart = hit.triangleIndex * 3;
+            if (
+                hit.triangleIndex < 0
+                || _cachedGroundTriangles == null
+                || triangleStart + 2 >= _cachedGroundTriangles.Length
+            )
+            {
+                return;
+            }
+
+            int vertexA = _cachedGroundTriangles[triangleStart];
+            int vertexB = _cachedGroundTriangles[triangleStart + 1];
+            int vertexC = _cachedGroundTriangles[triangleStart + 2];
+            if (
+                vertexA >= _cachedGroundColors.Length
+                || vertexB >= _cachedGroundColors.Length
+                || vertexC >= _cachedGroundColors.Length
+            )
+            {
+                return;
+            }
+
+            Vector3 barycentric = hit.barycentricCoordinate;
+            Color groundColor =
+                (_cachedGroundColors[vertexA] * barycentric.x)
+                + (_cachedGroundColors[vertexB] * barycentric.y)
+                + (_cachedGroundColors[vertexC] * barycentric.z);
+
+            if (ColorsMatch(groundColor, grassColor))
+            {
+                return;
+            }
+
+            if (ColorsMatch(groundColor, sandColor))
+            {
+                isOnGrass = false;
+                isOnSand = true;
+                return;
+            }
+
+            if (ColorsMatch(groundColor, rockColor))
+            {
+                isOnGrass = false;
+                isOnRock = true;
+                return;
+            }
+
+            if (ColorsMatch(groundColor, snowColor))
+            {
+                isOnGrass = false;
+                isOnSnow = true;
+            }
+        }
+
+        private bool ColorsMatch(Color actual, Color expected)
+        {
+            return Mathf.Abs(actual.r - expected.r) <= colorTolerance
+                && Mathf.Abs(actual.g - expected.g) <= colorTolerance
+                && Mathf.Abs(actual.b - expected.b) <= colorTolerance
+                && Mathf.Abs(actual.a - expected.a) <= colorTolerance;
         }
 
         private void ApplyMovement(Vector2 moveInput)
@@ -86,6 +204,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 );
             }
 
+            PlayFootstepsIfDue(desiredDirection, isRunning);
+
             if (desiredDirection.sqrMagnitude > 0.0001f)
             {
                 Quaternion targetRot = Quaternion.LookRotation(desiredDirection, Vector3.up);
@@ -96,6 +216,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 );
             }
         }
+
+        private float _lastFootstepTime;
 
         private void ApplyLook(Vector2 lookInput)
         {
@@ -133,6 +255,30 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 Vector3 euler = CameraYawRoot.localEulerAngles;
                 CameraYawRoot.localRotation = Quaternion.Euler(_pitchOffset, euler.y, 0f);
+            }
+        }
+
+        private void PlayFootstepsIfDue(Vector3 moveDirection, bool isRunning)
+        {
+            _lastFootstepTime += Time.deltaTime;
+            if (moveDirection.sqrMagnitude < 0.0001f)
+            {
+                return;
+            }
+
+            var settings = GameplayGeneralSettings.Instance;
+            var movementSpeed = isRunning ? RunSpeed : MoveSpeed;
+            var interval = settings.GetFootstepInterval(movementSpeed);
+            if (_lastFootstepTime >= interval)
+            {
+                _lastFootstepTime = 0f;
+                var footstepClip =
+                    isOnGrass ? settings.HubGrassFootstep
+                    : isOnSand ? settings.HubSandFootstep
+                    : isOnSnow ? settings.HubSnowFootstep
+                    : isOnRock ? settings.HubRockFootstep
+                    : settings.HubGrassFootstep;
+                _brain?.audioBrain?.PlayFootstepSound(FootstepAudioSource, footstepClip);
             }
         }
 

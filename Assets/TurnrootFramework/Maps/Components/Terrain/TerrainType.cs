@@ -15,6 +15,9 @@ namespace Turnroot.Gameplay.Maps
         [SerializeField]
         private string _name = "New Terrain";
 
+        [SerializeField, Tooltip("Optional battle footstep sound. Uses the grass footstep if unset.")]
+        private AudioClip _footstepSound;
+
         [SerializeField]
         private float _costWalk = 1f;
 
@@ -70,6 +73,7 @@ namespace Turnroot.Gameplay.Maps
         private Color _editorColor = Color.white;
 
         public string Name => string.IsNullOrEmpty(_name) ? "(unnamed)" : _name;
+        public AudioClip FootstepSound => _footstepSound;
 
         public string Description;
         public float CostWalk => _costWalk;

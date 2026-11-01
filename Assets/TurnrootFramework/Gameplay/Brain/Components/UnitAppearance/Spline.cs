@@ -144,6 +144,15 @@ namespace Turnroot.Gameplay.Brain
             var baseSpeed = character.WalkingSpeed;
             var distanceTraveled = 0f;
             var lastTilePos = character.MapGridPosition;
+            var mapGrid = Brain.battleBrain.BattleObject.MapGrid;
+            var settings = GameplayGeneralSettings.Instance;
+            var footstepInterval = settings.GetFootstepInterval(baseSpeed);
+            var timeSinceLastFootstep = footstepInterval;
+            var footstepAudioSource = modelToMove.GetComponent<AudioSource>();
+            if (footstepAudioSource == null)
+            {
+                footstepAudioSource = modelToMove.AddComponent<AudioSource>();
+            }
 
             while (distanceTraveled < splineLength)
             {
@@ -171,6 +180,19 @@ namespace Turnroot.Gameplay.Brain
                 }
 
                 var currentTile = WorldPositionToGridPosition(position);
+                timeSinceLastFootstep += Time.deltaTime;
+                if (timeSinceLastFootstep >= footstepInterval)
+                {
+                    timeSinceLastFootstep = 0f;
+                    var terrainType = mapGrid
+                        .GetGridPoint(currentTile.x, currentTile.y)
+                        ?.GetCachedTerrainType();
+                    Brain.audioBrain.PlayFootstepSound(
+                        footstepAudioSource,
+                        terrainType?.FootstepSound ?? settings.HubGrassFootstep
+                    );
+                }
+
                 if (currentTile != lastTilePos)
                 {
                     Brain.PublishCharacterVisitedTile(character, currentTile);

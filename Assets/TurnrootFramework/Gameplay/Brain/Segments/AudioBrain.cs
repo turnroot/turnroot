@@ -25,6 +25,16 @@ namespace Turnroot.Gameplay.Brain
 
         private readonly AudioClip currentMusic;
 
+        public void PlayFootstepSound(AudioSource audioSource, AudioClip footstepClip)
+        {
+            if (audioSource == null || footstepClip == null)
+            {
+                return;
+            }
+
+            audioSource.PlayOneShot(footstepClip);
+        }
+
         public void SetMusic(AudioClip newMusic, float fadeDuration = 1f)
         {
             if (newMusic == null)

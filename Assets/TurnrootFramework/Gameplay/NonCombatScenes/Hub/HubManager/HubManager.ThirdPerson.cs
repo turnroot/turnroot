@@ -23,8 +23,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         )]
         [Foldout("Explore/Movement")]
         public NavMeshAgent NavMeshAgent;
-
-        [Foldout("Explore/Movement")]
         private bool ConsumeHubInput = true;
 
         [Foldout("Explore/Movement")]
@@ -32,9 +30,34 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [Foldout("Explore/Movement")]
         public float RunSpeed = 5f;
+        private bool isRunning = false;
+
+        private bool isOnGrass;
+        private bool isOnSand;
+        private bool isOnRock;
+        private bool isOnSnow;
 
         [Foldout("Explore/Movement")]
-        private bool isRunning = false;
+        public Color grassColor;
+
+        [Foldout("Explore/Movement")]
+        public Color sandColor;
+
+        [Foldout("Explore/Movement")]
+        public Color rockColor;
+
+        [Foldout("Explore/Movement")]
+        public Color snowColor;
+
+        [Tooltip("Ground mesh with vertex colors and a matching MeshCollider on the same object.")]
+        [Foldout("Explore/Movement")]
+        public MeshFilter GroundMeshFilter;
+
+        [Foldout("Explore/Movement")]
+        public float colorTolerance;
+
+        [Foldout("Explore/Movement")]
+        public AudioSource FootstepAudioSource;
 
         [Foldout("Explore/Movement")]
         public float RotationLerp = 12f;
