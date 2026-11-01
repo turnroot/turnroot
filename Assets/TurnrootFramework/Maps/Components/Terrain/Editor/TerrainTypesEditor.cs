@@ -37,6 +37,10 @@ namespace Turnroot.Gameplay.Maps
                     elem.FindPropertyRelative("_editorColor"),
                     new GUIContent("Editor Color")
                 );
+                EditorGUILayout.PropertyField(
+                    elem.FindPropertyRelative("_footstepSound"),
+                    new GUIContent("Battle Footstep Sound")
+                );
 
                 DrawKnobRow(
                     "Costs",
@@ -181,6 +185,7 @@ namespace Turnroot.Gameplay.Maps
             SetPropertyValue(newElem, "_id", System.Guid.NewGuid().ToString());
             SetPropertyValue(newElem, "_name", "New Terrain");
             SetPropertyValue(newElem, "_editorColor", Color.white);
+            newElem.FindPropertyRelative("_footstepSound").objectReferenceValue = null;
 
             foreach (
                 var prop in new[]
