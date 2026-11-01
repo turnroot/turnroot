@@ -184,12 +184,31 @@ namespace Turnroot.Gameplay.Brain
                 if (timeSinceLastFootstep >= footstepInterval)
                 {
                     timeSinceLastFootstep = 0f;
-                    var terrainType = mapGrid
-                        .GetGridPoint(currentTile.x, currentTile.y)
-                        ?.GetCachedTerrainType();
+                    var movementType = character.GetEffectiveMovementType();
+                    AudioClip footstepClip;
+                    if (movementType == MovementType.Flying)
+                    {
+                        footstepClip = settings.FlyingMovementSound;
+                    }
+                    else if (
+                        movementType == MovementType.Riding
+                        || character.IsMounted
+                    )
+                    {
+                        footstepClip = settings.RidingMovementSound;
+                    }
+                    else
+                    {
+                        var terrainType = mapGrid
+                            .GetGridPoint(currentTile.x, currentTile.y)
+                            ?.GetCachedTerrainType();
+                        footstepClip =
+                            terrainType?.FootstepSound ?? settings.HubGrassFootstep;
+                    }
+
                     Brain.audioBrain.PlayFootstepSound(
                         footstepAudioSource,
-                        terrainType?.FootstepSound ?? settings.HubGrassFootstep
+                        footstepClip
                     );
                 }
 

@@ -176,6 +176,12 @@ namespace Turnroot.GameSettings
         public AudioClip HubSnowFootstep;
 
         [BoxGroup("Audio")]
+        public AudioClip FlyingMovementSound;
+
+        [BoxGroup("Audio")]
+        public AudioClip RidingMovementSound;
+
+        [BoxGroup("Audio")]
         public float FootstepIntervalScale = 0.5f;
 
         public float GetFootstepInterval(float movementSpeed) =>
