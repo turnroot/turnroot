@@ -7,9 +7,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubManager : MonoBehaviour
     {
+        private enum GroundSurface
+        {
+            Grass,
+            Sand,
+            Rock,
+            Snow,
+        }
+
         private Mesh _cachedGroundMesh;
         private int[] _cachedGroundTriangles;
         private Color[] _cachedGroundColors;
+        private bool _hasGroundSample;
+        private Color _lastGroundColor;
 
         private void HandleWalk()
         {
@@ -53,6 +63,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             isOnSand = false;
             isOnRock = false;
             isOnSnow = false;
+            _hasGroundSample = false;
 
             if (GroundMeshFilter == null || GroundMeshFilter.sharedMesh == null)
             {
@@ -125,38 +136,96 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 + (_cachedGroundColors[vertexB] * barycentric.y)
                 + (_cachedGroundColors[vertexC] * barycentric.z);
 
-            if (ColorsMatch(groundColor, grassColor))
+            _hasGroundSample = true;
+            _lastGroundColor = groundColor;
+            GroundSurface surface = FindClosestGroundSurface(groundColor);
+            isOnGrass = surface == GroundSurface.Grass;
+            isOnSand = surface == GroundSurface.Sand;
+            isOnRock = surface == GroundSurface.Rock;
+            isOnSnow = surface == GroundSurface.Snow;
+        }
+
+        private GroundSurface FindClosestGroundSurface(Color actual)
+        {
+            GroundSurface closestSurface = GroundSurface.Grass;
+            float closestDistance = float.PositiveInfinity;
+
+            ConsiderGroundColorMatch(actual, grassColor, GroundSurface.Grass, ref closestSurface, ref closestDistance);
+            ConsiderGroundColorMatch(actual, sandColor, GroundSurface.Sand, ref closestSurface, ref closestDistance);
+            ConsiderGroundColorMatch(actual, rockColor, GroundSurface.Rock, ref closestSurface, ref closestDistance);
+            ConsiderGroundColorMatch(actual, snowColor, GroundSurface.Snow, ref closestSurface, ref closestDistance);
+
+            return closestSurface;
+        }
+
+        private void ConsiderGroundColorMatch(
+            Color actual,
+            Color expected,
+            GroundSurface surface,
+            ref GroundSurface closestSurface,
+            ref float closestDistance
+        )
+        {
+            if (!ColorsMatch(actual, expected))
             {
                 return;
             }
 
-            if (ColorsMatch(groundColor, sandColor))
+            float distance = ColorDistanceSquared(actual, expected);
+            if (distance < closestDistance)
             {
-                isOnGrass = false;
-                isOnSand = true;
-                return;
+                closestDistance = distance;
+                closestSurface = surface;
             }
+        }
 
-            if (ColorsMatch(groundColor, rockColor))
-            {
-                isOnGrass = false;
-                isOnRock = true;
-                return;
-            }
-
-            if (ColorsMatch(groundColor, snowColor))
-            {
-                isOnGrass = false;
-                isOnSnow = true;
-            }
+        private static float ColorDistanceSquared(Color left, Color right)
+        {
+            float red = left.r - right.r;
+            float green = left.g - right.g;
+            float blue = left.b - right.b;
+            return (red * red) + (green * green) + (blue * blue);
         }
 
         private bool ColorsMatch(Color actual, Color expected)
         {
             return Mathf.Abs(actual.r - expected.r) <= colorTolerance
                 && Mathf.Abs(actual.g - expected.g) <= colorTolerance
-                && Mathf.Abs(actual.b - expected.b) <= colorTolerance
-                && Mathf.Abs(actual.a - expected.a) <= colorTolerance;
+                && Mathf.Abs(actual.b - expected.b) <= colorTolerance;
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (NavMeshAgent == null)
+            {
+                return;
+            }
+
+            Transform agentTransform = MovementRig != null ? MovementRig : NavMeshAgent.transform;
+            Gizmos.color = !_hasGroundSample
+                ? Color.magenta
+                : isOnGrass
+                    ? Color.green
+                    : isOnSand
+                        ? Color.yellow
+                        : isOnRock
+                            ? Color.gray
+                            : Color.white;
+
+            Vector3 markerPosition =
+                agentTransform.position
+                + (Vector3.up * Mathf.Max(NavMeshAgent.height * 0.5f, 0.25f));
+            float markerRadius = Mathf.Max(NavMeshAgent.radius * 0.25f, 0.1f);
+            Gizmos.DrawSphere(markerPosition, markerRadius);
+
+            if (_hasGroundSample)
+            {
+                Gizmos.color = _lastGroundColor;
+                Gizmos.DrawCube(
+                    markerPosition + (agentTransform.right * markerRadius * 2f),
+                    Vector3.one * markerRadius
+                );
+            }
         }
 
         private void ApplyMovement(Vector2 moveInput)
