@@ -35,6 +35,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool isOnGrass;
         private bool isOnSand;
         private bool isOnRock;
+        private bool isOnSnow;
 
         [Foldout("Explore/Movement")]
         public Color grassColor;
@@ -45,24 +46,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Foldout("Explore/Movement")]
         public Color rockColor;
 
+        [Foldout("Explore/Movement")]
+        public Color snowColor;
+
         [Tooltip("Ground mesh with vertex colors and a matching MeshCollider on the same object.")]
         [Foldout("Explore/Movement")]
         public MeshFilter GroundMeshFilter;
 
         [Foldout("Explore/Movement")]
         public float colorTolerance;
-
-        [Foldout("Explore/Movement")]
-        public AudioClip grassFootstep;
-
-        [Foldout("Explore/Movement")]
-        public AudioClip sandFootstep;
-
-        [Foldout("Explore/Movement")]
-        public AudioClip rockFootstep;
-
-        [Foldout("Explore/Movement")]
-        public float FootstepIntervalScale = .5f;
 
         [Foldout("Explore/Movement")]
         public AudioSource FootstepAudioSource;

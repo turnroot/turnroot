@@ -1,4 +1,5 @@
 using Turnroot.Gameplay.PlayerSettings;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -51,6 +52,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             isOnGrass = true;
             isOnSand = false;
             isOnRock = false;
+            isOnSnow = false;
 
             if (GroundMeshFilter == null || GroundMeshFilter.sharedMesh == null)
             {
@@ -139,6 +141,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 isOnGrass = false;
                 isOnRock = true;
+                return;
+            }
+
+            if (ColorsMatch(groundColor, snowColor))
+            {
+                isOnGrass = false;
+                isOnSnow = true;
             }
         }
 
@@ -195,7 +204,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 );
             }
 
-            PlayFootstepSound(desiredDirection, isRunning);
+            PlayFootstepsIfDue(desiredDirection, isRunning);
 
             if (desiredDirection.sqrMagnitude > 0.0001f)
             {
@@ -249,7 +258,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void PlayFootstepSound(Vector3 moveDirection, bool isRunning)
+        private void PlayFootstepsIfDue(Vector3 moveDirection, bool isRunning)
         {
             _lastFootstepTime += Time.deltaTime;
             if (moveDirection.sqrMagnitude < 0.0001f)
@@ -257,28 +266,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            var interval = isRunning
-                ? RunSpeed * FootstepIntervalScale
-                : MoveSpeed * FootstepIntervalScale;
+            var settings = GameplayGeneralSettings.Instance;
+            var movementSpeed = isRunning ? RunSpeed : MoveSpeed;
+            var interval = settings.GetFootstepInterval(movementSpeed);
             if (_lastFootstepTime >= interval)
             {
                 _lastFootstepTime = 0f;
-                if (isOnGrass)
-                {
-                    FootstepAudioSource.PlayOneShot(grassFootstep);
-                }
-                else if (isOnSand)
-                {
-                    FootstepAudioSource.PlayOneShot(sandFootstep);
-                }
-                else if (isOnRock)
-                {
-                    FootstepAudioSource.PlayOneShot(rockFootstep);
-                }
-                else
-                {
-                    FootstepAudioSource.PlayOneShot(grassFootstep);
-                }
+                var footstepClip =
+                    isOnGrass ? settings.HubGrassFootstep
+                    : isOnSand ? settings.HubSandFootstep
+                    : isOnSnow ? settings.HubSnowFootstep
+                    : isOnRock ? settings.HubRockFootstep
+                    : settings.HubGrassFootstep;
+                _brain?.audioBrain?.PlayFootstepSound(FootstepAudioSource, footstepClip);
             }
         }
 
