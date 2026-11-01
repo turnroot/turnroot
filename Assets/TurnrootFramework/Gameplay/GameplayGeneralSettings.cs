@@ -179,6 +179,9 @@ namespace Turnroot.GameSettings
         public float FootstepIntervalScale = 0.5f;
 
         public float GetFootstepInterval(float movementSpeed) =>
-            Mathf.Max(movementSpeed * FootstepIntervalScale, 0.01f);
+            Mathf.Max(
+                FootstepIntervalScale / Mathf.Max(movementSpeed, 0.01f),
+                0.01f
+            );
     }
 }
