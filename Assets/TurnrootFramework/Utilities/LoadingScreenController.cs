@@ -42,11 +42,12 @@ namespace Turnroot.Utilities
         public float hideDelayAfterReady = 0.1f;
 
         private LoadingController _loadingController;
+        private Brain _brain;
+        private bool _brainEventsSubscribed;
         private float _visibleSinceTime;
 
         private void Awake()
         {
-            // Try to auto-wire common components
             if (Fade == null)
             {
                 Fade = GetComponentInChildren<UIFade>(true);
@@ -60,7 +61,8 @@ namespace Turnroot.Utilities
 
         private void Start()
         {
-            _loadingController = Brain.Instance.GetComponent<LoadingController>();
+            _brain = Brain.Instance;
+            _loadingController = _brain.GetComponent<LoadingController>();
             SubscribeToBrainEvents();
             SubscribeToLoadingController();
 
@@ -70,7 +72,7 @@ namespace Turnroot.Utilities
             }
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
             UnsubscribeFromBrainEvents();
             UnsubscribeFromLoadingController();
@@ -78,16 +80,28 @@ namespace Turnroot.Utilities
 
         private void SubscribeToBrainEvents()
         {
-            Brain.Instance.OnSceneTransitionStarted += HandleSceneTransitionStarted;
-            Brain.Instance.OnSceneLoadProgress += HandleSceneLoadProgress;
-            Brain.Instance.OnSceneReadyToDisplay += HandleSceneReadyToDisplay;
+            if (_brainEventsSubscribed)
+            {
+                return;
+            }
+
+            _brain.OnSceneTransitionStarted += HandleSceneTransitionStarted;
+            _brain.OnSceneLoadProgress += HandleSceneLoadProgress;
+            _brain.OnSceneReadyToDisplay += HandleSceneReadyToDisplay;
+            _brainEventsSubscribed = true;
         }
 
         private void UnsubscribeFromBrainEvents()
         {
-            Brain.Instance.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
-            Brain.Instance.OnSceneLoadProgress -= HandleSceneLoadProgress;
-            Brain.Instance.OnSceneReadyToDisplay -= HandleSceneReadyToDisplay;
+            if (!_brainEventsSubscribed || _brain == null)
+            {
+                return;
+            }
+
+            _brain.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
+            _brain.OnSceneLoadProgress -= HandleSceneLoadProgress;
+            _brain.OnSceneReadyToDisplay -= HandleSceneReadyToDisplay;
+            _brainEventsSubscribed = false;
         }
 
         private void SubscribeToLoadingController()
@@ -141,7 +155,6 @@ namespace Turnroot.Utilities
             }
             else
             {
-                // If no fade is set, just log a warning when it should end.
                 "LoadingScreenController: Hide requested but no UIFade assigned.".LogWarning();
             }
         }

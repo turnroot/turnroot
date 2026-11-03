@@ -15,6 +15,7 @@ namespace Turnroot.Utilities.Weather
 
         private readonly Dictionary<Renderer, Material[]> _celRendererOriginalMaterials = new();
         private readonly Dictionary<Material, Material> _celMaterialInstances = new();
+        private Brain _brain;
 
         [Range(0, 1)]
         [Tooltip(
@@ -109,13 +110,23 @@ namespace Turnroot.Utilities.Weather
             // constant update
             StartCoroutine(UpdateWorld());
 
-            Brain.Instance.OnSceneChanged += HandleSceneChanged;
+            _brain = Brain.Instance;
+            if (_brain != null)
+            {
+                _brain.OnSceneChanged += HandleSceneChanged;
+            }
+        }
+
+        public void OnDisable()
+        {
+            if (_brain != null)
+            {
+                _brain.OnSceneChanged -= HandleSceneChanged;
+            }
         }
 
         public void OnDestroy()
         {
-            Brain.Instance.OnSceneChanged -= HandleSceneChanged;
-
             CurrentWeatherType = WeatherType.Sunny;
 
             // restore material colours (if we instantiated an instance)
@@ -162,7 +173,10 @@ namespace Turnroot.Utilities.Weather
 
             _handledSceneChange = true;
             // unsubscribe since we don't want to run again
-            Brain.Instance.OnSceneChanged -= HandleSceneChanged;
+            if (_brain != null)
+            {
+                _brain.OnSceneChanged -= HandleSceneChanged;
+            }
             SetupForScene(sceneName);
         }
 
