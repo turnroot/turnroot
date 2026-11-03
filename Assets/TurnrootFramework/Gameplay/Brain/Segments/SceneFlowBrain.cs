@@ -38,8 +38,6 @@ namespace Turnroot.Utilities.SceneFlows
         // The Brain scene name (matches BrainBootstrap.BrainSceneName)
         private const string BrainSceneName = BrainBootstrap.BrainSceneName;
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
-
         private static GameFlowRegistry Registry => GameFlowRegistry.Instance;
 
         private Brain EnsureBrainReference()

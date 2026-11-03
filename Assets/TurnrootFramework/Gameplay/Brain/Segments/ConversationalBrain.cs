@@ -17,8 +17,6 @@ namespace Turnroot.Gameplay.Brain
     {
         private LongTermMemory _ltm;
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
-
         protected override void Awake()
         {
             base.Awake();

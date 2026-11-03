@@ -21,6 +21,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action OnBattleContextInitialized;
         public event Action OnPreBattlePrepare;
         public event Action OnPreBattleStarted;
+        public event Action OnBeforePreBattleCompleted;
         public event Action OnPreBattleCompleted;
 
         public void PublishBattleStarted() => OnBattleStarted?.Invoke();
@@ -29,7 +30,11 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishPreBattleStarted() => OnPreBattleStarted?.Invoke();
 
-        public void PublishPreBattleCompleted() => OnPreBattleCompleted?.Invoke();
+        public void PublishPreBattleCompleted()
+        {
+            OnBeforePreBattleCompleted?.Invoke();
+            OnPreBattleCompleted?.Invoke();
+        }
 
         public event Action OnPrecomputeCompleted;
 

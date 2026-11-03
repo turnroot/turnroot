@@ -5,8 +5,6 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class StateBrain : BrainComponent
     {
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
-
         protected override void Awake()
         {
             base.Awake();

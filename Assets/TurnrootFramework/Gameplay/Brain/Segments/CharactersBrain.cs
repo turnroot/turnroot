@@ -54,7 +54,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
         #endregion
 
         #region Event Subscription

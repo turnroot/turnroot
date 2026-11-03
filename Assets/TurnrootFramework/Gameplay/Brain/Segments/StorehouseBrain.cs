@@ -28,8 +28,6 @@ namespace Turnroot.Gameplay.Brain
     {
         private GameplayGeneralSettings _gameplaySettings;
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
-
         protected override void SubscribeToBrainEvents()
         {
             _brain.OnGoldGained += HandleGoldGained;

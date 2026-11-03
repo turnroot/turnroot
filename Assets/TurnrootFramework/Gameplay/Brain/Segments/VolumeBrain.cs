@@ -13,8 +13,6 @@ namespace Turnroot.Gameplay.Brain
     [RequireComponent(typeof(LongTermMemory))]
     public class VolumeBrain : BrainComponent
     {
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
-
         protected override void SubscribeToBrainEvents() { }
 
         protected override void UnsubscribeFromBrainEvents() { }

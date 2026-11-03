@@ -117,8 +117,6 @@ namespace Turnroot.Gameplay.Brain
 
         private MusicPlayer musicPlayer;
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
-
         protected override void SubscribeToBrainEvents() { }
 
         protected override void UnsubscribeFromBrainEvents() { }

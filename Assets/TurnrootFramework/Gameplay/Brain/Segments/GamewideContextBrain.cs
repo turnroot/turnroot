@@ -55,8 +55,6 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Initialization
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
-
         protected override void Awake()
         {
             _brain = GetComponent<Brain>();
@@ -238,7 +236,7 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
             _brain.OnSavePlayerRosterRequestedWithTurn += HandleSavePlayerRosterRequestedWithTurn;
-            _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
+            _brain.OnBeforePreBattleCompleted += HandleBeforePreBattleCompleted;
             _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
         }
 
@@ -246,7 +244,7 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
             _brain.OnSavePlayerRosterRequestedWithTurn -= HandleSavePlayerRosterRequestedWithTurn;
-            _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
+            _brain.OnBeforePreBattleCompleted -= HandleBeforePreBattleCompleted;
             _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
         }
 
@@ -264,7 +262,7 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void HandlePreBattleCompleted()
+        private void HandleBeforePreBattleCompleted()
         {
             // Save roster with unit selections and placements before battle starts
             // First, update the runtime instance with placements from BattlePreparationObject
