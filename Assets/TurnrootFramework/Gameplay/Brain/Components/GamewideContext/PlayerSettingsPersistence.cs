@@ -22,6 +22,7 @@ namespace Turnroot.Gameplay.Brain
             _brain = brain;
         }
 
+        #region Settings Load and Save
         public void Initialize()
         {
             PlayerSettings = GameplayPlayerSettings.Instance;
@@ -173,6 +174,10 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
+        #endregion
+
+        #region Setting Update Dispatch
+
         public void UpdatePlayerSetting(string settingName, object value)
         {
             if (PlayerSettings == null)
@@ -205,6 +210,10 @@ namespace Turnroot.Gameplay.Brain
                 );
             }
         }
+
+        #endregion
+
+        #region Setting Category Updates
 
         private bool UpdateCoreSetting(string key, object value)
         {
@@ -372,6 +381,7 @@ namespace Turnroot.Gameplay.Brain
                     return false;
             }
         }
+        #endregion
     }
 
     /// <summary>

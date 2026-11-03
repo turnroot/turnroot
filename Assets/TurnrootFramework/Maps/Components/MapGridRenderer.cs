@@ -23,6 +23,7 @@ namespace Turnroot.Gameplay.Maps
         private Color _lightGrayTerrainColor = new(0.2f, 0.2f, 0.2f, 1f); // For tall wall, void
         private Color _blueSpawnColor = new(0.2f, 0.5f, 1f, 1f);
 
+        #region Initialization
         private void InitializeFromSettings()
         {
             var settings = GameSettings.GamewideUiSettings.Instance;
@@ -89,6 +90,10 @@ namespace Turnroot.Gameplay.Maps
             "underground",
             "shelter",
         };
+
+        #endregion
+
+        #region Map Rendering
 
         public void RenderAndSaveMapImages(
             MapGrid grid,
@@ -330,6 +335,10 @@ namespace Turnroot.Gameplay.Maps
             return texture;
         }
 
+        #endregion
+
+        #region Terrain and Feature Colors
+
         private Color GetMinimapTerrainColor(MapGridPoint point, TerrainTypes terrainAsset)
         {
             if (point == null)
@@ -391,6 +400,10 @@ namespace Turnroot.Gameplay.Maps
 
             return (minRow, maxRow, minCol, maxCol, width, height);
         }
+
+        #endregion
+
+        #region Cell and Feature Drawing
 
         private void DrawCell(Texture2D texture, int row, int col, Color color)
         {
@@ -612,6 +625,10 @@ namespace Turnroot.Gameplay.Maps
             return terrainType?.EditorColor ?? Color.white;
         }
 
+        #endregion
+
+        #region Map Asset Persistence
+
         private Sprite SaveTexture(Texture2D texture, string path, string fileName)
         {
             string fullPath = Path.Combine(path, $"{fileName}.png");
@@ -707,6 +724,7 @@ namespace Turnroot.Gameplay.Maps
             );
             return sanitized.Trim().Replace(" ", "_").ToLower();
         }
+        #endregion
     }
 }
 #endif

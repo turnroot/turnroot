@@ -5,7 +5,6 @@ using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Subclasses;
 using Turnroot.Gameplay.Brain.Components;
-using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;

@@ -59,6 +59,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private const float MinimumFxCleanupDelaySeconds = 1f;
         private const float FxCleanupSafetyBufferSeconds = 0.25f;
 
+        #region Fast Travel Input and Menus
         private bool TryHandleFastTravelInput(string action)
         {
             if (_isFastTravelInProgress)
@@ -133,6 +134,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             FastTravelChoicesFade?.Hide();
             DeselectAllFastTravelChoices();
         }
+
+        #endregion
+
+        #region Destination Selection
 
         private OperationResult BuildFastTravelOptions()
         {
@@ -266,6 +271,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             StartFastTravel(_fastTravelNavigableOptions[_fastTravelChoiceIndex]);
         }
 
+        #endregion
+
+        #region Travel Execution
+
         private void StartFastTravel(UnlockableWorldLocationOption destination)
         {
             if (_isFastTravelInProgress)
@@ -394,6 +403,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             return OperationResult.Successful();
         }
 
+        #endregion
+
+        #region Travel Effects and Validation
+
         private void PlayFastTravelSfx(AudioClip clip)
         {
             if (FastTravelAudioSource == null || clip == null)
@@ -488,5 +501,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     )
                 : OperationResult.Successful();
         }
+        #endregion
     }
 }

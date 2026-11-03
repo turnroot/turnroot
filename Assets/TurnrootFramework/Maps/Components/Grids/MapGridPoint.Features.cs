@@ -290,6 +290,7 @@ namespace Turnroot.Gameplay.Maps
             set => _featureTypeId = MapGridPointFeature.IdFromType(value) ?? string.Empty;
         }
 
+        #region Feature Assignment
         public void SetFeatureTypeId(string id)
         {
             _featureTypeId = id ?? string.Empty;
@@ -315,6 +316,10 @@ namespace Turnroot.Gameplay.Maps
             _hitLostPerRangeTile = 0;
             ParentGrid?.IncrementStateVersion();
         }
+
+        #endregion
+
+        #region Feature Application and Cleanup
 
         public void ApplyFeature(string selId, string name, bool singleClickToggle)
         {
@@ -406,5 +411,6 @@ namespace Turnroot.Gameplay.Maps
             }
         }
 #endif
+        #endregion
     }
 }

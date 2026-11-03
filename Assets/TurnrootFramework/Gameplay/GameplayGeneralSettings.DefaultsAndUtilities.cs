@@ -120,6 +120,7 @@ namespace Turnroot.GameSettings
         };
 
         // Public accessors for Combat Mechanics
+        #region Combat Settings Accessors
         public float GetCriticalHitMultiplier() => CriticalHitMultiplier;
 
         public int GetWeaponTriangleAdvantage() => WeaponTriangleAdvantage;
@@ -249,6 +250,10 @@ namespace Turnroot.GameSettings
         public bool UseAuthority => Authority;
 
         // Public accessors for Items
+        #endregion
+
+        #region Equipment and Feature Settings
+
         public int GetMaxEquippedNonWeaponItems() => MaxEquippedNonWeaponItems;
 
         public bool UseEquippableOutfits() => EquippableOutfits;
@@ -266,6 +271,10 @@ namespace Turnroot.GameSettings
         /// <summary>
         /// Returns all configured experience types (weapon types + extra types that are enabled)
         /// </summary>
+        #endregion
+
+        #region Default Stat Definitions
+
         public ExperienceType[] GetAllExperienceTypes()
         {
             var list = new System.Collections.Generic.List<ExperienceType>();
@@ -377,6 +386,10 @@ namespace Turnroot.GameSettings
             return core.ToArray();
         }
 
+        #endregion
+
+        #region Default Stat Creation and Validation
+
         public System.Collections.Generic.List<BoundedCharacterStat> CreateDefaultBoundedStats()
         {
             var outList = new System.Collections.Generic.List<BoundedCharacterStat>();
@@ -475,5 +488,6 @@ namespace Turnroot.GameSettings
             };
         }
 #endif
+        #endregion
     }
 }

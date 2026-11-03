@@ -7,6 +7,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
     public partial class HubManager : MonoBehaviour
     {
+        #region Traversal Input and Camera
         private void UpdateInspectLook(Vector2 lookInput)
         {
             if (lookInput.sqrMagnitude < 0.0001f)
@@ -139,6 +140,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _zoomFovCoroutine = null;
         }
 
+        #endregion
+
+        #region Point of Interest Detection
+
         private void ClearCurrentPoiTarget()
         {
             _currentPoiVisual?.Hide();
@@ -243,6 +248,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             return selectable != null;
         }
 
+        #endregion
+
+        #region Traversal Input Smoothing
+
         private Vector2 GetNavigateMoveInput()
         {
             Vector2 target = Vector2.zero;
@@ -321,6 +330,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _moveInputVelocity = Vector2.zero;
             _lookInputVelocity = Vector2.zero;
         }
+
+        #endregion
+
+        #region Explore Mode and Cursor State
 
         private void ApplyExploreModeFades(bool isExploreMode)
         {
@@ -414,5 +427,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             return value;
         }
+        #endregion
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using NaughtyAttributes;
 using TMPro;
 using Turnroot.AbstractScripts.Graphics2D;
 using Turnroot.Characters;

@@ -12,6 +12,7 @@ namespace Assets.AbstractScripts.Graphics2D
     /// </summary>
     public static class ImageCompositor
     {
+        #region Sprite and Tint Operations
         public static Sprite CreateSpriteFromTexture(Texture2D texture)
         {
             if (texture == null)
@@ -210,6 +211,10 @@ namespace Assets.AbstractScripts.Graphics2D
             return tintedPixels;
         }
 
+        #endregion
+
+        #region Layer Compositing
+
         public static Texture2D CompositeImageStackLayers(
             Texture2D baseTexture,
             ImageStackLayer[] layers,
@@ -364,6 +369,10 @@ namespace Assets.AbstractScripts.Graphics2D
         }
 
         // Helper: create the composited texture and initialize final pixel buffer
+        #endregion
+
+        #region Pixel Compositing Helpers
+
         private static Texture2D CreateCompositedTexture(
             Texture2D baseTexture,
             out Color[] finalPixels
@@ -523,6 +532,7 @@ namespace Assets.AbstractScripts.Graphics2D
                 finalPixels[i] = AlphaBlend(layerPixels[i], finalPixels[i]);
             }
         }
+    #endregion
     }
 }
 

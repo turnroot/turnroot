@@ -45,6 +45,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
         [ShowIf("rowType", RowType.Carousel)]
         public MenuCarousel carouselComponent;
 
+        #region Row Focus and Selection Visuals
         public void SetFocused(bool focused)
         {
             if (focused)
@@ -196,6 +197,10 @@ namespace Turnroot.UI.Components.Menu.Submenu
             carouselComponent?.UpdateDisplay();
         }
 
+        #endregion
+
+        #region Row Selection API
+
         public void SelectRow()
         {
             if (labelText != null)
@@ -225,6 +230,10 @@ namespace Turnroot.UI.Components.Menu.Submenu
 
             isSelected = false;
         }
+
+        #endregion
+
+        #region Input Navigation
 
         public bool HandleInput(SubmenuRowInput input)
         {
@@ -395,5 +404,6 @@ namespace Turnroot.UI.Components.Menu.Submenu
         }
 
         private static bool HasElements<T>(T[] array) => array != null && array.Length > 0;
+    #endregion
     }
 }

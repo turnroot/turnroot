@@ -21,6 +21,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool _hasGroundSample;
         private Color _lastGroundColor;
 
+        #region Grounding and Surface Detection
         private void HandleWalk()
         {
             if (!_walkMode || !ConsumeHubInput)
@@ -228,6 +229,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
+        #endregion
+
+        #region Movement and Look
+
         private void ApplyMovement(Vector2 moveInput)
         {
             if (_isTraversalMovementLocked)
@@ -326,6 +331,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 CameraYawRoot.localRotation = Quaternion.Euler(_pitchOffset, euler.y, 0f);
             }
         }
+
+        #endregion
+
+        #region Footsteps and Movement State
 
         private void PlayFootstepsIfDue(Vector3 moveDirection, bool isRunning)
         {
@@ -446,5 +455,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _avatarAnimator = _avatarRoot.GetComponentInChildren<Animator>();
         }
+        #endregion
     }
 }

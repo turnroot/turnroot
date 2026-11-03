@@ -1,6 +1,5 @@
 using NaughtyAttributes;
 using Turnroot.Gameplay.Brain;
-using Turnroot.GameSettings;
 using Turnroot.UI;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;

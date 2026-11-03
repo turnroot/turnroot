@@ -72,6 +72,7 @@ namespace Turnroot.Graphics2D
         public Sprite RuntimeSprite => _runtimeSprite;
         public Sprite SavedSprite => _savedSprite;
 
+        #region Ownership and Validation
         protected void SetRuntimeSprite(Sprite sprite) => _runtimeSprite = sprite;
 
         protected void SetSavedSprite(Sprite sprite) => _savedSprite = sprite;
@@ -165,6 +166,10 @@ namespace Turnroot.Graphics2D
         public abstract void UpdateTintColorsFromOwner();
 
         // Subclasses can provide their mandatory tags and ordering behavior
+        #endregion
+
+        #region Layer Management
+
         protected virtual IEnumerable<ILayerTag> MandatoryTags() => Enumerable.Empty<ILayerTag>();
 
         protected virtual int GetLayerOrder(ImageStackLayer layer) => layer.Order;
@@ -219,6 +224,10 @@ namespace Turnroot.Graphics2D
         protected abstract string GetSaveSubdirectory();
 
         public override string ToString() => $"p{_id}";
+
+        #endregion
+
+        #region Rendering and Composition
 
         public string Identify()
         {
@@ -334,6 +343,10 @@ namespace Turnroot.Graphics2D
             return texture;
         }
 
+        #endregion
+
+        #region Layer Normalization
+
         private ImageStackLayer[] CreateNormalizedLayers(ImageStackLayer[] sourceLayers)
         {
             var layers = new ImageStackLayer[sourceLayers.Length];
@@ -416,6 +429,10 @@ namespace Turnroot.Graphics2D
 
             return masks;
         }
+
+        #endregion
+
+        #region Sprite Persistence
 
         private void SaveToFile(Texture2D texture)
         {
@@ -586,5 +603,6 @@ namespace Turnroot.Graphics2D
             }
 #endif
         }
+        #endregion
     }
 }

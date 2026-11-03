@@ -46,6 +46,7 @@ namespace Turnroot.UI
 
         private readonly Dictionary<string, Coroutine> _repeatCoroutines = new();
 
+        #region Input Provider Lifecycle
         private void Awake()
         {
             Instance = this;
@@ -70,6 +71,10 @@ namespace Turnroot.UI
                 Instance = null;
             }
         }
+
+        #endregion
+
+        #region Action Subscription
 
         private void Subscribe()
         {
@@ -273,6 +278,10 @@ namespace Turnroot.UI
             }
         }
 
+        #endregion
+
+        #region Input Action Handlers
+
         private void HandleSelect(InputAction.CallbackContext ctx) =>
             OnInput?.Invoke(InputActionConstants.Submit);
 
@@ -318,6 +327,10 @@ namespace Turnroot.UI
 
         private void OnNavigateRightCanceled(InputAction.CallbackContext ctx) =>
             StopHeldRepeat(InputActionConstants.NavigateRight);
+
+        #endregion
+
+        #region Held Repeat and Scroll Handling
 
         private void StartHeldRepeat(string actionName)
         {
@@ -399,5 +412,6 @@ namespace Turnroot.UI
                 NavigateClip
             );
         }
+    #endregion
     }
 }

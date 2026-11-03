@@ -19,6 +19,7 @@ namespace Turnroot.Gameplay.Brain.Segments
         private Coroutine _rotationCoroutine;
         private const float AnimatedRotationDuration = 0.3f;
 
+        #region Camera Positioning and Rotation
         public void ComputeTargetPosition(Vector2Int gridPosition)
         {
             Vector3 targetWorldPos = mapGrid.GetTerrainAdjustedWorldPosition(gridPosition);
@@ -225,6 +226,10 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
+        #endregion
+
+        #region Battle Camera Setup
+
         public void SetBattleMapCamera(Camera cam)
         {
             _battleMapCamera = cam;
@@ -328,6 +333,10 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             return closestPoint == null ? Vector2Int.zero : closestPoint.CoordinatesInt;
         }
+
+        #endregion
+
+        #region Battle and Cursor Event Handling
 
         private void HandleBattleStarted()
         {
@@ -467,5 +476,6 @@ namespace Turnroot.Gameplay.Brain.Segments
                 }
             }
         }
+        #endregion
     }
 }

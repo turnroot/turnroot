@@ -47,6 +47,7 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         [HideInInspector]
         public StartingPositions StartingPositionsComponent;
 
+        #region Battle Preparation Initialization
         public OperationResult Initialize(Brain.Brain brain)
         {
             Brain = brain;
@@ -223,6 +224,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
         }
 
+        #endregion
+
+        #region Battle Selection API
+
         public bool IsBattleSelected(CharacterInstance inst) =>
             inst != null && _battleSelectedIds.Contains(inst.Id);
 
@@ -277,6 +282,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
                 Brain?.PublishUnitSelectionChanged(inst, selected);
             }
         }
+
+        #endregion
+
+        #region Placement Synchronization Events
 
         private void HandlePlacementsSyncRequested(bool persist, bool forceApplyPlacementsOnLoad) =>
             // Simplified: no sync needed, placements live only in this object until battle starts
@@ -345,6 +354,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             CurrentPlacementState = PlacementState.PlayerPlaced;
         }
 
+        #endregion
+
+        #region Selection Queries
+
         public List<CharacterInstance> GetBattleSelectedInstances()
         {
             var list = new List<CharacterInstance>();
@@ -411,5 +424,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             }
             return list;
         }
+        #endregion
     }
 }

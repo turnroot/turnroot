@@ -9,6 +9,7 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class UnitAppearanceBrain
     {
+        #region Model Creation
         public GameObject GetModelForUnit(string unitId)
         {
             var prep = _brain.battleBrain.PreparationObject;
@@ -55,6 +56,10 @@ namespace Turnroot.Gameplay.Brain
 
             return root;
         }
+
+        #endregion
+
+        #region Outfit and Head Assembly
 
         private void AttachHairSimulation(CharacterInstance unit, GameObject root)
         {
@@ -256,6 +261,10 @@ namespace Turnroot.Gameplay.Brain
 
             return placeholder.AddComponent<SkinnedMeshRenderer>();
         }
+
+        #endregion
+
+        #region Bone Hierarchy and Rebinding
 
         private void UnifyBoneHierarchies(GameObject root)
         {
@@ -474,5 +483,6 @@ namespace Turnroot.Gameplay.Brain
             );
             return null;
         }
+        #endregion
     }
 }

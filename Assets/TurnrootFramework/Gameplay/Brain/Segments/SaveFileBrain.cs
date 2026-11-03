@@ -1,5 +1,4 @@
-﻿using Turnroot.Gameplay.Brain.Events;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Turnroot.Gameplay.Brain
 {

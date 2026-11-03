@@ -36,6 +36,7 @@ namespace Turnroot.Gameplay.Objects
 
         private int currentUses;
 
+        #region Ownership and Use
         internal void SetOwnerInventory(CharacterInventoryInstance owner) => _ownerInventory = owner;
 
         internal void ClearOwnerInventory()
@@ -114,6 +115,10 @@ namespace Turnroot.Gameplay.Objects
         /// Validates whether this item can be transferred to a target inventory.
         /// Use for UI binding (e.g., enabling/disabling transfer buttons).
         /// </summary>
+        #endregion
+
+        #region Transfer and Trade Operations
+
         public bool CanTransfer(CharacterInventoryInstance targetInventory) =>
             !_template.IsUnequippable && !targetInventory.IsFull;
 
@@ -220,6 +225,10 @@ namespace Turnroot.Gameplay.Objects
             InventoryBrain?.BuyItem(this, buyerInventory);
             return OperationResult.Successful();
         }
+
+        #endregion
+
+        #region Repair and Forge Operations
 
         public bool CanRepair(int repairUses, StorehouseBrain overrideStorehouseBrain = null)
         {
@@ -362,6 +371,10 @@ namespace Turnroot.Gameplay.Objects
             return OperationResult.Successful();
         }
 
+        #endregion
+
+        #region Serialization and Item Queries
+
         public void OnAfterDeserialize()
         {
             // Clamp currentUses to valid range based on template
@@ -428,5 +441,6 @@ namespace Turnroot.Gameplay.Objects
         }
 
         public float GetDurabilityPercentage() => _template == null || !_template.Durability || _template.MaxUses <= 0 ? 1f : (float)RemainingUses / _template.MaxUses;
+        #endregion
     }
 }

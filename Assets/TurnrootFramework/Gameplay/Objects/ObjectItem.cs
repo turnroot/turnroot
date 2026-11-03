@@ -240,6 +240,7 @@ namespace Turnroot.Gameplay.Objects
         [Foldout("Visuals")]
         public Sprite InventoryIcon;
 
+        #region Gameplay Defaults
         private void ApplyGameplayDefaultsFromSettings()
         {
             var settings = GameplayGeneralSettings.Instance;
@@ -354,6 +355,10 @@ namespace Turnroot.Gameplay.Objects
             new UnboundedStatModifier[0];
 
         /* --------------- Helper methods for NaughtyAttributes ShowIf -------------- */
+        #endregion
+
+        #region Subtype and Capability Queries
+
         private bool IsEquipableSubtype() => Subtype == ObjectSubtype.Equipable;
 
         private bool IsConsumableWithEffectAndAffectsDebuffs() =>
@@ -404,5 +409,6 @@ namespace Turnroot.Gameplay.Objects
 
         private bool IsWeaponOrMagicSubtypeAndIsDurabilityOrIsConsumableWithEffect() =>
             (IsWeaponOrMagicSubtype() && Durability) || IsConsumableWithEffect;
+        #endregion
     }
 }
