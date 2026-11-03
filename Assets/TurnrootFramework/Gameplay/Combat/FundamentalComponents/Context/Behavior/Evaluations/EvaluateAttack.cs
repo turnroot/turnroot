@@ -193,12 +193,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (targetEffective)
             {
-                utility -= 3f * behavior.BrashWary + 2f * (1f - behavior.MindlessCunning);
+                utility -= (3f * behavior.BrashWary) + (2f * (1f - behavior.MindlessCunning));
             }
 
             if (attackerEffective)
             {
-                utility += 2f * behavior.MindlessCunning + 3f * behavior.BloodthirstGreed;
+                utility += (2f * behavior.MindlessCunning) + (3f * behavior.BloodthirstGreed);
             }
 
             return utility;
@@ -283,7 +283,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         && attackerInfo.HasAnyWeaponEffectiveAgainstSpecies(targetSpecies)
                     )
                     {
-                        utility += 2f * behavior.MindlessCunning + 3f * behavior.BloodthirstGreed;
+                        utility += (2f * behavior.MindlessCunning) + (3f * behavior.BloodthirstGreed);
                     }
 
                     var mySpecies = _context.Unit.UnitInstance.CharacterTemplate?.Species;
@@ -292,7 +292,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         && targetInfo.HasAnyWeaponEffectiveAgainstSpecies(mySpecies)
                     )
                     {
-                        utility -= 3f * behavior.BrashWary + 2f * (1f - behavior.MindlessCunning);
+                        utility -= (3f * behavior.BrashWary) + (2f * (1f - behavior.MindlessCunning));
                     }
                 }
 
