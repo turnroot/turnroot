@@ -41,6 +41,7 @@ namespace Turnroot.Characters.Components
         public int CurrentItemCount => _inventoryItems.Count;
         public bool IsFull => _inventoryItems.Count >= _capacity;
 
+        #region Inventory State and Persistence
         public ObjectItemInstance[] Items() => _inventoryItems.ToArray();
 
         public int[] EquippedItemIndices => _equippedItemIndices;
@@ -102,6 +103,10 @@ namespace Turnroot.Characters.Components
         /// in a reliable way).  Rebuild them from the per-item <see cref="ObjectItemInstance.IsEquipped"/>
         /// flags, which ARE stored correctly in the item JSON.
         /// </summary>
+        #endregion
+
+        #region Equipment Index Management
+
         private void RebuildEquipmentIndexesFromItemFlags()
         {
             if (_inventoryItems == null)
@@ -241,6 +246,10 @@ namespace Turnroot.Characters.Components
             return index >= 0 && Array.IndexOf(_equippedItemIndices, index) >= 0;
         }
 
+        #endregion
+
+        #region Inventory Operations
+
         public bool CanAddItem() => _inventoryItems.Count < _capacity;
 
         public OperationResult AddToInventory(ObjectItemInstance item)
@@ -296,6 +305,10 @@ namespace Turnroot.Characters.Components
 
             return OperationResult.Successful();
         }
+
+        #endregion
+
+        #region Equipment Operations
 
         private void AutoEquipNextWeapon()
         {
@@ -401,5 +414,6 @@ namespace Turnroot.Characters.Components
 #if UNITY_EDITOR
         public void OnValidate() => EnsureEquipmentArraysInitialized();
 #endif
+        #endregion
     }
 }

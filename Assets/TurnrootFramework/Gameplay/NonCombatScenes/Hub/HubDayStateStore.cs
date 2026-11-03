@@ -23,6 +23,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public static bool IsInitialized => _currentState != null;
 
+        #region Daily State Accessors
         public static bool IsInitializedForDate(GameDate date) =>
             _currentState != null
             && _currentState.Year == date.year
@@ -150,6 +151,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             SaveState(brain, ltm);
         }
 
+        #endregion
+
+        #region Daily Interaction Tracking
+
         public static bool HasInteractionHappenedToday(string characterFullName) =>
             HasRecordedToday(_currentState?.InteractionDoneIds, characterFullName);
 
@@ -191,6 +196,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 ref _currentState.RecruitAttemptDoneIds
             );
         }
+
+        #endregion
+
+        #region Placement and Weather State
 
         public static bool HasTeamPlacements() =>
             _currentState?.TeamPlacements != null && _currentState.TeamPlacements.Count > 0;
@@ -256,6 +265,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             SaveState(brain, ltm);
         }
+
+        #endregion
+
+        #region Persistence and State Initialization
 
         public static void SetWeather(Brain.Brain brain, WeatherType weather)
         {
@@ -464,5 +477,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             public string CharacterKey;
             public HubSublocationName Location;
         }
+        #endregion
     }
 }

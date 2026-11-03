@@ -36,6 +36,7 @@ namespace Turnroot.Conversations.Mermaid
             RegexOptions.Compiled
         );
 
+        #region Conversation Parsing Entry Point
         public static MermaidConversationGraph Parse(string mermaidText, string conversationName)
         {
             var graph = new MermaidConversationGraph();
@@ -157,6 +158,10 @@ namespace Turnroot.Conversations.Mermaid
                 : wrapped.Trim();
         }
 
+        #endregion
+
+        #region Node Parsing
+
         private static MermaidNode ParseNode(
             string id,
             string text,
@@ -233,6 +238,10 @@ namespace Turnroot.Conversations.Mermaid
             ParseDialogueNode(tail, node, conversationName, graph);
             return node;
         }
+
+        #endregion
+
+        #region Dialogue and Action Parsing
 
         private static void ParseDialogueNode(
             string tail,
@@ -350,6 +359,10 @@ namespace Turnroot.Conversations.Mermaid
             node.ActionTarget = rawTarget;
         }
 
+        #endregion
+
+        #region Support Change Parsing
+
         private static SupportChangeOperation? ParseSupportOperation(
             string typeSegment,
             string text
@@ -430,5 +443,6 @@ namespace Turnroot.Conversations.Mermaid
                 : upper.Contains('-') ? "-"
                 : null;
         }
+        #endregion
     }
 }

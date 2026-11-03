@@ -49,6 +49,7 @@ namespace Turnroot.Gameplay.Brain.Components
             public const string UseBattleModel = "_useBattleModel";
         }
 
+        #region Character Serialization
         public override bool CanConvert(Type objectType) =>
             typeof(CharacterInstance).IsAssignableFrom(objectType);
 
@@ -221,6 +222,10 @@ namespace Turnroot.Gameplay.Brain.Components
         }
 #endif
 
+        #endregion
+
+        #region Character Deserialization
+
         public override object ReadJson(
             JsonReader reader,
             Type objectType,
@@ -374,6 +379,10 @@ namespace Turnroot.Gameplay.Brain.Components
             SetFieldFromToken(instance, token, FieldNames.TotalBattles, "TotalBattles", serializer);
         }
 
+        #endregion
+
+        #region Field Mapping Helpers
+
         private void SetFieldFromToken(
             CharacterInstance instance,
             JObject token,
@@ -419,5 +428,6 @@ namespace Turnroot.Gameplay.Brain.Components
                 return null;
             }
         }
+        #endregion
     }
 }

@@ -1,5 +1,4 @@
 using Turnroot.Gameplay.Brain.Components;
-using Turnroot.Gameplay.Brain.Events;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;

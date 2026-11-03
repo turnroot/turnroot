@@ -1,8 +1,6 @@
-using Turnroot.Gameplay.Brain;
 using System.Collections.Generic;
 using Turnroot.Characters.Stats;
 using Turnroot.GameSettings;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Characters.CharacterClass

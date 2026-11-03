@@ -69,6 +69,7 @@ namespace Utils
 
     internal static class ArgumentNullException
     {
+        #region Argument Validation
         public static void ThrowIfNull(object o)
         {
             if (o == null)
@@ -348,6 +349,10 @@ namespace Utils
         /// </summary>
         /// <param name="element">The element to add to the <see cref="PriorityQueue{TElement, TPriority}" />.</param>
         /// <param name="priority">The priority with which to associate the new element.</param>
+        #endregion
+
+        #region Queue Operations
+
         public void Enqueue(TElement element, TPriority priority)
         {
             // Virtually add the node at the end of the underlying array.
@@ -680,6 +685,10 @@ namespace Utils
         /// <summary>
         ///     Grows the priority queue to match the specified min capacity.
         /// </summary>
+        #endregion
+
+        #region Heap Maintenance
+
         private void Grow(int minCapacity)
         {
             Debug.Assert(_nodes.Length < minCapacity);
@@ -993,6 +1002,10 @@ namespace Utils
             ///     Returns an enumerator that iterates through the <see cref="UnorderedItems" />.
             /// </summary>
             /// <returns>An <see cref="Enumerator" /> for the <see cref="UnorderedItems" />.</returns>
+            #endregion
+
+            #region Enumeration
+
             public Enumerator GetEnumerator() => new(_queue);
 
             object ICollection.SyncRoot => this;
@@ -1119,6 +1132,7 @@ namespace Utils
                     Current = default;
                 }
             }
+        #endregion
         }
     }
 }

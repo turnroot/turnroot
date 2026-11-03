@@ -18,6 +18,7 @@ namespace Turnroot.Conversations.Mermaid
     {
         public static Brain brain => Brain.Instance;
 
+        #region Action Dispatch
         public static OperationResult Execute(
             MermaidNode node,
             Conversation conversation,
@@ -55,6 +56,10 @@ namespace Turnroot.Conversations.Mermaid
                 );
             }
         }
+
+        #endregion
+
+        #region Events and Support Changes
 
         private static OperationResult ExecuteGenericEvent(
             MermaidNode node,
@@ -177,6 +182,10 @@ namespace Turnroot.Conversations.Mermaid
             return OperationResult.Successful();
         }
 
+        #endregion
+
+        #region Item Actions
+
         private static OperationResult ExecutePlayerGainsItem(
             MermaidNode node,
             Conversation conversation
@@ -279,6 +288,10 @@ namespace Turnroot.Conversations.Mermaid
             $"ConversationActionExecutor: removed item '{itemId}' from avatar inventory.".LogInfo();
             return OperationResult.Successful();
         }
+
+        #endregion
+
+        #region Roster Actions
 
         private static OperationResult ExecuteCharacterJoinsTeam(MermaidNode node)
         {
@@ -436,5 +449,6 @@ namespace Turnroot.Conversations.Mermaid
             );
             field.SetValue(rosterInstance, instances);
         }
+        #endregion
     }
 }

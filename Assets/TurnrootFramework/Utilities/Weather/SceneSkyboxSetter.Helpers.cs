@@ -1,7 +1,6 @@
 using System.Collections;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
-using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Utilities.Weather

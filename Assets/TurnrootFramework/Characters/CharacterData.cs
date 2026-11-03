@@ -158,6 +158,7 @@ namespace Turnroot.Characters
         [NonSerialized]
         private Dictionary<string, Portrait> _portraitLookupCache;
 
+        #region Portrait Management
         public void InvalidatePortraitLookupCache()
         {
             _portraitLookupCache = null;
@@ -243,6 +244,7 @@ namespace Turnroot.Characters
             EnsurePortraitLookup();
             return _portraitLookupCache != null && _portraitLookupCache.ContainsKey(key);
         }
+        #endregion
 
         private Portrait[] _portraitArrayCache;
 
@@ -299,6 +301,7 @@ namespace Turnroot.Characters
         [field: SerializeField]
         public List<InventorySlot> StartingInventory { get; private set; } = new();
 
+        #region Class and Loadout Progression
         // ---------------------------------------------------------------------
         // Class progression ladder (per-character, generic units only)
         // ---------------------------------------------------------------------
@@ -358,6 +361,7 @@ namespace Turnroot.Characters
             [Range(0f, 100f)]
             public float Chance;
         }
+        #endregion
 
         [field:
             SerializeField,
@@ -414,6 +418,9 @@ namespace Turnroot.Characters
         public bool IsEnemyOrNPC => Which == CharacterWhich.ENEMY || Which == CharacterWhich.NPC;
 
         // NaughtyAttributes ShowIf helper methods
+
+        #region Recruitment and Visibility Rules
+
         private bool CanShowRecruitable() =>
             Which == CharacterWhich.ENEMY
             || Which == CharacterWhich.NPC
@@ -434,6 +441,8 @@ namespace Turnroot.Characters
 
         private bool IsRecruitableRequiresMinSupportLevel() =>
             IsRecruitable && RecruitRequiresMinSupportLevel;
+
+        #endregion
 
         public Portrait[] PortraitArray
         {
