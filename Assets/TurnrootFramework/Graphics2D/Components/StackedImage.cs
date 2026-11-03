@@ -278,121 +278,12 @@ namespace Turnroot.Graphics2D
                 EnsureKeyInitialized();
             }
 
-            // Load Graphics2DSettings using the singleton instance pattern
-            Graphics2DSettings settings = null;
-            try
-            {
-                settings = Graphics2DSettings.Instance;
-            }
-            catch { }
-
-            if (settings == null)
-            {
-                "Graphics2DSettings not found in Resources/GameSettings (expected under Resources/GameSettings/*). Using default 512x512.".LogError(
-                    "StackedImage.CompositeLayers"
-                );
-
-                // Create a single cached fallback instance so we don't create multiple in-memory duplicates
-                // which cause duplicate singleton OnEnable logs and confusion in the editor.
-                if (_editorFallbackGraphics2DSettings == null)
-                {
-                    _editorFallbackGraphics2DSettings =
-                        ScriptableObject.CreateInstance<Graphics2DSettings>();
-                }
-                settings = _editorFallbackGraphics2DSettings;
-            }
-
+            Graphics2DSettings settings = GetGraphics2DSettings();
             int width = settings.portraitRenderWidth;
             int height = settings.portraitRenderHeight;
-
-            // Create base texture with transparent pixels
-            Texture2D baseTexture = new(width, height, TextureFormat.RGBA32, false);
-            Color[] clearPixels = new Color[width * height];
-            for (int i = 0; i < clearPixels.Length; i++)
-            {
-                clearPixels[i] = new Color(0, 0, 0, 0);
-            }
-            baseTexture.SetPixels(clearPixels);
-            baseTexture.Apply();
-
-            // Composite the layers using static method
-            ImageStackLayer[] originalLayers = Layers.ToArray();
-
-            // Defensive: create a temporary normalized copy of layers so we don't
-            // mutate the stored asset if any layer has an invalid Scale (e.g. 0).
-            // This prevents blank previews when existing ImageStack assets contain
-            // layers with Scale <= 0.
-            ImageStackLayer[] layers = new ImageStackLayer[originalLayers.Length];
-            bool correctedScale = false;
-            for (int i = 0; i < originalLayers.Length; i++)
-            {
-                var src = originalLayers[i];
-                if (src == null)
-                {
-                    layers[i] = null;
-                    continue;
-                }
-
-                // Create a shallow copy for safe editing (do not change asset)
-                var copy = new ImageStackLayer
-                {
-                    Sprite = src.Sprite,
-                    Mask = src.Mask,
-                    Offset = src.Offset,
-                    Scale = src.Scale,
-                    Rotation = src.Rotation,
-                    Order = src.Order,
-                };
-                // Preserve Tag if present on source
-                try
-                {
-                    copy.Tag = src.Tag;
-                }
-                catch { }
-                // Preserve per-layer Tint if the source has one (e.g., UnmaskedImageStackLayer)
-                try
-                {
-                    var srcType = src.GetType();
-                    var tintField = srcType.GetField("Tint");
-                    if (tintField != null)
-                    {
-                        var tintVal = tintField.GetValue(src);
-                        if (tintVal is Color c)
-                        {
-                            // Use reflection to set Tint on the copy if available
-                            var copyType = copy.GetType();
-                            var copyTintField = copyType.GetField("Tint");
-                            copyTintField?.SetValue(copy, c);
-                        }
-                    }
-                }
-                catch
-                {
-                    // ignore any reflection issues
-                }
-
-                // Normalize invalid scale values to 1.0 to avoid zero-sized compositing
-                if (copy.Scale <= 0f)
-                {
-                    copy.Scale = 1f;
-                    correctedScale = true;
-                }
-
-                layers[i] = copy;
-            }
-
-            if (correctedScale)
-            {
-                $"CompositeLayers: One or more layers in image '{_key}' had non-positive Scale and were temporarily normalized to 1.0 for preview/compositing. Consider fixing the layer data.".LogWarning();
-            }
-
-            // Extract masks from the (normalized) layers array
-            Sprite[] masks = new Sprite[layers.Length];
-            for (int i = 0; i < layers.Length; i++)
-            {
-                masks[i] = layers[i]?.Mask;
-            }
-
+            Texture2D baseTexture = CreateTransparentTexture(width, height);
+            ImageStackLayer[] layers = CreateNormalizedLayers(Layers.ToArray());
+            Sprite[] masks = GetLayerMasks(layers);
             Texture2D result = ImageCompositor.CompositeImageStackLayers(
                 baseTexture,
                 layers,
@@ -401,6 +292,129 @@ namespace Turnroot.Graphics2D
             );
 
             return result;
+        }
+
+        private Graphics2DSettings GetGraphics2DSettings()
+        {
+            Graphics2DSettings settings = null;
+            try
+            {
+                settings = Graphics2DSettings.Instance;
+            }
+            catch { }
+
+            if (settings != null)
+            {
+                return settings;
+            }
+
+            "Graphics2DSettings not found in Resources/GameSettings (expected under Resources/GameSettings/*). Using default 512x512.".LogError(
+                "StackedImage.CompositeLayers"
+            );
+            if (_editorFallbackGraphics2DSettings == null)
+            {
+                _editorFallbackGraphics2DSettings =
+                    ScriptableObject.CreateInstance<Graphics2DSettings>();
+            }
+
+            return _editorFallbackGraphics2DSettings;
+        }
+
+        private static Texture2D CreateTransparentTexture(int width, int height)
+        {
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            var clearPixels = new Color[width * height];
+            for (int i = 0; i < clearPixels.Length; i++)
+            {
+                clearPixels[i] = new Color(0, 0, 0, 0);
+            }
+
+            texture.SetPixels(clearPixels);
+            texture.Apply();
+            return texture;
+        }
+
+        private ImageStackLayer[] CreateNormalizedLayers(ImageStackLayer[] sourceLayers)
+        {
+            var layers = new ImageStackLayer[sourceLayers.Length];
+            bool correctedScale = false;
+            for (int i = 0; i < sourceLayers.Length; i++)
+            {
+                layers[i] = CopyNormalizedLayer(sourceLayers[i], ref correctedScale);
+            }
+
+            if (correctedScale)
+            {
+                $"CompositeLayers: One or more layers in image '{_key}' had non-positive Scale and were temporarily normalized to 1.0 for preview/compositing. Consider fixing the layer data.".LogWarning();
+            }
+
+            return layers;
+        }
+
+        private static ImageStackLayer CopyNormalizedLayer(
+            ImageStackLayer source,
+            ref bool correctedScale
+        )
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            var copy = new ImageStackLayer
+            {
+                Sprite = source.Sprite,
+                Mask = source.Mask,
+                Offset = source.Offset,
+                Scale = source.Scale,
+                Rotation = source.Rotation,
+                Order = source.Order,
+            };
+            PreserveLayerTag(source, copy);
+            PreserveLayerTint(source, copy);
+            if (copy.Scale <= 0f)
+            {
+                copy.Scale = 1f;
+                correctedScale = true;
+            }
+
+            return copy;
+        }
+
+        private static void PreserveLayerTag(ImageStackLayer source, ImageStackLayer copy)
+        {
+            try
+            {
+                copy.Tag = source.Tag;
+            }
+            catch { }
+        }
+
+        private static void PreserveLayerTint(ImageStackLayer source, ImageStackLayer copy)
+        {
+            try
+            {
+                var tintField = source.GetType().GetField("Tint");
+                if (tintField?.GetValue(source) is Color tint)
+                {
+                    copy.GetType().GetField("Tint")?.SetValue(copy, tint);
+                }
+            }
+            catch
+            {
+                // Preserve the existing fallback for layer types that do not expose Tint.
+            }
+        }
+
+        private static Sprite[] GetLayerMasks(ImageStackLayer[] layers)
+        {
+            var masks = new Sprite[layers.Length];
+            for (int i = 0; i < layers.Length; i++)
+            {
+                masks[i] = layers[i]?.Mask;
+            }
+
+            return masks;
         }
 
         private void SaveToFile(Texture2D texture)

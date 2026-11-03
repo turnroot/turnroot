@@ -182,6 +182,18 @@ namespace Turnroot.GameSettings
         public AudioClip RidingMovementSound;
 
         [BoxGroup("Audio")]
+        [Min(0.01f)]
+        public float BattleWalkFootstepInterval = 0.5f;
+
+        [BoxGroup("Audio")]
+        [Min(0.01f)]
+        public float BattleRideFootstepInterval = 0.5f;
+
+        [BoxGroup("Audio")]
+        [Min(0.01f)]
+        public float BattleFlyFootstepInterval = 0.5f;
+
+        [BoxGroup("Audio")]
         public float FootstepIntervalScale = 0.5f;
 
         public float GetFootstepInterval(float movementSpeed) =>

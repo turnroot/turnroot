@@ -107,43 +107,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             }
 
             ResolveBrain();
-
-            HubVendorUiHelper.ClearInstantiatedItems(
-                ItemsParentContainer,
-                PageIndicatorContainer,
-                pageIndicatorObjects,
-                ref itemChoices,
-                ref itemChoiceToVendorIndex
-            );
-
-            if (ShopNameText != null)
-            {
-                ShopNameText.text = VendorDisplayName ?? string.Empty;
-            }
-
-            if (ShopDescriptionText != null)
-            {
-                ShopDescriptionText.text = VendorDescription ?? string.Empty;
-            }
-
             var stock = VendorItems;
-
             SelectionCountCache = 1;
             CostCache = 0;
-
-            // Object.Destroy is deferred to end-of-frame, so Unity's == null check returns false
-            // for pending-destroy components. Null the UiRefs on every item now so the rebuild
-            // loop below always creates fresh prefabs rather than reusing about-to-be-destroyed refs.
-            if (stock != null)
-            {
-                for (int i = 0; i < stock.Length; i++)
-                {
-                    var item = stock[i];
-                    item.UiRefs = null;
-                    stock[i] = item;
-                }
-            }
-
+            ClearVendorDisplayItems();
+            UpdateVendorHeader();
+            ClearItemUiReferences(stock);
             ItemsPerPage = Mathf.Max(1, ItemsPerPage);
 
             if (stock == null || stock.Length == 0)
@@ -153,7 +122,53 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
             }
 
             HubVendorUiHelper.UpdateGoldDisplay(TotalGoldText, TotalGoldScroll, brain);
+            BuildVendorItemChoices(stock);
+            UpdateVendorPagination();
+            ConfigureSelectedVendorItem(stock);
+            VendorUiFade?.Show();
+        }
 
+        private void ClearVendorDisplayItems()
+        {
+            HubVendorUiHelper.ClearInstantiatedItems(
+                ItemsParentContainer,
+                PageIndicatorContainer,
+                pageIndicatorObjects,
+                ref itemChoices,
+                ref itemChoiceToVendorIndex
+            );
+        }
+
+        private void UpdateVendorHeader()
+        {
+            if (ShopNameText != null)
+            {
+                ShopNameText.text = VendorDisplayName ?? string.Empty;
+            }
+
+            if (ShopDescriptionText != null)
+            {
+                ShopDescriptionText.text = VendorDescription ?? string.Empty;
+            }
+        }
+
+        private void ClearItemUiReferences(ShopItem[] stock)
+        {
+            if (stock == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < stock.Length; i++)
+            {
+                var item = stock[i];
+                item.UiRefs = null;
+                stock[i] = item;
+            }
+        }
+
+        private void BuildVendorItemChoices(ShopItem[] stock)
+        {
             itemChoices = new List<UiChoice>(stock.Length);
             itemChoiceToVendorIndex = new List<int>(stock.Length);
 
@@ -167,24 +182,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
                 if (item.UiRefs == null || item.UiRefs.ShopItemChoice == null)
                 {
-                    var itemUiObj = Instantiate(ItemPrefab, ItemsParentContainer.transform);
-                    item.UiRefs = itemUiObj.GetComponent<ShopItemUiRefs>();
+                    var itemUiObject = Instantiate(ItemPrefab, ItemsParentContainer.transform);
+                    item.UiRefs = itemUiObject.GetComponent<ShopItemUiRefs>();
                     stock[i] = item;
                 }
 
-                if (item.UiRefs != null && item.UiRefs.ShopItemChoice != null)
+                if (item.UiRefs == null || item.UiRefs.ShopItemChoice == null)
                 {
-                    itemChoices.Add(item.UiRefs.ShopItemChoice);
-                    itemChoiceToVendorIndex.Add(i);
-                    ConfigureItemUi(item, SelectionCountCache, false);
+                    continue;
                 }
+
+                itemChoices.Add(item.UiRefs.ShopItemChoice);
+                itemChoiceToVendorIndex.Add(i);
+                ConfigureItemUi(item, SelectionCountCache, false);
             }
 
             VendorItems = stock;
+        }
 
-            int newPage;
-            int newSelectionIndex;
-
+        private void UpdateVendorPagination()
+        {
             HubVendorUiHelper.EnsurePagination(
                 ref paginationHelper,
                 ItemsPerPage,
@@ -196,18 +213,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
                 PageChangeAudioClip,
                 itemChoices,
                 CurrentSelectionIndex,
-                out newPage,
-                out newSelectionIndex
+                out int newPage,
+                out int newSelectionIndex
             );
 
             CurrentPage = newPage;
             CurrentSelectionIndex = newSelectionIndex;
+        }
+
+        private void ConfigureSelectedVendorItem(ShopItem[] stock)
+        {
             int selectedVendorIndex = GetSelectedVendorIndex();
-            if (stock != null && selectedVendorIndex >= 0 && selectedVendorIndex < stock.Length)
+            if (selectedVendorIndex >= 0 && selectedVendorIndex < stock.Length)
             {
                 ConfigureItemUi(stock[selectedVendorIndex], SelectionCountCache, true);
             }
-            VendorUiFade?.Show();
         }
 
         // Legacy compatibility wrappers used by existing shop/dock code paths.

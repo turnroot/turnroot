@@ -138,84 +138,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
 
         private void BuildItemListForCurrentMode()
         {
-            int previousSelectedItemIndex = -1;
-            if (
-                itemChoiceToIndex != null
-                && CurrentSelectionIndex >= 0
-                && CurrentSelectionIndex < itemChoiceToIndex.Count
-            )
-            {
-                previousSelectedItemIndex = itemChoiceToIndex[CurrentSelectionIndex];
-            }
+            int previousSelectedItemIndex = GetSelectedItemIndex();
 
             ClearInstantiatedItems();
             itemChoices = new List<UiChoice>();
             itemChoiceToIndex = new List<int>();
 
-            var currentItemsCount =
-                CurrentMode == BlacksmithMode.Repair
-                    ? (repairableItems?.Length ?? 0)
-                    : (forgeableItems?.Length ?? 0);
-
-            for (var i = 0; i < currentItemsCount; i++)
+            for (int i = 0; i < GetCurrentItemCount(); i++)
             {
-                if (ItemPrefab == null || ItemsParentContainer == null)
-                {
-                    "BlacksmithUi.BuildItemListForCurrentMode: ItemPrefab or ItemsParentContainer is null".LogWarning(
-                        "BlacksmithUi"
-                    );
-                    continue;
-                }
-
-                var itemUiObject = Instantiate(ItemPrefab, ItemsParentContainer.transform);
-                if (itemUiObject == null)
-                {
-                    $"BlacksmithUi.BuildItemListForCurrentMode: Instantiate returned null for index {i}".LogWarning(
-                        "BlacksmithUi"
-                    );
-                    continue;
-                }
-
-                if (!itemUiObject.TryGetComponent<UiChoice>(out var uiChoice))
-                {
-                    uiChoice = itemUiObject.AddComponent<UiChoice>();
-                }
-
-                itemUiObject.TryGetComponent<BlacksmithItemRefs>(out var itemRefs);
-
-                bool canSelect;
-                if (
-                    CurrentMode == BlacksmithMode.Repair
-                    && repairableItems != null
-                    && i < repairableItems.Length
-                )
-                {
-                    ConfigureRepairItemUi(repairableItems[i], itemRefs, SelectionCountCache);
-                    canSelect = EvaluateCanRepair(repairableItems[i]);
-                }
-                else if (
-                    CurrentMode == BlacksmithMode.Forge
-                    && forgeableItems != null
-                    && i < forgeableItems.Length
-                )
-                {
-                    ConfigureForgeItemUi(forgeableItems[i], itemRefs, SelectionCountCache);
-                    canSelect = true;
-                }
-                else
-                {
-                    canSelect = false;
-                }
-
-                uiChoice.CanBeSelected = canSelect;
-
-                if (!canSelect && itemRefs?.ItemNameText != null)
-                {
-                    itemRefs.ItemNameText.color = Color.grey;
-                }
-
-                itemChoices.Add(uiChoice);
-                itemChoiceToIndex.Add(i);
+                BuildItemChoice(i);
             }
 
             totalPages = Mathf.CeilToInt((float)itemChoices.Count / ItemsPerPage);
@@ -227,6 +158,87 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
                 return;
             }
 
+            RestoreSelectedItemIndex(previousSelectedItemIndex);
+            CurrentPage = CurrentSelectionIndex / ItemsPerPage;
+        }
+
+        private int GetSelectedItemIndex()
+        {
+            return itemChoiceToIndex != null
+                && CurrentSelectionIndex >= 0
+                && CurrentSelectionIndex < itemChoiceToIndex.Count
+                    ? itemChoiceToIndex[CurrentSelectionIndex]
+                    : -1;
+        }
+
+        private int GetCurrentItemCount() =>
+            CurrentMode == BlacksmithMode.Repair
+                ? (repairableItems?.Length ?? 0)
+                : (forgeableItems?.Length ?? 0);
+
+        private void BuildItemChoice(int index)
+        {
+            if (ItemPrefab == null || ItemsParentContainer == null)
+            {
+                "BlacksmithUi.BuildItemListForCurrentMode: ItemPrefab or ItemsParentContainer is null".LogWarning(
+                    "BlacksmithUi"
+                );
+                return;
+            }
+
+            var itemUiObject = Instantiate(ItemPrefab, ItemsParentContainer.transform);
+            if (itemUiObject == null)
+            {
+                $"BlacksmithUi.BuildItemListForCurrentMode: Instantiate returned null for index {index}".LogWarning(
+                    "BlacksmithUi"
+                );
+                return;
+            }
+
+            if (!itemUiObject.TryGetComponent<UiChoice>(out var uiChoice))
+            {
+                uiChoice = itemUiObject.AddComponent<UiChoice>();
+            }
+
+            itemUiObject.TryGetComponent<BlacksmithItemRefs>(out var itemRefs);
+            bool canSelect = ConfigureItemForCurrentMode(index, itemRefs);
+            uiChoice.CanBeSelected = canSelect;
+            if (!canSelect && itemRefs?.ItemNameText != null)
+            {
+                itemRefs.ItemNameText.color = Color.grey;
+            }
+
+            itemChoices.Add(uiChoice);
+            itemChoiceToIndex.Add(index);
+        }
+
+        private bool ConfigureItemForCurrentMode(int index, BlacksmithItemRefs itemRefs)
+        {
+            if (
+                CurrentMode == BlacksmithMode.Repair
+                && repairableItems != null
+                && index < repairableItems.Length
+            )
+            {
+                ConfigureRepairItemUi(repairableItems[index], itemRefs, SelectionCountCache);
+                return EvaluateCanRepair(repairableItems[index]);
+            }
+
+            if (
+                CurrentMode == BlacksmithMode.Forge
+                && forgeableItems != null
+                && index < forgeableItems.Length
+            )
+            {
+                ConfigureForgeItemUi(forgeableItems[index], itemRefs, SelectionCountCache);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void RestoreSelectedItemIndex(int previousSelectedItemIndex)
+        {
             if (previousSelectedItemIndex >= 0)
             {
                 var restoredIndex = itemChoiceToIndex.IndexOf(previousSelectedItemIndex);
@@ -236,8 +248,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Blacksmith
             {
                 CurrentSelectionIndex = 0;
             }
-
-            CurrentPage = CurrentSelectionIndex / ItemsPerPage;
         }
 
         private bool EvaluateCanRepair(BlacksmithRepairItem entry)

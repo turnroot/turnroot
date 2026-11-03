@@ -144,75 +144,9 @@ namespace Turnroot.Characters
                 return 0f;
             }
 
-            var levelContribs = new List<float>();
-            var statContribs = new List<float>();
-            var expContribs = new List<float>();
-
-            if (classData.Requirements.MinimumLevelRequirement > 1)
-            {
-                var denom = classData.Requirements.MinimumLevelRequirement;
-                var ratio = denom <= 0 ? 1f : Mathf.Clamp01((float)CurrentLevel / denom);
-                levelContribs.Add(ratio);
-            }
-
-            if (
-                classData.Requirements.MinimumStats != null
-                && classData.Requirements.MinimumStats.Count > 0
-            )
-            {
-                foreach (var req in classData.Requirements.MinimumStats.Where(s => s != null))
-                {
-                    var need = req.GetCurrent();
-                    if (need <= 0)
-                    {
-                        statContribs.Add(1f);
-                        continue;
-                    }
-
-                    var curStat = GetBoundedStat(req.StatType)?.GetCurrent() ?? 0;
-                    var ratio = Mathf.Clamp01(curStat / (float)need);
-                    statContribs.Add(ratio);
-                }
-            }
-
-            if (
-                classData.Requirements.ExperienceRequirements != null
-                && classData.Requirements.ExperienceRequirements.Count > 0
-            )
-            {
-                foreach (
-                    var req in classData.Requirements.ExperienceRequirements.Where(r =>
-                        !string.IsNullOrEmpty(r.experienceTypeId)
-                    )
-                )
-                {
-                    static int MapRank(string v)
-                    {
-                        return v switch
-                        {
-                            CommonAncestors.LeveledLetteredField.S => 5,
-                            CommonAncestors.LeveledLetteredField.A => 4,
-                            CommonAncestors.LeveledLetteredField.B => 3,
-                            CommonAncestors.LeveledLetteredField.C => 2,
-                            CommonAncestors.LeveledLetteredField.D => 1,
-                            CommonAncestors.LeveledLetteredField.E => 0,
-                            _ => 0,
-                        };
-                    }
-
-                    var requiredNumeric = MapRank(req.minimumRank.Value);
-                    if (requiredNumeric <= 0)
-                    {
-                        expContribs.Add(1f);
-                        continue;
-                    }
-
-                    var inst = GetExperienceRank(req.experienceTypeId);
-                    var currentNumeric = inst != null ? MapRank(inst.Rank.Value) : 0;
-                    var ratio = Mathf.Clamp01(currentNumeric / (float)requiredNumeric);
-                    expContribs.Add(ratio);
-                }
-            }
+            var levelContribs = GetLevelContributions(classData);
+            var statContribs = GetStatContributions(classData);
+            var expContribs = GetExperienceContributions(classData);
 
             if (levelContribs.Count + statContribs.Count + expContribs.Count == 0)
             {
@@ -222,39 +156,143 @@ namespace Turnroot.Characters
             var settings = GameplayGeneralSettings.Instance;
             if (settings == null)
             {
-                var all = new List<float>();
-                all.AddRange(levelContribs);
-                all.AddRange(statContribs);
-                all.AddRange(expContribs);
-                var avg = all.Sum() / all.Count;
-                return Mathf.Clamp01(avg);
+                return Mathf.Clamp01(AverageContributions(levelContribs, statContribs, expContribs));
             }
 
-            float levelAvg =
-                levelContribs.Count > 0 ? levelContribs.Sum() / levelContribs.Count : 0f;
-            float statAvg = statContribs.Count > 0 ? statContribs.Sum() / statContribs.Count : 0f;
-            float expAvg = expContribs.Count > 0 ? expContribs.Sum() / expContribs.Count : 0f;
-
-            var tune = settings.RequirementExamSettings;
-            float wLevel = tune.WeightLevel * (levelContribs.Count > 0 ? 1f : 0f);
-            float wStats = tune.WeightStats * (statContribs.Count > 0 ? 1f : 0f);
-            float wExp = tune.WeightExperience * (expContribs.Count > 0 ? 1f : 0f);
-            float totalWeight = wLevel + wStats + wExp;
-
-            if (totalWeight <= 0f)
-            {
-                var all = new List<float>();
-                all.AddRange(levelContribs);
-                all.AddRange(statContribs);
-                all.AddRange(expContribs);
-                var avg = all.Sum() / all.Count;
-                return Mathf.Clamp01(Mathf.Max(avg, tune.ExamFloor));
-            }
-
-            var weighted = (levelAvg * wLevel + statAvg * wStats + expAvg * wExp) / totalWeight;
-            var chance = Mathf.Clamp01(Mathf.Max(weighted, tune.ExamFloor));
-            return chance;
+            return CalculateWeightedPassChance(
+                settings,
+                levelContribs,
+                statContribs,
+                expContribs
+            );
         }
+
+        private List<float> GetLevelContributions(CharacterClassData classData)
+        {
+            var contributions = new List<float>();
+            int minimumLevel = classData.Requirements.MinimumLevelRequirement;
+            if (minimumLevel > 1)
+            {
+                float ratio = minimumLevel <= 0
+                    ? 1f
+                    : Mathf.Clamp01((float)CurrentLevel / minimumLevel);
+                contributions.Add(ratio);
+            }
+
+            return contributions;
+        }
+
+        private List<float> GetStatContributions(CharacterClassData classData)
+        {
+            var contributions = new List<float>();
+            var requirements = classData.Requirements.MinimumStats;
+            if (requirements == null || requirements.Count == 0)
+            {
+                return contributions;
+            }
+
+            foreach (var requirement in requirements.Where(stat => stat != null))
+            {
+                int needed = requirement.GetCurrent();
+                if (needed <= 0)
+                {
+                    contributions.Add(1f);
+                    continue;
+                }
+
+                int current = GetBoundedStat(requirement.StatType)?.GetCurrent() ?? 0;
+                contributions.Add(Mathf.Clamp01(current / (float)needed));
+            }
+
+            return contributions;
+        }
+
+        private List<float> GetExperienceContributions(CharacterClassData classData)
+        {
+            var contributions = new List<float>();
+            var requirements = classData.Requirements.ExperienceRequirements;
+            if (requirements == null || requirements.Count == 0)
+            {
+                return contributions;
+            }
+
+            foreach (
+                var requirement in requirements.Where(item =>
+                    !string.IsNullOrEmpty(item.experienceTypeId)
+                )
+            )
+            {
+                int requiredRank = MapRank(requirement.minimumRank.Value);
+                if (requiredRank <= 0)
+                {
+                    contributions.Add(1f);
+                    continue;
+                }
+
+                var instance = GetExperienceRank(requirement.experienceTypeId);
+                int currentRank = instance != null ? MapRank(instance.Rank.Value) : 0;
+                contributions.Add(Mathf.Clamp01(currentRank / (float)requiredRank));
+            }
+
+            return contributions;
+        }
+
+        private static int MapRank(string rank)
+        {
+            return rank switch
+            {
+                CommonAncestors.LeveledLetteredField.S => 5,
+                CommonAncestors.LeveledLetteredField.A => 4,
+                CommonAncestors.LeveledLetteredField.B => 3,
+                CommonAncestors.LeveledLetteredField.C => 2,
+                CommonAncestors.LeveledLetteredField.D => 1,
+                CommonAncestors.LeveledLetteredField.E => 0,
+                _ => 0,
+            };
+        }
+
+        private float CalculateWeightedPassChance(
+            GameplayGeneralSettings settings,
+            List<float> levelContributions,
+            List<float> statContributions,
+            List<float> experienceContributions
+        )
+        {
+            float levelAverage = AverageOrZero(levelContributions);
+            float statAverage = AverageOrZero(statContributions);
+            float experienceAverage = AverageOrZero(experienceContributions);
+            var tune = settings.RequirementExamSettings;
+            float levelWeight = tune.WeightLevel * (levelContributions.Count > 0 ? 1f : 0f);
+            float statWeight = tune.WeightStats * (statContributions.Count > 0 ? 1f : 0f);
+            float experienceWeight =
+                tune.WeightExperience * (experienceContributions.Count > 0 ? 1f : 0f);
+            float totalWeight = levelWeight + statWeight + experienceWeight;
+
+            float score = totalWeight <= 0f
+                ? AverageContributions(levelContributions, statContributions, experienceContributions)
+                : (
+                    levelAverage * levelWeight
+                    + statAverage * statWeight
+                    + experienceAverage * experienceWeight
+                ) / totalWeight;
+            return Mathf.Clamp01(Mathf.Max(score, tune.ExamFloor));
+        }
+
+        private static float AverageContributions(params List<float>[] contributionGroups)
+        {
+            float sum = 0f;
+            int count = 0;
+            foreach (var group in contributionGroups)
+            {
+                sum += group.Sum();
+                count += group.Count;
+            }
+
+            return sum / count;
+        }
+
+        private static float AverageOrZero(List<float> contributions) =>
+            contributions.Count > 0 ? contributions.Sum() / contributions.Count : 0f;
 
         #endregion
 
@@ -316,4 +354,3 @@ namespace Turnroot.Characters
         #endregion
     }
 }
-

@@ -192,29 +192,44 @@ namespace Turnroot.Gameplay.Brain
                 return htmlColor;
             }
 
-            if (serializedColor.Length is 6 or 8)
+            if (TryParseCompactColor(serializedColor, out var compactHtmlColor))
             {
-                if (
-                    ColorUtility.TryParseHtmlString($"#{serializedColor}", out var compactHtmlColor)
-                )
-                {
-                    return compactHtmlColor;
-                }
+                return compactHtmlColor;
             }
 
-            if (serializedColor.StartsWith("{"))
+            if (TryParseJsonColor(serializedColor, out var jsonColor))
             {
-                try
-                {
-                    return JsonUtility.FromJson<Color>(serializedColor);
-                }
-                catch
-                {
-                    "GamewideContextBrain: Failed to parse color from JSON, using fallback.".LogWarning();
-                }
+                return jsonColor;
             }
 
             return fallback;
+        }
+
+        private static bool TryParseCompactColor(string serializedColor, out Color color)
+        {
+            color = default;
+            return (serializedColor.Length is 6 or 8)
+                && ColorUtility.TryParseHtmlString($"#{serializedColor}", out color);
+        }
+
+        private static bool TryParseJsonColor(string serializedColor, out Color color)
+        {
+            color = default;
+            if (!serializedColor.StartsWith("{"))
+            {
+                return false;
+            }
+
+            try
+            {
+                color = JsonUtility.FromJson<Color>(serializedColor);
+                return true;
+            }
+            catch
+            {
+                "GamewideContextBrain: Failed to parse color from JSON, using fallback.".LogWarning();
+                return false;
+            }
         }
         #endregion
 

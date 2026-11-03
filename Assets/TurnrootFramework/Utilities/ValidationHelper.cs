@@ -14,7 +14,7 @@ namespace Turnroot.Utilities
         /// <returns>True if the object is not null, false otherwise.</returns>
         public static bool ValidateNotNull(object obj, string objectName, string context = null)
         {
-            if (obj == null)
+            if (IsNull(obj))
             {
                 var message = string.IsNullOrEmpty(context)
                     ? $"{objectName} is null"
@@ -54,7 +54,7 @@ namespace Turnroot.Utilities
             bool allValid = true;
             foreach (var (obj, name) in validations)
             {
-                if (obj == null)
+                if (IsNull(obj))
                 {
                     var message = string.IsNullOrEmpty(context)
                         ? $"{name} is null"
@@ -121,6 +121,9 @@ namespace Turnroot.Utilities
         /// logging-free call sites.
         /// </summary>
         public static T ThrowIfNull<T>(T obj, string paramName)
-            where T : class => obj == null ? throw new System.ArgumentNullException(paramName) : obj;
+            where T : class => IsNull(obj) ? throw new System.ArgumentNullException(paramName) : obj;
+
+        private static bool IsNull(object obj) =>
+            obj == null || (obj is UnityEngine.Object unityObject && unityObject == null);
     }
 }

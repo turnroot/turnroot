@@ -206,6 +206,11 @@ namespace Turnroot.Gameplay.Brain
             Vector3 worldPos
         )
         {
+            if (!model.TryGetComponent<AudioSource>(out _))
+            {
+                model.AddComponent<AudioSource>();
+            }
+
             var oldPosition = GetPositionForUnit(unit.Id);
             if (oldPosition.HasValue)
             {

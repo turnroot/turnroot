@@ -22,6 +22,11 @@ namespace Turnroot.Gameplay.Brain
                 root = new GameObject($"{unit.CharacterTemplate.DisplayName}_Root");
             }
 
+            if (!root.TryGetComponent<AudioSource>(out _))
+            {
+                root.AddComponent<AudioSource>();
+            }
+
             var outfitRenderer = CreateOutfitMesh(unit, root);
 
             // Ensure any class/character head, hair or hat prefabs are attached before we decide

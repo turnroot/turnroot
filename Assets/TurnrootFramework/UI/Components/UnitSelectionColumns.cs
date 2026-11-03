@@ -70,7 +70,6 @@ namespace Turnroot.UI.Components
             for (int i = 0; i < unitCount; i++)
             {
                 var unit = units[i];
-                // log and skip if a nil placement slipped in
                 if (!ValidationHelper.ValidateNotNull(unit, nameof(unit)))
                 {
                     continue;
@@ -81,42 +80,10 @@ namespace Turnroot.UI.Components
                     playerTeamRosterInstance?.GetInstanceFor(unit.CharacterData)
                     ?? _brain.gamewideContextBrain.FindInstanceByTemplate(unit.CharacterData);
 
-                var keyForUnit = u + unit.CharacterData.name;
-                var isSelectedForCount =
-                    matchedInstance != null
-                        ? matchedInstance.IsSelectedForBattle
-                        : LongTermMemory?.RecallBool(keyForUnit) ?? false;
-
-                if (isSelectedForCount)
-                {
-                    currentlySelectedCount++;
-                }
-
-                var whichColumn = i % TotalColumns;
-                var unitCell = Instantiate(UnitCellPrefab, Columns[whichColumn].transform);
-
-                // Ensure the instantiated unit cell has a GridMenuItem so it appears in the MenuBase menuItems
-                if (!unitCell.TryGetComponent<UnitCellGridMenuItem>(out var gridMenuItem))
-                {
-                    gridMenuItem = unitCell.AddComponent<UnitCellGridMenuItem>();
-                    gridMenuItem.IsSelectedForBattle = false;
-                    gridMenuItem.CanBeSelectedForBattle = true;
-                }
-
-                // Associate the UI item with the runtime CharacterInstance for this unit (if available)
-                matchedInstance =
-                    playerTeamRosterInstance?.GetInstanceFor(unit.CharacterData)
-                    ?? _brain.gamewideContextBrain.FindInstanceByTemplate(unit.CharacterData);
-                gridMenuItem.CharacterInstanceData = matchedInstance;
-
-                // Column and Row are used by GridMenu navigation; Row is integer division (floor)
-                gridMenuItem.Column = whichColumn;
-                gridMenuItem.Row = i / TotalColumns;
-                gridMenuItem.SetItemNamePublic($"UnitCell_{unit.CharacterData.name}");
-
-                ConfigureUnitCell(
-                    unitCell,
+                AddUnitCell(
                     unit,
+                    i,
+                    matchedInstance,
                     u,
                     keysSet,
                     LongTermMemory,
@@ -128,11 +95,53 @@ namespace Turnroot.UI.Components
             var parentMenu = GetComponentInParent<MenuBase>(true);
             parentMenu?.RefreshMenuItems();
 
-            // Initialize the displayed selected count from computed selections
             SelectedCount = currentlySelectedCount;
-
             RecomputeSelectedCount();
             UpdateUnitCountText();
+        }
+
+        private void AddUnitCell(
+            Characters.Roster.UnitPlacement unit,
+            int index,
+            Turnroot.Characters.CharacterInstance matchedInstance,
+            string keyPrefix,
+            HashSet<string> keysSet,
+            LongTermMemory longTermMemory,
+            ref int currentlySelectedCount
+        )
+        {
+            string keyForUnit = keyPrefix + unit.CharacterData.name;
+            bool isSelected =
+                matchedInstance != null
+                    ? matchedInstance.IsSelectedForBattle
+                    : longTermMemory?.RecallBool(keyForUnit) ?? false;
+            if (isSelected)
+            {
+                currentlySelectedCount++;
+            }
+
+            int column = index % TotalColumns;
+            var unitCell = Instantiate(UnitCellPrefab, Columns[column].transform);
+            if (!unitCell.TryGetComponent<UnitCellGridMenuItem>(out var gridMenuItem))
+            {
+                gridMenuItem = unitCell.AddComponent<UnitCellGridMenuItem>();
+                gridMenuItem.IsSelectedForBattle = false;
+                gridMenuItem.CanBeSelectedForBattle = true;
+            }
+
+            gridMenuItem.CharacterInstanceData = matchedInstance;
+            gridMenuItem.Column = column;
+            gridMenuItem.Row = index / TotalColumns;
+            gridMenuItem.SetItemNamePublic($"UnitCell_{unit.CharacterData.name}");
+
+            ConfigureUnitCell(
+                    unitCell,
+                    unit,
+                    keyPrefix,
+                    keysSet,
+                    longTermMemory,
+                    ref currentlySelectedCount
+                );
         }
 
         public void RecomputeSelectedCount()

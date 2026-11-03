@@ -59,109 +59,117 @@ namespace Turnroot.Graphics2D
             switch (key)
             {
                 case "BACK":
-                    if (currentText.Length > 0)
-                    {
-                        currentText = currentText.Substring(0, currentText.Length - 1);
-                    }
-
+                    RemoveLastCharacter();
                     break;
-
                 case "SPACE":
                     currentText += " ";
                     break;
-
                 case "SHIFT":
-                    // Single tap = shift, double tap = caps lock
-                    if (isShiftActive)
-                    {
-                        isCapsLockActive = !isCapsLockActive;
-                        isShiftActive = isCapsLockActive;
-                    }
-                    else
-                    {
-                        isShiftActive = true;
-                    }
-                    UpdateKeyboardCase();
-                    return; // Don't reset shift here
-
-                case "SUBMIT":
-                    if (numbersOnly && maximumNumber > 0)
-                    {
-                        if (int.TryParse(currentText, out int proposedNumber))
-                        {
-                            if (proposedNumber > maximumNumber)
-                            {
-                                // Reject this input - would exceed maximum
-                                // add feedback
-                                StartCoroutine(
-                                    FlashInvalidInput("Number must be <" + maximumNumber)
-                                );
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            StartCoroutine(FlashInvalidInput("Invalid number"));
-                            return;
-                        }
-                    }
-
-                    if (currentText.Length == 0)
-                    {
-                        StartCoroutine(FlashInvalidInput("Cannot be empty"));
-                        return;
-                    }
-
-                    if (currentText.Length >= max)
-                    {
-                        StartCoroutine(FlashInvalidInput("Too long"));
-                        return;
-                    }
-
-                    if (currentText.Length < min)
-                    {
-                        StartCoroutine(FlashInvalidInput("Too short"));
-                        return;
-                    }
-
-                    OnSubmit?.Invoke(currentText);
+                    ToggleShift();
                     return;
-
+                case "SUBMIT":
+                    SubmitCurrentText(min, max);
+                    return;
                 default:
-                    string textToAdd = key;
-                    if (isShiftActive || isCapsLockActive)
-                    {
-                        textToAdd = textToAdd.ToUpper();
-                    }
-
-                    // Validate maximum number in numbers only mode
-                    if (numbersOnly && maximumNumber > 0)
-                    {
-                        string proposedText = currentText + textToAdd;
-                        if (int.TryParse(proposedText, out int proposedNumber))
-                        {
-                            if (proposedNumber > maximumNumber)
-                            {
-                                // Reject this input - would exceed maximum
-                                // add feedback
-                                StartCoroutine(FlashInvalidInput("Too large"));
-                                return;
-                            }
-                        }
-                    }
-
-                    currentText += textToAdd;
-
-                    // Reset shift if not caps lock
-                    if (isShiftActive && !isCapsLockActive)
-                    {
-                        isShiftActive = false;
-                        UpdateKeyboardCase();
-                    }
+                    AppendKey(key);
                     break;
             }
-
             UpdateDisplay();
+        }
+
+        private void RemoveLastCharacter()
+        {
+            if (currentText.Length > 0)
+            {
+                currentText = currentText.Substring(0, currentText.Length - 1);
+            }
+        }
+
+        private void ToggleShift()
+        {
+            if (isShiftActive)
+            {
+                isCapsLockActive = !isCapsLockActive;
+                isShiftActive = isCapsLockActive;
+            }
+            else
+            {
+                isShiftActive = true;
+            }
+
+            UpdateKeyboardCase();
+        }
+
+        private void SubmitCurrentText(int min, int max)
+        {
+            if (!ValidateSubmissionNumber())
+            {
+                return;
+            }
+
+            if (currentText.Length == 0)
+            {
+                StartCoroutine(FlashInvalidInput("Cannot be empty"));
+                return;
+            }
+
+            if (currentText.Length >= max)
+            {
+                StartCoroutine(FlashInvalidInput("Too long"));
+                return;
+            }
+
+            if (currentText.Length < min)
+            {
+                StartCoroutine(FlashInvalidInput("Too short"));
+                return;
+            }
+
+            OnSubmit?.Invoke(currentText);
+        }
+
+        private bool ValidateSubmissionNumber()
+        {
+            if (!numbersOnly || maximumNumber <= 0)
+            {
+                return true;
+            }
+
+            if (!int.TryParse(currentText, out int proposedNumber))
+            {
+                StartCoroutine(FlashInvalidInput("Invalid number"));
+                return false;
+            }
+
+            if (proposedNumber > maximumNumber)
+            {
+                StartCoroutine(FlashInvalidInput("Number must be <" + maximumNumber));
+                return false;
+            }
+
+            return true;
+        }
+
+        private void AppendKey(string key)
+        {
+            string textToAdd = isShiftActive || isCapsLockActive ? key.ToUpper() : key;
+            if (
+                numbersOnly
+                && maximumNumber > 0
+                && int.TryParse(currentText + textToAdd, out int proposedNumber)
+                && proposedNumber > maximumNumber
+            )
+            {
+                StartCoroutine(FlashInvalidInput("Too large"));
+                return;
+            }
+
+            currentText += textToAdd;
+            if (isShiftActive && !isCapsLockActive)
+            {
+                isShiftActive = false;
+                UpdateKeyboardCase();
+            }
         }
 
         private IEnumerator FlashInvalidInput(string msg = null)
