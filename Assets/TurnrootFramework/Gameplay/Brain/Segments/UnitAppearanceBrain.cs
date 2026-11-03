@@ -20,8 +20,6 @@ namespace Turnroot.Gameplay.Brain
         private GameplayGeneralSettings _settings;
         private Dictionary<string, GameObject> _mountModels = new();
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
-
         protected override void Awake()
         {
             base.Awake();

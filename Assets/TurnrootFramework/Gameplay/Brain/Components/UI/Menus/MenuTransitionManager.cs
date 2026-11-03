@@ -103,33 +103,36 @@ namespace Turnroot.Gameplay.Brain.Segments
             }
         }
 
-        public IEnumerator TransitionToBattle(MenuEntry preBattle)
+        public IEnumerator TransitionToBattle(MenuEntry activeMenu, float delay = 0f)
         {
-            // Update current menu type
             CurrentMenuType = MenuType.Battle;
 
-            var menuInstance = preBattle?.activeInstance;
-            if (menuInstance == null)
+            if (delay > 0f)
             {
-                yield break;
+                yield return new WaitForSeconds(delay);
             }
 
-            // Start fade out
-            var uiFade = UIFadeCache.Get(menuInstance);
-            if (uiFade != null)
+            var menuInstance = activeMenu?.activeInstance;
+            if (menuInstance != null)
             {
-                uiFade.Hide();
-                yield return new WaitForSeconds(uiFade.lerpTime + 0.1f);
+                var uiFade = UIFadeCache.Get(menuInstance);
+                if (uiFade != null)
+                {
+                    uiFade.Hide();
+                    yield return new WaitForSeconds(
+                        uiFade.lerpTime + (_settings?.MenuFadeBuffer ?? 0.1f)
+                    );
+                }
+
+                CleanupMenuEvents(menuInstance);
+                Object.Destroy(menuInstance);
+                activeMenu.activeInstance = null;
+                UIFadeCache.Remove(menuInstance);
             }
 
-            // Clean up and destroy menu
-            CleanupMenuEvents(menuInstance);
-            Object.Destroy(menuInstance);
-            preBattle.activeInstance = null;
-            UIFadeCache.Remove(menuInstance);
-
-            // Notify brain of completion
+            _brain.GetMenuTracker()?.Clear();
             _brain.Brain.PublishPreBattleCompleted();
+            _brain.SetTransitioning(false);
         }
 
         private void SetupMenu(MenuEntry location)

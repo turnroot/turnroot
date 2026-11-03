@@ -178,66 +178,13 @@ namespace Turnroot.Characters.Editor
 
         private void DrawRadarChart()
         {
-            if (_template == null || _instance == null)
+            if (!TryBuildRadarChartData(out var labels, out var originalValues, out var currentValues))
             {
                 return;
             }
 
-            var raw = _template.UnboundedStats;
-            if (raw == null || raw.Count == 0)
-            {
-                return;
-            }
-
-            // build parallel arrays for orig/current values and labels
-            var labels = new List<string>();
-            var origVals = new List<float>();
-            var curVals = new List<float>();
-
-            // unbounded stats except movement
-            foreach (var s in raw)
-            {
-                if (s == null || s.StatType == UnboundedStatType.Movement)
-                {
-                    continue;
-                }
-
-                labels.Add(s.StatType.ToString());
-                float o = Mathf.RoundToInt(s.Current);
-                float c = Mathf.RoundToInt(_instance.GetUnboundedStat(s.StatType)?.Current ?? o);
-                origVals.Add(o);
-                curVals.Add(c);
-            }
-
-            // add bounded health stat as extra slice (divide by 2 for chart)
-            if (_template.BoundedStats != null)
-            {
-                var hp = _template.GetBoundedStat(BoundedStatType.Health);
-                var hpInst = _instance.GetBoundedStat(BoundedStatType.Health);
-                if (hp != null)
-                {
-                    labels.Add("Health");
-                    float o = hp.CurrentInt;
-                    float c = hpInst != null ? hpInst.CurrentInt : o;
-                    // scale down for display
-                    origVals.Add(o * 0.5f);
-                    curVals.Add(c * 0.5f);
-                }
-            }
-
-            if (labels.Count == 0)
-            {
-                return;
-            }
-
-            // compute max for scaling including health above
-            float maxVal = 1f;
-            for (int i = 0; i < labels.Count; i++)
-            {
-                maxVal = Mathf.Max(maxVal, origVals[i], curVals[i]);
-            }
             float radius = 80f;
-            float scale = maxVal > 0 ? radius / maxVal : 1f;
+            float scale = radius / GetRadarChartMaximum(originalValues, currentValues);
 
             Rect rect = GUILayoutUtility.GetRect(
                 (radius * 2) + 20,
@@ -247,58 +194,166 @@ namespace Turnroot.Characters.Editor
             Vector2 center = rect.center;
 
             Handles.BeginGUI();
+            DrawRadarChartAxes(center, radius, labels.Count);
+            DrawRadarChartValues(center, scale, originalValues, currentValues);
+            DrawRadarChartLabels(center, radius, labels);
+            Handles.EndGUI();
+        }
+
+        private bool TryBuildRadarChartData(
+            out List<string> labels,
+            out List<float> originalValues,
+            out List<float> currentValues
+        )
+        {
+            labels = new List<string>();
+            originalValues = new List<float>();
+            currentValues = new List<float>();
+            if (
+                _template == null
+                || _instance == null
+                || _template.UnboundedStats == null
+                || _template.UnboundedStats.Count == 0
+            )
+            {
+                return false;
+            }
+
+            AddUnboundedRadarStats(labels, originalValues, currentValues);
+            AddHealthRadarStat(labels, originalValues, currentValues);
+            return labels.Count > 0;
+        }
+
+        private void AddUnboundedRadarStats(
+            List<string> labels,
+            List<float> originalValues,
+            List<float> currentValues
+        )
+        {
+            foreach (var stat in _template.UnboundedStats)
+            {
+                if (stat == null || stat.StatType == UnboundedStatType.Movement)
+                {
+                    continue;
+                }
+
+                labels.Add(stat.StatType.ToString());
+                float original = Mathf.RoundToInt(stat.Current);
+                float current = Mathf.RoundToInt(
+                    _instance.GetUnboundedStat(stat.StatType)?.Current ?? original
+                );
+                originalValues.Add(original);
+                currentValues.Add(current);
+            }
+        }
+
+        private void AddHealthRadarStat(
+            List<string> labels,
+            List<float> originalValues,
+            List<float> currentValues
+        )
+        {
+            if (_template.BoundedStats == null)
+            {
+                return;
+            }
+
+            var health = _template.GetBoundedStat(BoundedStatType.Health);
+            if (health == null)
+            {
+                return;
+            }
+
+            var instanceHealth = _instance.GetBoundedStat(BoundedStatType.Health);
+            labels.Add("Health");
+            originalValues.Add(health.CurrentInt * 0.5f);
+            currentValues.Add((instanceHealth != null ? instanceHealth.CurrentInt : health.CurrentInt) * 0.5f);
+        }
+
+        private static float GetRadarChartMaximum(
+            List<float> originalValues,
+            List<float> currentValues
+        )
+        {
+            float maximum = 1f;
+            for (int i = 0; i < originalValues.Count; i++)
+            {
+                maximum = Mathf.Max(maximum, originalValues[i], currentValues[i]);
+            }
+
+            return maximum;
+        }
+
+        private static void DrawRadarChartAxes(Vector2 center, float radius, int count)
+        {
             Handles.color = Color.gray;
             Handles.DrawWireDisc(center, Vector3.forward, radius);
-
-            int count = labels.Count;
-            var pointsOrig = new Vector3[count + 1];
-            var pointsCur = new Vector3[count + 1];
-
             for (int i = 0; i < count; i++)
             {
-                float angle = ((Mathf.PI * 2f / count) * i) - (Mathf.PI / 2f);
-                float cos = Mathf.Cos(angle);
-                float sin = Mathf.Sin(angle);
+                float angle = GetRadarChartAngle(i, count);
+                var axisEnd = new Vector3(
+                    center.x + Mathf.Cos(angle) * radius,
+                    center.y + Mathf.Sin(angle) * radius
+                );
+                Handles.DrawLine(center, axisEnd);
+            }
+        }
 
-                float orig = origVals[i] * scale;
-                float cur = curVals[i] * scale;
+        private static void DrawRadarChartValues(
+            Vector2 center,
+            float scale,
+            List<float> originalValues,
+            List<float> currentValues
+        )
+        {
+            var originalPoints = CreateRadarPoints(center, originalValues, scale);
+            var currentPoints = CreateRadarPoints(center, currentValues, scale);
+            Handles.color = new Color(0f, 0.5f, 1f, 0.6f);
+            Handles.DrawAAPolyLine(3f, originalPoints);
+            Handles.color = new Color(1f, 0.2f, 0.2f, 0.6f);
+            Handles.DrawAAPolyLine(3f, currentPoints);
+        }
 
-                pointsOrig[i] = new Vector3(center.x + (cos * orig), center.y + (sin * orig));
-                pointsCur[i] = new Vector3(center.x + (cos * cur), center.y + (sin * cur));
-
-                Handles.color = Color.gray;
-                Handles.DrawLine(
-                    center,
-                    new Vector3(center.x + (cos * radius), center.y + (sin * radius))
+        private static Vector3[] CreateRadarPoints(
+            Vector2 center,
+            List<float> values,
+            float scale
+        )
+        {
+            var points = new Vector3[values.Count + 1];
+            for (int i = 0; i < values.Count; i++)
+            {
+                float angle = GetRadarChartAngle(i, values.Count);
+                float valueRadius = values[i] * scale;
+                points[i] = new Vector3(
+                    center.x + Mathf.Cos(angle) * valueRadius,
+                    center.y + Mathf.Sin(angle) * valueRadius
                 );
             }
-            pointsOrig[count] = pointsOrig[0];
-            pointsCur[count] = pointsCur[0];
 
-            Handles.color = new Color(0f, 0.5f, 1f, 0.6f);
-            Handles.DrawAAPolyLine(3f, pointsOrig);
-            Handles.color = new Color(1f, 0.2f, 0.2f, 0.6f);
-            Handles.DrawAAPolyLine(3f, pointsCur);
+            points[values.Count] = points[0];
+            return points;
+        }
 
-            // labels
-            for (int i = 0; i < count; i++)
+        private static void DrawRadarChartLabels(Vector2 center, float radius, List<string> labels)
+        {
+            for (int i = 0; i < labels.Count; i++)
             {
-                float angle = ((Mathf.PI * 2f / count) * i) - (Mathf.PI / 2f);
-                float cos = Mathf.Cos(angle);
-                float sin = Mathf.Sin(angle);
-                Vector2 labelPos = new Vector2(
-                    center.x + (cos * (radius + 10)),
-                    center.y + (sin * (radius + 10))
+                float angle = GetRadarChartAngle(i, labels.Count);
+                Vector2 position = new(
+                    center.x + Mathf.Cos(angle) * (radius + 10),
+                    center.y + Mathf.Sin(angle) * (radius + 10)
                 );
                 GUI.Label(
-                    new Rect(labelPos.x - 20, labelPos.y - 8, 40, 16),
+                    new Rect(position.x - 20, position.y - 8, 40, 16),
                     labels[i],
                     EditorStyles.miniLabel
                 );
             }
-
-            Handles.EndGUI();
         }
+
+        private static float GetRadarChartAngle(int index, int count) =>
+            ((Mathf.PI * 2f / count) * index) - (Mathf.PI / 2f);
 
         private void DrawStatsComparison()
         {

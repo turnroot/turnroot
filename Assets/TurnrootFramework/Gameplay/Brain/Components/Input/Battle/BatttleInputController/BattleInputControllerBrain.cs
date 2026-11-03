@@ -78,8 +78,6 @@ namespace Turnroot.Gameplay.Brain
 
         #region Brain Event Management
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
-
         protected override void SubscribeToBrainEvents()
         {
             Brain.OnBattleStarted += HandleBattleStarted;

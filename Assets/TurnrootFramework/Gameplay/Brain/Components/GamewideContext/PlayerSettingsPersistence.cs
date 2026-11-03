@@ -182,206 +182,15 @@ namespace Turnroot.Gameplay.Brain
 
             try
             {
-                switch (settingName.ToLower())
+                string key = settingName.ToLower();
+                if (
+                    !UpdateCoreSetting(key, value)
+                    && !UpdateGraphicsSetting(key, value)
+                    && !UpdateAudioSetting(key, value)
+                    && !UpdateControlSetting(key, value)
+                )
                 {
-                    case "tutorialprompts":
-                        if (value is bool tutorialPrompts)
-                        {
-                            PlayerSettings.TutorialPrompts = tutorialPrompts;
-                        }
-                        break;
-                    case "gamedifficulty":
-                        if (value is GameplayPlayerSettings.DifficultyLevel difficulty)
-                        {
-                            PlayerSettings.GameDifficulty = difficulty;
-                        }
-                        break;
-                    case "speedsetting":
-                        if (value is GameplayPlayerSettings.GameSpeed speed)
-                        {
-                            PlayerSettings.SpeedSetting = speed;
-                        }
-                        break;
-                    case "skipenemyturnanimations":
-                        if (value is GameplayPlayerSettings.SkipEnemyTurn skipEnemyTurn)
-                        {
-                            PlayerSettings.SkipEnemyTurnAnimations = skipEnemyTurn;
-                        }
-                        break;
-                    case "battlegridsetting":
-                        if (value is GameplayPlayerSettings.BattleGridDisplay battleGridDisplay)
-                        {
-                            PlayerSettings.BattleGridSetting = battleGridDisplay;
-                        }
-                        break;
-                    case "battlegridstyle":
-                        if (value is GameplayPlayerSettings.BattleGridDisplayStyle battleGridStyle)
-                        {
-                            PlayerSettings.BattleGridStyle = battleGridStyle;
-                        }
-                        break;
-                    case "startunitsetting":
-                        if (value is GameplayPlayerSettings.StartTurnUnit startTurnUnit)
-                        {
-                            PlayerSettings.StartUnitSetting = startTurnUnit;
-                        }
-                        break;
-                    case "brightness":
-                        if (value is float brightness)
-                        {
-                            // Brightness uses postExposure range -2..2
-                            PlayerSettings.Brightness = Mathf.Clamp(brightness, -2f, 2f);
-                        }
-                        break;
-                    case "contrast":
-                        if (value is float contrast)
-                        {
-                            // Contrast stored as -50..50 per product decision
-                            PlayerSettings.Contrast = Mathf.Clamp(contrast, -50f, 50f);
-                        }
-                        break;
-                    case "quality":
-                        if (value is float quality)
-                        {
-                            // Quantize incoming quality to one of {0, 0.1, 0.2, 0.3}
-                            var q = Mathf.Clamp01(quality);
-                            var quant = Mathf.Round(q * 10f) / 10f;
-                            quant = Mathf.Clamp(quant, 0f, 0.3f);
-                            PlayerSettings.Quality = quant;
-                            // Notify subscribers that graphics quality changed
-                            _brain.CentralBrain?.PublishGraphicsQualityChanged();
-                        }
-                        break;
-                    case "subtitles":
-                        if (value is bool subtitles)
-                        {
-                            PlayerSettings.Subtitles = subtitles;
-                        }
-                        break;
-                    case "bloom":
-                        if (value is bool bloom)
-                        {
-                            PlayerSettings.Bloom = bloom;
-                        }
-                        break;
-                    case "lensflare":
-                        if (value is bool lensFlare)
-                        {
-                            PlayerSettings.LensFlare = lensFlare;
-                        }
-                        break;
-                    case "depthoffield":
-                        if (value is bool depthOfField)
-                        {
-                            PlayerSettings.DepthOfField = depthOfField;
-                        }
-                        break;
-                    case "animatedcameramovement":
-                        if (value is bool animatedCamera)
-                        {
-                            PlayerSettings.AnimatedCameraMovement = animatedCamera;
-                        }
-                        break;
-                    case "autoendturn":
-                        if (value is bool autoEndTurn)
-                        {
-                            PlayerSettings.AutoEndTurn = autoEndTurn;
-                        }
-                        break;
-                    case "permadeath":
-                        if (value is bool permadeath)
-                        {
-                            PlayerSettings.Permadeath = permadeath;
-                        }
-                        break;
-                    case "disableturnwheel":
-                        if (value is bool disableTurnwheel)
-                        {
-                            PlayerSettings.DisableTurnwheel = disableTurnwheel;
-                        }
-                        break;
-                    case "disabletacticallens":
-                        if (value is bool disableTacticalLens)
-                        {
-                            PlayerSettings.DisableTacticalLens = disableTacticalLens;
-                        }
-                        break;
-                    case "musicwhenpaused":
-                        if (value is bool musicWhenPaused)
-                        {
-                            PlayerSettings.MusicWhenPaused = musicWhenPaused;
-                        }
-                        break;
-                    case "musicvolume":
-                        if (value is float musicVolume)
-                        {
-                            PlayerSettings.MusicVolume = Mathf.Clamp01(musicVolume);
-                        }
-                        break;
-                    case "sfxvolume":
-                        if (value is float sfxVolume)
-                        {
-                            PlayerSettings.SfxVolume = Mathf.Clamp01(sfxVolume);
-                        }
-                        break;
-                    case "voicevolume":
-                        if (value is float voiceVolume)
-                        {
-                            PlayerSettings.VoiceVolume = Mathf.Clamp01(voiceVolume);
-                        }
-                        break;
-                    case "preferredbattlemusic":
-                        if (value is SongChoice preferredBattleMusic)
-                        {
-                            PlayerSettings.PreferredBattleMusic = preferredBattleMusic;
-                        }
-                        break;
-                    case "preferredinputcontrol":
-                        if (value is GameplayPlayerSettings.InputControlType inputControl)
-                        {
-                            PlayerSettings.PreferredInputControl = inputControl;
-                            // Notify subscribers that input control preference changed
-                            _brain.CentralBrain?.PublishInputControlTypeChanged(inputControl);
-                        }
-                        break;
-                    case "mousesensitivity":
-                        if (value is float exploreMouseSensitivity)
-                        {
-                            PlayerSettings.ExploreMouseSensitivity = exploreMouseSensitivity;
-                        }
-                        break;
-                    case "invertexploremouse":
-                        if (value is bool invertExploreMouse)
-                        {
-                            PlayerSettings.InvertExploreMouse = invertExploreMouse;
-                        }
-                        break;
-                    case "mousespeed":
-                        if (value is float exploreMouseSpeed)
-                        {
-                            PlayerSettings.ExploreMouseSpeed = exploreMouseSpeed;
-                        }
-                        break;
-                    case "movementspeed":
-                        if (value is float movementSpeed)
-                        {
-                            PlayerSettings.ExploreMovementSpeed = movementSpeed;
-                        }
-                        break;
-                    case "inputeasing":
-                        if (value is float inputEasing)
-                        {
-                            PlayerSettings.InputEasing = inputEasing;
-                        }
-                        break;
-                    case "exploreverticaltilt":
-                        if (value is bool exploreVerticalTilt)
-                        {
-                            PlayerSettings.ExploreVerticalTilt = exploreVerticalTilt;
-                        }
-                        break;
-                    default:
-                        return;
+                    return;
                 }
 
                 // Auto-save after each setting change
@@ -394,6 +203,173 @@ namespace Turnroot.Gameplay.Brain
                 $"Failed to update setting {settingName}: {ex.Message}".LogError(
                     "PlayerSettingsPersistence"
                 );
+            }
+        }
+
+        private bool UpdateCoreSetting(string key, object value)
+        {
+            switch (key)
+            {
+                case "tutorialprompts":
+                    if (value is bool tutorialPrompts)
+                        PlayerSettings.TutorialPrompts = tutorialPrompts;
+                    return true;
+                case "gamedifficulty":
+                    if (value is GameplayPlayerSettings.DifficultyLevel difficulty)
+                        PlayerSettings.GameDifficulty = difficulty;
+                    return true;
+                case "speedsetting":
+                    if (value is GameplayPlayerSettings.GameSpeed speed)
+                        PlayerSettings.SpeedSetting = speed;
+                    return true;
+                case "skipenemyturnanimations":
+                    if (value is GameplayPlayerSettings.SkipEnemyTurn skipEnemyTurn)
+                        PlayerSettings.SkipEnemyTurnAnimations = skipEnemyTurn;
+                    return true;
+                case "battlegridsetting":
+                    if (value is GameplayPlayerSettings.BattleGridDisplay battleGridDisplay)
+                        PlayerSettings.BattleGridSetting = battleGridDisplay;
+                    return true;
+                case "battlegridstyle":
+                    if (value is GameplayPlayerSettings.BattleGridDisplayStyle battleGridStyle)
+                        PlayerSettings.BattleGridStyle = battleGridStyle;
+                    return true;
+                case "startunitsetting":
+                    if (value is GameplayPlayerSettings.StartTurnUnit startTurnUnit)
+                        PlayerSettings.StartUnitSetting = startTurnUnit;
+                    return true;
+                case "autoendturn":
+                    if (value is bool autoEndTurn)
+                        PlayerSettings.AutoEndTurn = autoEndTurn;
+                    return true;
+                case "permadeath":
+                    if (value is bool permadeath)
+                        PlayerSettings.Permadeath = permadeath;
+                    return true;
+                case "disableturnwheel":
+                    if (value is bool disableTurnwheel)
+                        PlayerSettings.DisableTurnwheel = disableTurnwheel;
+                    return true;
+                case "disabletacticallens":
+                    if (value is bool disableTacticalLens)
+                        PlayerSettings.DisableTacticalLens = disableTacticalLens;
+                    return true;
+                case "musicwhenpaused":
+                    if (value is bool musicWhenPaused)
+                        PlayerSettings.MusicWhenPaused = musicWhenPaused;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private bool UpdateGraphicsSetting(string key, object value)
+        {
+            switch (key)
+            {
+                case "brightness":
+                    if (value is float brightness)
+                        PlayerSettings.Brightness = Mathf.Clamp(brightness, -2f, 2f);
+                    return true;
+                case "contrast":
+                    if (value is float contrast)
+                        PlayerSettings.Contrast = Mathf.Clamp(contrast, -50f, 50f);
+                    return true;
+                case "quality":
+                    if (value is float quality)
+                    {
+                        var quantized = Mathf.Clamp(Mathf.Round(Mathf.Clamp01(quality) * 10f) / 10f, 0f, 0.3f);
+                        PlayerSettings.Quality = quantized;
+                        _brain.CentralBrain?.PublishGraphicsQualityChanged();
+                    }
+                    return true;
+                case "subtitles":
+                    if (value is bool subtitles)
+                        PlayerSettings.Subtitles = subtitles;
+                    return true;
+                case "bloom":
+                    if (value is bool bloom)
+                        PlayerSettings.Bloom = bloom;
+                    return true;
+                case "lensflare":
+                    if (value is bool lensFlare)
+                        PlayerSettings.LensFlare = lensFlare;
+                    return true;
+                case "depthoffield":
+                    if (value is bool depthOfField)
+                        PlayerSettings.DepthOfField = depthOfField;
+                    return true;
+                case "animatedcameramovement":
+                    if (value is bool animatedCamera)
+                        PlayerSettings.AnimatedCameraMovement = animatedCamera;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private bool UpdateAudioSetting(string key, object value)
+        {
+            switch (key)
+            {
+                case "musicvolume":
+                    if (value is float musicVolume)
+                        PlayerSettings.MusicVolume = Mathf.Clamp01(musicVolume);
+                    return true;
+                case "sfxvolume":
+                    if (value is float sfxVolume)
+                        PlayerSettings.SfxVolume = Mathf.Clamp01(sfxVolume);
+                    return true;
+                case "voicevolume":
+                    if (value is float voiceVolume)
+                        PlayerSettings.VoiceVolume = Mathf.Clamp01(voiceVolume);
+                    return true;
+                case "preferredbattlemusic":
+                    if (value is SongChoice preferredBattleMusic)
+                        PlayerSettings.PreferredBattleMusic = preferredBattleMusic;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private bool UpdateControlSetting(string key, object value)
+        {
+            switch (key)
+            {
+                case "preferredinputcontrol":
+                    if (value is GameplayPlayerSettings.InputControlType inputControl)
+                    {
+                        PlayerSettings.PreferredInputControl = inputControl;
+                        _brain.CentralBrain?.PublishInputControlTypeChanged(inputControl);
+                    }
+                    return true;
+                case "mousesensitivity":
+                    if (value is float exploreMouseSensitivity)
+                        PlayerSettings.ExploreMouseSensitivity = exploreMouseSensitivity;
+                    return true;
+                case "invertexploremouse":
+                    if (value is bool invertExploreMouse)
+                        PlayerSettings.InvertExploreMouse = invertExploreMouse;
+                    return true;
+                case "mousespeed":
+                    if (value is float exploreMouseSpeed)
+                        PlayerSettings.ExploreMouseSpeed = exploreMouseSpeed;
+                    return true;
+                case "movementspeed":
+                    if (value is float movementSpeed)
+                        PlayerSettings.ExploreMovementSpeed = movementSpeed;
+                    return true;
+                case "inputeasing":
+                    if (value is float inputEasing)
+                        PlayerSettings.InputEasing = inputEasing;
+                    return true;
+                case "exploreverticaltilt":
+                    if (value is bool exploreVerticalTilt)
+                        PlayerSettings.ExploreVerticalTilt = exploreVerticalTilt;
+                    return true;
+                default:
+                    return false;
             }
         }
     }

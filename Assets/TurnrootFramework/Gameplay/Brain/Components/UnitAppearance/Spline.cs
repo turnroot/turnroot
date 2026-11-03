@@ -146,13 +146,15 @@ namespace Turnroot.Gameplay.Brain
             var lastTilePos = character.MapGridPosition;
             var mapGrid = Brain.battleBrain.BattleObject.MapGrid;
             var settings = GameplayGeneralSettings.Instance;
-            var footstepInterval = settings.GetFootstepInterval(baseSpeed);
-            var timeSinceLastFootstep = footstepInterval;
-            var footstepAudioSource = modelToMove.GetComponent<AudioSource>();
-            if (footstepAudioSource == null)
+            var movementType = character.GetEffectiveMovementType();
+            var footstepInterval = movementType switch
             {
-                footstepAudioSource = modelToMove.AddComponent<AudioSource>();
-            }
+                MovementType.Flying => settings.BattleFlyFootstepInterval,
+                MovementType.Riding => settings.BattleRideFootstepInterval,
+                _ => settings.BattleWalkFootstepInterval,
+            };
+            var timeSinceLastFootstep = footstepInterval;
+            var footstepAudioSource = unitModel.GetComponent<AudioSource>();
 
             while (distanceTraveled < splineLength)
             {
@@ -184,16 +186,12 @@ namespace Turnroot.Gameplay.Brain
                 if (timeSinceLastFootstep >= footstepInterval)
                 {
                     timeSinceLastFootstep = 0f;
-                    var movementType = character.GetEffectiveMovementType();
                     AudioClip footstepClip;
                     if (movementType == MovementType.Flying)
                     {
                         footstepClip = settings.FlyingMovementSound;
                     }
-                    else if (
-                        movementType == MovementType.Riding
-                        || character.IsMounted
-                    )
+                    else if (movementType == MovementType.Riding || character.IsMounted)
                     {
                         footstepClip = settings.RidingMovementSound;
                     }

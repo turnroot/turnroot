@@ -75,6 +75,14 @@ namespace Turnroot.UI.Components
                     _overlayInstance.SetActive(false);
                 }
                 "BattleOverlayManager: Passive skill overlay instantiated.".LogInfo();
+
+                if (
+                    _brain?.cursorBrain != null
+                    && _brain.cursorBrain.IsCursorOnUnit(out var unit)
+                )
+                {
+                    ShowForUnit(unit);
+                }
             }
         }
 

@@ -8,8 +8,6 @@ namespace Turnroot.Gameplay.Brain
 {
     public partial class BattleBrain : BrainComponent
     {
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
-
         protected override void SubscribeToBrainEvents()
         {
             _brain.OnPreBattlePrepare += HandlePreBattlePrepare;

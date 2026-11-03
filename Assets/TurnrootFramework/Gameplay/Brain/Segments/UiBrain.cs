@@ -53,6 +53,7 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         [HideInInspector]
         public bool _isTransitioning = false;
+        private bool _battleStartRequested;
         private GameObject _currentMenuCanvasPrefab;
         private GameObject _currentDetailsCanvasPrefab;
         private MenuTransitionManager _transitionManager;
@@ -62,8 +63,6 @@ namespace Turnroot.Gameplay.Brain.Segments
         private GameplayPlayerSettings _playerSettings;
         public GameObject CurrentPreBattleMenuInstance =>
             uiSettings.GetPreBattleMenu()?.activeInstance;
-
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Low;
 
         public int CurrentMenuDepth => _menuTracker?.CurrentDepth ?? 0;
         public bool IsInSubMenu => _menuTracker?.IsInSubMenu ?? false;
@@ -91,7 +90,6 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         protected override void Awake()
         {
-            base.Awake();
             uiSettings = GamewideUiSettings.Instance;
             if (uiSettings != null)
             {
@@ -127,6 +125,8 @@ namespace Turnroot.Gameplay.Brain.Segments
                 cursorBrain?.SetUiSettingsReference(uiSettings);
             }
 
+            base.Awake();
+
             // Subscribe to selection changes so they are persisted to LTM centrally
             if (_brain != null)
             {
@@ -137,6 +137,12 @@ namespace Turnroot.Gameplay.Brain.Segments
 #if UNITY_EDITOR
             WarnPrefabs();
 #endif
+
+            var current = Brain?.stateBrain?.CurrentState;
+            if (current != null)
+            {
+                _onStateChangedHandler?.Invoke(current);
+            }
         }
 
         #endregion
@@ -284,12 +290,6 @@ namespace Turnroot.Gameplay.Brain.Segments
             Brain.OnPositioningModeEntered += HandlePositioningModeEntered;
             Brain.OnPositioningModeExited += HandlePositioningModeExited;
 
-            // If the Brain already has an active state, invoke handler immediately so UI can react to the current state
-            var current = Brain?.stateBrain?.CurrentState;
-            if (current != null)
-            {
-                _onStateChangedHandler(current);
-            }
         }
 
         private void OnMenuDepthChanged()

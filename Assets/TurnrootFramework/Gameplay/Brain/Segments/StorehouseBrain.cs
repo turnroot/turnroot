@@ -28,8 +28,6 @@ namespace Turnroot.Gameplay.Brain
     {
         private GameplayGeneralSettings _gameplaySettings;
 
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
-
         protected override void SubscribeToBrainEvents()
         {
             _brain.OnGoldGained += HandleGoldGained;
@@ -175,131 +173,141 @@ namespace Turnroot.Gameplay.Brain
 
         public void LoadStorehouse()
         {
-            // Load gold amount
-            int tryLoadGold = GetGoldFromLTM();
-            PlayerGold =
-                tryLoadGold == int.MinValue
-                    ? GameplayGeneralSettings.Instance.StartingGold
-                    : tryLoadGold;
+            LoadGold();
+            LoadMaterialCounts();
+            LoadStoredItems();
+        }
 
-            // loop through all known materials and load their counts
+        private void LoadGold()
+        {
+            int savedGold = GetGoldFromLTM();
+            PlayerGold =
+                savedGold == int.MinValue
+                    ? GameplayGeneralSettings.Instance.StartingGold
+                    : savedGold;
+        }
+
+        private void LoadMaterialCounts()
+        {
             _materials.Clear();
-            var allMaterialKeys = _ltm.RecallKeysByPrefix(LtmKeys.StorehouseMaterialPrefix)
+            var materialKeys = _ltm.RecallKeysByPrefix(LtmKeys.StorehouseMaterialPrefix)
                 .FindAll(k => k.StartsWith(LtmKeys.StorehouseMaterialPrefix));
 
-            foreach (var key in allMaterialKeys)
+            foreach (var key in materialKeys)
             {
-                int materialCount = _ltm.RecallInt(key);
-                if (materialCount <= 0)
+                int count = _ltm.RecallInt(key);
+                if (count <= 0)
                 {
                     continue;
                 }
 
-                ObjectItem materialItem = null;
-
-                if (key.StartsWith(LtmKeys.StorehouseMaterialIdPrefix))
+                var material = ResolveMaterial(key);
+                if (material == null)
                 {
-                    var materialId = key.Substring(LtmKeys.StorehouseMaterialIdPrefix.Length);
-                    materialItem =
-                        _materials.Keys.FirstOrDefault(mi => mi.Id == materialId)
-                        ?? Resources
-                            .FindObjectsOfTypeAll<ObjectItem>()
-                            .FirstOrDefault(mi => mi.Id == materialId);
-
-                    if (materialItem == null)
-                    {
-                        $"StorehouseBrain.LoadStorehouse: unresolved material ID '{materialId}' from key '{key}', skipping".LogWarning(
-                            "StorehouseBrain"
-                        );
-                        continue;
-                    }
-                }
-                else if (key.StartsWith(LtmKeys.StorehouseMaterialPrefix))
-                {
-                    var materialName = key.Substring(LtmKeys.StorehouseMaterialPrefix.Length);
-
-                    if (materialName.StartsWith("Id_"))
-                    {
-                        // Skip old-style duplicate of ID key guard.
-                        continue;
-                    }
-
-                    materialItem =
-                        _materials.Keys.FirstOrDefault(mi => mi.name == materialName)
-                        ?? Resources.Load<ObjectItem>($"Items/{materialName}")
-                        ?? Resources
-                            .FindObjectsOfTypeAll<ObjectItem>()
-                            .FirstOrDefault(mi => mi.name == materialName);
-
-                    if (materialItem == null)
-                    {
-                        $"StorehouseBrain.LoadStorehouse: unresolved material name '{materialName}' from key '{key}', skipping".LogWarning(
-                            "StorehouseBrain"
-                        );
-                        continue;
-                    }
+                    continue;
                 }
 
-                if (materialItem != null)
-                {
-                    if (_materials.ContainsKey(materialItem))
-                    {
-                        _materials[materialItem] += materialCount;
-                    }
-                    else
-                    {
-                        _materials[materialItem] = materialCount;
-                    }
-                }
+                _materials.TryGetValue(material, out int existingCount);
+                _materials[material] = existingCount + count;
             }
+        }
 
-            // Load stored instances (for durability/status tracking)
-            _storedItems.Clear();
-            var storedItemsJson = _ltm.Recall(LtmKeys.StorehouseStoredItems);
-            if (!string.IsNullOrEmpty(storedItemsJson))
+        private ObjectItem ResolveMaterial(string key)
+        {
+            if (key.StartsWith(LtmKeys.StorehouseMaterialIdPrefix))
             {
-                try
+                var materialId = key.Substring(LtmKeys.StorehouseMaterialIdPrefix.Length);
+                var material = _materials.Keys.FirstOrDefault(item => item.Id == materialId)
+                    ?? Resources
+                        .FindObjectsOfTypeAll<ObjectItem>()
+                        .FirstOrDefault(item => item.Id == materialId);
+                if (material == null)
                 {
-                    var settings = GamewideContextBrainHelpers.GetJsonSerializerSettings();
-                    var parsedList = Newtonsoft.Json.JsonConvert.DeserializeObject<
-                        List<ObjectItemInstance>
-                    >(storedItemsJson, settings);
-                    if (parsedList != null)
-                    {
-                        _storedItems = parsedList;
-
-                        var parsedItemCounts = new Dictionary<ObjectItem, int>();
-                        foreach (var item in _storedItems)
-                        {
-                            if (item?.Template == null)
-                            {
-                                continue;
-                            }
-
-                            item.SetBrain(Brain);
-
-                            if (!parsedItemCounts.TryGetValue(item.Template, out var parsedCount))
-                            {
-                                parsedCount = 0;
-                            }
-                            parsedItemCounts[item.Template] = parsedCount + 1;
-                        }
-
-                        // Keep existing material counts from LTM; only add templates that were not present.
-                        foreach (var kv in parsedItemCounts)
-                        {
-                            if (!_materials.ContainsKey(kv.Key))
-                            {
-                                _materials[kv.Key] = kv.Value;
-                            }
-                        }
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    $"StorehouseBrain.LoadStorehouse: failed to deserialize stored items: {e.Message}".LogWarning(
+                    $"StorehouseBrain.LoadStorehouse: unresolved material ID '{materialId}' from key '{key}', skipping".LogWarning(
                         "StorehouseBrain"
                     );
+                }
+
+                return material;
+            }
+
+            if (!key.StartsWith(LtmKeys.StorehouseMaterialPrefix))
+            {
+                return null;
+            }
+
+            var materialName = key.Substring(LtmKeys.StorehouseMaterialPrefix.Length);
+            if (materialName.StartsWith("Id_"))
+            {
+                return null;
+            }
+
+            var namedMaterial = _materials.Keys.FirstOrDefault(item => item.name == materialName)
+                ?? Resources.Load<ObjectItem>($"Items/{materialName}")
+                ?? Resources
+                    .FindObjectsOfTypeAll<ObjectItem>()
+                    .FirstOrDefault(item => item.name == materialName);
+            if (namedMaterial == null)
+            {
+                $"StorehouseBrain.LoadStorehouse: unresolved material name '{materialName}' from key '{key}', skipping".LogWarning(
+                    "StorehouseBrain"
+                );
+            }
+
+            return namedMaterial;
+        }
+
+        private void LoadStoredItems()
+        {
+            _storedItems.Clear();
+            var storedItemsJson = _ltm.Recall(LtmKeys.StorehouseStoredItems);
+            if (string.IsNullOrEmpty(storedItemsJson))
+            {
+                return;
+            }
+
+            try
+            {
+                var settings = GamewideContextBrainHelpers.GetJsonSerializerSettings();
+                var parsedItems = Newtonsoft.Json.JsonConvert.DeserializeObject<
+                    List<ObjectItemInstance>
+                >(storedItemsJson, settings);
+                if (parsedItems == null)
+                {
+                    return;
+                }
+
+                _storedItems = parsedItems;
+                ReconcileStoredItemCounts();
+            }
+            catch (System.Exception e)
+            {
+                $"StorehouseBrain.LoadStorehouse: failed to deserialize stored items: {e.Message}".LogWarning(
+                    "StorehouseBrain"
+                );
+            }
+        }
+
+        private void ReconcileStoredItemCounts()
+        {
+            var parsedItemCounts = new Dictionary<ObjectItem, int>();
+            foreach (var item in _storedItems)
+            {
+                if (item?.Template == null)
+                {
+                    continue;
+                }
+
+                item.SetBrain(Brain);
+                parsedItemCounts.TryGetValue(item.Template, out int count);
+                parsedItemCounts[item.Template] = count + 1;
+            }
+
+            foreach (var itemCount in parsedItemCounts)
+            {
+                if (!_materials.ContainsKey(itemCount.Key))
+                {
+                    _materials[itemCount.Key] = itemCount.Value;
                 }
             }
         }

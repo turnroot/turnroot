@@ -55,8 +55,6 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Initialization
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.High;
-
         protected override void Awake()
         {
             _brain = GetComponent<Brain>();
@@ -192,29 +190,44 @@ namespace Turnroot.Gameplay.Brain
                 return htmlColor;
             }
 
-            if (serializedColor.Length is 6 or 8)
+            if (TryParseCompactColor(serializedColor, out var compactHtmlColor))
             {
-                if (
-                    ColorUtility.TryParseHtmlString($"#{serializedColor}", out var compactHtmlColor)
-                )
-                {
-                    return compactHtmlColor;
-                }
+                return compactHtmlColor;
             }
 
-            if (serializedColor.StartsWith("{"))
+            if (TryParseJsonColor(serializedColor, out var jsonColor))
             {
-                try
-                {
-                    return JsonUtility.FromJson<Color>(serializedColor);
-                }
-                catch
-                {
-                    "GamewideContextBrain: Failed to parse color from JSON, using fallback.".LogWarning();
-                }
+                return jsonColor;
             }
 
             return fallback;
+        }
+
+        private static bool TryParseCompactColor(string serializedColor, out Color color)
+        {
+            color = default;
+            return (serializedColor.Length is 6 or 8)
+                && ColorUtility.TryParseHtmlString($"#{serializedColor}", out color);
+        }
+
+        private static bool TryParseJsonColor(string serializedColor, out Color color)
+        {
+            color = default;
+            if (!serializedColor.StartsWith("{"))
+            {
+                return false;
+            }
+
+            try
+            {
+                color = JsonUtility.FromJson<Color>(serializedColor);
+                return true;
+            }
+            catch
+            {
+                "GamewideContextBrain: Failed to parse color from JSON, using fallback.".LogWarning();
+                return false;
+            }
         }
         #endregion
 
@@ -223,7 +236,7 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnSavePlayerRosterRequested += HandleSavePlayerRosterRequested;
             _brain.OnSavePlayerRosterRequestedWithTurn += HandleSavePlayerRosterRequestedWithTurn;
-            _brain.OnPreBattleCompleted += HandlePreBattleCompleted;
+            _brain.OnBeforePreBattleCompleted += HandleBeforePreBattleCompleted;
             _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
         }
 
@@ -231,7 +244,7 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnSavePlayerRosterRequested -= HandleSavePlayerRosterRequested;
             _brain.OnSavePlayerRosterRequestedWithTurn -= HandleSavePlayerRosterRequestedWithTurn;
-            _brain.OnPreBattleCompleted -= HandlePreBattleCompleted;
+            _brain.OnBeforePreBattleCompleted -= HandleBeforePreBattleCompleted;
             _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
         }
 
@@ -249,7 +262,7 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void HandlePreBattleCompleted()
+        private void HandleBeforePreBattleCompleted()
         {
             // Save roster with unit selections and placements before battle starts
             // First, update the runtime instance with placements from BattlePreparationObject

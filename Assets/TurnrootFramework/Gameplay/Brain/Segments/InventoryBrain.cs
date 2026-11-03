@@ -17,8 +17,6 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public class InventoryBrain : BrainComponent
     {
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Normal;
-
         protected override void Awake() => base.Awake();
 
         protected override void SubscribeToBrainEvents()

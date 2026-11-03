@@ -36,122 +36,133 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private void Awake()
         {
-            // Load UI settings and apply them
+            InitializeColorsAndMaterial();
+            var existingContent = InitializeExistingContent();
+            if (existingContent == null && contentPrefab != null)
+            {
+                InitializePrefabContent();
+            }
+            UpdateVisuals();
+            ConfigureContentCanvas();
+        }
+
+        private void InitializeColorsAndMaterial()
+        {
             var uiSettings = GamewideUiSettings.Instance;
-            if (uiSettings != null)
-            {
-                normalColor = uiSettings.RadialMenuNormalColor;
-                selectedColor = uiSettings.RadialMenuSelectedColor;
-            }
-            else
-            {
-                // Fallback values if settings can't be loaded
-                normalColor = Color.white;
-                selectedColor = new Color(1f, 0.8f, 0f);
-            }
+            normalColor = uiSettings != null ? uiSettings.RadialMenuNormalColor : Color.white;
+            selectedColor = uiSettings != null
+                ? uiSettings.RadialMenuSelectedColor
+                : new Color(1f, 0.8f, 0f);
 
             if (backgroundImage == null)
             {
                 backgroundImage = GetComponent<Image>();
             }
 
-            // Create material instance for this item
-            if (backgroundImage != null && backgroundImage.material != null)
+            if (backgroundImage == null || backgroundImage.material == null)
             {
-                _material = new Material(backgroundImage.material);
-                backgroundImage.material = _material;
-
-                backgroundImage.raycastTarget = false;
+                return;
             }
 
-            /*             // Initialize default colors from global settings if available
-                        var settings = Turnroot.GameSettings.GamewideUiSettings.Instance;
-                        if (settings != null)
-                        {
-                            normalColor = settings.RadialMenuNormalColor;
-                            selectedColor = settings.RadialMenuSelectedColor;
-                        } */
+            _material = new Material(backgroundImage.material);
+            backgroundImage.material = _material;
+            backgroundImage.raycastTarget = false;
+        }
 
-            // Prefer existing content in scene (assigned instance) if present
+        private IRadialMenuContent InitializeExistingContent()
+        {
             var existingContent = GetComponentInChildren<IRadialMenuContent>(includeInactive: true);
-            if (existingContent != null)
+            if (existingContent == null)
             {
-                _contentComponent = existingContent;
-                _contentRect = (existingContent as Component)?.GetComponent<RectTransform>();
+                return null;
+            }
+
+            _contentComponent = existingContent;
+            _contentRect = (existingContent as Component)?.GetComponent<RectTransform>();
+            _contentComponent.SetLabel(itemName);
+            ApplyContentVisibility(showIcon);
+
+            var contentTransform = _contentRect as Transform;
+            if (contentTransform != null)
+            {
+                contentTransform.SetAsLastSibling();
+                var position = contentTransform.localPosition;
+                contentTransform.localPosition = new Vector3(position.x, position.y, 0f);
+            }
+
+            return existingContent;
+        }
+
+        private void InitializePrefabContent()
+        {
+            var instance = Instantiate(contentPrefab, transform);
+            if (instance == null)
+            {
+                return;
+            }
+
+            CenterPrefabContent(instance);
+            instance.transform.SetAsLastSibling();
+
+            var contentTransform = instance.transform as RectTransform;
+            _contentComponent = instance.GetComponentInChildren<IRadialMenuContent>();
+            if (_contentComponent != null)
+            {
                 _contentComponent.SetLabel(itemName);
-                var gw = GamewideUiSettings.Instance;
-                if (gw != null)
-                {
-                    _contentComponent.ApplyVisibility(
-                        gw.RadialMenuHaveIcons && showIcon,
-                        gw.RadialMenuHaveLabels
-                    );
-                }
-
-                // Ensure the content is on top of the segment's visuals
-                var contentTransformComp = (_contentRect as Transform);
-                if (contentTransformComp != null)
-                {
-                    contentTransformComp.SetAsLastSibling();
-                    var lp = contentTransformComp.localPosition;
-                    contentTransformComp.localPosition = new Vector3(lp.x, lp.y, 0f);
-                }
+                ApplyContentVisibility(includeItemIcon: false);
             }
 
-            // Instantiate content prefab (icon + label) and center it inside this segment only if no existing content
-            if (existingContent == null && contentPrefab != null)
+            _contentRect = contentTransform ?? instance.GetComponent<RectTransform>();
+        }
+
+        private static void CenterPrefabContent(GameObject instance)
+        {
+            if (!instance.TryGetComponent<RectTransform>(out var rectTransform))
             {
-                var instance = Instantiate(contentPrefab, transform);
-                if (instance != null)
-                {
-                    if (instance.TryGetComponent<RectTransform>(out var rt))
-                    {
-                        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-                        rt.pivot = new Vector2(0.5f, 0.5f);
-                        rt.anchoredPosition = Vector2.zero;
-                        rt.localRotation = Quaternion.identity; // ensure it doesn't rotate with the segment
-                        rt.localScale = Vector3.one;
-                        // Ensure z is zero to avoid unexpected layering
-                        rt.localPosition = new Vector3(rt.localPosition.x, rt.localPosition.y, 0f);
-                    }
-
-                    // Place content above the background by moving it to the end of sibling list
-                    instance.transform.SetAsLastSibling();
-
-                    // Wire up content interface if present
-                    var contentTransform = instance.transform as RectTransform;
-                    _contentComponent = instance.GetComponentInChildren<IRadialMenuContent>();
-                    if (_contentComponent != null)
-                    {
-                        _contentComponent.SetLabel(itemName);
-                        // No per-item icon is stored here; prefab can include its own default icon.
-                        var gw = GamewideUiSettings.Instance;
-                        if (gw != null)
-                        {
-                            _contentComponent.ApplyVisibility(
-                                gw.RadialMenuHaveIcons,
-                                gw.RadialMenuHaveLabels
-                            );
-                        }
-                    }
-
-                    // keep a reference to the content rect if found
-                    _contentRect = contentTransform ?? instance.GetComponent<RectTransform>();
-                }
+                return;
             }
 
-            UpdateVisuals();
+            rectTransform.anchorMin = rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.localRotation = Quaternion.identity;
+            rectTransform.localScale = Vector3.one;
+            rectTransform.localPosition = new Vector3(
+                rectTransform.localPosition.x,
+                rectTransform.localPosition.y,
+                0f
+            );
+        }
 
-            if (_contentRect != null)
+        private void ApplyContentVisibility(bool includeItemIcon)
+        {
+            var settings = GamewideUiSettings.Instance;
+            if (settings == null)
             {
-                var contentObject = _contentRect.gameObject;
-                if (!contentObject.TryGetComponent<Canvas>(out var contentCanvas))
-                {
-                    contentCanvas = contentObject.AddComponent<Canvas>();
-                }
-                contentCanvas.overrideSorting = true;
-                contentCanvas.sortingOrder = 1; // Render above parent
+                return;
             }
+
+            _contentComponent.ApplyVisibility(
+                settings.RadialMenuHaveIcons && (!includeItemIcon || showIcon),
+                settings.RadialMenuHaveLabels
+            );
+        }
+
+        private void ConfigureContentCanvas()
+        {
+            if (_contentRect == null)
+            {
+                return;
+            }
+
+            var contentObject = _contentRect.gameObject;
+            if (!contentObject.TryGetComponent<Canvas>(out var contentCanvas))
+            {
+                contentCanvas = contentObject.AddComponent<Canvas>();
+            }
+
+            contentCanvas.overrideSorting = true;
+            contentCanvas.sortingOrder = 1;
         }
 
         private void OnDestroy()

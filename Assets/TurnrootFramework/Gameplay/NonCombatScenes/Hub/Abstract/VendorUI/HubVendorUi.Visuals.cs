@@ -20,147 +20,153 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
             if (item.CurrentStatus.AvailableQuantity <= 0)
             {
-                if (updateGlobal)
-                {
-                    CanBuy = false;
-                }
-                item.UiRefs.QuantityText.text = "Sold Out";
-                item.UiRefs.PriceText.color = item.UiRefs.TooExpensivePriceColor;
-                item.UiRefs.SaleBadge.gameObject.SetActive(false);
+                ConfigureSoldOutItem(item, updateGlobal);
                 return;
             }
 
-            if (selectionCount >= item.CurrentStatus.AvailableQuantity)
-            {
-                selectionCount = item.CurrentStatus.AvailableQuantity;
-                if (updateGlobal)
-                {
-                    SelectionCountCache = selectionCount;
-                }
-            }
-
-            if (selectionCount <= 0)
-            {
-                selectionCount = 1;
-                if (updateGlobal)
-                {
-                    SelectionCountCache = selectionCount;
-                }
-            }
-
+            selectionCount = ClampSelectionCount(item, selectionCount, updateGlobal);
             if (updateGlobal)
             {
-                ItemDescriptionText.text = item.Item.FlavorText;
-
-                if (item.Item.IsWeaponOrMagicSubtype())
-                {
-                    WeaponExtraDetails?.SetActive(true);
-                    if (WeaponMightText != null)
-                    {
-                        WeaponMightText.text = $"{item.Item.Might}";
-                    }
-                    if (WeaponHitText != null)
-                    {
-                        WeaponHitText.text = $"{item.Item.Hit}";
-                    }
-                    if (WeaponCritText != null)
-                    {
-                        WeaponCritText.text = $"{item.Item.Critical}";
-                    }
-                }
-                else
-                {
-                    WeaponExtraDetails?.SetActive(false);
-                }
-
-                if (WeaponDurabilityText != null)
-                {
-                    WeaponDurabilityText.text = item.Item.IsWeaponOrMagicSubtypeAndIsDurability()
-                        ? $"{item.Item.MaxUses}"
-                        : "--";
-                }
+                ConfigureSelectedItemDetails(item);
             }
 
-            item.UiRefs.ItemNameText.text = item.Item.Name;
-            if (item.Item.IsWeaponOrMagicSubtype())
-            {
-                item.UiRefs.ItemCategoryText.gameObject.SetActive(true);
-                if (item.Item.WeaponType != null)
-                {
-                    item.UiRefs.ItemCategoryText.text = item.Item.WeaponType.ToString();
-                    item.UiRefs.ItemIcon.sprite = item.Item.WeaponType.Icon;
-                }
-                else
-                {
-                    item.UiRefs.ItemCategoryText.text = "Unknown Type";
-                    item.UiRefs.ItemIcon.sprite = null;
-                }
+            ConfigureItemIdentity(item);
+            ConfigurePriceAndQuantity(item, selectionCount, updateGlobal);
+        }
 
-                if (item.Item.MinWeaponTypeAptitude != null)
-                {
-                    item.UiRefs.LetterIcon.sprite = item.Item.MinWeaponTypeAptitude.GetLetterIcon();
-                    item.UiRefs.LetterIcon.color = Color.white;
-                }
-                else
-                {
-                    item.UiRefs.LetterIcon.color = new Color(1, 1, 1, 0);
-                }
-            }
-            else
-            {
-                item.UiRefs.ItemCategoryText.gameObject.SetActive(false);
-                item.UiRefs.LetterIcon.color = new Color(1, 1, 1, 0);
-
-                var itemTypeIcons = GamewideUiSettings.Instance.ItemTypeIcons;
-                if (itemTypeIcons != null && itemTypeIcons.Length > 0)
-                {
-                    var iconIndex = System.Array.FindIndex(
-                        itemTypeIcons,
-                        x => x.Subtype == item.Item.Subtype
-                    );
-                    if (iconIndex >= 0)
-                    {
-                        var iconEntry = itemTypeIcons[iconIndex];
-                        item.UiRefs.ItemIcon.sprite =
-                            iconEntry.Icon != null ? iconEntry.Icon : null;
-                    }
-                    else
-                    {
-                        item.UiRefs.ItemIcon.sprite = null;
-                    }
-                }
-                else
-                {
-                    item.UiRefs.ItemIcon.sprite = null;
-                }
-            }
-
-            item.UiRefs.PriceText.text = item.CurrentStatus.IsOnSale
-                ? $"{item.SalePrice * selectionCount}G"
-                : $"{item.Item.BasePrice * selectionCount}G";
-
-            var isTooExpensive =
-                brain?.storehouseBrain != null
-                && !brain.storehouseBrain.CanAfford(
-                    (item.CurrentStatus.IsOnSale ? item.SalePrice : item.Item.BasePrice)
-                        * selectionCount
-                );
-
-            item.UiRefs.PriceText.color =
-                isTooExpensive ? item.UiRefs.TooExpensivePriceColor
-                : item.CurrentStatus.IsOnSale ? item.UiRefs.OnSalePriceColor
-                : item.UiRefs.DefaultPriceColor;
-
-            if (isTooExpensive && updateGlobal)
+        private void ConfigureSoldOutItem(ShopItem item, bool updateGlobal)
+        {
+            if (updateGlobal)
             {
                 CanBuy = false;
             }
 
+            item.UiRefs.QuantityText.text = "Sold Out";
+            item.UiRefs.PriceText.color = item.UiRefs.TooExpensivePriceColor;
+            item.UiRefs.SaleBadge.gameObject.SetActive(false);
+        }
+
+        private int ClampSelectionCount(ShopItem item, int selectionCount, bool updateGlobal)
+        {
+            selectionCount = selectionCount >= item.CurrentStatus.AvailableQuantity
+                ? item.CurrentStatus.AvailableQuantity
+                : selectionCount;
+            selectionCount = selectionCount <= 0 ? 1 : selectionCount;
+
             if (updateGlobal)
             {
-                CostCache = item.CurrentStatus.IsOnSale
-                    ? item.SalePrice * selectionCount
-                    : item.Item.BasePrice * selectionCount;
+                SelectionCountCache = selectionCount;
+            }
+
+            return selectionCount;
+        }
+
+        private void ConfigureSelectedItemDetails(ShopItem item)
+        {
+            ItemDescriptionText.text = item.Item.FlavorText;
+            bool isWeapon = item.Item.IsWeaponOrMagicSubtype();
+            WeaponExtraDetails?.SetActive(isWeapon);
+
+            if (isWeapon)
+            {
+                if (WeaponMightText != null)
+                {
+                    WeaponMightText.text = $"{item.Item.Might}";
+                }
+                if (WeaponHitText != null)
+                {
+                    WeaponHitText.text = $"{item.Item.Hit}";
+                }
+                if (WeaponCritText != null)
+                {
+                    WeaponCritText.text = $"{item.Item.Critical}";
+                }
+            }
+
+            if (WeaponDurabilityText != null)
+            {
+                WeaponDurabilityText.text = item.Item.IsWeaponOrMagicSubtypeAndIsDurability()
+                    ? $"{item.Item.MaxUses}"
+                    : "--";
+            }
+        }
+
+        private void ConfigureItemIdentity(ShopItem item)
+        {
+            item.UiRefs.ItemNameText.text = item.Item.Name;
+            if (item.Item.IsWeaponOrMagicSubtype())
+            {
+                ConfigureWeaponIdentity(item);
+                return;
+            }
+
+            item.UiRefs.ItemCategoryText.gameObject.SetActive(false);
+            item.UiRefs.LetterIcon.color = new Color(1, 1, 1, 0);
+            item.UiRefs.ItemIcon.sprite = FindItemTypeIcon(item);
+        }
+
+        private void ConfigureWeaponIdentity(ShopItem item)
+        {
+            item.UiRefs.ItemCategoryText.gameObject.SetActive(true);
+            if (item.Item.WeaponType != null)
+            {
+                item.UiRefs.ItemCategoryText.text = item.Item.WeaponType.ToString();
+                item.UiRefs.ItemIcon.sprite = item.Item.WeaponType.Icon;
+            }
+            else
+            {
+                item.UiRefs.ItemCategoryText.text = "Unknown Type";
+                item.UiRefs.ItemIcon.sprite = null;
+            }
+
+            if (item.Item.MinWeaponTypeAptitude != null)
+            {
+                item.UiRefs.LetterIcon.sprite = item.Item.MinWeaponTypeAptitude.GetLetterIcon();
+                item.UiRefs.LetterIcon.color = Color.white;
+            }
+            else
+            {
+                item.UiRefs.LetterIcon.color = new Color(1, 1, 1, 0);
+            }
+        }
+
+        private Sprite FindItemTypeIcon(ShopItem item)
+        {
+            var itemTypeIcons = GamewideUiSettings.Instance.ItemTypeIcons;
+            if (itemTypeIcons == null || itemTypeIcons.Length == 0)
+            {
+                return null;
+            }
+
+            int iconIndex = System.Array.FindIndex(
+                itemTypeIcons,
+                icon => icon.Subtype == item.Item.Subtype
+            );
+            return iconIndex >= 0 ? itemTypeIcons[iconIndex].Icon : null;
+        }
+
+        private void ConfigurePriceAndQuantity(
+            ShopItem item,
+            int selectionCount,
+            bool updateGlobal
+        )
+        {
+            int unitPrice = item.CurrentStatus.IsOnSale ? item.SalePrice : item.Item.BasePrice;
+            int totalCost = unitPrice * selectionCount;
+            bool isTooExpensive =
+                brain?.storehouseBrain != null && !brain.storehouseBrain.CanAfford(totalCost);
+
+            item.UiRefs.PriceText.text = $"{totalCost}G";
+            item.UiRefs.PriceText.color = isTooExpensive
+                ? item.UiRefs.TooExpensivePriceColor
+                : item.CurrentStatus.IsOnSale
+                    ? item.UiRefs.OnSalePriceColor
+                    : item.UiRefs.DefaultPriceColor;
+
+            if (updateGlobal)
+            {
+                CanBuy = !isTooExpensive;
+                CostCache = totalCost;
             }
 
             item.UiRefs.SaleBadge.gameObject.SetActive(item.CurrentStatus.IsOnSale);

@@ -3,7 +3,6 @@ using Turnroot.UI.Components.GridMenu;
 using Turnroot.UI.Components.Menu;
 using Turnroot.UI.Components.RadialMenu;
 using Turnroot.Utilities;
-using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
 #if COFFEE_UIEFFECTS
 using Coffee.UIEffects;
@@ -33,6 +32,12 @@ namespace Turnroot.Gameplay.Brain.Segments
                 return OperationResult.Failure("Pre-battle UI validation failed.");
             }
 
+            if (preBattleMenuLocation.activeInstance != null)
+            {
+                return OperationResult.Successful();
+            }
+
+            _battleStartRequested = false;
             preBattleMenuLocation.activeInstance = Instantiate(preBattleMenuLocation.prefab);
 
             // Notify subscribers that pre-battle prepare phase is occurring so systems like BattleBrain
@@ -52,11 +57,21 @@ namespace Turnroot.Gameplay.Brain.Segments
                 radialMenu.OnItemSelected += HandlePreBattleMenuSelect;
             }
 
-            // Hide the menu initially to prevent UI from showing through during scene transition
-            preBattleMenuLocation.activeInstance.SetActive(false);
-
-            // Subscribe to scene transition completed event to show menu when ready
-            _brain.OnSceneTransitionCompleted += HandleSceneTransitionForPreBattleMenu;
+            // This handler runs after the PreBattle state is activated on scene arrival.
+            preBattleMenuLocation.activeInstance.SetActive(true);
+            if (
+                preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(out radialMenu)
+            )
+            {
+                radialMenu.enabled = true;
+            }
+            else if (
+                preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var gridMenu)
+            )
+            {
+                gridMenu.enabled = true;
+            }
+            uiFade.Show();
 
             return OperationResult.Successful();
         }
@@ -88,149 +103,40 @@ namespace Turnroot.Gameplay.Brain.Segments
         #region Battle Transition Management
         public void HandleStartBattleClick()
         {
-            var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (preBattleMenuLocation?.activeInstance == null)
-            {
-                // Handle transition from submenu (e.g., Map menu)
-                var currentMenuInstance = _menuTracker?.CurrentMenu?.activeInstance;
-                if (currentMenuInstance != null)
-                {
-                    // Fade out the current submenu
-                    var uiFade = UIFadeCache.GetOrCreate(
-                        currentMenuInstance,
-                        uiSettings.MenuFadeTime
-                    );
-                    StartCoroutine(HandleFadeAndTransitionForSubmenu(currentMenuInstance, uiFade));
-                }
-                else
-                {
-                    // No menu to fade, transition directly
-                    _brain.PublishPreBattleCompleted();
-                }
-                return;
-            }
-
-            if (_isTransitioning)
+            if (_isTransitioning || _battleStartRequested)
             {
                 "Start battle ignored: already transitioning.".LogInfo();
                 return;
             }
 
-            // Play any center item effects (UITweener/UIEffect/etc.) before starting transition
-            float effectDelay = PlayEffectsOnSelectedPrebattleCenter(
-                preBattleMenuLocation.activeInstance
-            );
-
-            // Start a coroutine that waits for effect to play then transitions to battle
-            StartCoroutine(StartBattleCoroutine(preBattleMenuLocation, effectDelay));
-        }
-
-        private System.Collections.IEnumerator HandleFadeAndTransition(
-            GameObject menuInstance,
-            UIFade uiFade
-        )
-        {
-            // Start the fade
-            uiFade.Hide();
-
-            // Wait for fade duration (plus a small buffer) - use lerpTime property
-            var fadeDuration = uiFade.lerpTime + (uiSettings?.MenuFadeBuffer ?? 0.1f);
-            yield return new WaitForSeconds(fadeDuration);
-
-            // Clean up menu
-            if (menuInstance != null)
-            {
-                if (menuInstance.TryGetComponent<RadialMenu>(out var radialMenu))
-                {
-                    radialMenu.OnItemSelected -= HandlePreBattleMenuSelect;
-                }
-
-                if (menuInstance.TryGetComponent<MenuBase>(out var menu))
-                {
-                    menu.OnItemSelected -= HandlePreBattleMenuSelect;
-                }
-
-                // Unsubscribe from scene transition event if still subscribed
-                _brain.OnSceneTransitionCompleted -= HandleSceneTransitionForPreBattleMenu;
-
-                Destroy(menuInstance);
-
-                // Clear the active instance from the MenuEntry
-                var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-                if (preBattleMenuLocation != null)
-                {
-                    preBattleMenuLocation.activeInstance = null;
-                }
-            }
-
-            // Publish battle completion to transition states
-            _brain.PublishPreBattleCompleted();
-            _isTransitioning = false;
-        }
-
-        private System.Collections.IEnumerator HandleFadeAndTransitionForSubmenu(
-            GameObject menuInstance,
-            UIFade uiFade
-        )
-        {
-            _isTransitioning = true;
-
-            // Start the fade
-            uiFade.Hide();
-
-            // Wait for fade duration (plus a small buffer) - use lerpTime property
-            var fadeDuration = uiFade.lerpTime + (uiSettings?.MenuFadeBuffer ?? 0.1f);
-            yield return new WaitForSeconds(fadeDuration);
-
-            // Clean up menu
-            if (menuInstance != null)
-            {
-                Destroy(menuInstance);
-            }
-
-            // Clear the menu tracker since we're leaving the menu system
-            _menuTracker?.Clear();
-
-            // Publish battle completion to transition states
-            _brain.PublishPreBattleCompleted();
-            _isTransitioning = false;
-        }
-
-        #endregion
-
-        #region Scene Transition Handlers
-
-        private void HandleSceneTransitionForPreBattleMenu(string sceneName, string displayName)
-        {
-            // Unsubscribe immediately to avoid multiple calls
-            _brain.OnSceneTransitionCompleted -= HandleSceneTransitionForPreBattleMenu;
-
+            _battleStartRequested = true;
             var preBattleMenuLocation = uiSettings?.GetPreBattleMenu();
-            if (preBattleMenuLocation?.activeInstance == null)
+            var activeMenu =
+                preBattleMenuLocation?.activeInstance != null
+                    ? preBattleMenuLocation
+                    : _menuTracker?.CurrentMenu;
+
+            if (activeMenu?.activeInstance == null)
             {
+                _isTransitioning = true;
+                if (_transitionManager != null)
+                {
+                    StartCoroutine(_transitionManager.TransitionToBattle(null));
+                }
+                else
+                {
+                    _isTransitioning = false;
+                    _brain.PublishPreBattleCompleted();
+                }
                 return;
             }
 
-            // Show the menu now that scene transition is complete
-            preBattleMenuLocation.activeInstance.SetActive(true);
-
-            // Re-enable input (independent of configured style so a mismatch can't leave it disabled)
-            if (
-                preBattleMenuLocation.activeInstance.TryGetComponent<RadialMenu>(out var radialMenu)
-            )
-            {
-                radialMenu.enabled = true;
-            }
-            else if (
-                preBattleMenuLocation.activeInstance.TryGetComponent<MenuBase>(out var gridMenu)
-            )
-            {
-                gridMenu.enabled = true;
-            }
-
-            // Trigger fade-in animation
-            var uiFade = UIFadeCache.Get(preBattleMenuLocation.activeInstance);
-            uiFade?.Show();
+            float effectDelay =
+                activeMenu == preBattleMenuLocation
+                    ? PlayEffectsOnSelectedPrebattleCenter(activeMenu.activeInstance)
+                    : 0f;
+            _isTransitioning = true;
+            StartCoroutine(_transitionManager.TransitionToBattle(activeMenu, effectDelay));
         }
 
         #endregion
@@ -268,51 +174,5 @@ namespace Turnroot.Gameplay.Brain.Segments
             return 0f;
         }
 
-        private System.Collections.IEnumerator StartBattleCoroutine(
-            MenuEntry preBattleMenuLocation,
-            float delay
-        )
-        {
-            _isTransitioning = true;
-
-            if (delay > 0f)
-            {
-                yield return new WaitForSeconds(delay);
-            }
-
-            var menuInstance = preBattleMenuLocation?.activeInstance;
-            if (menuInstance == null)
-            {
-                _isTransitioning = false;
-                yield break;
-            }
-
-            var uiFade = UIFadeCache.Get(menuInstance);
-            if (uiFade == null)
-            {
-                // No fade component, proceed directly
-                if (menuInstance.TryGetComponent<RadialMenu>(out var menu))
-                {
-                    menu.OnItemSelected -= HandlePreBattleMenuSelect;
-                }
-
-                if (menuInstance.TryGetComponent<MenuBase>(out var baseMenu))
-                {
-                    baseMenu.OnItemSelected -= HandlePreBattleMenuSelect;
-                }
-
-                // Unsubscribe from scene transition event if still subscribed
-                _brain.OnSceneTransitionCompleted -= HandleSceneTransitionForPreBattleMenu;
-
-                _brain.PublishPreBattleCompleted();
-                Destroy(menuInstance);
-                preBattleMenuLocation.activeInstance = null;
-                _isTransitioning = false;
-                yield break;
-            }
-
-            // Use existing coroutine for fade and cleanup
-            yield return StartCoroutine(HandleFadeAndTransition(menuInstance, uiFade));
-        }
     }
 }

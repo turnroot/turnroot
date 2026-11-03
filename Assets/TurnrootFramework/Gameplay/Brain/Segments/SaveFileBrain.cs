@@ -8,8 +8,6 @@ namespace Turnroot.Gameplay.Brain
     /// </summary>
     public partial class SaveFileBrain : BrainComponent
     {
-        protected override EventPriority GetSubscriptionPriority() => EventPriority.Highest;
-
         protected override void SubscribeToBrainEvents()
         {
             Brain.OnUpdateSaveFileName += HandleUpdateSaveFileName;
@@ -84,4 +82,3 @@ namespace Turnroot.Gameplay.Brain
         }
     }
 }
-

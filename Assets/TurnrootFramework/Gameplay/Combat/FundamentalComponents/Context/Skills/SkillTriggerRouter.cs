@@ -90,17 +90,7 @@ namespace Turnroot.Gameplay.Brain
         #region Battle Start Skill Handling
         private void HandleBattleStartSkills()
         {
-            _battleStartSkills.Clear();
-            _turnEndsSkills.Clear();
-            _anyTurnStartsSkills.Clear();
-            _unitTurnStartsSkills.Clear();
-            _unitMovesSkills.Clear();
-            _unitAttacksSkills.Clear();
-            _enemyAttacksSkills.Clear();
-            _enemyDefeatedSkills.Clear();
-            _combatStartSkills.Clear();
-            _postCombatSkills.Clear();
-
+            ClearSkillCaches();
             var context = BattleObject?.Context;
             if (context == null)
             {
@@ -108,20 +98,9 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // reset any existing active-skills lists in the context
-            context.Skill.ActiveSkills.Clear();
-            context.Skill.ActiveSkillGraphs.Clear();
-
-            var allUnits = new List<CharacterInstance>();
-            if (context.Participants != null)
-            {
-                allUnits.AddRange(context.Participants.GetAllUnits());
-            }
-            foreach (var unit in allUnits)
-            {
-                unit?.ClearActivePassiveSkills();
-            }
-
+            ResetActiveSkills(context);
+            var allUnits = GetBattleUnits(context);
+            ClearUnitPassiveSkills(allUnits);
             foreach (var unit in allUnits)
             {
                 if (unit == null)
@@ -137,98 +116,140 @@ namespace Turnroot.Gameplay.Brain
                         continue;
                     }
 
-                    if (skill.HasBattleStartNode())
-                    {
-                        AddToSkillDict(_battleStartSkills, unit, skill);
-
-                        Brain.PublishSkillTriggered(unit, skill);
-                        Brain.PublishBattleStartSkill(unit, skill);
-
-                        context.Skill.ActiveSkills.Add(skill);
-                        if (skill.BehaviorGraph != null)
-                        {
-                            context.Skill.ActiveSkillGraphs.Add(skill.BehaviorGraph);
-                        }
-
-                        if (SkillDebug.VerboseExecutionLogs)
-                        {
-                            $"BattleBrain: Battle-start skill '{skill.SkillName}' found on unit {unit.Id}".LogInfo();
-                        }
-                    }
-
-                    CollectTriggerSkill(
-                        skill.HasTurnEndsNode(),
-                        _turnEndsSkills,
-                        unit,
-                        skill,
-                        "Turn-ends"
-                    );
-                    CollectTriggerSkill(
-                        skill.HasAnyTurnStartsNode(),
-                        _anyTurnStartsSkills,
-                        unit,
-                        skill,
-                        "Any-turn-starts"
-                    );
-                    CollectTriggerSkill(
-                        skill.HasUnitTurnStartsNode(),
-                        _unitTurnStartsSkills,
-                        unit,
-                        skill,
-                        "Unit-turn-starts"
-                    );
-                    CollectTriggerSkill(
-                        skill.HasUnitMovesNode(),
-                        _unitMovesSkills,
-                        unit,
-                        skill,
-                        "Unit-moves"
-                    );
-                    CollectTriggerSkill(
-                        skill.HasUnitAttacksNode(),
-                        _unitAttacksSkills,
-                        unit,
-                        skill,
-                        "Unit-attacks"
-                    );
-                    CollectTriggerSkill(
-                        skill.HasEnemyAttacksNode(),
-                        _enemyAttacksSkills,
-                        unit,
-                        skill,
-                        "Enemy-attacks"
-                    );
-                    CollectTriggerSkill(
-                        skill.HasEnemyDefeatedNode(),
-                        _enemyDefeatedSkills,
-                        unit,
-                        skill,
-                        "Enemy-defeated"
-                    );
-                    CollectTriggerSkill(
-                        skill.HasCombatStartsNode(),
-                        _combatStartSkills,
-                        unit,
-                        skill,
-                        "Combat-starts"
-                    );
-                    CollectTriggerSkill(
-                        skill.HasPostCombatNode(),
-                        _postCombatSkills,
-                        unit,
-                        skill,
-                        "Post-combat"
-                    );
+                    RegisterBattleStartSkill(unit, skill, context);
+                    CollectUnitTriggerSkills(unit, skill);
                 }
             }
 
-            // Execute BattleStart skills exactly once now that all units are collected
-            foreach (var unit in allUnits)
+            ExecuteBattleStartSkills(allUnits, context);
+        }
+
+        private void ClearSkillCaches()
+        {
+            _battleStartSkills.Clear();
+            _turnEndsSkills.Clear();
+            _anyTurnStartsSkills.Clear();
+            _unitTurnStartsSkills.Clear();
+            _unitMovesSkills.Clear();
+            _unitAttacksSkills.Clear();
+            _enemyAttacksSkills.Clear();
+            _enemyDefeatedSkills.Clear();
+            _combatStartSkills.Clear();
+            _postCombatSkills.Clear();
+        }
+
+        private static void ResetActiveSkills(BattleContext context)
+        {
+            context.Skill.ActiveSkills.Clear();
+            context.Skill.ActiveSkillGraphs.Clear();
+        }
+
+        private static List<CharacterInstance> GetBattleUnits(BattleContext context)
+        {
+            var units = new List<CharacterInstance>();
+            if (context.Participants != null)
+            {
+                units.AddRange(context.Participants.GetAllUnits());
+            }
+
+            return units;
+        }
+
+        private static void ClearUnitPassiveSkills(List<CharacterInstance> units)
+        {
+            foreach (var unit in units)
+            {
+                unit?.ClearActivePassiveSkills();
+            }
+        }
+
+        private void RegisterBattleStartSkill(
+            CharacterInstance unit,
+            Skill skill,
+            BattleContext context
+        )
+        {
+            if (!skill.HasBattleStartNode())
+            {
+                return;
+            }
+
+            AddToSkillDict(_battleStartSkills, unit, skill);
+            Brain.PublishSkillTriggered(unit, skill);
+            Brain.PublishBattleStartSkill(unit, skill);
+            context.Skill.ActiveSkills.Add(skill);
+            context.Skill.ActiveSkillGraphs.Add(skill.BehaviorGraph);
+
+            if (SkillDebug.VerboseExecutionLogs)
+            {
+                $"BattleBrain: Battle-start skill '{skill.SkillName}' found on unit {unit.Id}".LogInfo();
+            }
+        }
+
+        private void CollectUnitTriggerSkills(CharacterInstance unit, Skill skill)
+        {
+            CollectTriggerSkill(skill.HasTurnEndsNode(), _turnEndsSkills, unit, skill, "Turn-ends");
+            CollectTriggerSkill(
+                skill.HasAnyTurnStartsNode(),
+                _anyTurnStartsSkills,
+                unit,
+                skill,
+                "Any-turn-starts"
+            );
+            CollectTriggerSkill(
+                skill.HasUnitTurnStartsNode(),
+                _unitTurnStartsSkills,
+                unit,
+                skill,
+                "Unit-turn-starts"
+            );
+            CollectTriggerSkill(skill.HasUnitMovesNode(), _unitMovesSkills, unit, skill, "Unit-moves");
+            CollectTriggerSkill(
+                skill.HasUnitAttacksNode(),
+                _unitAttacksSkills,
+                unit,
+                skill,
+                "Unit-attacks"
+            );
+            CollectTriggerSkill(
+                skill.HasEnemyAttacksNode(),
+                _enemyAttacksSkills,
+                unit,
+                skill,
+                "Enemy-attacks"
+            );
+            CollectTriggerSkill(
+                skill.HasEnemyDefeatedNode(),
+                _enemyDefeatedSkills,
+                unit,
+                skill,
+                "Enemy-defeated"
+            );
+            CollectTriggerSkill(
+                skill.HasCombatStartsNode(),
+                _combatStartSkills,
+                unit,
+                skill,
+                "Combat-starts"
+            );
+            CollectTriggerSkill(
+                skill.HasPostCombatNode(),
+                _postCombatSkills,
+                unit,
+                skill,
+                "Post-combat"
+            );
+        }
+
+        private void ExecuteBattleStartSkills(List<CharacterInstance> units, BattleContext context)
+        {
+            foreach (var unit in units)
             {
                 if (unit == null)
                 {
                     continue;
                 }
+
                 context.Unit.UnitInstance = unit;
                 ExecuteTriggerSkills(unit, _battleStartSkills, "BattleStarts");
             }

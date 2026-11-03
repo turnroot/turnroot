@@ -140,54 +140,74 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
             bool hasSavedShopStock = HubDayStateStore.HasShopStock(name);
             bool isDailyUpdateAlreadyProcessed = HubDayStateStore.HasProcessedDailyUpdates;
 
-            // If this shop has no existing persistent stock data, initialize normal items to max
-            if (!hasSavedShopStock && brainRef != null)
+            RestoreStock(brainRef, hasSavedShopStock);
+            bool hasNewRareStock = RefreshStock(
+                currentDay,
+                brainRef,
+                isDailyUpdateAlreadyProcessed,
+                out int totalStock
+            );
+            if (hasNewRareStock)
             {
-                for (int i = 0; i < ItemsStocked.Length; i++)
+                return "A rare item is in stock at";
+            }
+
+            if (totalStock == 0)
+            {
+                UpdateSoldOutDialogue();
+            }
+
+            return "";
+        }
+
+        private void RestoreStock(Brain.Brain brainRef, bool hasSavedShopStock)
+        {
+            if (brainRef == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < ItemsStocked.Length; i++)
+            {
+                var item = ItemsStocked[i];
+                if (!hasSavedShopStock && item.RareItem)
                 {
-                    var item = ItemsStocked[i];
-                    if (item.RareItem)
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    item.CurrentStatus.AvailableQuantity = item.MaxQuantity;
-                    ItemsStocked[i] = item; // Ensure struct value is updated in the array.
-                    currentStock[item] = item.MaxQuantity;
-
-                    string itemName = item.Item != null ? item.Item.name : string.Empty;
+                int quantity = hasSavedShopStock
+                    ? HubDayStateStore.GetShopItemQuantity(
+                        name,
+                        item.Item != null ? item.Item.name : string.Empty,
+                        item.MaxQuantity
+                    )
+                    : item.MaxQuantity;
+                item.CurrentStatus.AvailableQuantity = quantity;
+                ItemsStocked[i] = item;
+                currentStock[item] = quantity;
+                if (!hasSavedShopStock)
+                {
                     HubDayStateStore.SetShopItemQuantity(
                         brainRef,
                         name,
-                        itemName,
-                        item.MaxQuantity
+                        item.Item != null ? item.Item.name : string.Empty,
+                        quantity
                     );
                 }
             }
-            else if (brainRef != null)
-            {
-                for (int i = 0; i < ItemsStocked.Length; i++)
-                {
-                    var item = ItemsStocked[i];
-                    string itemName = item.Item != null ? item.Item.name : string.Empty;
-                    int persistedQuantity = HubDayStateStore.GetShopItemQuantity(
-                        name,
-                        itemName,
-                        item.MaxQuantity
-                    );
+        }
 
-                    item.CurrentStatus.AvailableQuantity = persistedQuantity;
-                    ItemsStocked[i] = item;
-                    currentStock[item] = persistedQuantity;
-                }
-            }
-
-            var totalStock = 0;
+        private bool RefreshStock(
+            GameDate currentDay,
+            Brain.Brain brainRef,
+            bool isDailyUpdateAlreadyProcessed,
+            out int totalStock
+        )
+        {
+            totalStock = 0;
             foreach (ShopItem item in ItemsStocked)
             {
-                // always evaluate sale status every display/refresh
                 item.IsOnSale(currentDay);
-
                 if (!isDailyUpdateAlreadyProcessed)
                 {
                     item.RestockIfNeeded(currentDay);
@@ -196,44 +216,50 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Shop
                 var status = item.CurrentStatus;
                 currentStock[item] = status.AvailableQuantity;
                 totalStock += status.AvailableQuantity;
-
-                // Persist the updated quantity into HubDayStateStore for this day.
-                if (brainRef != null)
-                {
-                    string itemName = item.Item != null ? item.Item.name : string.Empty;
-                    HubDayStateStore.SetShopItemQuantity(
-                        brainRef,
-                        name,
-                        itemName,
-                        status.AvailableQuantity
-                    );
-                }
-
-                // Only show rare item notification when this call is the daily update path (not on repeated same-day slip-ins)
+                PersistStockQuantity(brainRef, item, status.AvailableQuantity);
                 if (!isDailyUpdateAlreadyProcessed && item.RareItem && status.AvailableQuantity > 0)
                 {
-                    return $"A rare item is in stock at";
+                    return true;
                 }
             }
 
-            if (totalStock == 0)
+            return false;
+        }
+
+        private void PersistStockQuantity(Brain.Brain brainRef, ShopItem item, int quantity)
+        {
+            if (brainRef == null)
             {
-                if (SoldOutDialogueText != null)
-                {
-                    for (int i = 0; i < WelcomeDialogues.Length; i++)
-                    {
-                        var d = WelcomeDialogues[i];
-                        d.Dialogue = SoldOutDialogueText;
-                        WelcomeDialogues[i] = d;
-                    }
-                    WelcomeDialogueConversations =
-                        audioBrain?.ConvertToOneShots(
-                            WelcomeDialogues,
-                            Shopkeeper != null ? Shopkeeper.DisplayName : "???"
-                        ) ?? Array.Empty<OneShot>();
-                }
+                return;
             }
-            return "";
+
+            HubDayStateStore.SetShopItemQuantity(
+                brainRef,
+                name,
+                item.Item != null ? item.Item.name : string.Empty,
+                quantity
+            );
+        }
+
+        private void UpdateSoldOutDialogue()
+        {
+            if (SoldOutDialogueText == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < WelcomeDialogues.Length; i++)
+            {
+                var dialogue = WelcomeDialogues[i];
+                dialogue.Dialogue = SoldOutDialogueText;
+                WelcomeDialogues[i] = dialogue;
+            }
+
+            WelcomeDialogueConversations =
+                audioBrain?.ConvertToOneShots(
+                    WelcomeDialogues,
+                    Shopkeeper != null ? Shopkeeper.DisplayName : "???"
+                ) ?? Array.Empty<OneShot>();
         }
     }
 }
