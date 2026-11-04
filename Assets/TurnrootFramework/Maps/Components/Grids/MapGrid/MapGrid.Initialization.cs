@@ -118,7 +118,11 @@ namespace Turnroot.Gameplay.Maps
 
             // get the BattleGameObject in the parent (includes self)
             battleGameObject = GetComponentInParent<BattleGameObject>();
-            if (PlayerTeamSpawnPoints.Count > battleGameObject.MaxPlayerTeamUnits)
+            PlayerTeamSpawnPoints ??= new System.Collections.Generic.List<Vector2Int>();
+            if (
+                battleGameObject != null
+                && PlayerTeamSpawnPoints.Count > battleGameObject.MaxPlayerTeamUnits
+            )
             {
                 Debug.LogWarning(
                     $"MapGrid: Trimming PlayerTeamSpawnPoints to max allowed units ({battleGameObject.MaxPlayerTeamUnits})"
