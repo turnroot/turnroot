@@ -167,12 +167,9 @@ namespace Turnroot.Gameplay.Combat
                 return GameSceneKind.EndOfHubDay;
             }
 
-            if (sceneName == CreditsSceneName)
-            {
-                return GameSceneKind.Credits;
-            }
-
-            return TryGetBattle(sceneName, out _) ? GameSceneKind.Battle : GameSceneKind.Other;
+            return sceneName == CreditsSceneName
+                ? GameSceneKind.Credits
+                : TryGetBattle(sceneName, out _) ? GameSceneKind.Battle : GameSceneKind.Other;
         }
 
         // ── Public API ───────────────────────────────────────────────────────

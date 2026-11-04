@@ -21,15 +21,10 @@ namespace Turnroot.Characters
             var movementStat = instance.GetUnboundedStat(Stats.UnboundedStatType.Movement);
             int movementBonus = movementStat?.BonusInt ?? 0;
             var classIdentity = instance.CurrentClassTemplate?.Identity;
-            if (
-                classIdentity != null
+            return classIdentity != null
                 && !(classIdentity.IsMountedClass() && !instance.IsMounted)
-            )
-            {
-                return classIdentity.Movement + movementBonus;
-            }
-
-            return (movementStat?.CurrentInt ?? 0) + movementBonus;
+                ? classIdentity.Movement + movementBonus
+                : (movementStat?.CurrentInt ?? 0) + movementBonus;
         }
 
         /// <summary>

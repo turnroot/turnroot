@@ -46,7 +46,7 @@ namespace Turnroot.Gameplay.Maps
                 }
                 else
                 {
-                    "MapGrid: No TerrainLevelModel assigned while UseHeightMeshAsTerrainModel is false.".LogError();
+                    "MapGrid: No TerrainLevelModel assigned while UseHeightMeshAsTerrainModel is false.".LogWarning();
                 }
             }
         }

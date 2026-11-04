@@ -194,12 +194,7 @@ namespace Turnroot.Gameplay.Brain
                 return compactHtmlColor;
             }
 
-            if (TryParseJsonColor(serializedColor, out var jsonColor))
-            {
-                return jsonColor;
-            }
-
-            return fallback;
+            return TryParseJsonColor(serializedColor, out var jsonColor) ? jsonColor : fallback;
         }
 
         private static bool TryParseCompactColor(string serializedColor, out Color color)

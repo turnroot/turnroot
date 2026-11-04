@@ -154,12 +154,9 @@ namespace Turnroot.Characters
             }
 
             var settings = GameplayGeneralSettings.Instance;
-            if (settings == null)
-            {
-                return Mathf.Clamp01(AverageContributions(levelContribs, statContribs, expContribs));
-            }
-
-            return CalculateWeightedPassChance(
+            return settings == null
+                ? Mathf.Clamp01(AverageContributions(levelContribs, statContribs, expContribs))
+                : CalculateWeightedPassChance(
                 settings,
                 levelContribs,
                 statContribs,
