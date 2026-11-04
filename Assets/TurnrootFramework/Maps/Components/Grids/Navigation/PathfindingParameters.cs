@@ -57,10 +57,6 @@ namespace Turnroot.Gameplay.Maps
                 }
             }
 
-            var movementStatObj = character?.GetUnboundedStat(
-                Characters.Stats.UnboundedStatType.Movement
-            );
-
             if (
                 !ValidationHelper.ValidateNotNull(
                     "PathfindingParameters.FromCharacter",
@@ -68,8 +64,7 @@ namespace Turnroot.Gameplay.Maps
                     (character, nameof(character)),
                     (graph, nameof(graph)),
                     (start, nameof(start)),
-                    (classData, nameof(classData)),
-                    (movementStatObj, nameof(movementStatObj))
+                    (classData, nameof(classData))
                 )
             )
             {
@@ -80,12 +75,11 @@ namespace Turnroot.Gameplay.Maps
             var movementType = character.GetEffectiveMovementType();
             var isMagic = classData.Identity.IsMagic;
 
-            var movementStat = movementStatObj.CurrentInt;
             return new PathfindingParameters
             {
                 Graph = graph,
                 Start = start,
-                MovementBudget = movementStat,
+                MovementBudget = character.GetEffectiveMovement(),
                 IsWalking = movementType == MovementType.Infantry,
                 IsFlying = movementType == MovementType.Flying,
                 IsRiding = movementType == MovementType.Riding,

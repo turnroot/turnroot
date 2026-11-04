@@ -57,6 +57,9 @@ namespace Turnroot.Characters.CharacterClass
         [Tooltip("Progression tier of this class")]
         public ProgressionLevel ClassTier = ProgressionLevel.Base;
 
+        [Tooltip("Movement stat value applied while this class is equipped")]
+        public int Movement = 5;
+
         [Tooltip("Whether this is a magic-based class")]
         public bool IsMagic;
 

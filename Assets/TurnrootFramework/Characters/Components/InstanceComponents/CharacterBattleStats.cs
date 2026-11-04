@@ -203,7 +203,7 @@ namespace Turnroot.Characters
                     (GetUnboundedStat(Stats.UnboundedStatType.Speed)?.Current ?? 0f) * speedMult;
             }
 
-            if (!Mathf.Approximately(luckMult, 0f) && (settings?.UseLuck ?? false))
+            if (!Mathf.Approximately(luckMult, 0f))
             {
                 avoid += (GetUnboundedStat(Stats.UnboundedStatType.Luck)?.Current ?? 0f) * luckMult;
             }
@@ -220,23 +220,15 @@ namespace Turnroot.Characters
             return avoid;
         }
 
-        public float CalculateCritAvoid(GameSettings.GameplayGeneralSettings settings)
+        public float CalculateCritAvoid()
         {
-            if (settings == null)
+            var settings = GameSettings.GameplayGeneralSettings.Instance;
+            if (settings?.UseCriticalAvoidance != true)
             {
-                settings = GameSettings.GameplayGeneralSettings.Instance;
+                return 0f;
             }
 
-            if (settings?.UseSeparateCriticalAvoidance == true)
-            {
-                return GetUnboundedStat(Stats.UnboundedStatType.CriticalAvoidance)?.Current ?? 0f;
-            }
-            else if (settings?.UseLuck == true)
-            {
-                return GetUnboundedStat(Stats.UnboundedStatType.Luck)?.Current ?? 0f;
-            }
-
-            return 0f;
+            return GetUnboundedStat(Stats.UnboundedStatType.Luck)?.Current ?? 0f;
         }
 
         [NonSerialized]

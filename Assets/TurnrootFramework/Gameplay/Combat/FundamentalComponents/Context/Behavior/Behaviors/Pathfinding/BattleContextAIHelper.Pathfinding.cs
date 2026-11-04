@@ -41,8 +41,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return false;
             }
 
-            ApplyMovementBonuses(parameters);
-
             var points = _aStarModified.GetReachable(
                 parameters.Graph,
                 parameters.Start,
@@ -240,27 +238,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return true;
         }
 
-        private void ApplyMovementBonuses(PathfindingParameters parameters)
-        {
-            var classData = _context.Unit.UnitInstance.CurrentClass?.ClassData;
-            if (classData.Stats.StatBonuses == null)
-            {
-                return;
-            }
-
-            var bonuses = classData.Stats.StatBonuses;
-            if (bonuses != null)
-            {
-                var idx = bonuses.FindIndex(b =>
-                    !b.isBounded
-                    && b.unboundedStatType == Characters.Stats.UnboundedStatType.Movement
-                );
-                if (idx >= 0)
-                {
-                    parameters.MovementBudget += (int)bonuses[idx].value;
-                }
-            }
-        }
         #endregion
     }
 }

@@ -81,3 +81,4 @@ Packages/UnityMarkdownViewer/
 /Assets/Demos
 'Assets/Demos/' 
 *.md
+/Assets/TurnrootFramework/Tests

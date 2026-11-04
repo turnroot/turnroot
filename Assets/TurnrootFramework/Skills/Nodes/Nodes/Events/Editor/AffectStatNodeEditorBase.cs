@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using Turnroot.Skills.Nodes.Editor;
+using Turnroot.Characters.Stats;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -67,7 +68,7 @@ namespace Turnroot.Skills.Nodes.Events.Editor
                 statTypes.Add((t.ToString(), true));
             }
 
-            foreach (var t in gs.GetDefaultUnboundedStatTypes())
+            foreach (UnboundedStatType t in System.Enum.GetValues(typeof(UnboundedStatType)))
             {
                 availableStats.Add(t.ToString());
                 statTypes.Add((t.ToString(), false));

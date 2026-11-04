@@ -281,7 +281,7 @@ namespace Turnroot.Gameplay.Brain
             {
                 _terrainTypeOverlay.Display(
                     destination,
-                    SelectedUnit.CurrentClass.ClassData.Identity.MovementType
+                    SelectedUnit.GetEffectiveMovementType()
                 );
             }
         }
@@ -317,15 +317,7 @@ namespace Turnroot.Gameplay.Brain
 
                 if (destination != null && SelectedUnit != null)
                 {
-                    var movementType = SelectedUnit
-                        ?.CurrentClass
-                        ?.ClassData
-                        ?.Identity
-                        ?.MovementType;
-                    if (movementType.HasValue)
-                    {
-                        _terrainTypeOverlay.Display(destination, movementType.Value);
-                    }
+                    _terrainTypeOverlay.Display(destination, SelectedUnit.GetEffectiveMovementType());
                 }
             }
             else

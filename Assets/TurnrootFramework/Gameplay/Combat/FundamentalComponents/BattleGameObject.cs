@@ -74,7 +74,7 @@ namespace Turnroot.Gameplay.Combat
             private set => _battleConditions = value;
         }
 
-        [field: SerializeField]
+        [field: SerializeField, HideInInspector]
         public MapGrid MapGrid { get; private set; }
 
         private TileHighlighter _tileHighlighter;
@@ -151,9 +151,24 @@ namespace Turnroot.Gameplay.Combat
         }
 
 #if UNITY_EDITOR
+        private void Reset()
+        {
+            MapGrid = GetComponentInChildren<MapGrid>();
+            if (MapGrid != null)
+            {
+                return;
+            }
+
+            var mapGridObject = new GameObject("MapGrid");
+            UnityEditor.Undo.RegisterCreatedObjectUndo(mapGridObject, "Create MapGrid");
+            mapGridObject.transform.SetParent(transform, false);
+            MapGrid = mapGridObject.AddComponent<MapGrid>();
+        }
+
         private void OnValidate()
         {
             Context ??= GetComponent<BattleContext>();
+            MapGrid ??= GetComponentInChildren<MapGrid>();
             if (BattleConditions == null)
             {
                 return;

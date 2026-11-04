@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
@@ -125,41 +126,77 @@ namespace Turnroot.Characters
             UnboundedStats ??= new List<CharacterStat>();
 
             var gs = GameplayGeneralSettings.Instance;
-            if (gs == null)
-            {
-                return;
-            }
-
-            if (BoundedStats.Count == 0)
+            if (BoundedStats.Count == 0 && gs != null)
             {
                 BoundedStats = gs.CreateDefaultBoundedStats();
             }
 
-            if (UnboundedStats.Count == 0)
+            var seenStats = new HashSet<UnboundedStatType>();
+            UnboundedStats.RemoveAll(stat =>
+                stat == null
+                || !Enum.IsDefined(typeof(UnboundedStatType), stat.StatType)
+                || !seenStats.Add(stat.StatType)
+            );
+
+            var templateId = FullName;
+            foreach (
+                UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType))
+            )
             {
-                UnboundedStats = gs.CreateDefaultUnboundedStats();
+                StatHelpers.GetOrCreateUnboundedStat(UnboundedStats, statType, templateId);
             }
-        }
 
-        private void OnEnable()
-        {
-            EnsureDefaultStatsInitialized();
-
-            // Initialize personal growth rates if empty (set all unbounded stats + HP to 0% growth)
             PersonalGrowthRates ??= new List<UnboundedStatModifier>();
-            if (PersonalGrowthRates.Count == 0)
+            var seenGrowthRates = new HashSet<UnboundedStatType>();
+            bool healthGrowthSeen = false;
+            PersonalGrowthRates.RemoveAll(rate =>
             {
-                if (UnboundedStats.Count > 0)
+                if (rate.isBounded)
                 {
-                    foreach (var stat in UnboundedStats)
+                    if (rate.boundedStatType != BoundedStatType.Health || healthGrowthSeen)
                     {
-                        PersonalGrowthRates.Add(new UnboundedStatModifier(stat.StatType, 0f));
+                        return true;
                     }
+
+                    healthGrowthSeen = true;
+                    return false;
                 }
-                // always include an HP growth entry as a bounded stat
+
+                return rate.unboundedStatType == UnboundedStatType.Movement
+                    || !Enum.IsDefined(typeof(UnboundedStatType), rate.unboundedStatType)
+                    || !seenGrowthRates.Add(rate.unboundedStatType);
+            });
+
+            foreach (
+                UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType))
+            )
+            {
+                if (statType == UnboundedStatType.Movement)
+                {
+                    continue;
+                }
+
+                if (
+                    !PersonalGrowthRates.Exists(rate =>
+                        !rate.isBounded && rate.unboundedStatType == statType
+                    )
+                )
+                {
+                    PersonalGrowthRates.Add(new UnboundedStatModifier(statType, 0f));
+                }
+            }
+
+            if (
+                !PersonalGrowthRates.Exists(rate =>
+                    rate.isBounded && rate.boundedStatType == BoundedStatType.Health
+                )
+            )
+            {
                 PersonalGrowthRates.Add(new UnboundedStatModifier(BoundedStatType.Health, 0f));
             }
         }
+
+        private void OnEnable() => EnsureDefaultStatsInitialized();
 
         private void OnValidate()
         {
@@ -197,24 +234,6 @@ namespace Turnroot.Characters
             if (string.IsNullOrWhiteSpace(FullName))
             {
                 FullName = DisplayName;
-            }
-
-            // guarantee that growth rates list contains HP entry and remove movement entries
-            if (PersonalGrowthRates != null)
-            {
-                // add HP entry if missing
-                if (
-                    !PersonalGrowthRates.Exists(g =>
-                        g.isBounded && g.boundedStatType == BoundedStatType.Health
-                    )
-                )
-                {
-                    PersonalGrowthRates.Add(new UnboundedStatModifier(BoundedStatType.Health, 0f));
-                }
-                // remove any stray movement entries (they're not editable)
-                PersonalGrowthRates.RemoveAll(g =>
-                    !g.isBounded && g.unboundedStatType == UnboundedStatType.Movement
-                );
             }
 
             // synchronize ExperienceRanks list with available types from settings

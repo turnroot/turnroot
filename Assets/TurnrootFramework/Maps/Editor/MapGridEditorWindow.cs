@@ -37,6 +37,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using Turnroot.Gameplay.Objects;
+using UnityEngine.SceneManagement;
 
 namespace Turnroot.Gameplay.Maps
 {
@@ -171,6 +172,7 @@ namespace Turnroot.Gameplay.Maps
 
         private void OnEnable()
         {
+            SelectMapGridFromActiveScene();
             _terrainAsset = TerrainTypes.LoadDefault();
             _editorSettings = MapGridEditorSettings.Load();
 
@@ -191,6 +193,24 @@ namespace Turnroot.Gameplay.Maps
             _zoom = 1f;
 
             InitializeHotkeys();
+        }
+
+        private void SelectMapGridFromActiveScene()
+        {
+            if (_grid != null)
+            {
+                return;
+            }
+
+            var activeScene = SceneManager.GetActiveScene();
+            if (!activeScene.IsValid() || !activeScene.isLoaded)
+            {
+                return;
+            }
+
+            _grid = Resources
+                .FindObjectsOfTypeAll<MapGrid>()
+                .FirstOrDefault(grid => grid != null && grid.gameObject.scene == activeScene);
         }
 
         private void InvalidateColorCache() => _cellColorCache.Clear();
@@ -1901,7 +1921,9 @@ namespace Turnroot.Gameplay.Maps
                 }
                 else
                 {
-                    var max = _grid.battleGameObject.MaxPlayerTeamUnits;
+                    var max = _grid.battleGameObject != null
+                        ? _grid.battleGameObject.MaxPlayerTeamUnits
+                        : 0;
                     if (max > 0 && _grid.PlayerTeamSpawnPoints.Count >= max)
                     {
                         EditorUtility.DisplayDialog(

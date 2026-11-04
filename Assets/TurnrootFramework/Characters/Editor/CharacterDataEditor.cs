@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Components;
@@ -103,33 +104,16 @@ namespace Turnroot.Characters.Editor
                     continue;
                 }
 
-                // use intValue (raw enum integer) as the key to handle non-contiguous enum values
+                // Use the raw enum integer as a stable serialized key.
                 string key = isB.boolValue ? "B" + bnd.intValue : "U" + unb.intValue;
                 existingKeys.Add(key);
             }
 
             bool modified = false;
 
-            // Use GetDefaultUnboundedStatTypes() so that optional stats (Authority, Luck)
-            // are only added when enabled in GameplayGeneralSettings.
-            // Movement and CriticalAvoidance are calculated, not set directly — skip them.
-            var gs = GameSettings.GameplayGeneralSettings.Instance;
-            UnboundedStatType[] statTypes;
-            if (gs != null)
+            foreach (UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType)))
             {
-                statTypes = gs.GetDefaultUnboundedStatTypes();
-            }
-            else
-            {
-                statTypes = (UnboundedStatType[])System.Enum.GetValues(typeof(UnboundedStatType));
-            }
-
-            foreach (UnboundedStatType statType in statTypes)
-            {
-                if (
-                    statType == UnboundedStatType.Movement
-                    || statType == UnboundedStatType.CriticalAvoidance
-                )
+                if (statType == UnboundedStatType.Movement)
                 {
                     continue;
                 }
@@ -143,7 +127,7 @@ namespace Turnroot.Characters.Editor
                 grProp.InsertArrayElementAtIndex(grProp.arraySize);
                 var el = grProp.GetArrayElementAtIndex(grProp.arraySize - 1);
                 el.FindPropertyRelative("isBounded").boolValue = false;
-                // use intValue to correctly handle non-contiguous enum values (e.g. Authority=11, CriticalAvoidance=12)
+                // Use raw enum values as stable keys while rebuilding the serialized list.
                 el.FindPropertyRelative("unboundedStatType").intValue = (int)statType;
                 el.FindPropertyRelative("boundedStatType").intValue = 0;
                 el.FindPropertyRelative("value").floatValue = 0f;
@@ -552,18 +536,19 @@ namespace Turnroot.Characters.Editor
                     continue;
                 }
 
-                // movement and critical avoidance are calculated, not per-character; remove any stale entries
-                if (!isBProp.boolValue)
-                {
-                    var stat = (UnboundedStatType)unbProp.intValue;
-                    if (
-                        stat == UnboundedStatType.Movement
-                        || stat == UnboundedStatType.CriticalAvoidance
+                if (
+                    !isBProp.boolValue
+                    && (
+                        !Enum.IsDefined(
+                            typeof(UnboundedStatType),
+                            (UnboundedStatType)unbProp.intValue
+                        )
+                        || (UnboundedStatType)unbProp.intValue == UnboundedStatType.Movement
                     )
-                    {
-                        _personalGrowthRates.DeleteArrayElementAtIndex(i);
-                        continue;
-                    }
+                )
+                {
+                    _personalGrowthRates.DeleteArrayElementAtIndex(i);
+                    continue;
                 }
             }
 
@@ -730,53 +715,45 @@ namespace Turnroot.Characters.Editor
                 Handles.EndGUI();
                 EditorGUILayout.HelpBox("Base stat total vs thresholds.", MessageType.Info);
 
-                // manual list so we can show names and values instead of
-                // generic "Element 0" entries.  Use the backing field if needed.
+                // Show the fixed stat set as labels so legacy enum values cannot be selected.
                 var unbProp =
                     serializedObject.FindProperty("UnboundedStats")
                     ?? serializedObject.FindProperty("<UnboundedStats>k__BackingField");
                 if (unbProp != null)
                 {
-                    for (int j = 0; j < unbProp.arraySize; j++)
+                    foreach (UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType)))
                     {
-                        var elem = unbProp.GetArrayElementAtIndex(j);
-                        if (elem == null)
+                        SerializedProperty statProperty = null;
+                        for (int j = 0; j < unbProp.arraySize; j++)
                         {
-                            continue;
-                        }
-
-                        var typeProp = elem.FindPropertyRelative("_statType");
-                        if (typeProp != null)
-                        {
-                            var statType = (UnboundedStatType)typeProp.intValue;
-                            // CriticalAvoidance is calculated, not set directly
-                            if (statType == UnboundedStatType.CriticalAvoidance)
+                            var candidate = unbProp.GetArrayElementAtIndex(j);
+                            var candidateType = candidate?.FindPropertyRelative("_statType");
+                            if (
+                                candidateType != null
+                                && candidateType.intValue == (int)statType
+                            )
                             {
-                                continue;
+                                statProperty = candidate.FindPropertyRelative("_current");
+                                break;
                             }
                         }
 
-                        var curProp = elem.FindPropertyRelative("_current");
-                        string label =
-                            typeProp != null
-                                ? ((UnboundedStatType)typeProp.intValue).ToString()
-                                : $"Element {j}";
                         EditorGUILayout.BeginHorizontal();
-                        if (typeProp != null)
+                        EditorGUILayout.LabelField(statType.ToString(), GUILayout.Width(150));
+                        if (statProperty != null)
                         {
-                            EditorGUILayout.PropertyField(typeProp, GUIContent.none);
+                            EditorGUILayout.PropertyField(statProperty, GUIContent.none);
                         }
-
-                        if (curProp != null)
+                        else
                         {
-                            EditorGUILayout.PropertyField(curProp, new GUIContent(label));
+                            EditorGUILayout.LabelField("Missing");
                         }
 
                         EditorGUILayout.EndHorizontal();
                     }
                     EditorGUILayout.Space();
                     EditorGUILayout.HelpBox(
-                        "You can edit each unbounded stat's type and value above.",
+                        "The stat set is fixed; edit values without changing stat types.",
                         MessageType.None
                     );
                 }

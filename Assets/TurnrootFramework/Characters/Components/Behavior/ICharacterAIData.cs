@@ -47,11 +47,9 @@ namespace Turnroot.Characters
                 _character = character;
             }
 
-            public MovementType MovementType =>
-                _character.CurrentClass?.ClassData.Identity.MovementType ?? MovementType.Infantry;
+            public MovementType MovementType => _character.GetEffectiveMovementType();
 
-            public int Movement =>
-                _character.GetUnboundedStat(UnboundedStatType.Movement)?.Get() ?? 0;
+            public int Movement => _character.GetEffectiveMovement();
 
             public bool IsMagic => _character.CurrentClass?.ClassData.Identity.IsMagic ?? false;
 

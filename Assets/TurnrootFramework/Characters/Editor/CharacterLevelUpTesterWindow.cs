@@ -4,24 +4,28 @@ using Turnroot.Characters.Stats;
 using Turnroot.Characters.CharacterClass;
 using UnityEditor;
 using UnityEngine;
+using System;
+using System.Linq;
 
 namespace Turnroot.Characters.Editor
 {
     /// <summary>
-    /// Popup window that lets designers simulate leveling a CharacterData asset
-    /// without mutating any real data.  It creates a temporary CharacterInstance
-    /// for the template and runs <see cref="CharacterInstance.LevelUp" /> each
-    /// time the user clicks the button.  Stats are shown alongside the base
-    /// template values so deltas are visible.
+    /// Popup that previews level-up growth using only CharacterData and class data.
+    /// The preview never creates a CharacterInstance or reads/writes LTM.
     /// </summary>
     public class CharacterLevelUpTesterWindow : EditorWindow
     {
         private CharacterData _template;
-        private CharacterInstance _instance;
-        private CharacterClassData _classOverride; // optional class chosen in tester
+        private readonly Dictionary<UnboundedStatType, float> _currentUnboundedStats = new();
+        private readonly Dictionary<BoundedStatType, float> _currentBoundedStats = new();
+        private readonly Dictionary<BoundedStatType, float> _boundedStatMaxima = new();
+        private CharacterClassData _classOverride;
         private int _levelUpCount;
         private int _goodLevelUps;
         private int _badLevelUps;
+
+        private CharacterClassData ActiveClass =>
+            _classOverride ?? _template?.GetPreferredStartingClass();
 
         public static void Show(CharacterData template)
         {
@@ -35,34 +39,196 @@ namespace Turnroot.Characters.Editor
 
         private void ResetSimulation()
         {
-            if (_template != null)
+            _currentUnboundedStats.Clear();
+            _currentBoundedStats.Clear();
+            _boundedStatMaxima.Clear();
+            _levelUpCount = 0;
+            _goodLevelUps = 0;
+            _badLevelUps = 0;
+
+            if (_template?.UnboundedStats != null)
             {
-                // if template is marked unique the registry would normally return the same
-                // instance each time; clear it so our new simulation starts fresh.
-                if (_template.IsUnique && _instance != null)
+                foreach (var stat in _template.UnboundedStats)
                 {
-                    UniqueInstanceRegistry.TryUnregister(_template, _instance);
-                }
-
-                // create a fresh instance (won't affect assets)
-                _instance = CharacterInstance.Create(_template, useBattleModel: false);
-                _levelUpCount = 0;
-                _goodLevelUps = 0;
-                _badLevelUps = 0;
-
-                // apply class override if one is selected; this ensures the simulated
-                // level ups will roll using growth rates coming from the chosen class.
-                if (_classOverride != null && _instance != null)
-                {
-                    var res = _instance.ChangeClass(_classOverride, applyClassChangeBonuses: false);
-                    if (!res.Success)
+                    if (stat != null && Enum.IsDefined(typeof(UnboundedStatType), stat.StatType))
                     {
-                        Debug.LogWarning(
-                            $"LevelUp tester: failed to assign override class '{_classOverride.name}': {res.ErrorMessage}"
-                        );
+                        _currentUnboundedStats[stat.StatType] = stat.Current;
                     }
                 }
             }
+
+            if (_template?.BoundedStats != null)
+            {
+                foreach (var stat in _template.BoundedStats)
+                {
+                    if (stat != null)
+                    {
+                        _currentBoundedStats[stat.StatType] = stat.Current;
+                        _boundedStatMaxima[stat.StatType] = stat.Max;
+                    }
+                }
+            }
+        }
+
+        private void SimulateLevelUp()
+        {
+            if (_template == null)
+            {
+                return;
+            }
+
+            var classData = ActiveClass;
+            bool extraGrowthEnabled =
+                GameSettings.GameplayGeneralSettings.Instance?.LevelUpExtraGrowthChance ?? false;
+            var increasedStats = new HashSet<UnboundedStatType>();
+
+            if (_currentBoundedStats.TryGetValue(BoundedStatType.Level, out var level))
+            {
+                level += 1f;
+                _currentBoundedStats[BoundedStatType.Level] = level;
+                float currentMax = _boundedStatMaxima.TryGetValue(
+                    BoundedStatType.Level,
+                    out var max
+                )
+                    ? max
+                    : level;
+                _boundedStatMaxima[BoundedStatType.Level] = Mathf.Max(currentMax, level);
+            }
+
+            if (_currentBoundedStats.ContainsKey(BoundedStatType.Health))
+            {
+                float hpGrowth = GetPersonalGrowth(BoundedStatType.Health)
+                    + GetClassGrowth(classData, BoundedStatType.Health);
+                float hpRoll = UnityEngine.Random.Range(0f, 100f);
+
+                if (hpGrowth > 100f && extraGrowthEnabled)
+                {
+                    IncreaseHealth();
+                    hpGrowth -= 100f;
+                }
+
+                if (hpRoll < hpGrowth)
+                {
+                    IncreaseHealth();
+                }
+            }
+
+            foreach (UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType)))
+            {
+                if (statType == UnboundedStatType.Movement)
+                {
+                    continue;
+                }
+
+                if (!_currentUnboundedStats.TryGetValue(statType, out var current))
+                {
+                    continue;
+                }
+
+                float growth = GetPersonalGrowth(statType)
+                    + GetClassGrowth(classData, statType);
+                float clampedGrowth = Mathf.Clamp(growth, 0f, 100f);
+
+                if (extraGrowthEnabled && growth > clampedGrowth)
+                {
+                    current += 1f;
+                    increasedStats.Add(statType);
+                }
+
+                if (UnityEngine.Random.Range(0f, 100f) < clampedGrowth)
+                {
+                    float cap = GetClassCap(classData, statType);
+                    if (cap <= 0f || current < cap)
+                    {
+                        current += 1f;
+                        increasedStats.Add(statType);
+                    }
+                }
+
+                _currentUnboundedStats[statType] = current;
+            }
+
+            if (
+                Enum.GetValues(typeof(UnboundedStatType))
+                    .Cast<UnboundedStatType>()
+                    .Where(statType => statType != UnboundedStatType.Movement)
+                    .All(increasedStats.Contains)
+            )
+            {
+                IncreaseHealth();
+            }
+
+            _levelUpCount++;
+            if (increasedStats.Count <= 2)
+            {
+                _badLevelUps++;
+            }
+            else
+            {
+                _goodLevelUps++;
+            }
+
+            void IncreaseHealth()
+            {
+                if (
+                    !_currentBoundedStats.TryGetValue(BoundedStatType.Health, out var currentHealth)
+                    || !_boundedStatMaxima.TryGetValue(
+                        BoundedStatType.Health,
+                        out var currentMaxHealth
+                    )
+                )
+                {
+                    return;
+                }
+
+                currentMaxHealth += 1f;
+                currentHealth += 1f;
+                _boundedStatMaxima[BoundedStatType.Health] = currentMaxHealth;
+                _currentBoundedStats[BoundedStatType.Health] = currentHealth;
+            }
+        }
+
+        private float GetPersonalGrowth(BoundedStatType statType)
+        {
+            var rate = _template?.PersonalGrowthRates?.Find(entry =>
+                entry.isBounded && entry.boundedStatType == statType
+            );
+            return rate?.value ?? 0f;
+        }
+
+        private float GetPersonalGrowth(UnboundedStatType statType)
+        {
+            var rate = _template?.PersonalGrowthRates?.Find(entry =>
+                !entry.isBounded && entry.unboundedStatType == statType
+            );
+            return rate?.value ?? 0f;
+        }
+
+        private static float GetClassGrowth(CharacterClassData classData, BoundedStatType statType)
+        {
+            var rate = classData?.Stats?.GrowthRateModifiers?.Find(entry =>
+                entry.isBounded && entry.boundedStatType == statType
+            );
+            return rate?.value ?? 0f;
+        }
+
+        private static float GetClassGrowth(
+            CharacterClassData classData,
+            UnboundedStatType statType
+        )
+        {
+            var rate = classData?.Stats?.GrowthRateModifiers?.Find(entry =>
+                !entry.isBounded && entry.unboundedStatType == statType
+            );
+            return rate?.value ?? 0f;
+        }
+
+        private static float GetClassCap(CharacterClassData classData, UnboundedStatType statType)
+        {
+            var cap = classData?.Stats?.StatCaps?.Find(entry =>
+                !entry.isBounded && entry.unboundedStatType == statType
+            );
+            return cap?.value ?? 0f;
         }
 
         private void OnGUI()
@@ -102,67 +268,13 @@ namespace Turnroot.Characters.Editor
 
             EditorGUILayout.LabelField($"Simulations: {_levelUpCount}");
             EditorGUILayout.LabelField($"Good: {_goodLevelUps}   Bad: {_badLevelUps}");
-            if (_instance != null)
-            {
-                var className = _instance.CurrentClassTemplate?.Identity.ClassName ?? "<none>";
-                EditorGUILayout.LabelField($"Applied class: {className}");
-            }
+            EditorGUILayout.LabelField($"Class: {ActiveClass?.Identity?.ClassName ?? "<none>"}");
 
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Level Up"))
             {
-                if (_instance != null)
-                {
-                    try
-                    {
-                        // take snapshot of unbounded stats only (HP not counted)
-                        var before = new Dictionary<UnboundedStatType, float>();
-                        foreach (var stat in _instance.UnboundedStats)
-                        {
-                            if (stat.StatType == UnboundedStatType.Movement)
-                            {
-                                continue;
-                            }
-
-                            before[stat.StatType] = stat.Current;
-                        }
-
-                        _instance.LevelUp();
-                        _levelUpCount++;
-
-                        // compare after, tally only unbounded increases
-                        int increased = 0;
-                        foreach (var stat in _instance.UnboundedStats)
-                        {
-                            if (stat.StatType == UnboundedStatType.Movement)
-                            {
-                                continue;
-                            }
-
-                            if (
-                                before.TryGetValue(stat.StatType, out var val)
-                                && stat.Current > val
-                            )
-                            {
-                                increased++;
-                            }
-                        }
-
-                        if (increased <= 2)
-                        {
-                            _badLevelUps++;
-                        }
-                        else
-                        {
-                            _goodLevelUps++;
-                        }
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.LogError($"LevelUp simulation failed: {ex}");
-                    }
-                }
+                SimulateLevelUp();
             }
             if (GUILayout.Button("Reset"))
             {
@@ -211,7 +323,6 @@ namespace Turnroot.Characters.Editor
             currentValues = new List<float>();
             if (
                 _template == null
-                || _instance == null
                 || _template.UnboundedStats == null
                 || _template.UnboundedStats.Count == 0
             )
@@ -232,7 +343,10 @@ namespace Turnroot.Characters.Editor
         {
             foreach (var stat in _template.UnboundedStats)
             {
-                if (stat == null || stat.StatType == UnboundedStatType.Movement)
+                if (
+                    stat == null
+                    || !Enum.IsDefined(typeof(UnboundedStatType), stat.StatType)
+                )
                 {
                     continue;
                 }
@@ -240,7 +354,9 @@ namespace Turnroot.Characters.Editor
                 labels.Add(stat.StatType.ToString());
                 float original = Mathf.RoundToInt(stat.Current);
                 float current = Mathf.RoundToInt(
-                    _instance.GetUnboundedStat(stat.StatType)?.Current ?? original
+                    _currentUnboundedStats.TryGetValue(stat.StatType, out var value)
+                        ? value
+                        : original
                 );
                 originalValues.Add(original);
                 currentValues.Add(current);
@@ -264,10 +380,15 @@ namespace Turnroot.Characters.Editor
                 return;
             }
 
-            var instanceHealth = _instance.GetBoundedStat(BoundedStatType.Health);
             labels.Add("Health");
             originalValues.Add(health.CurrentInt * 0.5f);
-            currentValues.Add((instanceHealth != null ? instanceHealth.CurrentInt : health.CurrentInt) * 0.5f);
+            currentValues.Add(
+                Mathf.RoundToInt(
+                    _currentBoundedStats.TryGetValue(BoundedStatType.Health, out var value)
+                        ? value
+                        : health.CurrentInt
+                ) * 0.5f
+            );
         }
 
         private static float GetRadarChartMaximum(
@@ -359,14 +480,15 @@ namespace Turnroot.Characters.Editor
         {
             // bounded stats
             EditorGUILayout.LabelField("Bounded Stats", EditorStyles.boldLabel);
-            var gs = GameSettings.GameplayGeneralSettings.Instance;
-            if (_template.BoundedStats != null && _instance != null)
+            if (_template.BoundedStats != null)
             {
                 foreach (var bounded in _template.BoundedStats)
                 {
                     var type = bounded.StatType;
                     var orig = bounded.CurrentInt;
-                    var cur = _instance.GetBoundedStat(type)?.CurrentInt ?? orig;
+                    var cur = Mathf.RoundToInt(
+                        _currentBoundedStats.TryGetValue(type, out var value) ? value : orig
+                    );
                     var delta = cur - orig;
                     EditorGUILayout.LabelField($"{type}: {cur} (+{delta})");
                 }
@@ -374,18 +496,20 @@ namespace Turnroot.Characters.Editor
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Unbounded Stats", EditorStyles.boldLabel);
-            if (_template.UnboundedStats != null && _instance != null)
+            if (_template.UnboundedStats != null)
             {
                 foreach (var unbound in _template.UnboundedStats)
                 {
-                    if (unbound.StatType == UnboundedStatType.Movement)
+                    if (!Enum.IsDefined(typeof(UnboundedStatType), unbound.StatType))
                     {
                         continue;
                     }
 
                     var type = unbound.StatType;
                     var orig = Mathf.RoundToInt(unbound.Current);
-                    var cur = Mathf.RoundToInt(_instance.GetUnboundedStat(type)?.Current ?? orig);
+                    var cur = Mathf.RoundToInt(
+                        _currentUnboundedStats.TryGetValue(type, out var value) ? value : orig
+                    );
                     var delta = cur - orig;
                     EditorGUILayout.LabelField($"{type}: {cur} (+{delta})");
                 }

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters.Stats;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Turnroot.Characters.CharacterClass
 {
@@ -16,34 +16,47 @@ namespace Turnroot.Characters.CharacterClass
     {
         [Header("Stat Minimums")]
         [Tooltip(
-            "Minimum stat values this class enforces (0 = no minimum). Supports HP (isBounded) and unbounded stats."
+            "Minimum values for the fixed non-Movement stat set (0 = no minimum). Movement is set in Identity."
         )]
-        [FormerlySerializedAs("UnboundedStatMinimums")]
         public List<UnboundedStatModifier> StatMinimums = new();
 
         [Header("Stat Caps")]
         [Tooltip(
-            "Maximum stat caps this class imposes (0 = no cap). Supports HP (isBounded) and unbounded stats."
+            "Maximum caps for the fixed non-Movement stat set (0 = no cap). Movement is set in Identity."
         )]
-        [FormerlySerializedAs("UnboundedStatCaps")]
         public List<UnboundedStatModifier> StatCaps = new();
 
         [Header("Stat Bonuses")]
         [Tooltip(
-            "Flat stat bonuses applied when equipping/occupying this class. Supports HP (isBounded) and unbounded stats."
+            "Flat bonuses for the fixed non-Movement stat set. Movement is set in Identity."
         )]
-        [FormerlySerializedAs("UnboundedStatBonuses")]
         public List<UnboundedStatModifier> StatBonuses = new();
 
-        [Tooltip("Growth rate modifiers (percentage 0-100) for stat increases on level up")]
+        [Tooltip("Growth rate modifiers (percentage 0-100) for the fixed growth stats. Movement never grows.")]
         public List<UnboundedStatModifier> GrowthRateModifiers = new();
 
         [Header("Class Change Bonuses")]
         [Tooltip(
-            "One-time stat bonuses applied when a character first changes into this class. Supports HP (isBounded) and unbounded stats."
+            "One-time bonuses for the fixed non-Movement stat set when first changing into this class."
         )]
-        [FormerlySerializedAs("UnboundedClassChangeBonuses")]
         public List<UnboundedStatModifier> ClassChangeBonuses = new();
+
+        public ClassStats()
+        {
+            StatMinimums = CreateStatList();
+            StatCaps = CreateStatList();
+            StatBonuses = CreateStatList();
+            GrowthRateModifiers = CreateStatList();
+            GrowthRateModifiers.Add(new UnboundedStatModifier(BoundedStatType.Health, 0f));
+            ClassChangeBonuses = CreateStatList();
+        }
+
+        private static List<UnboundedStatModifier> CreateStatList() =>
+            Enum.GetValues(typeof(UnboundedStatType))
+                .Cast<UnboundedStatType>()
+                .Where(type => type != UnboundedStatType.Movement)
+                .Select(type => new UnboundedStatModifier(type, 0f))
+                .ToList();
 
         /// <summary>
         /// Gets the growth rate modifier for a specific unbounded stat type.

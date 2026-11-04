@@ -11,6 +11,7 @@ namespace Turnroot.Gameplay.Maps
     /// <summary>
     /// Represents a tactical map grid with terrain, spawn points, and 3D height mesh integration.
     /// </summary>
+    [AddComponentMenu("")]
     public partial class MapGrid : MonoBehaviour
     {
         #region Serialized Fields

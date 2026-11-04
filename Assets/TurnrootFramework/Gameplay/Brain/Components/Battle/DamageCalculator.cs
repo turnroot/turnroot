@@ -157,7 +157,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     (attacker.GetUnboundedStat(UnboundedStatType.Skill)?.Get() ?? 0) * skillMult;
             }
 
-            if (!Mathf.Approximately(luckMult, 0f) && (settings?.UseLuck ?? false))
+            if (!Mathf.Approximately(luckMult, 0f))
             {
                 attackerCritBonus +=
                     (attacker.GetUnboundedStat(UnboundedStatType.Luck)?.Get() ?? 0) * luckMult;

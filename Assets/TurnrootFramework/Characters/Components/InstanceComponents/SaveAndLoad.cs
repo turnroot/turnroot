@@ -132,11 +132,14 @@ namespace Turnroot.Characters
         {
             // make sure we aren't serializing duplicate entries
             DeduplicateRuntimeStats();
+            var unboundedStats = _runtimeUnboundedStats
+                .Where(s => s != null && Enum.IsDefined(typeof(UnboundedStatType), s.StatType))
+                .ToList();
 
             var runtimeDto = new CharacterInstanceStatsDto
             {
                 BoundedStats = new BoundedStatDto[_runtimeBoundedStats.Count],
-                UnboundedStats = new UnboundedStatDto[_runtimeUnboundedStats.Count],
+                UnboundedStats = new UnboundedStatDto[unboundedStats.Count],
             };
 
             for (int i = 0; i < _runtimeBoundedStats.Count; i++)
@@ -151,9 +154,9 @@ namespace Turnroot.Characters
                 };
             }
 
-            for (int i = 0; i < _runtimeUnboundedStats.Count; i++)
+            for (int i = 0; i < unboundedStats.Count; i++)
             {
-                var s = _runtimeUnboundedStats[i];
+                var s = unboundedStats[i];
                 runtimeDto.UnboundedStats[i] = new UnboundedStatDto
                 {
                     StatType = s.StatType.ToString(),
@@ -258,22 +261,31 @@ namespace Turnroot.Characters
             }
 
             // Merge Unbounded
+            var requiredUnbounded = Enum
+                .GetValues(typeof(UnboundedStatType))
+                .Cast<UnboundedStatType>();
+            var newUnboundedList = new List<UnboundedStatDto>();
             var existingUnbounded = new HashSet<string>();
             if (existingDto.UnboundedStats != null)
             {
                 foreach (var u in existingDto.UnboundedStats)
                 {
-                    if (u != null)
+                    if (
+                        u != null
+                        && Enum.TryParse<UnboundedStatType>(u.StatType, out var type)
+                        && Enum.IsDefined(typeof(UnboundedStatType), type)
+                        && existingUnbounded.Add(u.StatType)
+                    )
                     {
-                        existingUnbounded.Add(u.StatType);
+                        newUnboundedList.Add(u);
+                    }
+                    else
+                    {
+                        changed = true;
                     }
                 }
             }
 
-            var requiredUnbounded = Enum.GetValues(typeof(UnboundedStatType));
-            var newUnboundedList = new List<UnboundedStatDto>(
-                existingDto.UnboundedStats ?? Array.Empty<UnboundedStatDto>()
-            );
             foreach (UnboundedStatType t in requiredUnbounded)
             {
                 var tname = t.ToString();
@@ -349,6 +361,11 @@ namespace Turnroot.Characters
                 {
                     if (Enum.TryParse<UnboundedStatType>(u.StatType, out var ut))
                     {
+                        if (!Enum.IsDefined(typeof(UnboundedStatType), ut))
+                        {
+                            continue;
+                        }
+
                         if (StatHelpers.GetUnboundedStat(_runtimeUnboundedStats, ut) == null)
                         {
                             _runtimeUnboundedStats.Add(new CharacterStat(u.Current, ut));
@@ -406,6 +423,9 @@ namespace Turnroot.Characters
                 .ToList();
 
             warned = false;
+            _runtimeUnboundedStats = _runtimeUnboundedStats
+                .Where(s => s != null && Enum.IsDefined(typeof(UnboundedStatType), s.StatType))
+                .ToList();
             _runtimeUnboundedStats = _runtimeUnboundedStats
                 .GroupBy(s => s.StatType)
                 .Select(g =>
@@ -564,6 +584,10 @@ namespace Turnroot.Characters
                 foreach (var u in dto.UnboundedStats)
                 {
                     if (u == null || !Enum.TryParse<UnboundedStatType>(u.StatType, out var ut))
+                    {
+                        continue;
+                    }
+                    if (!Enum.IsDefined(typeof(UnboundedStatType), ut))
                     {
                         continue;
                     }
