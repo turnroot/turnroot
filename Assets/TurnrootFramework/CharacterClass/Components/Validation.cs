@@ -36,43 +36,47 @@ namespace Turnroot.Characters.CharacterClass
 
         private OperationResult ValidateStatLists()
         {
-            var gs = GameplayGeneralSettings.Instance;
-            if (gs == null)
-            {
-#if UNITY_EDITOR
-                // During the initial asset import phase Resources.Load may return null.
-                // Skip silently — OnValidate will re-run once assets are fully loaded.
-                return OperationResult.Successful();
-#else
-                if (!ValidationHelper.ValidateNotNull(gs, nameof(gs), name))
-                {
-                    return OperationResult.Failure(
-                        $"{name}: Cannot validate stat lists - GameplayGeneralSettings not found in GameSettings."
-                    );
-                }
-#endif
-            }
+            Stats ??= new ClassStats();
+            Stats.StatMinimums ??= new List<UnboundedStatModifier>();
+            Stats.StatCaps ??= new List<UnboundedStatModifier>();
+            Stats.StatBonuses ??= new List<UnboundedStatModifier>();
+            Stats.GrowthRateModifiers ??= new List<UnboundedStatModifier>();
+            Stats.ClassChangeBonuses ??= new List<UnboundedStatModifier>();
 
-            // Define all stat lists to validate
-            var statLists = new[]
-            {
-                (list: Stats.StatMinimums, name: nameof(Stats.StatMinimums)),
-                (list: Stats.StatCaps, name: nameof(Stats.StatCaps)),
-                (list: Stats.StatBonuses, name: nameof(Stats.StatBonuses)),
-                (list: Stats.GrowthRateModifiers, name: nameof(Stats.GrowthRateModifiers)),
-                (list: Stats.ClassChangeBonuses, name: nameof(Stats.ClassChangeBonuses)),
-            };
-
-            // Validate all lists
-            foreach (var (list, name) in statLists)
-            {
-                ValidateUnboundedStatList(
-                    list,
-                    gs.GetDefaultUnboundedStatTypes(),
-                    name,
-                    (statType) => new UnboundedStatModifier(statType, 0)
-                );
-            }
+            var classStatTypes = Enum
+                .GetValues(typeof(UnboundedStatType))
+                .Cast<UnboundedStatType>()
+                .Where(statType => statType != UnboundedStatType.Movement);
+            ValidateUnboundedStatList(
+                Stats.StatMinimums,
+                classStatTypes,
+                nameof(Stats.StatMinimums),
+                statType => new UnboundedStatModifier(statType, 0)
+            );
+            ValidateUnboundedStatList(
+                Stats.StatCaps,
+                classStatTypes,
+                nameof(Stats.StatCaps),
+                statType => new UnboundedStatModifier(statType, 0)
+            );
+            ValidateUnboundedStatList(
+                Stats.StatBonuses,
+                classStatTypes,
+                nameof(Stats.StatBonuses),
+                statType => new UnboundedStatModifier(statType, 0)
+            );
+            ValidateUnboundedStatList(
+                Stats.GrowthRateModifiers,
+                classStatTypes,
+                nameof(Stats.GrowthRateModifiers),
+                statType => new UnboundedStatModifier(statType, 0)
+            );
+            ValidateUnboundedStatList(
+                Stats.ClassChangeBonuses,
+                classStatTypes,
+                nameof(Stats.ClassChangeBonuses),
+                statType => new UnboundedStatModifier(statType, 0)
+            );
 
             // Ensure HP growth modifier exists as a bounded entry
             if (
@@ -99,6 +103,15 @@ namespace Turnroot.Characters.CharacterClass
             var defaultList = defaults is ICollection<UnboundedStatType> c
                 ? c
                 : new List<UnboundedStatType>(defaults);
+
+            var seen = new HashSet<UnboundedStatType>();
+            list.RemoveAll(modifier =>
+                !modifier.isBounded
+                && (
+                    !defaultList.Contains(modifier.unboundedStatType)
+                    || !seen.Add(modifier.unboundedStatType)
+                )
+            );
 
             // count only non-bounded entries (HP or other future bounded growths are
             // stored alongside but shouldn't affect the unbounded stat count check)

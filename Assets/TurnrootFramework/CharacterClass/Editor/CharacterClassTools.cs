@@ -2,15 +2,15 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
-using Turnroot.GameSettings;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Stats;
+using System;
 
 namespace Turnroot.CharacterClass.Editor
 {
     /// <summary>
     /// Project tools for CharacterClass assets (editor-only).
-    /// - Repair Default Stats: ensures all ClassStats lists match the project's default stat types
+    /// - Repair Default Stats: ensures all ClassStats lists match the fixed stat set
     ///   (adds missing entries, preserves existing values, removes extras).
     /// </summary>
     public static class CharacterClassTools
@@ -18,17 +18,6 @@ namespace Turnroot.CharacterClass.Editor
         [MenuItem("Tools/Turnroot/Character Classes/Repair Default Stats")]
         public static void RepairDefaultStatsMenu()
         {
-            var gs = GameplayGeneralSettings.Instance;
-            if (gs == null)
-            {
-                EditorUtility.DisplayDialog(
-                    "Repair Default Stats",
-                    "GameplayGeneralSettings asset not found in Resources/GameSettings/. Create one first.",
-                    "OK"
-                );
-                return;
-            }
-
             // Determine target assets: selected CharacterClassData assets, otherwise all in project
             var targets = Selection
                 .objects.Where(o => o is CharacterClassData)
@@ -63,7 +52,10 @@ namespace Turnroot.CharacterClass.Editor
             int totalAdded = 0;
             int totalRemoved = 0;
 
-            var unboundedDefaults = gs.GetDefaultUnboundedStatTypes();
+            var classStatTypes = Enum
+                .GetValues(typeof(UnboundedStatType))
+                .Cast<UnboundedStatType>()
+                .Where(statType => statType != UnboundedStatType.Movement);
 
             try
             {
@@ -79,7 +71,7 @@ namespace Turnroot.CharacterClass.Editor
 
                     int added,
                         removed;
-                    RepairClassStats(cc, unboundedDefaults, out added, out removed);
+                    RepairClassStats(cc, classStatTypes, out added, out removed);
 
                     if (added > 0 || removed > 0)
                     {
@@ -108,7 +100,7 @@ namespace Turnroot.CharacterClass.Editor
 
         private static void RepairClassStats(
             CharacterClassData cc,
-            UnboundedStatType[] unboundedDefaults,
+            IEnumerable<UnboundedStatType> classStatTypes,
             out int added,
             out int removed
         )
@@ -120,16 +112,22 @@ namespace Turnroot.CharacterClass.Editor
             var stats = cc.Stats ?? new ClassStats();
 
             // Helper: rebuild a unified UnboundedStatModifier list preserving existing values where possible
-            System.Func<List<UnboundedStatModifier>, UnboundedStatModifier[]> rebuildUnbounded = (
-                existing
-            ) =>
+            System.Func<
+                List<UnboundedStatModifier>,
+                IEnumerable<UnboundedStatType>,
+                UnboundedStatModifier[]
+            > rebuildUnbounded = (existing, allowedTypes) =>
             {
                 var map = new Dictionary<UnboundedStatType, UnboundedStatModifier>();
                 if (existing != null)
                 {
                     foreach (var e in existing)
                     {
-                        if (!e.isBounded && !map.ContainsKey(e.unboundedStatType))
+                        if (
+                            !e.isBounded
+                            && allowedTypes.Contains(e.unboundedStatType)
+                            && !map.ContainsKey(e.unboundedStatType)
+                        )
                         {
                             map[e.unboundedStatType] = e;
                         }
@@ -137,7 +135,7 @@ namespace Turnroot.CharacterClass.Editor
                 }
 
                 var result = new List<UnboundedStatModifier>();
-                foreach (var t in unboundedDefaults)
+                foreach (var t in allowedTypes)
                 {
                     if (map.TryGetValue(t, out var found))
                     {
@@ -153,7 +151,7 @@ namespace Turnroot.CharacterClass.Editor
                 if (existing != null)
                 {
                     removedLocal += existing.Count(e =>
-                        !e.isBounded && !unboundedDefaults.Contains(e.unboundedStatType)
+                        !e.isBounded && !allowedTypes.Contains(e.unboundedStatType)
                     );
                 }
 
@@ -174,14 +172,16 @@ namespace Turnroot.CharacterClass.Editor
 
             // Rebuild all lists using the unified helper
             stats.StatMinimums = new List<UnboundedStatModifier>(
-                rebuildUnbounded(stats.StatMinimums)
+                rebuildUnbounded(stats.StatMinimums, classStatTypes)
             );
-            stats.StatCaps = new List<UnboundedStatModifier>(rebuildUnbounded(stats.StatCaps));
+            stats.StatCaps = new List<UnboundedStatModifier>(
+                rebuildUnbounded(stats.StatCaps, classStatTypes)
+            );
             stats.StatBonuses = new List<UnboundedStatModifier>(
-                rebuildUnbounded(stats.StatBonuses)
+                rebuildUnbounded(stats.StatBonuses, classStatTypes)
             );
             stats.GrowthRateModifiers = new List<UnboundedStatModifier>(
-                rebuildUnbounded(stats.GrowthRateModifiers)
+                rebuildUnbounded(stats.GrowthRateModifiers, classStatTypes)
             );
             // ensure HP growth entry (bounded) is present
             if (
@@ -196,7 +196,7 @@ namespace Turnroot.CharacterClass.Editor
                 addedLocal++;
             }
             stats.ClassChangeBonuses = new List<UnboundedStatModifier>(
-                rebuildUnbounded(stats.ClassChangeBonuses)
+                rebuildUnbounded(stats.ClassChangeBonuses, classStatTypes)
             );
 
             // Assign back (in case Stats was null)

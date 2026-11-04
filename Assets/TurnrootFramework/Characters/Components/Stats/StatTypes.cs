@@ -22,8 +22,7 @@ namespace Turnroot.Characters.Stats
         Dexterity = 7,
         Charm = 8,
         Movement = 9,
-        Authority = 11,
-        CriticalAvoidance = 12,
+        Authority = 10,
     }
 
     public static class BoundedStatTypeExtensions
@@ -49,7 +48,7 @@ namespace Turnroot.Characters.Stats
             StatInfo[type].Description;
     }
 
-    public static class UnboundedStatTypeExtensions
+    public static class UnboundedStatTypeDisplayExtensions
     {
         private static readonly Dictionary<
             UnboundedStatType,
@@ -67,10 +66,6 @@ namespace Turnroot.Characters.Stats
             { UnboundedStatType.Charm, ("Chr", "Influences interactions with NPCs") },
             { UnboundedStatType.Movement, ("Mov", "Number of tiles a character can move") },
             { UnboundedStatType.Authority, ("Ahy", "Influences leadership and command abilities") },
-            {
-                UnboundedStatType.CriticalAvoidance,
-                ("CritAvo", "Reduces chance of receiving critical hits")
-            },
         };
 
         public static string GetDisplayName(this UnboundedStatType type) =>

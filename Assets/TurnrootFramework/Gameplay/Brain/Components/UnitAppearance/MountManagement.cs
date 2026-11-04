@@ -89,6 +89,7 @@ namespace Turnroot.Gameplay.Brain
             _mountModels[unit.Id] = mountInstance;
             unit.CurrentMountModel = mountInstance;
             unit.IsMounted = true;
+            HandleMountStateChanged(unit);
 
             return OperationResult.Successful();
         }
@@ -181,6 +182,25 @@ namespace Turnroot.Gameplay.Brain
 
             unit.CurrentMountModel = null;
             unit.IsMounted = false;
+            HandleMountStateChanged(unit);
+        }
+
+        private void HandleMountStateChanged(CharacterInstance unit)
+        {
+            var battleBrain = _brain?.battleBrain;
+            var context = battleBrain?.BattleObject?.Context;
+            if (context == null || unit == null)
+            {
+                return;
+            }
+
+            context.InvalidateUnitTileCache(unit);
+            context.InvalidatePathfindingParameters(unit.Id);
+            battleBrain.ClearAICache();
+            if (context.Unit?.UnitInstance == unit)
+            {
+                context.UpdateTargetsInRange();
+            }
         }
 
         public bool ShouldUnitBeMounted(CharacterInstance unit)

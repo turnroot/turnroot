@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using Turnroot.Characters.Stats;
 using UnityEditor;
 using UnityEngine;
 
@@ -44,9 +47,27 @@ namespace Turnroot.Characters.CharacterClass
             );
 
             if (isBoundedProp.boolValue)
+            {
                 EditorGUI.PropertyField(enumRect, boundedProp, GUIContent.none);
+            }
             else
-                EditorGUI.PropertyField(enumRect, unboundedProp, GUIContent.none);
+            {
+                var allowedTypes = Enum
+                    .GetValues(typeof(UnboundedStatType))
+                    .Cast<UnboundedStatType>()
+                    .Where(type => type != UnboundedStatType.Movement)
+                    .ToArray();
+                var options = allowedTypes.Select(type => type.ToString()).ToArray();
+                int selectedIndex = Array.IndexOf(
+                    allowedTypes,
+                    (UnboundedStatType)unboundedProp.intValue
+                );
+                int nextIndex = EditorGUI.Popup(enumRect, selectedIndex, options);
+                if (nextIndex >= 0 && nextIndex < allowedTypes.Length && nextIndex != selectedIndex)
+                {
+                    unboundedProp.intValue = (int)allowedTypes[nextIndex];
+                }
+            }
 
             // Row 2: value
             var row2 = new Rect(position.x, position.y + lineH + Spacing, position.width, lineH);

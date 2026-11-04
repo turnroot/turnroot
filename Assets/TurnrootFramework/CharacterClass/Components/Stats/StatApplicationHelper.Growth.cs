@@ -35,6 +35,11 @@ namespace Turnroot.Characters.CharacterClass
 
             foreach (var baseGrowth in baseGrowths)
             {
+                if (baseGrowth.unboundedStatType == UnboundedStatType.Movement)
+                {
+                    continue;
+                }
+
                 var stat = character.GetUnboundedStat(baseGrowth.unboundedStatType);
                 if (stat == null)
                 {

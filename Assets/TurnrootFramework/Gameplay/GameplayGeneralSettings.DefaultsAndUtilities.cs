@@ -35,18 +35,6 @@ namespace Turnroot.GameSettings
         [BoxGroup("Default Stat Values")]
         public float DefaultMinExperience = 0f;
 
-        [BoxGroup("Default Stat Values")]
-        public float DefaultCoreStatValue = 10f;
-
-        [BoxGroup("Default Stat Values")]
-        public float DefaultLuckValue = 5f;
-
-        [BoxGroup("Default Stat Values")]
-        public float DefaultAuthorityValue = 5f;
-
-        [BoxGroup("Default Stat Values")]
-        public float DefaultCriticalAvoidanceValue = 0f;
-
         [BoxGroup("Range Constants"), HorizontalLine(color: EColor.Pink)]
         public int UnlimitedRange = 0;
 
@@ -63,12 +51,10 @@ namespace Turnroot.GameSettings
         public bool WeightAffectsMovement;
 
         [BoxGroup("Extra Unit Stats")]
-        public bool Luck;
+        [Tooltip("Enables critical avoidance derived from Luck. It does not add a persisted stat.")]
+        public bool CriticalAvoidance;
 
-        [BoxGroup("Extra Unit Stats")]
-        public bool SeparateCriticalAvoidance;
-
-        [BoxGroup("Extra Unit Stats")]
+        [BoxGroup("Extra Unit Stats"), Tooltip("Authority remains in the fixed stat set; this option is reserved for its gameplay use.")]
         public bool Authority;
 
         [BoxGroup("Items"), HorizontalLine(color: EColor.Violet)]
@@ -245,9 +231,7 @@ namespace Turnroot.GameSettings
 
         // Public accessors for Extra Unit Stats
         public bool UseWeight => Weight;
-        public bool UseLuck => Luck;
-        public bool UseSeparateCriticalAvoidance => SeparateCriticalAvoidance;
-        public bool UseAuthority => Authority;
+        public bool UseCriticalAvoidance => CriticalAvoidance;
 
         // Public accessors for Items
         #endregion
@@ -353,39 +337,6 @@ namespace Turnroot.GameSettings
             return core.ToArray();
         }
 
-        public UnboundedStatType[] GetDefaultUnboundedStatTypes()
-        {
-            var core = new System.Collections.Generic.List<UnboundedStatType>
-            {
-                UnboundedStatType.Strength,
-                UnboundedStatType.Defense,
-                UnboundedStatType.Magic,
-                UnboundedStatType.Resistance,
-                UnboundedStatType.Skill,
-                UnboundedStatType.Speed,
-                UnboundedStatType.Dexterity,
-                UnboundedStatType.Charm,
-                UnboundedStatType.Movement,
-            };
-
-            if (UseLuck)
-            {
-                core.Add(UnboundedStatType.Luck);
-            }
-
-            if (UseSeparateCriticalAvoidance)
-            {
-                core.Add(UnboundedStatType.CriticalAvoidance);
-            }
-
-            if (UseAuthority)
-            {
-                core.Add(UnboundedStatType.Authority);
-            }
-
-            return core.ToArray();
-        }
-
         #endregion
 
         #region Default Stat Creation and Validation
@@ -404,7 +355,7 @@ namespace Turnroot.GameSettings
         public System.Collections.Generic.List<CharacterStat> CreateDefaultUnboundedStats()
         {
             var outList = new System.Collections.Generic.List<CharacterStat>();
-            foreach (var t in GetDefaultUnboundedStatTypes())
+            foreach (UnboundedStatType t in System.Enum.GetValues(typeof(UnboundedStatType)))
             {
                 var value = StatHelpers.GetDefaultValueForUnboundedStatInternal(t);
                 outList.Add(new CharacterStat(value, t));

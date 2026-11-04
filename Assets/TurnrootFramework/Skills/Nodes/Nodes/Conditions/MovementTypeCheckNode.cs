@@ -1,3 +1,4 @@
+using Turnroot.Characters;
 using Turnroot.GameSettings;
 using UnityEngine;
 using XNode;
@@ -73,7 +74,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 return new BoolValue { value = false };
             }
 
-            var movementType = character.CurrentClass.ClassData.Identity.MovementType;
+            var movementType = character.GetEffectiveMovementType();
             bool matches = movementType == targetMovementType;
             return new BoolValue { value = matches };
         }

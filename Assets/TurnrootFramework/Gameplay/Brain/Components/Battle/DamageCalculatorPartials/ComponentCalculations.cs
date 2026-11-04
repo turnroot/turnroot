@@ -144,7 +144,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return 0f;
             }
 
-            var movementType = unit.CurrentClass.ClassData.Identity.MovementType;
+            var movementType = unit.GetEffectiveMovementType();
             float terrainAvoid = movementType switch
             {
                 MovementType.Infantry => terrain.AvoidBonusWalk,
@@ -160,7 +160,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private static float CalculateCritAvoid(
             CharacterInstance target,
             GameplayGeneralSettings settings
-        ) => target?.CalculateCritAvoid(settings) ?? 0f;
+        ) => target?.CalculateCritAvoid() ?? 0f;
 
         private static float CalculateStatContribution(
             CharacterInstance unit,
@@ -182,7 +182,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 total += (unit.GetUnboundedStat(UnboundedStatType.Dexterity)?.Get() ?? 0) * dexMult;
             }
 
-            if (!Mathf.Approximately(luckMult, 0f) && (settings?.UseLuck ?? false))
+            if (!Mathf.Approximately(luckMult, 0f))
             {
                 total += (unit.GetUnboundedStat(UnboundedStatType.Luck)?.Get() ?? 0) * luckMult;
             }

@@ -16,20 +16,31 @@ namespace Turnroot.Characters
         #region Stat Validation
         private OperationResult ValidateRuntimeStatsComplete()
         {
-            var res = ValidateStatsFor(_runtimeBoundedStats, s => s.StatType, "bounded");
+            var res = ValidateStatsFor(
+                _runtimeBoundedStats,
+                s => s.StatType,
+                Enum.GetValues(typeof(BoundedStatType)).Cast<BoundedStatType>(),
+                "bounded"
+            );
             return res.Success
-                ? ValidateStatsFor(_runtimeUnboundedStats, s => s.StatType, "unbounded")
+                ? ValidateStatsFor(
+                    _runtimeUnboundedStats,
+                    s => s.StatType,
+                    Enum.GetValues(typeof(UnboundedStatType)).Cast<UnboundedStatType>(),
+                    "unbounded"
+                )
                 : res;
         }
 
         private OperationResult ValidateStatsFor<TEnum, TStat>(
             IEnumerable<TStat> runtimeStats,
             Func<TStat, TEnum> getStatType,
+            IEnumerable<TEnum> requiredTypes,
             string statKind
         )
             where TEnum : Enum
         {
-            var required = Enum.GetValues(typeof(TEnum)).Cast<TEnum>().ToHashSet();
+            var required = requiredTypes.ToHashSet();
             var existing = new HashSet<TEnum>();
 
             foreach (var stat in runtimeStats)
@@ -42,6 +53,13 @@ namespace Turnroot.Characters
                 }
 
                 var type = getStatType(stat);
+                if (!required.Contains(type))
+                {
+                    return OperationResult.Failure(
+                        $"CharacterInstance.ValidateRuntimeStatsComplete: unsupported {statKind} stat {type} for {Id}"
+                    );
+                }
+
                 if (!existing.Add(type))
                 {
                     return OperationResult.Failure(
@@ -63,6 +81,9 @@ namespace Turnroot.Characters
             bool anyRepaired = false;
 
             var templateId = _characterTemplate?.FullName;
+            _runtimeUnboundedStats.RemoveAll(stat =>
+                stat == null || !Enum.IsDefined(typeof(UnboundedStatType), stat.StatType)
+            );
 
             RepairStatsFor(
                 Enum.GetValues(typeof(BoundedStatType)).Cast<BoundedStatType>(),
@@ -113,7 +134,7 @@ namespace Turnroot.Characters
 
             if (hasErrors)
             {
-                $"Character {Id} has missing stats - this will cause runtime errors! Use GameplayGeneralSettings (default stats) or manually add missing stats to the template.".LogError();
+                $"Character {Id} has missing stats - this will cause runtime errors! Repair the character template's fixed stat set.".LogError();
             }
         }
 #endif
@@ -133,4 +154,3 @@ namespace Turnroot.Characters
         #endregion
     }
 }
-

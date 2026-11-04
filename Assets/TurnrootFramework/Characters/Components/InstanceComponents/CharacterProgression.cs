@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Turnroot.Characters.CharacterClass;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Brain;
@@ -54,7 +56,7 @@ namespace Turnroot.Characters
 
             // HP growth roll based on combined personal + class rates
             float hpGrowth = GetEffectiveHpGrowthRate();
-            float roll = Random.Range(0f, 100f);
+            float roll = UnityEngine.Random.Range(0f, 100f);
             if (hpGrowth > 100f && GameplayGeneralSettings.Instance.LevelUpExtraGrowthChance)
             {
                 // auto +1 then roll for extra; increase both max and current so stat can grow
@@ -82,7 +84,12 @@ namespace Turnroot.Characters
             );
 
             // old behaviour of bonus HP when every unbounded stat increased can be preserved
-            if (increasedStats.Count == UnboundedStats.Count)
+            if (
+                Enum.GetValues(typeof(UnboundedStatType))
+                    .Cast<UnboundedStatType>()
+                    .Where(statType => statType != UnboundedStatType.Movement)
+                    .All(increasedStats.Contains)
+            )
             {
                 hpStat.SetMax(hpStat.Max + 1f);
                 hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
@@ -96,21 +103,50 @@ namespace Turnroot.Characters
 
         private List<UnboundedStatModifier> GetEffectiveGrowthRates()
         {
-            // combine only the unbounded/stat entries and ignore any bounded (HP) modifiers
             var effectiveRates = new List<UnboundedStatModifier>();
+            var growthStatTypes = Enum
+                .GetValues(typeof(UnboundedStatType))
+                .Cast<UnboundedStatType>()
+                .Where(statType => statType != UnboundedStatType.Movement)
+                .ToArray();
 
-            // First, check LTM for custom growth rates (e.g., from star gifts)
-            var customRates = LoadCustomGrowthRatesFromLtm();
-            if (customRates != null && customRates.Count > 0)
+            if (_characterTemplate?.PersonalGrowthRates != null)
             {
-                effectiveRates.AddRange(customRates);
-            }
-            else if (_characterTemplate?.PersonalGrowthRates != null)
-            {
-                // Fall back to template growth rates if no custom rates exist
                 effectiveRates.AddRange(
-                    _characterTemplate.PersonalGrowthRates.FindAll(r => !r.isBounded)
+                    _characterTemplate.PersonalGrowthRates.FindAll(r =>
+                        !r.isBounded
+                        && Enum.IsDefined(typeof(UnboundedStatType), r.unboundedStatType)
+                        && r.unboundedStatType != UnboundedStatType.Movement
+                    )
                 );
+            }
+
+            foreach (var statType in growthStatTypes)
+            {
+                if (!effectiveRates.Exists(rate => rate.unboundedStatType == statType))
+                {
+                    effectiveRates.Add(new UnboundedStatModifier(statType, 0f));
+                }
+            }
+
+            // LTM may override growth values, but never changes which stats grow.
+            var customRates = LoadCustomGrowthRatesFromLtm();
+            if (customRates != null)
+            {
+                foreach (var customRate in customRates)
+                {
+                    int index = effectiveRates.FindIndex(e =>
+                        e.unboundedStatType == customRate.unboundedStatType
+                    );
+                    if (index >= 0)
+                    {
+                        effectiveRates[index] = customRate;
+                    }
+                    else
+                    {
+                        effectiveRates.Add(customRate);
+                    }
+                }
             }
 
             var classMods = _currentClass?.ClassData.Stats?.GrowthRateModifiers;
@@ -118,9 +154,13 @@ namespace Turnroot.Characters
             {
                 foreach (var classMod in classMods)
                 {
-                    if (classMod.isBounded)
+                    if (
+                        classMod.isBounded
+                        || !Enum.IsDefined(typeof(UnboundedStatType), classMod.unboundedStatType)
+                        || classMod.unboundedStatType == UnboundedStatType.Movement
+                    )
                     {
-                        continue; // skip HP entries in this list
+                        continue;
                     }
 
                     int index = effectiveRates.FindIndex(e =>
@@ -215,6 +255,14 @@ namespace Turnroot.Characters
 
                     if (System.Enum.TryParse<UnboundedStatType>(kvp.Key, out var statType))
                     {
+                        if (
+                            !Enum.IsDefined(typeof(UnboundedStatType), statType)
+                            || statType == UnboundedStatType.Movement
+                        )
+                        {
+                            continue;
+                        }
+
                         rates.Add(new UnboundedStatModifier(statType, kvp.Value));
                     }
                 }

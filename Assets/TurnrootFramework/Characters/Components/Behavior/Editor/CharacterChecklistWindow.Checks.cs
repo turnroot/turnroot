@@ -6,6 +6,7 @@ using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs;
 using UnityEngine;
 using UnityEditor;
+using System;
 
 namespace Turnroot.EditorTools
 {
@@ -531,9 +532,14 @@ namespace Turnroot.EditorTools
                             foreach (var stat in data.UnboundedStats)
                             {
                                 if (
-                                    stat.StatType
-                                    is UnboundedStatType.Movement
-                                        or UnboundedStatType.Charm
+                                    stat == null
+                                    || !Enum.IsDefined(
+                                        typeof(UnboundedStatType),
+                                        stat.StatType
+                                    )
+                                    || stat.StatType
+                                        is UnboundedStatType.Movement
+                                            or UnboundedStatType.Charm
                                 )
                                 {
                                     continue;
@@ -565,7 +571,7 @@ namespace Turnroot.EditorTools
                 )
             );
 
-            // Growth rate total check (percentages). exclude movement and charm only.
+            // Growth rate total check (percentages). Exclude movement and charm.
             _checks.Add(
                 new CharacterCheckDefinition(
                     "Growth Rates",
@@ -578,11 +584,15 @@ namespace Turnroot.EditorTools
                             var seen = new HashSet<string>();
                             foreach (var g in data.PersonalGrowthRates)
                             {
-                                // skip movement and charm unbounded entries
+                                // Skip stale non-growth entries and charm from this quality heuristic.
                                 if (
                                     !g.isBounded
                                     && (
-                                        g.unboundedStatType == UnboundedStatType.Movement
+                                        !Enum.IsDefined(
+                                            typeof(UnboundedStatType),
+                                            g.unboundedStatType
+                                        )
+                                        || g.unboundedStatType == UnboundedStatType.Movement
                                         || g.unboundedStatType == UnboundedStatType.Charm
                                     )
                                 )

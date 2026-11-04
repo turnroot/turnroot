@@ -93,6 +93,7 @@ namespace Turnroot.Characters.CharacterClass
         {
             // Initialize cached mode when asset loads
             _cachedClassSelectionMode = GetProjectClassSelectionMode();
+            ValidateStatLists();
 
             // Ensure allowedPronounKeys defaults to all available keys when empty
             if (allowedPronounKeys == null || allowedPronounKeys.Count == 0)

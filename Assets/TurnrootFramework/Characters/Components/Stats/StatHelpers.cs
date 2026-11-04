@@ -127,7 +127,7 @@ namespace Turnroot.Characters.Stats
             string templateId
         )
         {
-            if (stats == null)
+            if (stats == null || !Enum.IsDefined(typeof(UnboundedStatType), type))
             {
                 return null;
             }
@@ -161,7 +161,6 @@ namespace Turnroot.Characters.Stats
             type switch
             {
                 UnboundedStatType.Luck => 5f,
-                UnboundedStatType.CriticalAvoidance => 0f,
                 UnboundedStatType.Authority => 5f,
                 UnboundedStatType.Movement => 5f,
                 _ => 10f,
@@ -203,7 +202,7 @@ namespace Turnroot.Characters.Stats
                 return false;
             }
 
-            var cb = Brain.Instance.charactersBrain;
+            var cb = Brain.Instance?.charactersBrain;
             return cb?.TryGetTemplateBoundedDefault(templateId, type, out values) ?? false;
         }
 
@@ -233,12 +232,12 @@ namespace Turnroot.Characters.Stats
         )
         {
             value = 0f;
-            if (string.IsNullOrEmpty(templateId))
+            if (string.IsNullOrEmpty(templateId) || !Enum.IsDefined(typeof(UnboundedStatType), type))
             {
                 return false;
             }
 
-            var cb = Brain.Instance.charactersBrain;
+            var cb = Brain.Instance?.charactersBrain;
             return cb?.TryGetTemplateUnboundedDefault(templateId, type, out value) ?? false;
         }
 
@@ -248,7 +247,12 @@ namespace Turnroot.Characters.Stats
             string templateId
         )
         {
-            if (string.IsNullOrEmpty(templateId))
+            if (
+                stat == null
+                || string.IsNullOrEmpty(templateId)
+                || !Enum.IsDefined(typeof(UnboundedStatType), type)
+                || stat.StatType != type
+            )
             {
                 return;
             }
