@@ -22,7 +22,7 @@ namespace Turnroot.Characters.Stats
         Dexterity = 7,
         Charm = 8,
         Movement = 9,
-        Authority = 10,
+        Authority = 11,
     }
 
     public static class BoundedStatTypeExtensions
