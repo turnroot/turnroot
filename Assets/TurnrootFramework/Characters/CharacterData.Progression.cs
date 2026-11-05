@@ -41,7 +41,7 @@ namespace Turnroot.Characters
             public TierData Master;
             public TierData Expert;
 
-            public CharacterClassData GetClassForTier(ProgressionLevel tier)
+            public readonly CharacterClassData GetClassForTier(ProgressionLevel tier)
             {
                 return tier switch
                 {
@@ -54,7 +54,7 @@ namespace Turnroot.Characters
                 };
             }
 
-            public List<LoadoutEntry> GetLoadoutForTier(ProgressionLevel tier)
+            public readonly List<LoadoutEntry> GetLoadoutForTier(ProgressionLevel tier)
             {
                 return tier switch
                 {

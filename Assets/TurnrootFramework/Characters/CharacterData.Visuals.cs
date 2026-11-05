@@ -170,14 +170,14 @@ namespace Turnroot.Characters
         ]
         public CharacterBehavior BehaviorSettings { get; private set; }
 
-        [Foldout("Heredity"), SerializeField]
+        [HideInInspector, SerializeField]
         [HorizontalLine(color: EColor.Indigo)]
         private HereditaryTraits _passedDownTraits = new();
 
-        [Foldout("Heredity"), SerializeField]
+        [HideInInspector, SerializeField]
         private bool _hasDesignatedChildUnit = false;
 
-        [Foldout("Heredity"), SerializeField, ShowIf(nameof(_hasDesignatedChildUnit))]
+        [HideInInspector, SerializeField]
         private CharacterData _childUnitId;
 
         [field: SerializeField]

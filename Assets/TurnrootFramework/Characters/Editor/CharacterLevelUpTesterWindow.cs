@@ -17,7 +17,9 @@ namespace Turnroot.Characters.Editor
     {
         private CharacterData _template;
         private readonly Dictionary<UnboundedStatType, float> _currentUnboundedStats = new();
+        private readonly Dictionary<UnboundedStatType, float> _unboundedStatBonuses = new();
         private readonly Dictionary<BoundedStatType, float> _currentBoundedStats = new();
+        private readonly Dictionary<BoundedStatType, float> _boundedStatBonuses = new();
         private readonly Dictionary<BoundedStatType, float> _boundedStatMaxima = new();
         private CharacterClassData _classOverride;
         private int _levelUpCount;
@@ -40,7 +42,9 @@ namespace Turnroot.Characters.Editor
         private void ResetSimulation()
         {
             _currentUnboundedStats.Clear();
+            _unboundedStatBonuses.Clear();
             _currentBoundedStats.Clear();
+            _boundedStatBonuses.Clear();
             _boundedStatMaxima.Clear();
             _levelUpCount = 0;
             _goodLevelUps = 0;
@@ -52,7 +56,14 @@ namespace Turnroot.Characters.Editor
                 {
                     if (stat != null && Enum.IsDefined(typeof(UnboundedStatType), stat.StatType))
                     {
-                        _currentUnboundedStats[stat.StatType] = stat.Current;
+                        _currentUnboundedStats[stat.StatType] = ApplyMinimum(
+                            stat.Current,
+                            GetClassModifier(ActiveClass?.Stats?.StatMinimums, stat.StatType)
+                        );
+                        _unboundedStatBonuses[stat.StatType] = GetClassModifier(
+                            ActiveClass?.Stats?.StatBonuses,
+                            stat.StatType
+                        );
                     }
                 }
             }
@@ -63,8 +74,23 @@ namespace Turnroot.Characters.Editor
                 {
                     if (stat != null)
                     {
-                        _currentBoundedStats[stat.StatType] = stat.Current;
-                        _boundedStatMaxima[stat.StatType] = stat.Max;
+                        float cap = GetClassModifier(
+                            ActiveClass?.Stats?.StatCaps,
+                            stat.StatType
+                        );
+                        float maximum = cap > 0f ? cap : stat.Max;
+                        _currentBoundedStats[stat.StatType] = Mathf.Min(
+                            ApplyMinimum(
+                                stat.Current,
+                                GetClassModifier(ActiveClass?.Stats?.StatMinimums, stat.StatType)
+                            ),
+                            maximum
+                        );
+                        _boundedStatBonuses[stat.StatType] = GetClassModifier(
+                            ActiveClass?.Stats?.StatBonuses,
+                            stat.StatType
+                        );
+                        _boundedStatMaxima[stat.StatType] = maximum;
                     }
                 }
             }
@@ -231,6 +257,39 @@ namespace Turnroot.Characters.Editor
             return cap?.value ?? 0f;
         }
 
+        private static float GetClassModifier(
+            List<UnboundedStatModifier> modifiers,
+            UnboundedStatType statType
+        )
+        {
+            return modifiers == null
+                ? 0f
+                : modifiers.Find(entry =>
+                !entry.isBounded && entry.unboundedStatType == statType
+            ).value;
+        }
+
+        private static float GetClassModifier(
+            List<UnboundedStatModifier> modifiers,
+            BoundedStatType statType
+        )
+        {
+            return modifiers == null
+                ? 0f
+                : modifiers.Find(entry => entry.isBounded && entry.boundedStatType == statType)
+                .value;
+        }
+
+        private static float ApplyMinimum(float current, float minimum) =>
+            minimum > 0f ? Mathf.Max(current, minimum) : current;
+
+        private float GetDisplayedCurrent(UnboundedStatType statType, float current) =>
+            current
+            + (_unboundedStatBonuses.TryGetValue(statType, out var bonus) ? bonus : 0f);
+
+        private float GetDisplayedCurrent(BoundedStatType statType, float current) =>
+            current + (_boundedStatBonuses.TryGetValue(statType, out var bonus) ? bonus : 0f);
+
         private void OnGUI()
         {
             if (_template == null)
@@ -352,11 +411,25 @@ namespace Turnroot.Characters.Editor
                 }
 
                 labels.Add(stat.StatType.ToString());
-                float original = Mathf.RoundToInt(stat.Current);
+                float original = Mathf.RoundToInt(
+                    GetDisplayedCurrent(
+                        stat.StatType,
+                        ApplyMinimum(
+                            stat.Current,
+                            GetClassModifier(
+                                ActiveClass?.Stats?.StatMinimums,
+                                stat.StatType
+                            )
+                        )
+                    )
+                );
                 float current = Mathf.RoundToInt(
-                    _currentUnboundedStats.TryGetValue(stat.StatType, out var value)
-                        ? value
-                        : original
+                    GetDisplayedCurrent(
+                        stat.StatType,
+                        _currentUnboundedStats.TryGetValue(stat.StatType, out var value)
+                            ? value
+                            : original
+                    )
                 );
                 originalValues.Add(original);
                 currentValues.Add(current);
@@ -381,12 +454,25 @@ namespace Turnroot.Characters.Editor
             }
 
             labels.Add("Health");
-            originalValues.Add(health.CurrentInt * 0.5f);
+            float initialHealth = Mathf.Min(
+                ApplyMinimum(
+                    health.Current,
+                    GetClassModifier(ActiveClass?.Stats?.StatMinimums, BoundedStatType.Health)
+                ),
+                GetClassModifier(ActiveClass?.Stats?.StatCaps, BoundedStatType.Health) is float cap
+                    && cap > 0f ? cap : health.Max
+            );
+            originalValues.Add(
+                GetDisplayedCurrent(BoundedStatType.Health, initialHealth) * 0.5f
+            );
             currentValues.Add(
                 Mathf.RoundToInt(
-                    _currentBoundedStats.TryGetValue(BoundedStatType.Health, out var value)
-                        ? value
-                        : health.CurrentInt
+                    GetDisplayedCurrent(
+                        BoundedStatType.Health,
+                        _currentBoundedStats.TryGetValue(BoundedStatType.Health, out var value)
+                            ? value
+                            : initialHealth
+                    )
                 ) * 0.5f
             );
         }
@@ -485,9 +571,20 @@ namespace Turnroot.Characters.Editor
                 foreach (var bounded in _template.BoundedStats)
                 {
                     var type = bounded.StatType;
-                    var orig = bounded.CurrentInt;
+                    var orig = Mathf.RoundToInt(
+                        GetDisplayedCurrent(
+                            type,
+                            ApplyMinimum(
+                                bounded.Current,
+                                GetClassModifier(ActiveClass?.Stats?.StatMinimums, type)
+                            )
+                        )
+                    );
                     var cur = Mathf.RoundToInt(
-                        _currentBoundedStats.TryGetValue(type, out var value) ? value : orig
+                        GetDisplayedCurrent(
+                            type,
+                            _currentBoundedStats.TryGetValue(type, out var value) ? value : orig
+                        )
                     );
                     var delta = cur - orig;
                     EditorGUILayout.LabelField($"{type}: {cur} (+{delta})");
@@ -506,9 +603,20 @@ namespace Turnroot.Characters.Editor
                     }
 
                     var type = unbound.StatType;
-                    var orig = Mathf.RoundToInt(unbound.Current);
+                    var orig = Mathf.RoundToInt(
+                        GetDisplayedCurrent(
+                            type,
+                            ApplyMinimum(
+                                unbound.Current,
+                                GetClassModifier(ActiveClass?.Stats?.StatMinimums, type)
+                            )
+                        )
+                    );
                     var cur = Mathf.RoundToInt(
-                        _currentUnboundedStats.TryGetValue(type, out var value) ? value : orig
+                        GetDisplayedCurrent(
+                            type,
+                            _currentUnboundedStats.TryGetValue(type, out var value) ? value : orig
+                        )
                     );
                     var delta = cur - orig;
                     EditorGUILayout.LabelField($"{type}: {cur} (+{delta})");

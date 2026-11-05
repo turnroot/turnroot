@@ -111,6 +111,7 @@ namespace Turnroot.Gameplay.Combat
 
         [SerializeField, HideInInspector]
         private int _currentTurnCount;
+        public int CurrentTurnCount => _currentTurnCount;
 
         [field: HideInInspector]
         public Brain.Brain Brain { get; set; }
