@@ -31,6 +31,14 @@ Shader "Turnroot/Performative Generic Cel Shader"
         _HighlightMaskTex("Highlight Mask (R)", 2D) = "black" {}
         _HighlightMaskAmount("Highlight Mask Amount", Range(0, 1)) = 1
 
+        [Header(Matcap Highlight)]
+        [Toggle(_USE_MATCAP_ON)] _UseMatcap("Use Matcap Highlight", Float) = 0
+        _MatcapTex("Matcap Texture", 2D) = "black" {}
+        _MatcapColor("Matcap Color", Color) = (1, 1, 1, 1)
+        _MatcapAmount("Matcap Amount", Range(0, 3)) = 1
+        _MatcapLightThreshold("Light Threshold", Range(-1, 1)) = 0.5
+        _MatcapThresholdSoftness("Threshold Softness", Range(0.001, 1)) = 0.05
+
         [Header(Cel Noise)]
         [Toggle(_USE_SHADOW_NOISE_ON)] _UseShadowNoise("Break Up Band Edges With Noise", Float) = 0
         _ShadowNoiseTex("Noise Texture (R)", 2D) = "gray" {}
@@ -147,6 +155,7 @@ Shader "Turnroot/Performative Generic Cel Shader"
             #pragma shader_feature_local _USE_EMISSION_ON
             #pragma shader_feature_local _USE_SHADOW_NOISE_ON
             #pragma shader_feature_local _USE_HIGHLIGHT_MASK_ON
+            #pragma shader_feature_local _USE_MATCAP_ON
 
             // ── URP lighting variants ───────────────────────────────
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
@@ -172,6 +181,7 @@ Shader "Turnroot/Performative Generic Cel Shader"
             float4 _EmissionMap_ST;
             float4 _HighlightMaskTex_ST;
             float4 _ShadowNoiseTex_ST;
+            float4 _MatcapTex_ST;
 
             float4 _BaseColor;
             float  _Cutoff;
@@ -190,6 +200,11 @@ Shader "Turnroot/Performative Generic Cel Shader"
             float  _HighlightSaturation;
             float  _HighlightMaskAmount;
 
+            float4 _MatcapColor;
+            float  _MatcapAmount;
+            float  _MatcapLightThreshold;
+            float  _MatcapThresholdSoftness;
+
             float  _ShadowNoiseAmount;
 
             float4 _NightTintColor;
@@ -204,6 +219,7 @@ Shader "Turnroot/Performative Generic Cel Shader"
             TEXTURE2D(_EmissionMap);      SAMPLER(sampler_EmissionMap);
             TEXTURE2D(_HighlightMaskTex); SAMPLER(sampler_HighlightMaskTex);
             TEXTURE2D(_ShadowNoiseTex);   SAMPLER(sampler_ShadowNoiseTex);
+            TEXTURE2D(_MatcapTex);        SAMPLER(sampler_MatcapTex);
 
             struct Attributes
             {
@@ -334,6 +350,24 @@ Shader "Turnroot/Performative Generic Cel Shader"
                 litColor = (_HighlightColorReplace > 0.5)
                     ? lerp(litColor, highlightRgb, hm)
                     : 1.0 - (1.0 - litColor) * (1.0 - saturate(highlightRgb * hm));
+
+                #if defined(_USE_MATCAP_ON)
+                {
+                    float3 normalVS = normalize(TransformWorldToViewDir(normalWS, true));
+                    float2 matcapUV = normalVS.xy * 0.5 + 0.5;
+                    matcapUV = matcapUV * _MatcapTex_ST.xy + _MatcapTex_ST.zw;
+                    float3 matcap = SAMPLE_TEXTURE2D(_MatcapTex, sampler_MatcapTex, matcapUV).rgb
+                        * _MatcapColor.rgb;
+                    float matcapLight = dot(normalWS, mainLight.direction)
+                        * mainLight.shadowAttenuation * mainLight.distanceAttenuation;
+                    float matcapMask = smoothstep(
+                        _MatcapLightThreshold,
+                        _MatcapLightThreshold + max(_MatcapThresholdSoftness, 0.0001),
+                        matcapLight);
+                    litColor = 1.0 - (1.0 - litColor)
+                        * (1.0 - saturate(matcap * (_MatcapAmount * matcapMask)));
+                }
+                #endif
 
                 // ── Additional lights ─────────────────────────────────────
                 #if defined(_ADDITIONAL_LIGHTS)

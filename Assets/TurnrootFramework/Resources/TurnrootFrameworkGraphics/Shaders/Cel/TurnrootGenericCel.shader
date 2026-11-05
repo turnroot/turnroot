@@ -47,21 +47,13 @@ Shader "Turnroot/Generic Cel Shader"
         _EmissionMap("Emission Map", 2D) = "white" {}
         [HDR] _EmissionColor("Emission Color", Color) = (0, 0, 0, 1)
 
-        [Header(Matcap)]
-        [Toggle(_USE_MATCAP_ON)] _UseMatcap("Use Matcap", Float) = 0
-        _MatcapTex("Matcap Texture", 2D) = "white" {}
-        _MatcapIntensity("Matcap Intensity", Range(0, 2)) = 1
-        [Toggle] _MatcapObjectSpace("Matcap Object-Space (off = view-space)", Float) = 0
-        [Toggle(_USE_MATCAP_REFLECTION_ON)] _UseMatcapReflection("Use Reflection Vector (off = normal)", Float) = 1
-        [Toggle(_USE_MATCAP_ANIMATION_ON)] _UseMatcapAnimation("Animate Matcap", Float) = 0
-        _MatcapAnimationSpeed("Matcap Animation Speed", Range(0, 10)) = 1
-        _MatcapMaskTex("Matcap Mask (R)", 2D) = "white" {}
-        _MatcapMaskHardness("Matcap Mask Edge Hardness", Range(0, 22)) = 1
-        _MatcapMaskDissolve("Matcap Mask Dissolve", Range(0, 1)) = 1
-        [Toggle(_USE_MATCAP_EMISSIVE_ON)] _UseMatcapEmissive("Use Matcap Emissive", Float) = 0
-        _MatcapEmissiveTex("Matcap Emissive (R)", 2D) = "white" {}
-        [HDR] _MatcapEmissiveColor("Matcap Emissive Color", Color) = (0, 0, 0, 1)
-        _MatcapEmissivePower("Matcap Emissive Power", Range(0, 3)) = 0
+        [Header(Matcap Highlight)]
+        [Toggle(_USE_MATCAP_ON)] _UseMatcap("Use Matcap Highlight", Float) = 0
+        _MatcapTex("Matcap Texture", 2D) = "black" {}
+        _MatcapColor("Matcap Color", Color) = (1, 1, 1, 1)
+        _MatcapAmount("Matcap Amount", Range(0, 3)) = 1
+        _MatcapLightThreshold("Light Threshold", Range(-1, 1)) = 0.5
+        _MatcapThresholdSoftness("Threshold Softness", Range(0.001, 1)) = 0.05
 
         [Header(Fresnel)]
         [Toggle(_USE_FRESNEL_ON)] _UseFresnel("Use Fresnel", Float) = 0
@@ -170,9 +162,6 @@ Shader "Turnroot/Generic Cel Shader"
 
             // ── Feature toggles ─────────────────────────────────────
             #pragma shader_feature_local _USE_MATCAP_ON
-            #pragma shader_feature_local _USE_MATCAP_REFLECTION_ON
-            #pragma shader_feature_local _USE_MATCAP_ANIMATION_ON
-            #pragma shader_feature_local _USE_MATCAP_EMISSIVE_ON
             #pragma shader_feature_local _USE_FRESNEL_ON
             #pragma shader_feature_local _USE_EMISSION_ON
             #pragma shader_feature_local _USE_SHADOW_NOISE_ON
@@ -209,8 +198,7 @@ Shader "Turnroot/Generic Cel Shader"
             float4 _EmissionMap_ST;
             float4 _HighlightMaskTex_ST;
             float4 _ShadowNoiseTex_ST;
-            float4 _MatcapMaskTex_ST;
-            float4 _MatcapEmissiveTex_ST;
+            float4 _MatcapTex_ST;
 
             float4 _BaseColor;
             float  _BumpScale;
@@ -237,13 +225,10 @@ Shader "Turnroot/Generic Cel Shader"
 
             float4 _EmissionColor;
 
-            float  _MatcapIntensity;
-            float  _MatcapObjectSpace;
-            float  _MatcapAnimationSpeed;
-            float  _MatcapMaskHardness;
-            float  _MatcapMaskDissolve;
-            float4 _MatcapEmissiveColor;
-            float  _MatcapEmissivePower;
+            float4 _MatcapColor;
+            float  _MatcapAmount;
+            float  _MatcapLightThreshold;
+            float  _MatcapThresholdSoftness;
 
             float4 _FresnelColor;
             float  _FresnelRange;
@@ -259,8 +244,6 @@ Shader "Turnroot/Generic Cel Shader"
             TEXTURE2D(_HighlightMaskTex);  SAMPLER(sampler_HighlightMaskTex);
             TEXTURE2D(_ShadowNoiseTex);    SAMPLER(sampler_ShadowNoiseTex);
             TEXTURE2D(_MatcapTex);         SAMPLER(sampler_MatcapTex);
-            TEXTURE2D(_MatcapMaskTex);     SAMPLER(sampler_MatcapMaskTex);
-            TEXTURE2D(_MatcapEmissiveTex); SAMPLER(sampler_MatcapEmissiveTex);
 
             struct Attributes
             {
@@ -474,58 +457,23 @@ Shader "Turnroot/Generic Cel Shader"
                 }
                 #endif // _ADDITIONAL_LIGHTS
 
-                // ── Matcap (fakes specular) ───────────────────────────────
+                // ── Thresholded matcap highlight ──────────────────────────
                 float3 basePart = litColor;
                 #if defined(_USE_MATCAP_ON)
                 {
-                    float2 matcapUV;
-
-                    if (_MatcapObjectSpace > 0.5)
-                    {
-                        float3 nOS = normalize(TransformWorldToObjectDir(normalWS));
-                        matcapUV = nOS.xy * 0.5 + 0.5;
-                    }
-                    else
-                    {
-                        #if defined(_USE_MATCAP_REFLECTION_ON)
-                            float3 reflectDir  = reflect(-viewDirWS, normalWS);
-                            float3 viewReflect = mul((float3x3)UNITY_MATRIX_V, reflectDir);
-                            float  m           = 2.828427 * sqrt(max(viewReflect.z + 1.0, 0.0001));
-                            matcapUV = viewReflect.xy / m + 0.5;
-                        #else
-                            float3 normalView = mul((float3x3)UNITY_MATRIX_V, normalWS);
-                            matcapUV = normalView.xy * 0.5 + 0.5;
-                        #endif
-                    }
-
-                    #if defined(_USE_MATCAP_ANIMATION_ON)
-                    {
-                        float angle = _Time.y * _MatcapAnimationSpeed;
-                        float ca = cos(angle);
-                        float sa = sin(angle);
-                        float2x2 rot = float2x2(ca, -sa, sa, ca);
-                        matcapUV = mul(rot, matcapUV - 0.5) + 0.5;
-                    }
-                    #endif
-
-                    float3 matcapCol = SAMPLE_TEXTURE2D(_MatcapTex, sampler_MatcapTex, matcapUV).rgb;
-
-                    #if defined(_USE_MATCAP_EMISSIVE_ON)
-                    {
-                        float2 uv_ME = TRANSFORM_TEX(input.uv, _MatcapEmissiveTex);
-                        float  emisVal = SAMPLE_TEXTURE2D(_MatcapEmissiveTex, sampler_MatcapEmissiveTex, uv_ME).r;
-                        matcapCol += emisVal * (_MatcapEmissiveColor.rgb * _MatcapEmissivePower);
-                    }
-                    #endif
-
-                    matcapCol *= _MatcapIntensity;
-
-                    float2 uv_MM = TRANSFORM_TEX(input.uv, _MatcapMaskTex);
-                    float  maskVal  = SAMPLE_TEXTURE2D(_MatcapMaskTex, sampler_MatcapMaskTex, uv_MM).r;
-                    float  maskLerp = lerp(_MatcapMaskHardness, -1.0, _MatcapMaskDissolve);
-                    float  matcapMask = saturate((maskVal * _MatcapMaskHardness) - maskLerp);
-
-                    basePart = lerp(basePart, basePart + matcapCol, matcapMask);
+                    float3 normalVS = normalize(TransformWorldToViewDir(normalWS, true));
+                    float2 matcapUV = normalVS.xy * 0.5 + 0.5;
+                    matcapUV = matcapUV * _MatcapTex_ST.xy + _MatcapTex_ST.zw;
+                    float3 matcap = SAMPLE_TEXTURE2D(_MatcapTex, sampler_MatcapTex, matcapUV).rgb
+                        * _MatcapColor.rgb;
+                    float matcapLight = dot(normalWS, mainLight.direction)
+                        * mainLight.shadowAttenuation * mainLight.distanceAttenuation;
+                    float matcapMask = smoothstep(
+                        _MatcapLightThreshold,
+                        _MatcapLightThreshold + max(_MatcapThresholdSoftness, 0.0001),
+                        matcapLight);
+                    basePart = 1.0 - (1.0 - basePart)
+                        * (1.0 - saturate(matcap * (_MatcapAmount * matcapMask)));
                 }
                 #endif
 
