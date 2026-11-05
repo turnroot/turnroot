@@ -85,23 +85,25 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Resolves required condition references by matching names from the provided list of all conditions.
         /// Should be called by the owning `BattleGameObject` during connect/initialization.
         /// </summary>
-        public void ResolveRequiredConditions(BattleCondition[] allConditions)
+        public OperationResult ResolveRequiredConditions(BattleCondition[] allConditions)
         {
             if (RequiredConditionNames == null || RequiredConditionNames.Length == 0)
             {
-                return;
+                RequiredConditions = Array.Empty<BattleCondition>();
+                return OperationResult.Successful();
             }
 
-            var list = new List<BattleCondition>();
-            foreach (var name in RequiredConditionNames)
+            if (allConditions == null)
             {
-                var match = Array.Find(allConditions, c => c != null && c.Name == name);
-                if (match != null)
-                {
-                    list.Add(match);
-                }
+                return OperationResult.Failure("Cannot resolve required conditions from a null condition list");
             }
-            RequiredConditions = list.ToArray();
+
+            RequiredConditions = RequiredConditionNames
+                .Select(name => Array.Find(allConditions, condition =>
+                    condition != null && condition.Name == name))
+                .Where(condition => condition != null)
+                .ToArray();
+            return OperationResult.Successful();
         }
 
         /// <summary>

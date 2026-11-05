@@ -1,5 +1,6 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -32,23 +33,25 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             ChildConditions = Array.Empty<BattleCondition>();
         }
 
-        public void ResolveChildConditions(BattleCondition[] allConditions)
+        public OperationResult ResolveChildConditions(BattleCondition[] allConditions)
         {
             if (ChildConditionNames == null || ChildConditionNames.Length == 0)
             {
-                return;
+                ChildConditions = Array.Empty<BattleCondition>();
+                return OperationResult.Successful();
             }
 
-            var list = new List<BattleCondition>();
-            foreach (var name in ChildConditionNames)
+            if (allConditions == null)
             {
-                var match = Array.Find(allConditions, c => c != null && c.Name == name);
-                if (match != null)
-                {
-                    list.Add(match);
-                }
+                return OperationResult.Failure("Cannot resolve child conditions from a null condition list");
             }
-            ChildConditions = list.ToArray();
+
+            ChildConditions = ChildConditionNames
+                .Select(name => Array.Find(allConditions, condition =>
+                    condition != null && condition.Name == name))
+                .Where(condition => condition != null)
+                .ToArray();
+            return OperationResult.Successful();
         }
 
         public void CheckCondition()

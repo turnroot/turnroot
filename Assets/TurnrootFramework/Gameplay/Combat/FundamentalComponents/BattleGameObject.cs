@@ -10,6 +10,7 @@ using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs;
 using Turnroot.Gameplay.Combat.PreBattle;
 using Turnroot.Gameplay.Combat.Precompute;
 using Turnroot.Gameplay.Maps;
+using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat
@@ -37,6 +38,7 @@ namespace Turnroot.Gameplay.Combat
     [RequireComponent(typeof(BattlePrecomputeLoader))]
     public partial class BattleGameObject : MonoBehaviour
     {
+        public EnemySupervisor EnemySupervisor => GetComponent<EnemySupervisor>();
         [field: SerializeField, HideInInspector]
         public BattleContext Context { get; private set; }
 
@@ -109,6 +111,7 @@ namespace Turnroot.Gameplay.Combat
 
         [SerializeField, HideInInspector]
         private int _currentTurnCount;
+        public int CurrentTurnCount => _currentTurnCount;
 
         [field: HideInInspector]
         public Brain.Brain Brain { get; set; }
@@ -135,19 +138,12 @@ namespace Turnroot.Gameplay.Combat
             ValidateRequiredComponents();
         }
 
-        private void ValidateRequiredComponents()
+        public OperationResult ValidateRequiredComponents()
         {
-            if (MapGrid == null)
-            {
-                this.LogError("Requires a MapGrid child");
-                Debug.Break();
-            }
-
-            if (BattleConditions == null)
-            {
-                this.LogError("Requires BattleConditions to be set");
-                Debug.Break();
-            }
+            return MapGrid == null ? OperationResult.Failure("Requires MapGrid to be set")
+                : BattleConditions == null
+                    ? OperationResult.Failure("Requires BattleConditions to be set")
+                : OperationResult.Successful();
         }
 
 #if UNITY_EDITOR
@@ -183,17 +179,11 @@ namespace Turnroot.Gameplay.Combat
 
                 condition.battleContext = Context;
 
-                try
+                condition.ResolveRequiredConditions(BattleConditions);
+
+                if (condition is ConditionalGroupBattleCondition group)
                 {
-                    condition.ResolveRequiredConditions(BattleConditions);
-                    if (condition is ConditionalGroupBattleCondition group)
-                    {
-                        group.ResolveChildConditions(BattleConditions);
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    this.LogWarning($"Failed to resolve condition {condition?.Name}: {ex.Message}");
+                    group.ResolveChildConditions(BattleConditions);
                 }
             }
         }
@@ -207,14 +197,16 @@ namespace Turnroot.Gameplay.Combat
         {
             IncrementTurnCount();
 
-            foreach (var condition in BattleConditions.OfType<SurviveTurnsBattleCondition>())
+            foreach (var condition in BattleConditions)
             {
-                condition.OnTurnEnd();
-            }
-
-            foreach (var condition in BattleConditions.OfType<TimeLimitBattleCondition>())
-            {
-                condition.OnTurnEnd();
+                if (condition is SurviveTurnsBattleCondition surviveTurns)
+                {
+                    surviveTurns.OnTurnEnd();
+                }
+                else if (condition is TimeLimitBattleCondition timeLimit)
+                {
+                    timeLimit.OnTurnEnd();
+                }
             }
         }
 
@@ -248,19 +240,20 @@ namespace Turnroot.Gameplay.Combat
 
         private void CheckDefeatConditions()
         {
-            foreach (var condition in BattleConditions.OfType<DefeatAllEnemiesBattleCondition>())
+            foreach (var condition in BattleConditions)
             {
-                condition.CheckCondition();
-            }
-
-            foreach (var condition in BattleConditions.OfType<DefeatEnemyBattleCondition>())
-            {
-                condition.CheckCondition();
-            }
-
-            foreach (var condition in BattleConditions.OfType<ProtectNPCsBattleCondition>())
-            {
-                condition.CheckCondition();
+                if (condition is DefeatAllEnemiesBattleCondition defeatAll)
+                {
+                    defeatAll.CheckCondition();
+                }
+                else if (condition is DefeatEnemyBattleCondition defeatEnemy)
+                {
+                    defeatEnemy.CheckCondition();
+                }
+                else if (condition is ProtectNPCsBattleCondition protectNPCs)
+                {
+                    protectNPCs.CheckCondition();
+                }
             }
         }
 
@@ -297,20 +290,22 @@ namespace Turnroot.Gameplay.Combat
             InvalidateAllConditionCaches();
             ClearAICache();
 
-            foreach (var condition in BattleConditions.OfType<DefeatEnemyBattleCondition>())
+            foreach (var condition in BattleConditions)
             {
-                condition.CheckCondition();
-            }
-
-            foreach (var condition in BattleConditions.OfType<DefeatAllEnemiesBattleCondition>())
-            {
-                condition.CheckCondition();
+                if (condition is DefeatEnemyBattleCondition defeatEnemy)
+                {
+                    defeatEnemy.CheckCondition();
+                }
+                else if (condition is DefeatAllEnemiesBattleCondition defeatAll)
+                {
+                    defeatAll.CheckCondition();
+                }
             }
         }
 
         private void HandleUnitDefeatedEvent(UnitDefeatedEvent evt) => HandleUnitDefeated(evt.Unit);
 
-        private void InvalidateAllConditionCaches()
+        private OperationResult InvalidateAllConditionCaches()
         {
             foreach (var condition in BattleConditions)
             {
@@ -320,11 +315,12 @@ namespace Turnroot.Gameplay.Combat
                 }
                 catch (System.Exception ex)
                 {
-                    this.LogWarning(
-                        $"Failed to invalidate cache for {condition?.Name}: {ex.Message}"
+                    return OperationResult.Failure(
+                        $"Failed to invalidate cache for condition {condition?.GetType().Name}: {ex.Message}"
                     );
                 }
             }
+            return OperationResult.Successful();
         }
 
         private void ClearAICache() => Brain.battleBrain.ClearAICache();

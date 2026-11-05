@@ -146,12 +146,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Sprite unexploredSprite
         )
         {
-            if (isExplored)
-            {
-                return exploredSprite != null ? exploredSprite : unexploredSprite;
-            }
-
-            return unexploredSprite != null ? unexploredSprite : exploredSprite;
+            return isExplored
+                ? exploredSprite != null ? exploredSprite : unexploredSprite
+                : unexploredSprite != null ? unexploredSprite : exploredSprite;
         }
 
         private static bool IsExplored(QuadrantExploredState state) =>

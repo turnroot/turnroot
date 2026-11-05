@@ -110,12 +110,9 @@ namespace Turnroot.Utilities.SceneFlows
 
         private static string GetDisplayName(string sceneName)
         {
-            if (Registry != null && Registry.TryGetBattle(sceneName, out var battle))
-            {
-                return string.IsNullOrEmpty(battle.BattleName) ? sceneName : battle.BattleName;
-            }
-
-            return sceneName;
+            return Registry != null && Registry.TryGetBattle(sceneName, out var battle)
+                ? string.IsNullOrEmpty(battle.BattleName) ? sceneName : battle.BattleName
+                : sceneName;
         }
 
         /// <summary>

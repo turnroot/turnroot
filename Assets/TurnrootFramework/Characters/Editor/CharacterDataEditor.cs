@@ -26,6 +26,9 @@ namespace Turnroot.Characters.Editor
         private bool _showDemographics = true;
         private bool _showPortraits = true;
         private bool _showVisualModel = true;
+        private bool _showCharacterFlags;
+        private bool _showHeredity;
+        private bool _showUniqueDetails;
 
         protected override void OnEnable()
         {
@@ -182,7 +185,6 @@ namespace Turnroot.Characters.Editor
                 AssetDatabase.SaveAssets();
             }
 
-            // When the character is an NPC, only show identity + demographics fields.
             var whichProp = FindAutoProperty("Which");
             if (whichProp != null)
             {
@@ -193,18 +195,32 @@ namespace Turnroot.Characters.Editor
                 EditorGUILayout.LabelField("Unable to find 'Which' property");
             }
 
-            // CharacterWhich is a serializable class (string-backed), not an enum.
-            // Use the internal value to determine if this is an NPC.
             var whichValueProp = whichProp?.FindPropertyRelative("_value");
-            bool isNpc =
-                whichValueProp != null
-                && whichValueProp.stringValue == Turnroot.Characters.Components.CharacterWhich.NPC;
+            string which = whichValueProp?.stringValue;
+            bool isNpc = which == CharacterWhich.NPC;
+            bool isAvatar = which == CharacterWhich.AVATAR;
+            var uniqueProp = serializedObject.FindProperty("_isUnique");
+            bool isUnique = isAvatar || (uniqueProp != null && uniqueProp.boolValue);
+            DrawAutoPropertyField("DisplayName");
+            if (isAvatar)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUILayout.Toggle("Is Unique", true);
+                }
+            }
+            else if (uniqueProp != null)
+            {
+                EditorGUILayout.PropertyField(uniqueProp, new GUIContent("Is Unique"));
+            }
+            DrawCharacterFlags(which, isUnique);
+            DrawUniqueDetails(isUnique);
+
             if (isNpc)
             {
                 _showIdentity = EditorGUILayout.Foldout(_showIdentity, "Identity");
                 if (_showIdentity)
                 {
-                    DrawAutoPropertyField("DisplayName");
                     DrawAutoPropertyField("FullName");
                     DrawAutoPropertyField("Team");
                 }
@@ -212,11 +228,16 @@ namespace Turnroot.Characters.Editor
                 _showDemographics = EditorGUILayout.Foldout(_showDemographics, "Demographics");
                 if (_showDemographics)
                 {
-                    DrawAutoPropertyField("CharacterPronouns");
-                    DrawAutoPropertyField("BirthdayDay");
-                    DrawAutoPropertyField("BirthdayMonth");
+                    if (isUnique)
+                    {
+                        DrawAutoPropertyField("BirthdayDay");
+                        DrawAutoPropertyField("BirthdayMonth");
+                    }
                     DrawAutoPropertyField("Species");
                 }
+
+                DrawHeredity(isUnique);
+                DrawVisibleRecruitment(isUnique);
 
                 _showPortraits = EditorGUILayout.Foldout(_showPortraits, "Portraits");
                 if (_showPortraits)
@@ -231,9 +252,6 @@ namespace Turnroot.Characters.Editor
                     DrawAutoPropertyField("BadgeIcon");
                     DrawAutoPropertyField("Blendshapes");
                     DrawAutoPropertyField("SkinColor");
-                    DrawAutoPropertyField("AccentColor1");
-                    DrawAutoPropertyField("AccentColor2");
-                    DrawAutoPropertyField("AccentColor3");
                     DrawAutoPropertyField("HeadAndHandsPrefab");
                     DrawAutoPropertyField("HairPrefab");
                     DrawAutoPropertyField("NonBattleOutfitPrefab");
@@ -244,36 +262,32 @@ namespace Turnroot.Characters.Editor
             }
 
             // draw the default inspector first; we'll merge our custom sections below
+            if (isUnique)
+            {
+                DrawAutoPropertyField("BirthdayDay");
+                DrawAutoPropertyField("BirthdayMonth");
+            }
+            DrawHeredity(isUnique);
             base.OnInspectorGUI();
 
-            var behaviorProp =
-                serializedObject.FindProperty("BehaviorSettings")
-                ?? serializedObject.FindProperty("<BehaviorSettings>k__BackingField");
-            EditorGUILayout.Space();
-            _behaviorFoldout = EditorGUILayout.Foldout(_behaviorFoldout, "Behavior", false);
-            if (_behaviorFoldout && behaviorProp != null)
+            if (!isAvatar)
             {
-                float h = GetBehaviorPropertyHeight(behaviorProp);
-                Rect rect = EditorGUILayout.GetControlRect(false, h, GUILayout.ExpandWidth(true));
-                DrawBehaviorProperty(rect, behaviorProp);
+                var behaviorProp =
+                    serializedObject.FindProperty("BehaviorSettings")
+                    ?? serializedObject.FindProperty("<BehaviorSettings>k__BackingField");
+                EditorGUILayout.Space();
+                _behaviorFoldout = EditorGUILayout.Foldout(_behaviorFoldout, "Behavior", false);
+                if (_behaviorFoldout && behaviorProp != null)
+                {
+                    float h = GetBehaviorPropertyHeight(behaviorProp);
+                    Rect rect = EditorGUILayout.GetControlRect(false, h, GUILayout.ExpandWidth(true));
+                    DrawBehaviorProperty(rect, behaviorProp);
+                }
             }
             serializedObject.ApplyModifiedProperties();
 
             // Recruitment section - only shown when IsRecruitable is true
-            var isRecruitableProp = FindAutoProperty("IsRecruitable");
-            if (isRecruitableProp != null && isRecruitableProp.boolValue)
-            {
-                EditorGUILayout.Space();
-                _showRecruitment = EditorGUILayout.Foldout(_showRecruitment, "Recruitment", true);
-                if (_showRecruitment)
-                {
-                    DrawRecruitmentSection();
-                }
-                if (serializedObject.hasModifiedProperties)
-                {
-                    serializedObject.ApplyModifiedProperties();
-                }
-            }
+            DrawVisibleRecruitment(isUnique);
 
             EditorGUILayout.Space();
             _showBaseStats = EditorGUILayout.Foldout(_showBaseStats, "Base Stats", true);
@@ -407,6 +421,101 @@ namespace Turnroot.Characters.Editor
             // Unity may serialize either the field name or the property name depending on the compiler.
             return serializedObject.FindProperty(name)
                 ?? serializedObject.FindProperty($"<{name}>k__BackingField");
+        }
+
+        private void DrawCharacterFlags(string which, bool isUnique)
+        {
+            bool canRecruit = which == CharacterWhich.ENEMY
+                || which == CharacterWhich.NPC
+                || which == CharacterWhich.ALLY;
+            if (!isUnique || !canRecruit)
+            {
+                return;
+            }
+
+            _showCharacterFlags = EditorGUILayout.Foldout(
+                _showCharacterFlags,
+                "Character Flags",
+                true
+            );
+            if (!_showCharacterFlags)
+            {
+                return;
+            }
+
+            DrawAutoPropertyField("IsRecruitable");
+            if (which == CharacterWhich.ALLY
+                || (FindAutoProperty("IsRecruitable")?.boolValue ?? false))
+            {
+                DrawAutoPropertyField("CanHaveChildren");
+            }
+        }
+
+        private void DrawUniqueDetails(bool isUnique)
+        {
+            if (!isUnique)
+            {
+                return;
+            }
+
+            _showUniqueDetails = EditorGUILayout.Foldout(
+                _showUniqueDetails,
+                "Unique Character Details",
+                true
+            );
+            if (!_showUniqueDetails)
+            {
+                return;
+            }
+
+            DrawAutoPropertyField("CharacterPronouns");
+            DrawAutoPropertyField("Likes");
+            DrawAutoPropertyField("Dislikes");
+            DrawAutoPropertyField("AccentColor1");
+            DrawAutoPropertyField("AccentColor2");
+            DrawAutoPropertyField("AccentColor3");
+        }
+
+        private void DrawHeredity(bool isUnique)
+        {
+            if (!isUnique)
+            {
+                return;
+            }
+
+            _showHeredity = EditorGUILayout.Foldout(_showHeredity, "Heredity", true);
+            if (!_showHeredity)
+            {
+                return;
+            }
+
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_passedDownTraits"));
+            var hasChild = serializedObject.FindProperty("_hasDesignatedChildUnit");
+            EditorGUILayout.PropertyField(hasChild);
+            if (hasChild != null && hasChild.boolValue)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_childUnitId"));
+            }
+        }
+
+        private void DrawVisibleRecruitment(bool isUnique)
+        {
+            var isRecruitableProp = FindAutoProperty("IsRecruitable");
+            if (!isUnique || isRecruitableProp == null || !isRecruitableProp.boolValue)
+            {
+                return;
+            }
+
+            EditorGUILayout.Space();
+            _showRecruitment = EditorGUILayout.Foldout(_showRecruitment, "Recruitment", true);
+            if (_showRecruitment)
+            {
+                DrawRecruitmentSection();
+            }
+            if (serializedObject.hasModifiedProperties)
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
         }
 
         private void DrawAutoPropertyField(string name)
@@ -1274,7 +1383,7 @@ namespace Turnroot.Characters.Editor
             var gs = GameSettings.GameplayGeneralSettings.Instance;
             var allTypes = gs != null ? gs.GetAllExperienceTypes() : null;
             string[] typeNames =
-                allTypes != null ? System.Array.ConvertAll(allTypes, t => t.Name) : new string[0];
+                allTypes != null ? Array.ConvertAll(allTypes, t => t.Name) : new string[0];
 
             EditorGUILayout.LabelField("Minimum Experience Ranks", EditorStyles.miniBoldLabel);
 
@@ -1293,7 +1402,7 @@ namespace Turnroot.Characters.Editor
 
                 if (idProp != null && typeNames.Length > 0)
                 {
-                    int currentIndex = System.Array.IndexOf(typeNames, idProp.stringValue);
+                    int currentIndex = Array.IndexOf(typeNames, idProp.stringValue);
                     if (currentIndex < 0)
                     {
                         currentIndex = 0;

@@ -223,12 +223,7 @@ namespace Turnroot.Characters
         public float CalculateCritAvoid()
         {
             var settings = GameSettings.GameplayGeneralSettings.Instance;
-            if (settings?.UseCriticalAvoidance != true)
-            {
-                return 0f;
-            }
-
-            return GetUnboundedStat(Stats.UnboundedStatType.Luck)?.Current ?? 0f;
+            return settings?.UseCriticalAvoidance != true ? 0f : GetUnboundedStat(Stats.UnboundedStatType.Luck)?.Current ?? 0f;
         }
 
         [NonSerialized]

@@ -21,12 +21,9 @@ namespace Turnroot.UI.Components.RadialMenu
 
         private Vector2 GetCardinalDirection(Vector2 input)
         {
-            if (input.magnitude <= joystickDeadzone)
-            {
-                return Vector2.zero;
-            }
-
-            return Mathf.Abs(input.x) >= Mathf.Abs(input.y)
+            return input.magnitude <= joystickDeadzone
+                ? Vector2.zero
+                : Mathf.Abs(input.x) >= Mathf.Abs(input.y)
                 ? (input.x > 0 ? Vector2.right : Vector2.left)
                 : (input.y > 0 ? Vector2.up : Vector2.down);
         }
@@ -194,11 +191,9 @@ namespace Turnroot.UI.Components.RadialMenu
 
         public MenuItemBase GetSelectedItem()
         {
-            if (_centerSelected)
-            {
-                return centerItem;
-            }
-            return _selectedIndex >= 0 && _selectedIndex < menuItems.Count
+            return _centerSelected
+                ? centerItem
+                : _selectedIndex >= 0 && _selectedIndex < menuItems.Count
                 ? menuItems[_selectedIndex]
                 : null;
         }

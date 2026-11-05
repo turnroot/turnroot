@@ -73,16 +73,9 @@ namespace Turnroot.Gameplay.Combat
 
         private void UnsubscribeFromMapChanges()
         {
-            try
+            if (MapGrid != null)
             {
-                if (MapGrid != null)
-                {
-                    MapGrid.OnStateVersionChanged -= HandleMapStateChanged;
-                }
-            }
-            catch (System.Exception ex)
-            {
-                this.LogWarning($"UnsubscribeFromMapChanges failed: {ex.Message}");
+                MapGrid.OnStateVersionChanged -= HandleMapStateChanged;
             }
         }
 
@@ -92,8 +85,17 @@ namespace Turnroot.Gameplay.Combat
             {
                 foreach (var condition in BattleConditions)
                 {
+                    if (condition == null)
+                    {
+                        continue;
+                    }
+
                     condition.battleContext = Context;
-                    ResolveConditionReferences(condition);
+                    var result = ResolveConditionReferences(condition);
+                    if (!result.Success)
+                    {
+                        return result;
+                    }
                 }
                 return OperationResult.Successful();
             }
@@ -107,11 +109,15 @@ namespace Turnroot.Gameplay.Combat
         {
             try
             {
-                condition.ResolveRequiredConditions(BattleConditions);
+                var result = condition.ResolveRequiredConditions(BattleConditions);
+                if (!result.Success)
+                {
+                    return result;
+                }
 
                 if (condition is ConditionalGroupBattleCondition group)
                 {
-                    group.ResolveChildConditions(BattleConditions);
+                    return group.ResolveChildConditions(BattleConditions);
                 }
             }
             catch (System.Exception ex)
@@ -142,7 +148,11 @@ namespace Turnroot.Gameplay.Combat
                 BattleConditions = list.ToArray();
 
                 condition.battleContext = Context;
-                ResolveConditionReferences(condition);
+                var result = ResolveConditionReferences(condition);
+                if (!result.Success)
+                {
+                    return result;
+                }
                 condition?.InvalidateCache();
             }
             catch (System.Exception ex)
@@ -181,8 +191,8 @@ namespace Turnroot.Gameplay.Combat
                     var initRes = loader.Initialize(Brain, Context);
                     if (!initRes.Success)
                     {
-                        this.LogWarning(
-                            $"Failed to initialize BattlePrecomputeLoader: {initRes.ErrorMessage}"
+                        return OperationResult.Failure(
+                            $"BattlePrecomputeLoader initialization failed: {initRes.ErrorMessage}"
                         );
                     }
                 }

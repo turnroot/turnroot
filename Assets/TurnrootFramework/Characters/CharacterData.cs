@@ -17,22 +17,21 @@ namespace Turnroot.Characters
     )]
     public partial class CharacterData : ScriptableObject, IHasStats
     {
-        [field: Foldout("Identity"), HorizontalLine(color: EColor.White), SerializeField]
+        [field: HideInInspector, SerializeField]
         public CharacterWhich Which { get; private set; } = new("Enemy");
 
-        [field: Foldout("Identity"), SerializeField]
+        [field: HideInInspector, SerializeField]
         public string DisplayName { get; private set; } = "New Unit";
 
         [field: Foldout("Identity"), SerializeField]
         public string FullName { get; private set; } = "Newly Created Unit";
 
-        [field: Foldout("Demographics"), HorizontalLine(color: EColor.Black), SerializeField]
+        [field: HideInInspector, SerializeField]
         public Pronouns CharacterPronouns { get; private set; } = new();
 
-        [field: Foldout("Demographics"), SerializeField, Range(1, 31)]
+        [field: HideInInspector, SerializeField, Range(1, 31)]
         public int BirthdayDay { get; private set; } = 1;
-
-        [field: Foldout("Demographics"), SerializeField, Range(1, 12)]
+        [field: HideInInspector, SerializeField, Range(1, 12)]
         public int BirthdayMonth { get; private set; } = 1;
 
         [field: Foldout("Demographics"), SerializeField]
@@ -47,20 +46,20 @@ namespace Turnroot.Characters
         ]
         public string ShortDescription { get; private set; } = "A new unit";
 
-        [field: Foldout("Description"), SerializeField]
+        [field: HideInInspector, SerializeField]
         public string[] Likes { get; private set; } = new string[0];
 
-        [field: Foldout("Description"), SerializeField]
+        [field: HideInInspector, SerializeField]
         public string[] Dislikes { get; private set; } = new string[0];
 
         [field: Foldout("Description"), SerializeField, ResizableTextArea]
         public string Notes { get; private set; } =
             "Take private notes (only in the editor) about this unit";
 
-        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(IsAllyOrRecruitable))]
+        [field: HideInInspector, SerializeField]
         public bool CanHaveChildren { get; private set; } = false;
 
-        [field: Foldout("Character Flags"), SerializeField, ShowIf(nameof(CanShowRecruitable))]
+        [field: HideInInspector, SerializeField]
         public bool IsRecruitable { get; private set; } = false;
 
         [field: SerializeField, HideInInspector]
@@ -89,7 +88,7 @@ namespace Turnroot.Characters
         [HideInInspector]
         public CharacterData SpecificAllyRequiredForRecruitment;
 
-        [SerializeField, Foldout("Character Flags"), ShowIf(nameof(CanShowUnique))]
+        [SerializeField, HideInInspector]
         [FormerlySerializedAs("<IsUnique>k__BackingField")]
         private bool _isUnique = false;
         public bool IsUnique => Which == CharacterWhich.AVATAR || _isUnique;
@@ -115,13 +114,13 @@ namespace Turnroot.Characters
         [Foldout("Visual"), SerializeField]
         private Color _eyeColor;
 
-        [field: Foldout("Visual"), SerializeField]
+        [field: HideInInspector, SerializeField]
         public Color AccentColor1 { get; private set; }
 
-        [field: Foldout("Visual"), SerializeField]
+        [field: HideInInspector, SerializeField]
         public Color AccentColor2 { get; private set; }
 
-        [field: Foldout("Visual"), SerializeField]
+        [field: HideInInspector, SerializeField]
         public Color AccentColor3 { get; private set; }
 
     }
