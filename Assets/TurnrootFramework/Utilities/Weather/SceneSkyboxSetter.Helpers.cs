@@ -299,9 +299,12 @@ namespace Turnroot.Utilities.Weather
                 UpdateWaterColors();
             }
 
-            UpdateFog();
+            if (EnableFog)
+            {
+                UpdateFog();
+            }
 
-            yield return _waitForSeconds0_5;
+            yield return _updateFrequency;
         }
 
         private void UpdateFog()
@@ -315,7 +318,11 @@ namespace Turnroot.Utilities.Weather
 
             if (profile.TryGet<Meryuhi.Rendering.FullScreenFog>(out var fog))
             {
-                var desaturatedFogColor = Color.Lerp(currentFogColor, referenceGray, 0.5f);
+                var desaturatedFogColor = Color.Lerp(
+                    _currentFogColor,
+                    referenceGray,
+                    fogGrayAmount
+                );
                 fog.color.value = desaturatedFogColor;
 
                 switch (CurrentWeatherType)

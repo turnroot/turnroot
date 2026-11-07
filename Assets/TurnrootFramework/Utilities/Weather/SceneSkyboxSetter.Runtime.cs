@@ -9,7 +9,7 @@ namespace Turnroot.Utilities.Weather
 {
     public partial class SceneSkyboxSetter : MonoBehaviour
     {
-        private static WaitForSeconds _waitForSeconds0_5 = new WaitForSeconds(0.5f);
+        private static readonly WaitForSeconds _updateFrequency = new(0.6f);
         public UnityEvent NightStart;
         public UnityEvent NightEnd;
 
@@ -20,7 +20,7 @@ namespace Turnroot.Utilities.Weather
         [Tooltip(
             "Blend factor applied to the cel shaders for soft lighting effects (0 = none, 1 = full)."
         )]
-        public float CelBlendFactor = 0.0f; // 0 = no tint, 1 = full shallow colour
+        public float CelBlendFactor = 0.0f;
         private Color[] baseCelLight;
         private Color[] baseCelBaseTint;
 
