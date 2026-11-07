@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Turnroot.Gameplay.Brain.Components.Battle;
-using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.Precompute;
 using Turnroot.Gameplay.Maps;
@@ -13,7 +12,13 @@ namespace Turnroot.Gameplay.Combat
     {
         #region Brain Connection
 
-        public OperationResult ConnectToBrainEvents()
+        /// <summary>
+        /// Connects battle logic to Brain and optionally initializes the map presentation path.
+        /// </summary>
+        /// <param name="initializePresentation">
+        /// Set to false for logic-only tests that do not provide tile-highlighting assets.
+        /// </param>
+        public OperationResult ConnectToBrainEvents(bool initializePresentation = true)
         {
             var validation = OperationResultGuards.RequireNotNull(Brain, nameof(Brain));
             if (!validation.Success)
@@ -26,7 +31,12 @@ namespace Turnroot.Gameplay.Combat
                 return OperationResult.Successful();
             }
 
-            InitializeContextWithBrain();
+            var initializationResult = InitializeContextWithBrain(initializePresentation);
+            if (!initializationResult.Success)
+            {
+                return initializationResult;
+            }
+
             SubscribeToBrainEvents();
 
             _isConnectedToBrain = true;
@@ -40,12 +50,11 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnEnemyDamaged += HandleEnemyDamaged;
             Brain.OnUnitDefeated += HandleUnitDefeated;
             Brain.OnUnitMoved += HandleUnitMoved;
+            Brain.OnUnitSpawned += HandleUnitSpawned;
             Brain.OnBattleCompleted += HandleExitBattle;
-            Brain.OnBattleInputEnabled += () => Brain.battleBrain.IsInputEnabled = true;
-            Brain.OnBattleInputDisabled += () => Brain.battleBrain.IsInputEnabled = false;
+            Brain.OnBattleInputEnabled += HandleBattleInputEnabled;
+            Brain.OnBattleInputDisabled += HandleBattleInputDisabled;
 
-            Brain.Subscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent, EventPriority.Normal);
-            Brain.Subscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent, EventPriority.Normal);
         }
 
         public void DisconnectFromBrainEvents()
@@ -60,15 +69,29 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnEnemyDamaged -= HandleEnemyDamaged;
             Brain.OnUnitDefeated -= HandleUnitDefeated;
             Brain.OnUnitMoved -= HandleUnitMoved;
+            Brain.OnUnitSpawned -= HandleUnitSpawned;
             Brain.OnBattleCompleted -= HandleExitBattle;
-            Brain.OnBattleInputEnabled -= () => Brain.battleBrain.IsInputEnabled = true;
-            Brain.OnBattleInputDisabled -= () => Brain.battleBrain.IsInputEnabled = false;
-
-            Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);
-            Brain.Unsubscribe<UnitDefeatedEvent>(HandleUnitDefeatedEvent);
+            Brain.OnBattleInputEnabled -= HandleBattleInputEnabled;
+            Brain.OnBattleInputDisabled -= HandleBattleInputDisabled;
 
             UnsubscribeFromMapChanges();
             _isConnectedToBrain = false;
+        }
+
+        private void HandleBattleInputEnabled()
+        {
+            if (Brain?.battleBrain != null)
+            {
+                Brain.battleBrain.IsInputEnabled = true;
+            }
+        }
+
+        private void HandleBattleInputDisabled()
+        {
+            if (Brain?.battleBrain != null)
+            {
+                Brain.battleBrain.IsInputEnabled = false;
+            }
         }
 
         private void UnsubscribeFromMapChanges()
@@ -162,7 +185,7 @@ namespace Turnroot.Gameplay.Combat
             return OperationResult.Successful();
         }
 
-        private OperationResult InitializeContextWithBrain()
+        private OperationResult InitializeContextWithBrain(bool initializePresentation)
         {
             if (
                 !ValidationHelper.ValidateNotNull(
@@ -183,8 +206,11 @@ namespace Turnroot.Gameplay.Combat
                 var mapGridToUse = Brain?.battleBrain.PreparationObject?.MapGrid ?? MapGrid;
                 Context.Initialize(Brain, mapGridToUse);
                 SubscribeToMapChanges();
-                Brain.PublishBattleMapReady(mapGridToUse);
-                TileHighlighter.Initialize(Brain, mapGridToUse);
+                if (initializePresentation)
+                {
+                    Brain.PublishBattleMapReady(mapGridToUse);
+                    TileHighlighter.Initialize(Brain, mapGridToUse);
+                }
 
                 if (TryGetComponent<BattlePrecomputeLoader>(out var loader))
                 {

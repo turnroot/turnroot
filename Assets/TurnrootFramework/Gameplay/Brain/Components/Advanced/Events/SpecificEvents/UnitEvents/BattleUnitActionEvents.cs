@@ -16,6 +16,7 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, int> OnAllyDamaged;
         public event Action<CharacterInstance, int> OnEnemyDamaged;
         public event Action<CharacterInstance> OnUnitDefeated;
+        public event Action<CharacterInstance, Vector2Int> OnUnitSpawned;
         public event Action<CharacterInstance, Vector2Int> OnUnitMoved;
         public event Action<CharacterInstance> OnUnitTakesAnotherTurn;
         public event Action<CharacterInstance> OnUnitFinishedMovingAfterAction;
@@ -56,6 +57,9 @@ namespace Turnroot.Gameplay.Brain
             OnEnemyDamaged?.Invoke(unit, damage);
 
         public void PublishUnitDefeated(CharacterInstance unit) => OnUnitDefeated?.Invoke(unit);
+
+        public void PublishUnitSpawned(CharacterInstance unit, Vector2Int position) =>
+            OnUnitSpawned?.Invoke(unit, position);
 
         public void PublishUnitMoved(CharacterInstance unit, Vector2Int pos) =>
             OnUnitMoved?.Invoke(unit, pos);

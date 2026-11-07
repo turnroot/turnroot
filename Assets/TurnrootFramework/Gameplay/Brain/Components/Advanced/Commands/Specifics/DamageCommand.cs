@@ -66,10 +66,11 @@ namespace Turnroot.Gameplay.Brain.Commands
                 new Events.UnitDamagedEvent(target, attacker, Damage, (int)health.Current)
             );
 
-            if (health.Current <= 0)
+            if (health.Current <= 0 && !target.IsDefeatedInCurrentBattle)
             {
                 target.IsDefeatedInCurrentBattle = true;
                 context.Brain.Publish(new Events.UnitDefeatedEvent(target, attacker));
+                context.Brain.PublishUnitDefeated(target);
             }
 
             return true;
