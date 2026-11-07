@@ -67,17 +67,17 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   intensity:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   color:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   densityMode:
     m_OverrideState: 1
     m_Value: 1
   startLine:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 10
   endLine:
     m_OverrideState: 1
     m_Value: 10
@@ -88,10 +88,10 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0
   density:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0.1
   noiseMode:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   noiseTexture:
     m_OverrideState: 1
