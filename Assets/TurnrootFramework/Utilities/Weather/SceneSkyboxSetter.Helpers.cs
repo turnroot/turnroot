@@ -1,6 +1,7 @@
 using System.Collections;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
+using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.Utilities.Weather
@@ -332,13 +333,13 @@ namespace Turnroot.Utilities.Weather
                         break;
                     case WeatherType.Cloudy or WeatherType.Snowy or WeatherType.Volcanic:
                         fog.active = true;
-                        fog.density.value = .106f;
-                        fog.intensity.value = 0.947f;
+                        fog.density.value = GameplayGeneralSettings.Instance.CloudyFogDensity;
+                        fog.intensity.value = GameplayGeneralSettings.Instance.CloudyFogIntensity;
                         break;
                     case WeatherType.Rainy or WeatherType.Stormy:
                         fog.active = true;
-                        fog.density.value = 0.322f;
-                        fog.intensity.value = 0.270f;
+                        fog.density.value = GameplayGeneralSettings.Instance.RainyFogDensity;
+                        fog.intensity.value = GameplayGeneralSettings.Instance.RainyFogIntensity;
                         break;
                     default:
                         fog.active = false;
