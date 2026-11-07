@@ -1,5 +1,6 @@
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Turnroot.Utilities.Weather
 {
@@ -15,6 +16,11 @@ namespace Turnroot.Utilities.Weather
 
     public partial class SceneSkyboxSetter : MonoBehaviour
     {
+        public Volume FogVolume;
+        private Color currentFogColor;
+
+        private Color referenceGray = new(0.51f, 0.53f, 0.57f, 1f);
+
         [HorizontalLine(2, EColor.Blue)]
         [Tooltip("Default skybox material used when no weather-specific skybox is available.")]
         public Material DefaultSkybox;
