@@ -44,12 +44,6 @@ namespace Turnroot.GameSettings
         [BoxGroup("Range Constants")]
         public int DefaultMaxRange = 0;
 
-        [BoxGroup("Extra Unit Stats"), HorizontalLine(color: EColor.Green)]
-        public bool Weight;
-
-        [BoxGroup("Extra Unit Stats"), ShowIf("Weight")]
-        public bool WeightAffectsMovement;
-
         [BoxGroup("Extra Unit Stats")]
         [Tooltip("Enables critical avoidance derived from Luck. It does not add a persisted stat.")]
         public bool CriticalAvoidance;
@@ -229,8 +223,6 @@ namespace Turnroot.GameSettings
             }
         }
 
-        // Public accessors for Extra Unit Stats
-        public bool UseWeight => Weight;
         public bool UseCriticalAvoidance => CriticalAvoidance;
 
         // Public accessors for Items

@@ -49,26 +49,6 @@ namespace Turnroot.Characters.Components
         public bool IsShieldEquipped => GetNonWeaponSlotEquipped(0);
         public bool IsAccessoryEquipped => GetNonWeaponSlotEquipped(1);
 
-        public int CurrentWeight
-        {
-            get
-            {
-                float weight = 0;
-                if (_inventoryItems != null)
-                {
-                    foreach (var item in _inventoryItems)
-                    {
-                        if (item != null && item.Template != null)
-                        {
-                            weight += item.Template.Weight;
-                        }
-                    }
-                }
-
-                return (int)weight;
-            }
-        }
-
         private int MaxNonWeaponSlots => CharacterSettings.MaxNonWeaponSlots;
 
         public CharacterInventoryInstance(int capacity = 6)

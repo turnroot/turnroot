@@ -276,14 +276,6 @@ namespace Turnroot.Gameplay.Objects
         ]
         public CharacterData BelongsTo { get; set; }
 
-        [field:
-            Foldout("Combat"),
-            SerializeField,
-            HorizontalLine(color: EColor.Red),
-            ShowIf(nameof(IsCombatSectionVisible))
-        ]
-        public float Weight { get; set; } = 1.0f;
-
         [field: Foldout("Type"), SerializeField, HorizontalLine(color: EColor.Blue)]
         public ObjectSubtype Subtype { get; set; } = new(ObjectSubtype.Weapon);
 
