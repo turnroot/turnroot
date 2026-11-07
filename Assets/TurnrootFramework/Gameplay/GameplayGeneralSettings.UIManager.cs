@@ -32,6 +32,18 @@ namespace Turnroot.GameSettings
         )]
         public float SwapArcOffset = 0.5f;
 
+        [BoxGroup("Visuals/3D/Fog"), Range(0f, 1f)]
+        public float CloudyFogDensity = 0.106f;
+
+        [BoxGroup("Visuals/3D/Fog"), Range(0f, 1f)]
+        public float CloudyFogIntensity = 0.947f;
+
+        [BoxGroup("Visuals/3D/Fog"), Range(0f, 1f)]
+        public float RainyFogDensity = 0.322f;
+
+        [BoxGroup("Visuals/3D/Fog"), Range(0f, 1f)]
+        public float RainyFogIntensity = 0.270f;
+
         [BoxGroup("Maps"), HorizontalLine(color: EColor.Green)]
         public bool UnexploredMaps;
 
