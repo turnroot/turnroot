@@ -337,8 +337,8 @@ namespace Turnroot.Utilities.Weather
                         break;
                     case WeatherType.Rainy or WeatherType.Stormy:
                         fog.active = true;
-                        fog.density.value = 0.462f;
-                        fog.intensity.value = 0.128f;
+                        fog.density.value = 0.322f;
+                        fog.intensity.value = 0.270f;
                         break;
                     default:
                         fog.active = false;
