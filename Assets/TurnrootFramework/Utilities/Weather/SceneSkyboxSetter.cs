@@ -16,8 +16,13 @@ namespace Turnroot.Utilities.Weather
 
     public partial class SceneSkyboxSetter : MonoBehaviour
     {
+        [HorizontalLine(2, EColor.Gray)]
+        [BoxGroup("Fog Settings")]
+        public bool EnableFog = true;
         public Volume FogVolume;
-        private Color currentFogColor;
+        private Color _currentFogColor;
+
+        public float fogGrayAmount;
 
         private Color referenceGray = new(0.51f, 0.53f, 0.57f, 1f);
 
