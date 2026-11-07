@@ -45,6 +45,7 @@ namespace Turnroot.Gameplay.Brain.Commands
             {
                 unit.WasSpawnedDuringBattle = true;
                 context.Brain.Publish(new Events.UnitSpawnedEvent(unit, SpawnPosition));
+                context.Brain.PublishUnitSpawned(unit, SpawnPosition);
 
                 // Only take snapshot if battle is fully initialized (not during initial setup)
                 if (!context.Brain.battleBrain.IsInitializing)

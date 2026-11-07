@@ -173,19 +173,51 @@ namespace Turnroot.Gameplay.Brain
 
         private bool InitializeBattleObject()
         {
-            BattleObject = FindBattleGameObjectInScene();
+            var battleObject = FindBattleGameObjectInScene();
 
-            if (BattleObject == null)
+            if (battleObject == null)
             {
                 "BattleBrain: No BattleGameObject found in any loaded scene".LogError();
                 return false;
             }
 
-            BattleObject.Brain = _brain;
-            BattleObject.ConnectToBrainEvents();
-            BattleObject.ConnectBattleConditionsToContext();
+            var result = BindBattleObject(battleObject);
+            if (!result.Success)
+            {
+                $"BattleBrain: Failed to initialize BattleGameObject: {result.ErrorMessage}".LogError();
+                return false;
+            }
 
             return true;
+        }
+
+        /// <summary>
+        /// Binds a battle object to the brain without starting pre-battle or turn flow.
+        /// </summary>
+        public OperationResult BindBattleObject(
+            BattleGameObject battleObject,
+            bool initializePresentation = true
+        )
+        {
+            var validation = OperationResultGuards.RequireNotNull(
+                battleObject,
+                nameof(battleObject)
+            );
+            if (!validation.Success)
+            {
+                return validation;
+            }
+
+            BattleObject = battleObject;
+            BattleObject.Brain = _brain;
+
+            var connectionResult = BattleObject.ConnectToBrainEvents(initializePresentation);
+            if (!connectionResult.Success)
+            {
+                return connectionResult;
+            }
+
+            return BattleObject.ConnectBattleConditionsToContext();
         }
 
         private void ClearUnitBattleState()

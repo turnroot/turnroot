@@ -3,7 +3,6 @@ using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
-using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Environment;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs;
@@ -285,7 +284,7 @@ namespace Turnroot.Gameplay.Combat
 
         private void HandleExitBattle(BattleExitType exitType) => DisconnectFromBrainEvents();
 
-        private void HandleUnitSpawnedEvent(UnitSpawnedEvent evt)
+        private void HandleUnitSpawned(CharacterInstance unit, Vector2Int position)
         {
             InvalidateAllConditionCaches();
             ClearAICache();
@@ -302,8 +301,6 @@ namespace Turnroot.Gameplay.Combat
                 }
             }
         }
-
-        private void HandleUnitDefeatedEvent(UnitDefeatedEvent evt) => HandleUnitDefeated(evt.Unit);
 
         private OperationResult InvalidateAllConditionCaches()
         {
