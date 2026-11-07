@@ -299,7 +299,45 @@ namespace Turnroot.Utilities.Weather
                 UpdateWaterColors();
             }
 
+            UpdateFog();
+
             yield return _waitForSeconds0_5;
+        }
+
+        private void UpdateFog()
+        {
+            if (FogVolume == null)
+            {
+                return;
+            }
+
+            var profile = FogVolume.profile;
+
+            if (profile.TryGet<Meryuhi.Rendering.FullScreenFog>(out var fog))
+            {
+                var desaturatedFogColor = Color.Lerp(currentFogColor, referenceGray, 0.5f);
+                fog.color.value = desaturatedFogColor;
+
+                switch (CurrentWeatherType)
+                {
+                    case WeatherType.Sunny:
+                        fog.active = false;
+                        break;
+                    case WeatherType.Cloudy or WeatherType.Snowy or WeatherType.Volcanic:
+                        fog.active = true;
+                        fog.density.value = .106f;
+                        fog.intensity.value = 0.947f;
+                        break;
+                    case WeatherType.Rainy or WeatherType.Stormy:
+                        fog.active = true;
+                        fog.density.value = 0.462f;
+                        fog.intensity.value = 0.128f;
+                        break;
+                    default:
+                        fog.active = false;
+                        break;
+                }
+            }
         }
     }
 }

@@ -423,6 +423,7 @@ namespace Turnroot.Utilities.Weather
             finalDeep.a = baseDeepColor.a;
 
             mat.SetColor("_ShallowColor", finalShallow);
+            currentFogColor = finalShallow;
             mat.SetColor("_DeepColor", finalDeep);
             float specStrength = overcast ? OvercastSpecularStrength : SunnySpecularStrength;
             mat.SetFloat("_SpecularStrength", specStrength);
