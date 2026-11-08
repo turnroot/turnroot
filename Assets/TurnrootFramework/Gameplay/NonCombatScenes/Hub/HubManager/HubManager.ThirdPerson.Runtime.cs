@@ -314,6 +314,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         }
 
         private float _lastFootstepTime;
+        private float _footstepDecalTime;
 
         private void ApplyLook(Vector2 lookInput)
         {
@@ -360,28 +361,37 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private void PlayFootstepsIfDue(Vector3 moveDirection, bool isRunning)
         {
-            _lastFootstepTime += Time.deltaTime;
             if (moveDirection.sqrMagnitude < 0.0001f)
             {
                 return;
             }
+            _lastFootstepTime += Time.deltaTime;
+            _footstepDecalTime += Time.deltaTime;
             var settings = GameplayGeneralSettings.Instance;
             var movementSpeed = isRunning ? RunSpeed : MoveSpeed;
             var soundInterval = settings.GetFootstepInterval(movementSpeed);
             var decalInterval = soundInterval * 0.5f;
-            // footstep decals need to be placed
-            // twice as often as the sound
-            // so HandleFootstep is called "twice", leaving a decal "twice" and playing a sound "once"
-            // this isn't particularly clean but a better way to do this isn't immediately occuring to me
-            if (_lastFootstepTime >= decalInterval)
+            if (_footstepDecalTime >= decalInterval)
             {
-                HandleFootstep(decalInterval, soundInterval);
+                _footstepDecalTime -= decalInterval;
+                HandleFootstep();
+            }
+
+            if (_lastFootstepTime >= soundInterval)
+            {
+                var footstepClip =
+                    isOnGrass ? settings.HubGrassFootstep
+                    : isOnSand ? settings.HubSandFootstep
+                    : isOnSnow ? settings.HubSnowFootstep
+                    : isOnRock ? settings.HubRockFootstep
+                    : settings.HubGrassFootstep;
+                _brain?.audioBrain?.PlayFootstepSound(FootstepAudioSource, footstepClip);
+                _lastFootstepTime -= soundInterval;
             }
         }
 
-        private void HandleFootstep(float decalInterval, float soundInterval)
+        private void HandleFootstep()
         {
-            // Always leave decal
             if ((isOnSand || isOnSnow) && UseFootstepDecals)
             {
                 LeaveFootprintDecals(NavMeshAgent.transform);
@@ -400,20 +410,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     // this just ensures that the pool is always available
                     // and there's no hanging
                 }
-            }
-            // only play sound half as often
-            if (_lastFootstepTime >= soundInterval)
-            {
-                var settings = GameplayGeneralSettings.Instance;
-                _lastFootstepTime = 0f;
-                var footstepClip =
-                    isOnGrass ? settings.HubGrassFootstep
-                    : isOnSand ? settings.HubSandFootstep
-                    : isOnSnow ? settings.HubSnowFootstep
-                    : isOnRock ? settings.HubRockFootstep
-                    : settings.HubGrassFootstep;
-                _brain?.audioBrain?.PlayFootstepSound(FootstepAudioSource, footstepClip);
-                _lastFootstepTime = 0f;
             }
         }
 
