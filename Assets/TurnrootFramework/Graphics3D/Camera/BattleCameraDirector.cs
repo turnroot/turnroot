@@ -18,18 +18,18 @@ namespace Turnroot.Graphics3D.Camera
         {
             _brain = brain;
             _battleSceneFlow = brain.battleBrain.turnRotisserie._sceneFlow;
-            _brain.OnPlayerTurnStateChanged += HandlePlayerTurnStateChanged;
+            _brain.OnPlayerUnitTurnStateChanged += HandlePlayerUnitTurnStateChanged;
         }
 
         private void OnDestroy()
         {
             if (_brain != null)
             {
-                _brain.OnPlayerTurnStateChanged -= HandlePlayerTurnStateChanged;
+                _brain.OnPlayerUnitTurnStateChanged -= HandlePlayerUnitTurnStateChanged;
             }
         }
 
-        private void HandlePlayerTurnStateChanged(PlayerTurnStates newState)
+        private void HandlePlayerUnitTurnStateChanged(PlayerTurnStates newState)
         {
             IsInTopdownBattleView = newState != PlayerTurnStates.ExecutingAction;
             _battleSceneFlow.IsInTopdownBattleView = IsInTopdownBattleView;

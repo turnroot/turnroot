@@ -29,7 +29,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         TargetSelected,
         ConfirmAction,
         ExecutingAction, // Command/animation in progress; input locked
-        TurnEnded,
+        UnitTurnEnded,
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             [PlayerTurnStates.WaitActionChosen] = new()
             {
                 PlayerTurnStates.UnitSelected,
-                PlayerTurnStates.TurnEnded,
+                PlayerTurnStates.UnitTurnEnded,
             },
             [PlayerTurnStates.AttackActionChosenChoosingTarget] = new()
             {
@@ -145,8 +145,9 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             [PlayerTurnStates.ExecutingAction] = new()
             {
                 PlayerTurnStates.UnitSelected,
-                PlayerTurnStates.TurnEnded,
+                PlayerTurnStates.UnitTurnEnded,
             },
+            [PlayerTurnStates.UnitTurnEnded] = new() { PlayerTurnStates.NoUnitSelected },
         };
 
         public OperationResult TransitionToState(PlayerTurnStates newState)

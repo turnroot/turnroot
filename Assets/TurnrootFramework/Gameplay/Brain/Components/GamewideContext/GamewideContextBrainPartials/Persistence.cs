@@ -128,7 +128,8 @@ namespace Turnroot.Gameplay.Brain
 
         private int _currentBattleTurn = 0;
 
-        private void HandleTurnBegin() => _currentBattleTurn = Brain.battleBrain.CurrentTurnNumber;
+        private void HandleBattleRoundStarted() =>
+            _currentBattleTurn = Brain.battleBrain.CurrentTurnNumber;
 
         private void HandleSavePlayerRosterRequested() =>
             SavePlayerRoster(Brain.battleBrain.CurrentTurnNumber);

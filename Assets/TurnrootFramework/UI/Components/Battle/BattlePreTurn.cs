@@ -33,10 +33,10 @@ namespace Turnroot.UI.Components
             if (battleBrain?.Brain != null)
             {
                 // Subscribe to PHASE changes, not individual unit turns
-                battleBrain.Brain.OnPlayerTurnStarted += HandlePlayerPhaseStarted;
-                battleBrain.Brain.OnEnemyTurnStarted += HandleEnemyPhaseStarted;
-                battleBrain.Brain.OnThirdPartyTurnStarted += HandleThirdPartyPhaseStarted;
-                battleBrain.Brain.OnTurnBegin += HandleTurnBegin;
+                battleBrain.Brain.OnPlayerPhaseStarted += HandlePlayerPhaseStarted;
+                battleBrain.Brain.OnEnemyPhaseStarted += HandleEnemyPhaseStarted;
+                battleBrain.Brain.OnThirdPartyPhaseStarted += HandleThirdPartyPhaseStarted;
+                battleBrain.Brain.OnBattleRoundStarted += HandleBattleRoundStarted;
             }
         }
 
@@ -44,17 +44,16 @@ namespace Turnroot.UI.Components
         {
             if (battleBrain?.Brain != null)
             {
-                battleBrain.Brain.OnPlayerTurnStarted -= HandlePlayerPhaseStarted;
-                battleBrain.Brain.OnEnemyTurnStarted -= HandleEnemyPhaseStarted;
-                battleBrain.Brain.OnThirdPartyTurnStarted -= HandleThirdPartyPhaseStarted;
-                battleBrain.Brain.OnTurnBegin -= HandleTurnBegin;
+                battleBrain.Brain.OnPlayerPhaseStarted -= HandlePlayerPhaseStarted;
+                battleBrain.Brain.OnEnemyPhaseStarted -= HandleEnemyPhaseStarted;
+                battleBrain.Brain.OnThirdPartyPhaseStarted -= HandleThirdPartyPhaseStarted;
+                battleBrain.Brain.OnBattleRoundStarted -= HandleBattleRoundStarted;
             }
         }
 
         private void HandlePlayerPhaseStarted(Characters.CharacterInstance _)
         {
-            // OnPlayerTurnStarted fires for EACH unit, but we only want to update on the FIRST one
-            // (the phase change). Check if we're transitioning FROM a different phase.
+            // The player phase event includes its first active unit; only update on phase changes.
             if (Phase != BattlePreTurnPhase.PlayerTurn)
             {
                 Phase = BattlePreTurnPhase.PlayerTurn;
@@ -74,7 +73,7 @@ namespace Turnroot.UI.Components
             UpdateTurnText();
         }
 
-        private void HandleTurnBegin() => TurnNumber++;
+        private void HandleBattleRoundStarted() => TurnNumber++;
 
         public void Initialize(BattleBrain brain)
         {
@@ -108,4 +107,3 @@ namespace Turnroot.UI.Components
         }
     }
 }
-

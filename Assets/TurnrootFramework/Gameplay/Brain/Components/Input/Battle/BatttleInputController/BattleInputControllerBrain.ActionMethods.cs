@@ -89,7 +89,7 @@ namespace Turnroot.Gameplay.Brain
 
             _playerTurnFlow.ExecuteConfirmedAction();
             BattleContext.ExecuteCombatExchange(attacker, defender);
-            _playerTurnFlow.EndTurn();
+            _playerTurnFlow.EndUnitTurn();
         }
 
         public void ChangeSelectedUnit(CharacterInstance unit)

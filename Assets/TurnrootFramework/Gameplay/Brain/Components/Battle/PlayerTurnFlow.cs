@@ -36,7 +36,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             if (res.Success)
             {
                 publishEvent?.Invoke();
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+                _battleBrain.Brain.PublishPlayerUnitTurnStateChanged(_currentState.CurrentState);
                 return true;
             }
             return false;
@@ -54,8 +54,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 _battleBrain.Brain.OnUnitFinishedMovingAfterAction +=
                     HandleUnitFinishedMovingAfterAction;
                 _battleBrain.Brain.OnMoveAnimationCompleted += HandleUnitMoveAnimationCompleted;
-                // Listen for wait confirmation coming from UI
-                _battleBrain.Brain.OnWaitActionConfirmed += HandleWaitActionConfirmed;
 
                 // Keep active unit in sync with selection events
                 _battleBrain.Brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
@@ -64,7 +62,14 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
         private void OnDestroy() => CleanupBattle();
 
-        private void HandlePlayerUnitActivated(CharacterInstance unit) => _activePlayerUnit = unit;
+        private void HandlePlayerUnitActivated(CharacterInstance unit)
+        {
+            _activePlayerUnit = unit;
+            if (GetCurrentState() == PlayerTurnStates.UnitTurnEnded)
+            {
+                TransitionAndPublish(PlayerTurnStates.NoUnitSelected);
+            }
+        }
 
         /// <summary>
         /// Cleanup method to be called when battle ends.
@@ -78,7 +83,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 _battleBrain.Brain.OnUnitFinishedMovingAfterAction -=
                     HandleUnitFinishedMovingAfterAction;
                 _battleBrain.Brain.OnMoveAnimationCompleted -= HandleUnitMoveAnimationCompleted;
-                _battleBrain.Brain.OnWaitActionConfirmed -= HandleWaitActionConfirmed;
 
                 _battleBrain.Brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
             }
@@ -87,21 +91,35 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             _selectedItem = null;
         }
 
-        public void StartPlayerTurn()
+        public void BeginPlayerPhase()
         {
             _activePlayerUnit = _battleBrain.BattleObject.Context.Unit.UnitInstance;
+            if (GetCurrentState() == PlayerTurnStates.NoUnitSelected)
+            {
+                _battleBrain.Brain.PublishPlayerPhaseStarted(_activePlayerUnit);
+                return;
+            }
+
             TransitionAndPublish(
                 PlayerTurnStates.NoUnitSelected,
-                () => _battleBrain.Brain.PublishPlayerTurnStarted(_activePlayerUnit)
+                () => _battleBrain.Brain.PublishPlayerPhaseStarted(_activePlayerUnit)
             );
         }
 
         public void SelectUnit(CharacterInstance unit)
         {
-            _activePlayerUnit = unit; // Update active to the selected unit
+            if (GetCurrentState() != PlayerTurnStates.NoUnitSelected)
+            {
+                return;
+            }
+
             TransitionAndPublish(
                 PlayerTurnStates.UnitSelected,
-                () => _battleBrain.Brain.PublishPlayerControlledUnitActivated(_activePlayerUnit)
+                () =>
+                {
+                    _activePlayerUnit = unit;
+                    _battleBrain.Brain.PublishPlayerControlledUnitActivated(_activePlayerUnit);
+                }
             );
         }
 
@@ -193,7 +211,10 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                             _battleBrain.Brain.PublishHealStarted(_activePlayerUnit);
                             break;
                         case PlayerTurnStates.UseItemActionChosenItemSelected:
-                            _battleBrain.Brain.PublishUseItemStarted(_activePlayerUnit, _selectedItem);
+                            _battleBrain.Brain.PublishUseItemStarted(
+                                _activePlayerUnit,
+                                _selectedItem
+                            );
                             _selectedItem = null;
                             break;
                         case PlayerTurnStates.WaitActionChosen:
@@ -203,7 +224,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                                 ?.PlayerSettings;
                             if (playerSettings != null && playerSettings.AutoEndTurn)
                             {
-                                EndTurn();
+                                EndUnitTurn();
                             }
                             else
                             {
@@ -218,11 +239,10 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         public void CancelTargetOrDestinationChoice(PlayerTurnStates actionChoosingState) =>
             TransitionAndPublish(actionChoosingState);
 
-        public void EndTurn() =>
-            // Note: This direct EndTurn bypasses interrupt checking.
-            // For wait actions, use WaitAndEndTurn() instead.
-            // PlayerTurnEnded is published by TurnRotisserie.ProgressToNextPhase()
-            TransitionAndPublish(PlayerTurnStates.TurnEnded);
+        public void EndUnitTurn() =>
+            // Note: This direct unit-turn end bypasses interrupt checking.
+            // For wait actions, use WaitAndEndUnitTurn() instead.
+            CompleteUnitTurn();
 
         private void HandlePlayerUndoAction()
         {
@@ -273,28 +293,8 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             return false;
         }
 
-        private void HandleWaitActionConfirmed(CharacterInstance unit)
-        {
-            if (_activePlayerUnit == null || unit == null)
-            {
-                return;
-            }
-
-            if (_activePlayerUnit != unit)
-            {
-                return;
-            }
-
-            // Only confirm waiting if we're in WaitActionChosen state
-            var current = GetCurrentState();
-            if (current == PlayerTurnStates.WaitActionChosen)
-            {
-                // This will trigger the full wait flow including interrupt checks
-                WaitAndEndTurn();
-            }
-        }
-
-        private void HandleUnitFinishedMovingAfterAction(CharacterInstance unit) => TryCompleteMoveForActiveUnit(unit);
+        private void HandleUnitFinishedMovingAfterAction(CharacterInstance unit) =>
+            TryCompleteMoveForActiveUnit(unit);
 
         private void HandleUnitMoveAnimationCompleted(CharacterInstance unit) =>
             // Transition the flow from ExecutingMove -> ChoosingAction when the visual animation finishes.
@@ -323,17 +323,22 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             var res = _currentState.TransitionToState(PlayerTurnStates.UnitSelected);
             if (res.Success)
             {
-                _battleBrain.Brain.PublishPlayerTurnStateChanged(_currentState.CurrentState);
+                _battleBrain.Brain.PublishPlayerUnitTurnStateChanged(_currentState.CurrentState);
             }
             return res;
         }
 
-        public void WaitAndEndTurn()
+        public void WaitAndEndUnitTurn()
         {
-            // If turn already ended, ignore this call (may happen due to race conditions)
-            if (_currentState.CurrentState == PlayerTurnStates.TurnEnded)
+            if (_currentState.CurrentState == PlayerTurnStates.NoUnitSelected)
             {
-                "WaitAndEndTurn called but turn is already ended, ignoring".LogWarning();
+                "WaitAndEndUnitTurn called but no active player unit is set; ignoring".LogInfo();
+                return;
+            }
+            // If this unit's turn already ended, ignore a duplicate call.
+            if (_currentState.CurrentState == PlayerTurnStates.UnitTurnEnded)
+            {
+                "WaitAndEndUnitTurn called after the unit turn already ended; ignoring duplicate call".LogWarning();
                 return;
             }
 
@@ -355,7 +360,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                     // Queue the turn end to happen after interrupt completes
                     _cachedSceneFlow.QueueInterrupt(
                         _cachedSceneFlow.CurrentInterrupt,
-                        onCompleted: () => CompleteTurnEnd()
+                        onCompleted: CompleteUnitTurn
                     );
                     _cachedSceneFlow.ProgressMiniBattleState();
                     return;
@@ -367,18 +372,30 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
 
             // No interrupt or scene flow not ready, proceed immediately to turn end
-            CompleteTurnEnd();
+            CompleteUnitTurn();
         }
 
-        private void CompleteTurnEnd()
+        private void CompleteUnitTurn()
         {
+            var unit = _activePlayerUnit;
+            if (unit == null)
+            {
+                OperationResultGuards.RequireNotNull(unit, nameof(_activePlayerUnit));
+                return;
+            }
+
             // Clear dynamic participant data (Targets and AdjacentUnits) when turn ends
             var context = _battleBrain?.BattleObject.Context;
             context?.ClearParticipantDynamicData();
 
-            // Note: PlayerTurnEnded is published by TurnRotisserie.ProgressToNextPhase()
-            // to ensure proper ordering with other phase transitions
-            TransitionAndPublish(PlayerTurnStates.TurnEnded);
+            var result = _currentState.TransitionToState(PlayerTurnStates.UnitTurnEnded);
+            if (!result.Success)
+            {
+                return;
+            }
+
+            _battleBrain.Brain.PublishPlayerUnitTurnStateChanged(PlayerTurnStates.UnitTurnEnded);
+            _battleBrain.Brain.PublishUnitTurnAdvanceRequested(unit);
         }
     }
 }

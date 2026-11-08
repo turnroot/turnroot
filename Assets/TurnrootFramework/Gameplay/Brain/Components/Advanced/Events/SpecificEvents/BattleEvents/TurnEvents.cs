@@ -1,34 +1,42 @@
 namespace Turnroot.Gameplay.Brain.Events
 {
     /// <summary>
-    /// Published when a new battle round begins (all factions have acted).
+    /// Typed event published when a new battle round begins.
     /// </summary>
-    public class TurnStartedEvent : BattleEvent
-    {
-        public TurnStartedEvent(int turnNumber)
-        {
-            TurnNumber = turnNumber;
-        }
-    }
-
-    /// <summary>
-    /// Published when a battle round ends.
-    /// </summary>
-    public class TurnEndedEvent : BattleEvent
-    {
-        public TurnEndedEvent(int turnNumber)
-        {
-            TurnNumber = turnNumber;
-        }
-    }
-
-    /// <summary>
-    /// Published when a faction's phase starts.
-    /// </summary>
-    public class FactionTurnStartedEvent : BattleEvent
+    public class BattleRoundStartedEvent : BattleEvent
     {
         /// <summary>
-        /// Represents the different factions that can take turns in battle.
+        /// Creates a round-start event for the specified battle turn number.
+        /// </summary>
+        /// <param name="turnNumber">The round number that has just started.</param>
+        public BattleRoundStartedEvent(int turnNumber)
+        {
+            TurnNumber = turnNumber;
+        }
+    }
+
+    /// <summary>
+    /// Typed event published when the current battle round ends.
+    /// </summary>
+    public class BattleRoundEndedEvent : BattleEvent
+    {
+        /// <summary>
+        /// Creates a round-end event for the specified battle turn number.
+        /// </summary>
+        /// <param name="turnNumber">The round number that has just ended.</param>
+        public BattleRoundEndedEvent(int turnNumber)
+        {
+            TurnNumber = turnNumber;
+        }
+    }
+
+    /// <summary>
+    /// Typed event published when a faction phase starts.
+    /// </summary>
+    public class FactionPhaseStartedEvent : BattleEvent
+    {
+        /// <summary>
+        /// The faction whose phase is starting.
         /// </summary>
         public enum Faction
         {
@@ -37,9 +45,15 @@ namespace Turnroot.Gameplay.Brain.Events
             ThirdParty,
         }
 
+        /// <summary>The faction whose phase has started.</summary>
         public Faction ActiveFaction { get; }
 
-        public FactionTurnStartedEvent(Faction faction, int turnNumber)
+        /// <summary>
+        /// Creates a faction-phase-start event.
+        /// </summary>
+        /// <param name="faction">The faction whose phase is starting.</param>
+        /// <param name="turnNumber">The battle round in which the phase starts.</param>
+        public FactionPhaseStartedEvent(Faction faction, int turnNumber)
         {
             ActiveFaction = faction;
             TurnNumber = turnNumber;
@@ -47,13 +61,19 @@ namespace Turnroot.Gameplay.Brain.Events
     }
 
     /// <summary>
-    /// Published when a faction's phase ends.
+    /// Typed event published when a faction phase ends.
     /// </summary>
-    public class FactionTurnEndedEvent : BattleEvent
+    public class FactionPhaseEndedEvent : BattleEvent
     {
-        public FactionTurnStartedEvent.Faction EndedFaction { get; }
+        /// <summary>The faction whose phase has ended.</summary>
+        public FactionPhaseStartedEvent.Faction EndedFaction { get; }
 
-        public FactionTurnEndedEvent(FactionTurnStartedEvent.Faction faction, int turnNumber)
+        /// <summary>
+        /// Creates a faction-phase-end event.
+        /// </summary>
+        /// <param name="faction">The faction whose phase has ended.</param>
+        /// <param name="turnNumber">The battle round in which the phase ended.</param>
+        public FactionPhaseEndedEvent(FactionPhaseStartedEvent.Faction faction, int turnNumber)
         {
             EndedFaction = faction;
             TurnNumber = turnNumber;

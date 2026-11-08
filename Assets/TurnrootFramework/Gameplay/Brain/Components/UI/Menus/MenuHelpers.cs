@@ -13,14 +13,14 @@ namespace Turnroot.Gameplay.Brain.Segments
         {
             if (uiSettings == null)
             {
-                "UiBrain: GamewideUiSettings not found!".LogError();
+                "UiBrain: GamewideUiSettings not found!".LogWarning(); // TODO: For prod these need to be errors, for testing they are warnings
                 return null;
             }
 
             var entry = getter();
             if (entry == null)
             {
-                $"UiBrain: {menuName} menu entry not found!".LogError();
+                $"UiBrain: {menuName} menu entry not found!".LogWarning();
             }
 
             return entry;

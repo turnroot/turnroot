@@ -97,8 +97,8 @@ namespace Turnroot.UI.Components
             _brain.OnBattleCompleted += HandleBattleEnded;
             _brain.OnCursorPositionChanged += HandleCursorPositionChanged;
             _brain.OnPlayerControlledUnitActivated += HandlePlayerControlledUnitActivated;
-            _brain.OnPlayerTurnStateChanged += HandlePlayerTurnStateChanged;
-            _brain.OnPlayerTurnStarted += HandlePlayerTurnStarted;
+            _brain.OnPlayerUnitTurnStateChanged += HandlePlayerUnitTurnStateChanged;
+            _brain.OnPlayerPhaseStarted += HandlePlayerPhaseStarted;
         }
 
         private void UnsubscribeFromBrain()
@@ -112,8 +112,8 @@ namespace Turnroot.UI.Components
             _brain.OnBattleCompleted -= HandleBattleEnded;
             _brain.OnCursorPositionChanged -= HandleCursorPositionChanged;
             _brain.OnPlayerControlledUnitActivated -= HandlePlayerControlledUnitActivated;
-            _brain.OnPlayerTurnStateChanged -= HandlePlayerTurnStateChanged;
-            _brain.OnPlayerTurnStarted -= HandlePlayerTurnStarted;
+            _brain.OnPlayerUnitTurnStateChanged -= HandlePlayerUnitTurnStateChanged;
+            _brain.OnPlayerPhaseStarted -= HandlePlayerPhaseStarted;
         }
 
         private void HandleBattleStarted()
@@ -122,7 +122,7 @@ namespace Turnroot.UI.Components
             _unitSelected = false;
         }
 
-        private void HandlePlayerTurnStarted(CharacterInstance unit)
+        private void HandlePlayerPhaseStarted(CharacterInstance unit)
         {
             // Skills are evaluated when the player turn starts; if the overlay is already
             // showing a unit (e.g. from the camera-snap cursor move before evaluation ran)
@@ -164,7 +164,7 @@ namespace Turnroot.UI.Components
             ShowForUnit(unit);
         }
 
-        private void HandlePlayerTurnStateChanged(PlayerTurnStates newState)
+        private void HandlePlayerUnitTurnStateChanged(PlayerTurnStates newState)
         {
             switch (newState)
             {
@@ -179,7 +179,7 @@ namespace Turnroot.UI.Components
                     _unitSelected = false;
                     break;
 
-                case PlayerTurnStates.TurnEnded:
+                case PlayerTurnStates.UnitTurnEnded:
                 case PlayerTurnStates.NoUnitSelected:
                     _unitSelected = false;
                     break;

@@ -83,13 +83,13 @@ namespace Turnroot.Gameplay.Brain
 
         #region Turn Phase Handlers
 
-        private void HandlePlayerTurnStarted(CharacterInstance character) =>
+        private void HandlePlayerPhaseStarted(CharacterInstance character) =>
             IncrementTurnsAliveForFaction(CharacterWhich.ALLY, CharacterWhich.AVATAR);
 
-        private void HandleEnemyTurnStarted() =>
+        private void HandleEnemyPhaseStarted() =>
             IncrementTurnsAliveForFaction(CharacterWhich.ENEMY);
 
-        private void HandleThirdPartyTurnStarted() =>
+        private void HandleThirdPartyPhaseStarted() =>
             IncrementTurnsAliveForFaction(CharacterWhich.NPC);
 
         private List<CharacterInstance> GetRosterInstancesForFactions(params string[] factionTypes)
@@ -220,4 +220,3 @@ namespace Turnroot.Gameplay.Brain
         #endregion
     }
 }
-

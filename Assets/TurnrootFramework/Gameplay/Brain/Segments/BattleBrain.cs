@@ -168,7 +168,7 @@ namespace Turnroot.Gameplay.Brain
 
             InitializeAdvancedSystems();
             InitializePrecomputeLoader();
-            StartPlayerTurn();
+            StartBattleWithPlayerPhase();
         }
 
         private bool InitializeBattleObject()
@@ -275,13 +275,13 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void StartPlayerTurn()
+        private void StartBattleWithPlayerPhase()
         {
-            ProgressTurnOrder();
+            AdvanceBattleUnitOrPhase();
 
             if (playerTurnFlow != null)
             {
-                playerTurnFlow.StartPlayerTurn();
+                playerTurnFlow.BeginPlayerPhase();
                 $"Battle started. PlayerTurnFlow state: {playerTurnFlow.GetCurrentState()}".LogInfo();
             }
         }
@@ -565,11 +565,11 @@ namespace Turnroot.Gameplay.Brain
 
         #region Turn Management
 
-        public void ProgressTurnOrder()
+        public void AdvanceBattleUnitOrPhase()
         {
-            if (!turnRotisserie.Progress())
+            if (!turnRotisserie.AdvanceToNextUnitOrPhase())
             {
-                "BattleBrain: Failed to progress turn order!".LogError();
+                "BattleBrain: Failed to advance to the next unit or faction phase!".LogError();
             }
         }
 

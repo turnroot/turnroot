@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.Brain
 
         private void HandlePlayerUnitActivated(CharacterInstance unit) => ComputeValidTiles(unit);
 
-        private void HandlePlayerTurnStateChanged(PlayerTurnStates newState)
+        private void HandlePlayerUnitTurnStateChanged(PlayerTurnStates newState)
         {
             switch (newState)
             {
@@ -47,8 +47,8 @@ namespace Turnroot.Gameplay.Brain
                     // TODO: Show combat forecast UI (damage preview)
                     break;
 
-                case PlayerTurnStates.TurnEnded:
-                    HandleTurnEndedState();
+                case PlayerTurnStates.UnitTurnEnded:
+                    ClearPlayerUnitTurnUI();
                     break;
             }
         }
@@ -88,7 +88,7 @@ namespace Turnroot.Gameplay.Brain
         private void HandleChoosingActionState()
         {
             // Check if turn has already ended (shouldn't show menu if so)
-            if (_playerTurnFlow.GetCurrentState() == PlayerTurnStates.TurnEnded)
+            if (_playerTurnFlow.GetCurrentState() == PlayerTurnStates.UnitTurnEnded)
             {
                 "Turn already ended, skipping action menu".LogWarning();
                 return;
@@ -148,17 +148,14 @@ namespace Turnroot.Gameplay.Brain
             _pendingDestination = null;
         }
 
-        private void HandleTurnEndedState() => CompletePlayerTurn();
-
-        private void CompletePlayerTurn()
+        private void ClearPlayerUnitTurnUI()
         {
-            // This is cleanup code that runs when TurnEnded state is reached
-            // DO NOT call EndTurn() here - that would try to transition to TurnEnded when we're already there
+            // This is cleanup code that runs when UnitTurnEnded state is reached.
+            // Do not end the unit again here.
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
             Brain.cursorBrain.ClearAllowedPositions();
 
-            // Note: PlayerTurnEnded is published by TurnRotisserie, not here
         }
 
         #endregion

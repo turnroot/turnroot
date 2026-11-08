@@ -436,14 +436,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Ends the current unit's turn using the command pattern.
         /// </summary>
         /// <returns>True if ending turn succeeded.</returns>
-        public bool EndTurn()
+        public bool CompleteActiveUnitTurn()
         {
-            var command = new EndTurnCommand(Brain?.battleBrain.CurrentTurnNumber ?? 0);
+            var command = new EndUnitTurnCommand(Brain?.battleBrain.CurrentTurnNumber ?? 0);
             var success = Brain.ExecuteCommand(command);
             if (success)
             {
                 var unit = Unit?.UnitInstance;
-                Brain.PublishEndTurnCompleted(unit);
+                Brain.PublishUnitTurnAdvanceRequested(unit);
             }
             return success;
         }

@@ -64,9 +64,9 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnBattleStarted += HandleStartBattle;
             _brain.OnBattleCompleted += HandleExitBattle;
-            _brain.OnPlayerTurnStarted += HandlePlayerTurnStarted;
-            _brain.OnEnemyTurnStarted += HandleEnemyTurnStarted;
-            _brain.OnThirdPartyTurnStarted += HandleThirdPartyTurnStarted;
+            _brain.OnPlayerPhaseStarted += HandlePlayerPhaseStarted;
+            _brain.OnEnemyPhaseStarted += HandleEnemyPhaseStarted;
+            _brain.OnThirdPartyPhaseStarted += HandleThirdPartyPhaseStarted;
             _brain.OnSavePlayerRosterRequested += SavePlayerRosterProgress;
             _brain.OnLtmKeyCacheUpdated += HandleLtmKeyCacheUpdated;
             _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
@@ -82,9 +82,9 @@ namespace Turnroot.Gameplay.Brain
         {
             _brain.OnBattleStarted -= HandleStartBattle;
             _brain.OnBattleCompleted -= HandleExitBattle;
-            _brain.OnPlayerTurnStarted -= HandlePlayerTurnStarted;
-            _brain.OnEnemyTurnStarted -= HandleEnemyTurnStarted;
-            _brain.OnThirdPartyTurnStarted -= HandleThirdPartyTurnStarted;
+            _brain.OnPlayerPhaseStarted -= HandlePlayerPhaseStarted;
+            _brain.OnEnemyPhaseStarted -= HandleEnemyPhaseStarted;
+            _brain.OnThirdPartyPhaseStarted -= HandleThirdPartyPhaseStarted;
             _brain.OnSavePlayerRosterRequested -= SavePlayerRosterProgress;
             _brain.OnLtmKeyCacheUpdated -= HandleLtmKeyCacheUpdated;
             _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;

@@ -50,7 +50,7 @@ def analyze_file(file_path):
                     if brace_depth <= 0:
                         # method ends at this line
                         length = idx - method_start + 1
-                        if length > 199:
+                        if length > 100:
                             large_methods.append((method_name or '<unknown>', length, method_start))
                         in_method = False
                         method_name = None
@@ -120,7 +120,7 @@ def find_problematic_cs_files(root_dir='.', min_lines=500, verbose=False):
 
 def main():
     ROOT_DIR = '.' 
-    MIN_LINES = 499
+    MIN_LINES = 399
     VERBOSE = True 
     
     print(f"Searching '{ROOT_DIR}' for large files (>= {MIN_LINES}) or missing namespaces...")
@@ -147,11 +147,11 @@ def main():
 
     # 3. Print long methods
     if large_methods:
-        print(f"\n[!] LONG METHODS (>199 lines):")
+        print(f"\n[!] LONG METHODS (>100 lines):")
         for file_path, name, length, start in sorted(large_methods, key=lambda x: (-x[2], x[0])):
             print(f"  {length:4d} lines starting at {start} in {file_path}: {name}()")
     else:
-        print("\n[✓] No methods exceed 199 lines.")
+        print("\n[✓] No methods exceed 100 lines.")
 
     print("-" * 80)
 
