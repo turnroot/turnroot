@@ -427,6 +427,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         FootstepDecalInterspacing
                     );
                     _footstepDecalLeft = !_footstepDecalLeft;
+                    _footstepDecalIndex++;
                 }
                 else
                 {
