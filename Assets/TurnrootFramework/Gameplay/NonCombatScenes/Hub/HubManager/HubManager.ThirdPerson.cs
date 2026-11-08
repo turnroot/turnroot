@@ -99,6 +99,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public bool FootStepDecalLeftFirst = true;
         private bool _footstepDecalLeft;
+        private bool _footstepForwardLeft;
+        private Vector3 _previousFootstepPosition;
+        private Vector3 _lastFootstepPosition;
+        private bool _hasLastFootstepPosition;
 
         private bool _walkMode;
         private Vector2 _moveInput;
