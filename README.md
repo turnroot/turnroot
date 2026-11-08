@@ -9,4 +9,4 @@
 [![Documentation Status](https://readthedocs.org/projects/turnroot-framework-docs/badge/?version=latest)](http://docs.turnroot.com/?badge=latest)
 [![GitHub latest commit](https://badgen.net/github/last-commit/turnroot/turnroot)](https://github.com/turnroot/turnroot/commit/)
 
-[![forthebadge cc-by](http://ForTheBadge.com/images/badges/cc-by.svg)](https://creativecommons.org/licenses/by/4.0)
+[![forthebadge cc-by-sa](http://ForTheBadge.com/images/badges/cc-by-sa.svg)]([https://creativecommons.org/licenses/by/4.0](https://creativecommons.org/licenses/by-sa/4.0/))
