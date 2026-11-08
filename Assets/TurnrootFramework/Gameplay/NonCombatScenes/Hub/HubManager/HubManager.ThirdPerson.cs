@@ -8,6 +8,9 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     public partial class HubManager : MonoBehaviour
     {
         [Foldout("Explore/Movement")]
+        public bool UseFootstepDecals;
+
+        [Foldout("Explore/Movement")]
         public GameObject[] ObjectsToEnableInWalkMode;
 
         [Foldout("Explore/Movement")]
@@ -37,26 +40,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool isOnRock;
         private bool isOnSnow;
 
-        [Foldout("Explore/Movement/Footsteps")]
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public Color grassColor;
 
-        [Foldout("Explore/Movement/Footsteps")]
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public Color sandColor;
 
-        [Foldout("Explore/Movement/Footsteps")]
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public Color rockColor;
 
-        [Foldout("Explore/Movement/Footsteps")]
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public Color snowColor;
 
         [Tooltip("Ground mesh with vertex colors and a matching MeshCollider on the same object.")]
-        [Foldout("Explore/Movement/Footsteps")]
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public MeshFilter GroundMeshFilter;
 
-        [Foldout("Explore/Movement/Footsteps")]
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public float colorTolerance;
 
-        [Foldout("Explore/Movement/Footsteps")]
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public AudioSource FootstepAudioSource;
 
         [Foldout("Explore/Movement")]
@@ -83,9 +86,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [Foldout("Explore/Movement")]
         public float LookPitchSpeed = 120f;
-
-        [Foldout("Explore/Movement")]
-        public bool UseFootstepDecals;
 
         [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public GameObject[] FootstepDecalPool;
