@@ -1,5 +1,6 @@
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
+using Turnroot.Graphics3D;
 using Turnroot.Utilities;
 using UnityEngine;
 
@@ -151,10 +152,34 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             GroundSurface closestSurface = GroundSurface.Grass;
             float closestDistance = float.PositiveInfinity;
 
-            ConsiderGroundColorMatch(actual, grassColor, GroundSurface.Grass, ref closestSurface, ref closestDistance);
-            ConsiderGroundColorMatch(actual, sandColor, GroundSurface.Sand, ref closestSurface, ref closestDistance);
-            ConsiderGroundColorMatch(actual, rockColor, GroundSurface.Rock, ref closestSurface, ref closestDistance);
-            ConsiderGroundColorMatch(actual, snowColor, GroundSurface.Snow, ref closestSurface, ref closestDistance);
+            ConsiderGroundColorMatch(
+                actual,
+                grassColor,
+                GroundSurface.Grass,
+                ref closestSurface,
+                ref closestDistance
+            );
+            ConsiderGroundColorMatch(
+                actual,
+                sandColor,
+                GroundSurface.Sand,
+                ref closestSurface,
+                ref closestDistance
+            );
+            ConsiderGroundColorMatch(
+                actual,
+                rockColor,
+                GroundSurface.Rock,
+                ref closestSurface,
+                ref closestDistance
+            );
+            ConsiderGroundColorMatch(
+                actual,
+                snowColor,
+                GroundSurface.Snow,
+                ref closestSurface,
+                ref closestDistance
+            );
 
             return closestSurface;
         }
@@ -203,15 +228,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
 
             Transform agentTransform = MovementRig != null ? MovementRig : NavMeshAgent.transform;
-            Gizmos.color = !_hasGroundSample
-                ? Color.magenta
-                : isOnGrass
-                    ? Color.green
-                    : isOnSand
-                        ? Color.yellow
-                        : isOnRock
-                            ? Color.gray
-                            : Color.white;
+            Gizmos.color =
+                !_hasGroundSample ? Color.magenta
+                : isOnGrass ? Color.green
+                : isOnSand ? Color.yellow
+                : isOnRock ? Color.gray
+                : Color.white;
 
             Vector3 markerPosition =
                 agentTransform.position
@@ -343,20 +365,101 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 return;
             }
-
             var settings = GameplayGeneralSettings.Instance;
             var movementSpeed = isRunning ? RunSpeed : MoveSpeed;
             var interval = settings.GetFootstepInterval(movementSpeed);
             if (_lastFootstepTime >= interval)
             {
-                _lastFootstepTime = 0f;
-                var footstepClip =
-                    isOnGrass ? settings.HubGrassFootstep
-                    : isOnSand ? settings.HubSandFootstep
-                    : isOnSnow ? settings.HubSnowFootstep
-                    : isOnRock ? settings.HubRockFootstep
-                    : settings.HubGrassFootstep;
-                _brain?.audioBrain?.PlayFootstepSound(FootstepAudioSource, footstepClip);
+                HandleFootstep();
+            }
+        }
+
+        private void HandleFootstep()
+        {
+            var settings = GameplayGeneralSettings.Instance;
+            _lastFootstepTime = 0f;
+            var footstepClip =
+                isOnGrass ? settings.HubGrassFootstep
+                : isOnSand ? settings.HubSandFootstep
+                : isOnSnow ? settings.HubSnowFootstep
+                : isOnRock ? settings.HubRockFootstep
+                : settings.HubGrassFootstep;
+            _brain?.audioBrain?.PlayFootstepSound(FootstepAudioSource, footstepClip);
+
+            if ((isOnSand || isOnSnow) && UseFootstepDecals)
+            {
+                LeaveFootprintDecals(NavMeshAgent.transform);
+            }
+            else
+            {
+                if (_footstepDecalTimer > 60f)
+                {
+                    ResetFootprintDecals();
+                }
+                else
+                {
+                    _footstepDecalTimer += Time.deltaTime;
+                    // the timer is more of a failsafe since
+                    // footsteps get rid of themselves on their own timers
+                    // this just ensures that the pool is always available
+                    // and there's no hanging
+                }
+            }
+        }
+
+        private OperationResult LeaveFootprintDecals(Transform agentTransform)
+        {
+            if (
+                FootstepDecalPool == null
+                || FootstepDecalPool.Length == 0
+                || _footstepDecalIndex >= FootstepDecalPool.Length
+            )
+            {
+                // no decals available
+                $"No decals in pool available. Disable footstep decals or set things up correctly.".LogWarning();
+                return OperationResult.Successful();
+            }
+            var decal = FootstepDecalPool[_footstepDecalIndex];
+            if (decal != null && !decal.activeSelf)
+            {
+                decal.SetActive(true);
+                if (decal.TryGetComponent<FootstepDecal>(out var footstepDecal))
+                {
+                    footstepDecal.PlaceSelf(
+                        agentTransform,
+                        _footstepDecalLeft,
+                        FootstepDecalInterspacing
+                    );
+                    _footstepDecalIndex++;
+                    _footstepDecalLeft = !_footstepDecalLeft;
+                }
+                else
+                {
+                    return OperationResult.Failure(
+                        $"FootstepDecal component not found on decal GameObject: {decal.name}"
+                    );
+                }
+            }
+            return OperationResult.Successful();
+        }
+
+        private void ResetFootprintDecals()
+        {
+            _footstepDecalTimer = 0f;
+            _footstepDecalIndex = 0;
+            _footstepDecalLeft = FootStepDecalLeftFirst;
+
+            if (FootstepDecalPool == null)
+            {
+                return;
+            }
+
+            foreach (var decal in FootstepDecalPool)
+            {
+                if (decal != null)
+                {
+                    decal.SetActive(false);
+                }
             }
         }
 
@@ -458,3 +561,4 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #endregion
     }
 }
+

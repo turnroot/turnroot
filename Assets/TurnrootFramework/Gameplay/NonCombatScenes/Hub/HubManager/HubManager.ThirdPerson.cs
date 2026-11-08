@@ -37,26 +37,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool isOnRock;
         private bool isOnSnow;
 
-        [Foldout("Explore/Movement")]
+        [Foldout("Explore/Movement/Footsteps")]
         public Color grassColor;
 
-        [Foldout("Explore/Movement")]
+        [Foldout("Explore/Movement/Footsteps")]
         public Color sandColor;
 
-        [Foldout("Explore/Movement")]
+        [Foldout("Explore/Movement/Footsteps")]
         public Color rockColor;
 
-        [Foldout("Explore/Movement")]
+        [Foldout("Explore/Movement/Footsteps")]
         public Color snowColor;
 
         [Tooltip("Ground mesh with vertex colors and a matching MeshCollider on the same object.")]
-        [Foldout("Explore/Movement")]
+        [Foldout("Explore/Movement/Footsteps")]
         public MeshFilter GroundMeshFilter;
 
-        [Foldout("Explore/Movement")]
+        [Foldout("Explore/Movement/Footsteps")]
         public float colorTolerance;
 
-        [Foldout("Explore/Movement")]
+        [Foldout("Explore/Movement/Footsteps")]
         public AudioSource FootstepAudioSource;
 
         [Foldout("Explore/Movement")]
@@ -83,6 +83,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         [Foldout("Explore/Movement")]
         public float LookPitchSpeed = 120f;
+
+        [Foldout("Explore/Movement")]
+        public bool UseFootstepDecals;
+
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
+        public GameObject[] FootstepDecalPool;
+
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
+        public float FootstepDecalInterspacing = 0.5f;
+
+        private float _footstepDecalTimer;
+        private int _footstepDecalIndex;
+
+        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
+        public bool FootStepDecalLeftFirst = true;
+        private bool _footstepDecalLeft;
 
         private bool _walkMode;
         private Vector2 _moveInput;
@@ -143,6 +159,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 Transform reference = MovementRig != null ? MovementRig : _avatarRoot;
                 CameraYawRoot.position = reference.position;
                 CameraYawRoot.rotation = Quaternion.Euler(0f, yaw, 0f);
+            }
+
+            if (UseFootstepDecals)
+            {
+                ResetFootprintDecals();
             }
         }
 
