@@ -425,6 +425,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 $"No decals in pool available. Disable footstep decals or set things up correctly.".LogWarning();
                 return OperationResult.Successful();
             }
+            if (_footstepDecalIndex >= FootstepDecalPool.Length)
+            {
+                ResetFootprintDecals();
+            }
             var decal = FootstepDecalPool[_footstepDecalIndex];
             if (decal != null && !decal.activeSelf)
             {
@@ -567,4 +571,3 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         #endregion
     }
 }
-
