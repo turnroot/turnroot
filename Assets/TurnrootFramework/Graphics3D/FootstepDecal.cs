@@ -29,10 +29,20 @@ namespace Turnroot.Graphics3D
             }
         }
 
-        public void PlaceSelf(Transform navMeshAgentTransform, bool isLeftFoot, float interspacing)
+        public void PlaceSelf(
+            Transform navMeshAgentTransform,
+            bool isLeftFoot,
+            float interspacing,
+            Vector3 strideDirection,
+            float foreAftOffset
+        )
         {
             _isLeftFoot = isLeftFoot;
             transform.position = navMeshAgentTransform.position;
+            if (strideDirection.sqrMagnitude > 0.0001f)
+            {
+                transform.position += strideDirection * foreAftOffset;
+            }
             // if left foot, move to the left half interspacing, if right foot, move to the right half interspacing
             if (_isLeftFoot)
             {
@@ -48,7 +58,8 @@ namespace Turnroot.Graphics3D
             // there's a left foot and right foot on the decal material- square texture use Tiling/Offset on URPDecalProjector component
             // but it has to mirrored because decal projectors 
             // are backwards by default  (╯°□°)╯︵ ┻━┻
-            DecalProjector.uvBias = new Vector2(_isLeftFoot ? 0.5f : 0f, 0f);
+            // or not????
+            DecalProjector.uvBias = new Vector2(_isLeftFoot ? 0f : 0f, 0.5f);
             DecalProjector.uvScale = new Vector2(0.5f, 1f);
         }
     }

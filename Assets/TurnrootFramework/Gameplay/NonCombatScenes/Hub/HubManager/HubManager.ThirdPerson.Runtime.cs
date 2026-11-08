@@ -428,15 +428,40 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var decal = FootstepDecalPool[_footstepDecalIndex];
             if (decal != null && !decal.activeSelf)
             {
+                var position = agentTransform.position;
+                var stride = _hasLastFootstepPosition
+                    ? position - _lastFootstepPosition
+                    : Vector3.zero;
+                if (stride.sqrMagnitude < 0.0001f)
+                {
+                    stride = _lastFootstepPosition - _previousFootstepPosition;
+                }
+
+                float foreAftOffset = 0f;
+                if (stride.sqrMagnitude >= 0.0001f)
+                {
+                    foreAftOffset = stride.magnitude * 0.25f;
+                    stride.Normalize();
+                    if (!_footstepForwardLeft)
+                    {
+                        foreAftOffset *= -1f;
+                    }
+                }
                 decal.SetActive(true);
                 if (decal.TryGetComponent<FootstepDecal>(out var footstepDecal))
                 {
                     footstepDecal.PlaceSelf(
                         agentTransform,
                         _footstepDecalLeft,
-                        FootstepDecalInterspacing
+                        FootstepDecalInterspacing,
+                        stride,
+                        foreAftOffset
                     );
+                    _previousFootstepPosition = _lastFootstepPosition;
+                    _lastFootstepPosition = position;
+                    _hasLastFootstepPosition = true;
                     _footstepDecalLeft = !_footstepDecalLeft;
+                    _footstepForwardLeft = !_footstepForwardLeft;
                     _footstepDecalIndex++;
                 }
                 else
@@ -454,6 +479,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _footstepDecalTimer = 0f;
             _footstepDecalIndex = 0;
             _footstepDecalLeft = FootStepDecalLeftFirst;
+            _footstepForwardLeft = FootStepDecalLeftFirst;
+            _previousFootstepPosition = Vector3.zero;
+            _lastFootstepPosition = Vector3.zero;
+            _hasLastFootstepPosition = false;
 
             if (FootstepDecalPool == null)
             {
