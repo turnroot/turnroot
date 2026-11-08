@@ -82,6 +82,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             _sceneFlow = null;
         }
 
+        public void ResetForBattle()
+        {
+            StopAllCoroutines();
+            _currentPhaseOrder = BattlePhaseOrder.PlayerPhaseStart;
+            _currentRosterIndex = -1;
+            _unitsWithPendingMoveAnimation.Clear();
+            _unitsWithPendingSwapAnimation.Clear();
+            _pendingEndTurnUnitIdAwaitingAnimation = null;
+            _sceneFlow = FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+        }
+
         private void HandleUnitTurnAdvanceRequested(CharacterInstance unit)
         {
             // Handle EndTurn for all factions. For AI/NPC turns, defer advancement until

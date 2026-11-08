@@ -51,6 +51,8 @@ namespace Turnroot.Gameplay.Brain
 
         public int CurrentTurnNumber { get; private set; } = 0;
 
+        public void ResetTurnNumber() => CurrentTurnNumber = 0;
+
         public void IncrementTurnNumber()
         {
             CurrentTurnNumber++;
@@ -92,11 +94,6 @@ namespace Turnroot.Gameplay.Brain
 
             IsInitializing = false;
             _brain.TakeSnapshot();
-        }
-
-        private void Start()
-        {
-            // Roster initialization moved to InitializeLTMDependentData()
         }
 
         private void InitializeLTMDependentData()
@@ -154,6 +151,11 @@ namespace Turnroot.Gameplay.Brain
             {
                 return;
             }
+
+            turnRotisserie?.ResetForBattle();
+            playerTurnFlow?.ResetForBattle();
+            ResetTurnNumber();
+            BattleObject.ResetTurnCount();
 
             // Despawn pre-battle positioning models to avoid confusion with battle models
             PreparationObject?.StartingPositionsComponent?.DespawnAllModels();

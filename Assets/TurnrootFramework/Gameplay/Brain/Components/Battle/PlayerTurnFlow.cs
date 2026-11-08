@@ -16,7 +16,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         private CharacterInstance _activePlayerUnit;
         private ObjectItemInstance _selectedItem;
         private BattleBrain _battleBrain;
-        private Utilities.AbstractScripts.BattleSceneFlow _cachedSceneFlow;
+        public Utilities.AbstractScripts.BattleSceneFlow CachedSceneFlow { get; private set; }
 
         public PlayerTurnStates GetCurrentState() =>
             _currentState?.CurrentState ?? PlayerTurnStates.Inactive;
@@ -46,7 +46,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         {
             _currentState ??= new PlayerTurnState();
             _battleBrain ??= GetComponent<BattleBrain>();
-            _cachedSceneFlow ??= FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+            CachedSceneFlow ??= FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
 
             if (_battleBrain?.Brain != null)
             {
@@ -86,9 +86,17 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
 
                 _battleBrain.Brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
             }
-            _cachedSceneFlow = null;
+            CachedSceneFlow = null;
             _activePlayerUnit = null;
             _selectedItem = null;
+        }
+
+        public void ResetForBattle()
+        {
+            _currentState = new PlayerTurnState();
+            _activePlayerUnit = null;
+            _selectedItem = null;
+            CachedSceneFlow = FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
         }
 
         public void BeginPlayerPhase()
@@ -349,25 +357,25 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             }
 
             // Check if any interrupts are queued (e.g., conversations)
-            if (_cachedSceneFlow != null && _cachedSceneFlow.IsInterruptQueued)
+            if (CachedSceneFlow != null && CachedSceneFlow.IsInterruptQueued)
             {
                 // Ensure we're in the correct scene flow state before processing interrupt
                 if (
-                    _cachedSceneFlow.CurrentMiniBattleState
+                    CachedSceneFlow.CurrentMiniBattleState
                     == Utilities.AbstractScripts.MiniBattleState.NoBattlePlayerInput
                 )
                 {
                     // Queue the turn end to happen after interrupt completes
-                    _cachedSceneFlow.QueueInterrupt(
-                        _cachedSceneFlow.CurrentInterrupt,
+                    CachedSceneFlow.QueueInterrupt(
+                        CachedSceneFlow.CurrentInterrupt,
                         onCompleted: CompleteUnitTurn
                     );
-                    _cachedSceneFlow.ProgressMiniBattleState();
+                    CachedSceneFlow.ProgressMiniBattleState();
                     return;
                 }
                 else
                 {
-                    $"PlayerTurnFlow: Interrupt queued but scene flow in unexpected state: {_cachedSceneFlow.CurrentMiniBattleState}".LogWarning();
+                    $"PlayerTurnFlow: Interrupt queued but scene flow in unexpected state: {CachedSceneFlow.CurrentMiniBattleState}".LogWarning();
                 }
             }
 
@@ -375,7 +383,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             CompleteUnitTurn();
         }
 
-        private void CompleteUnitTurn()
+        public void CompleteUnitTurn()
         {
             var unit = _activePlayerUnit;
             if (unit == null)
