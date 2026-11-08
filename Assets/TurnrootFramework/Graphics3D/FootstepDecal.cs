@@ -39,6 +39,7 @@ namespace Turnroot.Graphics3D
         {
             _isLeftFoot = isLeftFoot;
             transform.position = navMeshAgentTransform.position;
+            transform.rotation = navMeshAgentTransform.rotation;
             if (strideDirection.sqrMagnitude > 0.0001f)
             {
                 transform.position += strideDirection * foreAftOffset;
@@ -46,13 +47,12 @@ namespace Turnroot.Graphics3D
             // if left foot, move to the left half interspacing, if right foot, move to the right half interspacing
             if (_isLeftFoot)
             {
-                transform.Translate(0.5f * interspacing * Vector3.left, Space.Self);
+                transform.position -= 0.5f * interspacing * transform.right;
             }
             else
             {
-                transform.Translate(0.5f * interspacing * Vector3.right, Space.Self);
+                transform.position += 0.5f * interspacing * transform.right;
             }
-            transform.rotation = navMeshAgentTransform.rotation;
             transform.Translate(Vector3.up * 0.1f, Space.World);
 
             // there's a left foot and right foot on the decal material- square texture use Tiling/Offset on URPDecalProjector component
