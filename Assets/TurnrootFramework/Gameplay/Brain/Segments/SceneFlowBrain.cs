@@ -67,7 +67,7 @@ namespace Turnroot.Utilities.SceneFlows
 
             if (Registry == null)
             {
-                "SceneFlowBrain: No GameFlowRegistry found in Resources!".LogError();
+                "SceneFlowBrain: No GameFlowRegistry found in Resources; scene-flow registry features are unavailable.".LogWarning();
             }
         }
 

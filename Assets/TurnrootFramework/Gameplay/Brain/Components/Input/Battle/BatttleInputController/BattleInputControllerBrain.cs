@@ -82,8 +82,8 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnBattleStarted += HandleBattleStarted;
             Brain.OnBattleCompleted += HandleBattleCompleted;
             Brain.OnPlayerControlledUnitActivated += HandlePlayerUnitActivated;
-            Brain.OnPlayerTurnStateChanged += new System.Action<PlayerTurnStates>(
-                HandlePlayerTurnStateChanged
+            Brain.OnPlayerUnitTurnStateChanged += new System.Action<PlayerTurnStates>(
+                HandlePlayerUnitTurnStateChanged
             );
 
             // Update path previews when the cursor moves (used for keyboard/controller navigation)
@@ -95,8 +95,8 @@ namespace Turnroot.Gameplay.Brain
             Brain.OnBattleStarted -= HandleBattleStarted;
             Brain.OnBattleCompleted -= HandleBattleCompleted;
             Brain.OnPlayerControlledUnitActivated -= HandlePlayerUnitActivated;
-            Brain.OnPlayerTurnStateChanged -= new System.Action<PlayerTurnStates>(
-                HandlePlayerTurnStateChanged
+            Brain.OnPlayerUnitTurnStateChanged -= new System.Action<PlayerTurnStates>(
+                HandlePlayerUnitTurnStateChanged
             );
 
             Brain.OnBattleCursorMoved -= HandleCursorMoved;
@@ -416,12 +416,7 @@ namespace Turnroot.Gameplay.Brain
             if (unitAtCursor != null && BattleContext.IsPlayerControlledUnit(unitAtCursor))
             {
                 var current = BattleContext.Unit.UnitInstance;
-                if (current == null || current != unitAtCursor)
-                {
-                    _playerTurnFlow.SelectUnit(unitAtCursor);
-                    ChangeSelectedUnit(unitAtCursor);
-                }
-                else
+                if (current == unitAtCursor)
                 {
                     // Confirming on the same unit - treat as "stay in place" and open action menu
                     var unitPoint = current.UnitPositionToMapGridPoint(
@@ -434,6 +429,7 @@ namespace Turnroot.Gameplay.Brain
                     }
                 }
 
+                // Select a different unit only after canceling the current selection.
                 return;
             }
 

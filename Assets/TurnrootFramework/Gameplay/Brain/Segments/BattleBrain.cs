@@ -51,6 +51,8 @@ namespace Turnroot.Gameplay.Brain
 
         public int CurrentTurnNumber { get; private set; } = 0;
 
+        public void ResetTurnNumber() => CurrentTurnNumber = 0;
+
         public void IncrementTurnNumber()
         {
             CurrentTurnNumber++;
@@ -92,11 +94,6 @@ namespace Turnroot.Gameplay.Brain
 
             IsInitializing = false;
             _brain.TakeSnapshot();
-        }
-
-        private void Start()
-        {
-            // Roster initialization moved to InitializeLTMDependentData()
         }
 
         private void InitializeLTMDependentData()
@@ -155,6 +152,11 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            turnRotisserie?.ResetForBattle();
+            playerTurnFlow?.ResetForBattle();
+            ResetTurnNumber();
+            BattleObject.ResetTurnCount();
+
             // Despawn pre-battle positioning models to avoid confusion with battle models
             PreparationObject?.StartingPositionsComponent?.DespawnAllModels();
 
@@ -168,7 +170,7 @@ namespace Turnroot.Gameplay.Brain
 
             InitializeAdvancedSystems();
             InitializePrecomputeLoader();
-            StartPlayerTurn();
+            StartBattleWithPlayerPhase();
         }
 
         private bool InitializeBattleObject()
@@ -275,13 +277,13 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        private void StartPlayerTurn()
+        private void StartBattleWithPlayerPhase()
         {
-            ProgressTurnOrder();
+            AdvanceBattleUnitOrPhase();
 
             if (playerTurnFlow != null)
             {
-                playerTurnFlow.StartPlayerTurn();
+                playerTurnFlow.BeginPlayerPhase();
                 $"Battle started. PlayerTurnFlow state: {playerTurnFlow.GetCurrentState()}".LogInfo();
             }
         }
@@ -565,11 +567,11 @@ namespace Turnroot.Gameplay.Brain
 
         #region Turn Management
 
-        public void ProgressTurnOrder()
+        public void AdvanceBattleUnitOrPhase()
         {
-            if (!turnRotisserie.Progress())
+            if (!turnRotisserie.AdvanceToNextUnitOrPhase())
             {
-                "BattleBrain: Failed to progress turn order!".LogError();
+                "BattleBrain: Failed to advance to the next unit or faction phase!".LogError();
             }
         }
 

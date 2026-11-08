@@ -38,7 +38,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
             else
             {
-                _context.EndTurn();
+                _context.CompleteActiveUnitTurn();
             }
         }
 

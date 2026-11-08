@@ -3,24 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Brain.Events;
 using Turnroot.Utilities;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
-    public enum TurnOrder
+    public enum BattlePhaseOrder
     {
-        PlayerStart = 0,
-        PlayerEnd = 1,
-        EnemyStart = 2,
-        EnemyEnd = 3,
-        ThirdPartyStart = 4,
-        ThirdPartyEnd = 5,
+        PlayerPhaseStart = 0,
+        PlayerPhaseEnd = 1,
+        EnemyPhaseStart = 2,
+        EnemyPhaseEnd = 3,
+        ThirdPartyPhaseStart = 4,
+        ThirdPartyPhaseEnd = 5,
     }
 
     /// <summary>
-    /// Manages turn order progression in battle.
-    /// Reads from BattleContext (which is populated by BattleBrain during initialization).
+    /// Advances eligible unit turns and faction phases within each battle round.
+    /// Reads participants from BattleContext, populated by BattleBrain during initialization.
     /// </summary>
     public class TurnRotisserie : MonoBehaviour
     {
@@ -39,9 +40,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         #region State
 
-        private TurnOrder _currentTurnOrder = TurnOrder.PlayerStart;
+        private BattlePhaseOrder _currentPhaseOrder = BattlePhaseOrder.PlayerPhaseStart;
 
-        // spin index starts at -1 so the first call to Progress() increments
+        // spin index starts at -1 so the first call to AdvanceToNextUnitOrPhase() increments
         // it to zero and activates the first member of the roster.
         private int _currentRosterIndex = -1;
 
@@ -68,8 +69,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             if (Brain != null)
             {
-                Brain.OnPlayerTurnEnded -= HandlePlayerTurnCompleted;
-                Brain.OnEndTurnCompleted -= HandleActionCompleted;
+                Brain.OnUnitTurnAdvanceRequested -= HandleUnitTurnAdvanceRequested;
                 Brain.OnCharacterMoveStarted -= HandleCharacterMoveStarted;
                 Brain.OnMoveAnimationCompleted -= HandleMoveAnimationCompleted;
                 Brain.OnSwapStarted -= HandleSwapStarted;
@@ -82,7 +82,18 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             _sceneFlow = null;
         }
 
-        private void HandleActionCompleted(CharacterInstance unit)
+        public void ResetForBattle()
+        {
+            StopAllCoroutines();
+            _currentPhaseOrder = BattlePhaseOrder.PlayerPhaseStart;
+            _currentRosterIndex = -1;
+            _unitsWithPendingMoveAnimation.Clear();
+            _unitsWithPendingSwapAnimation.Clear();
+            _pendingEndTurnUnitIdAwaitingAnimation = null;
+            _sceneFlow = FindFirstObjectByType<Utilities.AbstractScripts.BattleSceneFlow>();
+        }
+
+        private void HandleUnitTurnAdvanceRequested(CharacterInstance unit)
         {
             // Handle EndTurn for all factions. For AI/NPC turns, defer advancement until
             // the active unit's movement/swap visuals complete.
@@ -93,11 +104,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             var shouldWaitForVisuals =
-                _currentTurnOrder
-                    is TurnOrder.EnemyStart
-                        or TurnOrder.EnemyEnd
-                        or TurnOrder.ThirdPartyStart
-                        or TurnOrder.ThirdPartyEnd;
+                _currentPhaseOrder
+                    is BattlePhaseOrder.EnemyPhaseStart
+                        or BattlePhaseOrder.EnemyPhaseEnd
+                        or BattlePhaseOrder.ThirdPartyPhaseStart
+                        or BattlePhaseOrder.ThirdPartyPhaseEnd;
 
             if (shouldWaitForVisuals && HasPendingVisualForUnit(unit))
             {
@@ -105,7 +116,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return;
             }
 
-            Progress();
+            AdvanceToNextUnitOrPhase();
         }
 
         #endregion
@@ -121,13 +132,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return validation;
             }
 
-            Brain.OnPlayerTurnEnded += HandlePlayerTurnCompleted;
-            Brain.OnEndTurnCompleted += HandleActionCompleted;
+            Brain.OnUnitTurnAdvanceRequested += HandleUnitTurnAdvanceRequested;
             Brain.OnCharacterMoveStarted += HandleCharacterMoveStarted;
             Brain.OnMoveAnimationCompleted += HandleMoveAnimationCompleted;
             Brain.OnSwapStarted += HandleSwapStarted;
             Brain.OnSwapAnimationCompleted += HandleSwapAnimationCompleted;
-            Brain.OnPlayerTurnStateChanged += state =>
+            Brain.OnPlayerUnitTurnStateChanged += state =>
             {
                 var active = GetActiveUnit();
                 active?.RecalculateCombatRates();
@@ -155,16 +165,16 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// Progress to the next unit or phase.
         /// Returns false if no valid units remain (battle should end).
         /// </summary>
-        public bool Progress()
+        public bool AdvanceToNextUnitOrPhase()
         {
             if (
                 battleBrain != null
                 && battleBrain.CurrentTurnNumber == 0
-                && _currentTurnOrder == TurnOrder.PlayerStart
+                && _currentPhaseOrder == BattlePhaseOrder.PlayerPhaseStart
             )
             {
                 battleBrain.IncrementTurnNumber();
-                Brain.PublishTurnBegin();
+                PublishBattleRoundStarted();
             }
 
             // Check if current unit gets another turn
@@ -182,13 +192,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             {
                 // End phases are transition-only; they don't activate per-unit turns.
                 if (
-                    _currentTurnOrder
-                    is TurnOrder.PlayerEnd
-                        or TurnOrder.EnemyEnd
-                        or TurnOrder.ThirdPartyEnd
+                    _currentPhaseOrder
+                    is BattlePhaseOrder.PlayerPhaseEnd
+                        or BattlePhaseOrder.EnemyPhaseEnd
+                        or BattlePhaseOrder.ThirdPartyPhaseEnd
                 )
                 {
-                    return ProgressToNextPhase();
+                    return AdvanceToNextFactionPhase();
                 }
 
                 // This should not happen for start phases and likely indicates roster setup issues.
@@ -209,14 +219,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // No more units in this roster, move to next phase
-            var result = ProgressToNextPhase();
+            var result = AdvanceToNextFactionPhase();
 
             // if the rotisserie indicated the battle should end, make sure any
-            // remaining turn‑ended handlers still run.  (ProgressToNextPhase never
-            // publishes TurnEnded in this case.)
+            // remaining round-end handlers still run. (AdvanceToNextFactionPhase never
+            // publishes BattleRoundEnded in this case.)
             if (!result)
             {
-                Brain.PublishTurnEnded();
+                PublishBattleRoundEnded();
             }
 
             return result;
@@ -224,23 +234,23 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         #endregion
 
-        #region Turn Order Logic
+        #region Faction Phase Order
 
-        private TurnOrder GetNextTurnOrder()
+        private BattlePhaseOrder GetNextPhaseOrder()
         {
             var hasThirdParty = battleBrain?.BattleObject.HasThirdParty ?? false;
 
-            return _currentTurnOrder switch
+            return _currentPhaseOrder switch
             {
-                TurnOrder.PlayerStart => TurnOrder.PlayerEnd,
-                TurnOrder.PlayerEnd => TurnOrder.EnemyStart,
-                TurnOrder.EnemyStart => TurnOrder.EnemyEnd,
-                TurnOrder.EnemyEnd => hasThirdParty
-                    ? TurnOrder.ThirdPartyStart
-                    : TurnOrder.PlayerStart,
-                TurnOrder.ThirdPartyStart => TurnOrder.ThirdPartyEnd,
-                TurnOrder.ThirdPartyEnd => TurnOrder.PlayerStart,
-                _ => TurnOrder.PlayerStart,
+                BattlePhaseOrder.PlayerPhaseStart => BattlePhaseOrder.PlayerPhaseEnd,
+                BattlePhaseOrder.PlayerPhaseEnd => BattlePhaseOrder.EnemyPhaseStart,
+                BattlePhaseOrder.EnemyPhaseStart => BattlePhaseOrder.EnemyPhaseEnd,
+                BattlePhaseOrder.EnemyPhaseEnd => hasThirdParty
+                    ? BattlePhaseOrder.ThirdPartyPhaseStart
+                    : BattlePhaseOrder.PlayerPhaseStart,
+                BattlePhaseOrder.ThirdPartyPhaseStart => BattlePhaseOrder.ThirdPartyPhaseEnd,
+                BattlePhaseOrder.ThirdPartyPhaseEnd => BattlePhaseOrder.PlayerPhaseStart,
+                _ => BattlePhaseOrder.PlayerPhaseStart,
             };
         }
 
@@ -256,12 +266,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             // Read from context participants (populated during battle init)
-            IEnumerable<CharacterInstance> instances = _currentTurnOrder switch
+            IEnumerable<CharacterInstance> instances = _currentPhaseOrder switch
             {
-                TurnOrder.PlayerStart => Context.Participants.Allies,
-                TurnOrder.EnemyStart => Context.Participants.Targets,
-                TurnOrder.ThirdPartyStart => Context.Participants.ThirdParty,
-                TurnOrder.PlayerEnd or TurnOrder.EnemyEnd or TurnOrder.ThirdPartyEnd =>
+                BattlePhaseOrder.PlayerPhaseStart => Context.Participants.Allies,
+                BattlePhaseOrder.EnemyPhaseStart => Context.Participants.Targets,
+                BattlePhaseOrder.ThirdPartyPhaseStart => Context.Participants.ThirdParty,
+                BattlePhaseOrder.PlayerPhaseEnd or BattlePhaseOrder.EnemyPhaseEnd or BattlePhaseOrder.ThirdPartyPhaseEnd =>
                     new List<CharacterInstance>(),
                 _ => new List<CharacterInstance>(),
             };
@@ -306,68 +316,80 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 : OperationResult.Successful();
         }
 
-        private bool ProgressToNextPhase()
+        private bool AdvanceToNextFactionPhase()
         {
-            TurnOrder previousOrder = _currentTurnOrder;
-            _currentTurnOrder = GetNextTurnOrder();
+            BattlePhaseOrder previousPhase = _currentPhaseOrder;
+            _currentPhaseOrder = GetNextPhaseOrder();
             _currentRosterIndex = -1;
 
             bool newRoundStarted =
-                _currentTurnOrder == TurnOrder.PlayerStart
-                && previousOrder != TurnOrder.PlayerStart;
+                _currentPhaseOrder == BattlePhaseOrder.PlayerPhaseStart
+                && previousPhase != BattlePhaseOrder.PlayerPhaseStart;
 
             if (newRoundStarted)
             {
                 // Notify end of previous round, increment battle turn counter, then notify start of new round
-                Brain.PublishTurnEnded();
+                PublishBattleRoundEnded();
                 battleBrain?.IncrementTurnNumber();
-                Brain.PublishTurnBegin();
+                PublishBattleRoundStarted();
             }
 
-            switch (_currentTurnOrder)
+            switch (_currentPhaseOrder)
             {
-                case TurnOrder.PlayerStart:
-                    // Notify scene flow that player turn is beginning (for interrupt system)
+                case BattlePhaseOrder.PlayerPhaseStart:
+                    // Notify scene flow that the player phase is beginning (for interrupt system)
                     _sceneFlow?.InitializeMiniBattleState();
                     // defer starting the player‑turn state machine until after the
                     // first unit in the roster has actually been activated.  the
-                    // old implementation invoked StartPlayerTurn() here, which meant
-                    // the PublishPlayerTurnStarted event was fired with whatever unit
+                    // old implementation invoked BeginPlayerPhase() here, which meant
+                    // the PublishPlayerPhaseStarted event was fired with whatever unit
                     // was still stored on the context (usually the last enemy/third‑
                     // party unit from the previous phase).
                     break;
-                case TurnOrder.PlayerEnd:
-                    Brain.PublishPlayerTurnEnded();
+                case BattlePhaseOrder.PlayerPhaseEnd:
+                    Brain.PublishPlayerPhaseEnded();
                     // Notify scene flow to progress (handles interrupts before next phase)
                     _sceneFlow?.ProgressMiniBattleState();
                     break;
-                case TurnOrder.EnemyStart:
-                    Brain.PublishEnemyTurnStarted();
+                case BattlePhaseOrder.EnemyPhaseStart:
+                    Brain.PublishEnemyPhaseStarted();
                     break;
-                case TurnOrder.EnemyEnd:
-                    Brain.PublishEnemyTurnEnded();
+                case BattlePhaseOrder.EnemyPhaseEnd:
+                    Brain.PublishEnemyPhaseEnded();
                     break;
-                case TurnOrder.ThirdPartyStart:
-                    Brain.PublishThirdPartyTurnStarted();
+                case BattlePhaseOrder.ThirdPartyPhaseStart:
+                    Brain.PublishThirdPartyPhaseStarted();
                     break;
-                case TurnOrder.ThirdPartyEnd:
-                    Brain.PublishThirdPartyTurnEnded();
+                case BattlePhaseOrder.ThirdPartyPhaseEnd:
+                    Brain.PublishThirdPartyPhaseEnded();
                     break;
             }
 
             // Recursively activate first unit of new phase
-            var success = Progress();
+            var success = AdvanceToNextUnitOrPhase();
 
             // if we're now in a player phase, the first player unit should be
             // active; signal the player‑turn flow so it can publish the start
             // event and reset its internal state.  this used to happen before the
             // recursive call which resulted in the wrong unit being reported.
-            if (success && _currentTurnOrder == TurnOrder.PlayerStart)
+            if (success && _currentPhaseOrder == BattlePhaseOrder.PlayerPhaseStart)
             {
-                battleBrain?.playerTurnFlow?.StartPlayerTurn();
+                battleBrain?.playerTurnFlow?.BeginPlayerPhase();
             }
 
             return success;
+        }
+
+        private void PublishBattleRoundStarted()
+        {
+            Brain.PublishBattleRoundStarted();
+            Brain.Publish(new BattleRoundStartedEvent(battleBrain.CurrentTurnNumber));
+        }
+
+        private void PublishBattleRoundEnded()
+        {
+            Brain.PublishBattleRoundEnded();
+            Brain.Publish(new BattleRoundEndedEvent(battleBrain.CurrentTurnNumber));
         }
 
         #endregion
@@ -395,9 +417,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             $"TurnRotisserie: Setting active unit to {activeUnit.CharacterTemplate.DisplayName}".LogInfo();
 
-            // Publish TurnEnded for the unit whose turn is finishing — do this BEFORE changing
+            // Publish the unit-turn completion before changing
             // Context.Unit so skill graphs still see the correct outgoing unit. This covers all
-            // unit types (player, enemy, third-party) since EndTurnCommand is not always called
+            // unit types (player, enemy, third-party) since EndUnitTurnCommand is not always called
             // for enemy/third-party units.
             var previousUnit = Context.Unit?.UnitInstance;
             if (previousUnit != null)
@@ -420,12 +442,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Notify all systems that a new unit's turn has started (player, enemy, or third party).
             Brain.PublishUnitTurnStarted(activeUnit);
 
-            if (_currentTurnOrder is TurnOrder.PlayerStart or TurnOrder.PlayerEnd)
+            if (_currentPhaseOrder is BattlePhaseOrder.PlayerPhaseStart or BattlePhaseOrder.PlayerPhaseEnd)
             {
                 Brain.PublishPlayerControlledUnitActivated(activeUnit);
             }
 
-            if (_currentTurnOrder is TurnOrder.EnemyStart or TurnOrder.ThirdPartyStart)
+            if (_currentPhaseOrder is BattlePhaseOrder.EnemyPhaseStart or BattlePhaseOrder.ThirdPartyPhaseStart)
             {
                 StartCoroutine(ExecuteAITurnCoroutine(activeUnit));
             }
@@ -448,7 +470,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (context.AIHelper == null)
             {
                 "TurnRotisserie: AIHelper missing during AI turn; ending turn to prevent lockup".LogWarning();
-                context.EndTurn();
+                context.CompleteActiveUnitTurn();
                 yield break;
             }
 
@@ -481,7 +503,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             _pendingEndTurnUnitIdAwaitingAnimation = null;
-            Progress();
+            AdvanceToNextUnitOrPhase();
         }
 
         private void HandleCharacterMoveStarted(
@@ -539,15 +561,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         #endregion
 
         #region Event Handlers
-
-        private void HandlePlayerTurnCompleted()
-        {
-            var currentUnit = GetActiveUnit();
-            if (currentUnit != null)
-            {
-                Progress();
-            }
-        }
 
         #endregion
     }

@@ -17,8 +17,8 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnCriticalHit += HandleCriticalHit;
             _brain.OnWeaponUsesChanged += HandleWeaponUsesChanged;
             _brain.OnItemStolen += HandleItemStolen;
-            _brain.OnTurnEnded += HandleTurnEndStatusEffects;
-            _brain.OnTurnBegin += HandleTurnBeginEvent;
+            _brain.OnBattleRoundEnded += HandleRoundEndStatusEffects;
+            _brain.OnBattleRoundStarted += HandleBattleRoundStarted;
             _brain.OnUnitDefeated += HandleUnitDefeated;
             _brain.OnUnitMoved += HandleUnitMoved;
             _brain.OnLongTermMemoryInitialized += InitializeLTMDependentData;
@@ -34,8 +34,8 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnCriticalHit -= HandleCriticalHit;
             _brain.OnWeaponUsesChanged -= HandleWeaponUsesChanged;
             _brain.OnItemStolen -= HandleItemStolen;
-            _brain.OnTurnEnded -= HandleTurnEndStatusEffects;
-            _brain.OnTurnBegin -= HandleTurnBeginEvent;
+            _brain.OnBattleRoundEnded -= HandleRoundEndStatusEffects;
+            _brain.OnBattleRoundStarted -= HandleBattleRoundStarted;
             _brain.OnUnitDefeated -= HandleUnitDefeated;
             _brain.OnUnitMoved -= HandleUnitMoved;
             _brain.OnLongTermMemoryInitialized -= InitializeLTMDependentData;
@@ -123,8 +123,8 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
-        private void HandleTurnBeginEvent() =>
-            // Invalidate all tile caches at start of each turn to ensure AI and UI recompute
+        private void HandleBattleRoundStarted() =>
+            // Invalidate all tile caches at start of each round to ensure AI and UI recompute
             BattleObject.Context.InvalidateAllTileCaches();
 
         private OperationResult HandleCriticalHitLogic(CharacterInstance unit)

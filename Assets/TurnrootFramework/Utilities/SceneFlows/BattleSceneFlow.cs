@@ -270,7 +270,7 @@ namespace Turnroot.Utilities.AbstractScripts
 
         public void DisableBattleInput() => brain.PublishBattleInputDisabled();
 
-        private void ProcessQueuedInterrupt()
+        public virtual void ProcessQueuedInterrupt()
         {
             IsInTopdownBattleView = false;
             switch (CurrentInterrupt)

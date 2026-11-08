@@ -82,7 +82,10 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, ObjectItemInstance> OnUseItemLogicCompleted;
         public event Action<CharacterInstance, ObjectItemInstance> OnUseItemAnimationCompleted;
 
-        public event Action<CharacterInstance> OnEndTurnCompleted;
+        /// <summary>
+        /// Requests the TurnRotisserie to advance after this unit has completed its turn.
+        /// </summary>
+        public event Action<CharacterInstance> OnUnitTurnAdvanceRequested;
 
         public void PublishMoveCompleted(CharacterInstance unit, MapGridPoint targetPoint) =>
             OnMoveCompleted?.Invoke(unit, targetPoint);
@@ -132,8 +135,8 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance target
         ) => OnSwapAnimationCompleted?.Invoke(unit, target);
 
-        public void PublishEndTurnCompleted(CharacterInstance unit) =>
-            OnEndTurnCompleted?.Invoke(unit);
+        public void PublishUnitTurnAdvanceRequested(CharacterInstance unit) =>
+            OnUnitTurnAdvanceRequested?.Invoke(unit);
 
         public void PublishUnitFinishedMovingAfterAction(CharacterInstance unit) =>
             OnUnitFinishedMovingAfterAction?.Invoke(unit);

@@ -84,7 +84,6 @@ namespace Turnroot.Gameplay.Brain
             {
                 InitializeLongTermMemory();
                 InitializeAdvancedSystems();
-                TryLinkConversationController();
                 _awake = MakeInitialConnections();
             }
         }
@@ -100,8 +99,6 @@ namespace Turnroot.Gameplay.Brain
                 : OperationResult.Successful();
         }
 
-        #region Conversation Controller Management
-
         private readonly SingleValueCache<ConversationController> _conversationControllerCache =
             new();
 
@@ -110,26 +107,6 @@ namespace Turnroot.Gameplay.Brain
             _sceneConversationController = controller;
             _conversationControllerCache.Invalidate();
         }
-
-        private OperationResult TryLinkConversationController()
-        {
-            var controller = _conversationControllerCache.GetOrCompute(() =>
-            {
-                var controllers = FindObjectsByType<ConversationController>(
-                    FindObjectsSortMode.None
-                );
-                return (controllers != null && controllers.Length > 0) ? controllers[0] : null;
-            });
-
-            if (controller != null)
-            {
-                _sceneConversationController = controller;
-                return OperationResult.Successful();
-            }
-            return OperationResult.Failure("No ConversationController found in scene.");
-        }
-
-        #endregion
 
         #region State Control
 

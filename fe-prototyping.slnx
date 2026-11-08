@@ -13,6 +13,7 @@
   <Project Path="TurnrootFramework.Editor.Skills.Nodes.Events.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Combat.csproj" />
   <Project Path="TurnrootFramework.Editor.Characters.Stats.csproj" />
+  <Project Path="PlayMode.csproj" />
   <Project Path="TurnrootFramework.Editor.Maps.Terrain.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Hub.Shop.csproj" />
   <Project Path="TurnrootFramework.Editor.Gameplay.Objects.Components.csproj" />
@@ -24,6 +25,7 @@
   <Project Path="TurnrootFramework.Editor.Characters.Inventory.csproj" />
   <Project Path="TurnrootFramework.Editor.Graphics2D.csproj" />
   <Project Path="TurnrootFramework.Editor.Skills.Badges.csproj" />
+  <Project Path="Tests.csproj" />
   <Project Path="TurnrootFramework.Editor.CharacterClass.csproj" />
   <Project Path="TurnrootFramework.Editor.Utilities.SceneFlows.csproj" />
   <Project Path="TurnrootFramework.Editor.UI.Notifications.csproj" />

@@ -146,9 +146,9 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            _playerTurnFlow.WaitAndEndTurn();
-            // Note: Turn progression is handled by TurnRotisserie via PlayerTurnEnded event
-            // DO NOT call Progress() here or turns will advance twice
+            _playerTurnFlow.WaitAndEndUnitTurn();
+            // The unit-turn advance is handled by TurnRotisserie.
+            // Do not advance the rotisserie here or the unit turn will advance twice.
             Brain.battleBrain.IsInputEnabled = true;
         }
 

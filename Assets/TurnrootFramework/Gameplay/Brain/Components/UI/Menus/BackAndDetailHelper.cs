@@ -84,7 +84,10 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void DestroyBackButton()
         {
-            UIInputActionDefaults.Back.performed -= OnBackPerformed;
+            if (UIInputActionDefaults.Back != null)
+            {
+                UIInputActionDefaults.Back.performed -= OnBackPerformed;
+            }
             DestroyRoleCanvas(ref _currentMenuCanvasPrefab);
         }
 
@@ -98,7 +101,10 @@ namespace Turnroot.Gameplay.Brain.Segments
 
         private void DestroyDetailsButton()
         {
-            UIInputActionDefaults.ToggleDetails.performed -= OnDetailsPerformed;
+            if (UIInputActionDefaults.ToggleDetails != null)
+            {
+                UIInputActionDefaults.ToggleDetails.performed -= OnDetailsPerformed;
+            }
             DestroyRoleCanvas(ref _currentDetailsCanvasPrefab);
         }
 

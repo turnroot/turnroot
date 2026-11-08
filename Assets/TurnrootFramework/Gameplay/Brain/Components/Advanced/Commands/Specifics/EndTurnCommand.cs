@@ -5,9 +5,9 @@ namespace Turnroot.Gameplay.Brain.Commands
     /// <summary>
     /// Command to end a turn.
     /// </summary>
-    public class EndTurnCommand : CommandBase
+    public class EndUnitTurnCommand : CommandBase
     {
-        public EndTurnCommand(int turn)
+        public EndUnitTurnCommand(int turn)
             : base(turn) { }
 
         public override bool Execute(BattleContext context)
@@ -16,12 +16,8 @@ namespace Turnroot.Gameplay.Brain.Commands
             // (Targets in range and adjacent units are specific to the active unit)
             context.ClearParticipantDynamicData();
 
-            // Publish the round-level turn-ended event.
-            // NOTE: PublishUnitTurnEnded is intentionally NOT called here.
-            // TurnRotisserie.SetActiveUnitInContext fires it for ALL unit types
-            // (player, enemy, third-party) when the next unit is activated, ensuring
-            // exactly one firing regardless of whether EndTurnCommand was called.
-            context.Brain.Publish(new Events.TurnEndedEvent(TurnNumber));
+            // TurnRotisserie publishes unit-turn lifecycle events when it activates
+            // the next unit, and round events only when the full round ends.
             return true;
         }
 

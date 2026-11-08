@@ -135,14 +135,14 @@ namespace Turnroot.Gameplay.Brain
             _commandHistory = new CommandHistory();
             _snapshots = new SnapshotStack();
 
-            OnTurnEnded += HandleTurnEnd;
+            OnBattleRoundEnded += HandleBattleRoundEnded;
         }
 
-        private void HandleTurnEnd() => ProcessDeferredEvents();
+        private void HandleBattleRoundEnded() => ProcessDeferredEvents();
 
         private void CleanupAdvancedSystems()
         {
-            OnTurnEnded -= HandleTurnEnd;
+            OnBattleRoundEnded -= HandleBattleRoundEnded;
             _eventBus.ClearAllSubscriptions();
             _commandHistory.Clear();
             _snapshots.Clear();

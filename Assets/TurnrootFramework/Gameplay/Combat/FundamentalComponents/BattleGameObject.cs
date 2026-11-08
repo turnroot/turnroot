@@ -192,7 +192,7 @@ namespace Turnroot.Gameplay.Combat
 
         #region Event Handlers
 
-        private void HandleTurnEnded()
+        private void HandleBattleRoundEnded()
         {
             IncrementTurnCount();
 

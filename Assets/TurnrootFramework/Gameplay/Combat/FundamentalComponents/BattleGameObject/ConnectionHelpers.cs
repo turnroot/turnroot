@@ -45,7 +45,7 @@ namespace Turnroot.Gameplay.Combat
 
         private void SubscribeToBrainEvents()
         {
-            Brain.OnTurnEnded += HandleTurnEnded;
+            Brain.OnBattleRoundEnded += HandleBattleRoundEnded;
             Brain.OnAllyDamaged += HandleAllyDamaged;
             Brain.OnEnemyDamaged += HandleEnemyDamaged;
             Brain.OnUnitDefeated += HandleUnitDefeated;
@@ -64,7 +64,7 @@ namespace Turnroot.Gameplay.Combat
                 return;
             }
 
-            Brain.OnTurnEnded -= HandleTurnEnded;
+            Brain.OnBattleRoundEnded -= HandleBattleRoundEnded;
             Brain.OnAllyDamaged -= HandleAllyDamaged;
             Brain.OnEnemyDamaged -= HandleEnemyDamaged;
             Brain.OnUnitDefeated -= HandleUnitDefeated;

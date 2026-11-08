@@ -59,7 +59,7 @@ namespace Turnroot.Gameplay.Brain
             return result;
         }
 
-        private void HandleTurnEndStatusEffects()
+        private void HandleRoundEndStatusEffects()
         {
             var allInstances = GetAllActiveInstances();
             foreach (var inst in allInstances)
