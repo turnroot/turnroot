@@ -392,7 +392,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             else
             {
-                if (_footstepDecalTimer > 60f)
+                if (_footstepDecalTimer > 60f || _footstepDecalIndex >= FootstepDecalPool.Length)
                 {
                     ResetFootprintDecals();
                 }
@@ -409,11 +409,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private OperationResult LeaveFootprintDecals(Transform agentTransform)
         {
-            if (
-                FootstepDecalPool == null
-                || FootstepDecalPool.Length == 0
-                || _footstepDecalIndex >= FootstepDecalPool.Length
-            )
+            if (FootstepDecalPool == null || FootstepDecalPool.Length == 0)
             {
                 // no decals available
                 $"No decals in pool available. Disable footstep decals or set things up correctly.".LogWarning();
@@ -430,7 +426,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                         _footstepDecalLeft,
                         FootstepDecalInterspacing
                     );
-                    _footstepDecalIndex++;
                     _footstepDecalLeft = !_footstepDecalLeft;
                 }
                 else
