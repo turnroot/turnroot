@@ -29,30 +29,11 @@ namespace Turnroot.Graphics3D
             }
         }
 
-        public void PlaceSelf(
-            Transform navMeshAgentTransform,
-            bool isLeftFoot,
-            float interspacing,
-            Vector3 strideDirection,
-            float foreAftOffset
-        )
+        public void PlaceSelf(Vector3 position, Quaternion rotation, bool isLeftFoot)
         {
             _isLeftFoot = isLeftFoot;
-            transform.position = navMeshAgentTransform.position;
-            transform.rotation = navMeshAgentTransform.rotation;
-            if (strideDirection.sqrMagnitude > 0.0001f)
-            {
-                transform.position += strideDirection * foreAftOffset;
-            }
-            // if left foot, move to the left half interspacing, if right foot, move to the right half interspacing
-            if (_isLeftFoot)
-            {
-                transform.position -= 0.5f * interspacing * transform.right;
-            }
-            else
-            {
-                transform.position += 0.5f * interspacing * transform.right;
-            }
+            transform.position = position;
+            transform.rotation = rotation;
             transform.Translate(Vector3.up * 0.1f, Space.World);
 
             // there's a left foot and right foot on the decal material- square texture use Tiling/Offset on URPDecalProjector component

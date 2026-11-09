@@ -90,19 +90,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public GameObject[] FootstepDecalPool;
 
-        [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
-        public float FootstepDecalInterspacing = 0.5f;
-
         private float _footstepDecalTimer;
         private int _footstepDecalIndex;
 
         [Foldout("Explore/Movement/Footsteps"), ShowIf("UseFootstepDecals")]
         public bool FootStepDecalLeftFirst = true;
         private bool _footstepDecalLeft;
-        private bool _footstepForwardLeft;
-        private Vector3 _previousFootstepPosition;
-        private Vector3 _lastFootstepPosition;
-        private bool _hasLastFootstepPosition;
 
         private bool _walkMode;
         private Vector2 _moveInput;
@@ -110,6 +103,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool _isWalking;
         private Transform _avatarRoot;
         private Animator _avatarAnimator;
+        private bool _loggedMissingFootstepBones;
         private bool _loggedOffNavMesh;
         private bool _cachedWalkReadiness;
         private bool _hasCachedWalkReadiness = false;
@@ -125,6 +119,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             _avatarRoot = avatarModel.transform;
             _avatarAnimator = avatarModel.GetComponentInChildren<Animator>();
+            _loggedMissingFootstepBones = false;
 
             float yaw = _avatarRoot.eulerAngles.y;
 
