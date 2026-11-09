@@ -374,7 +374,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (_footstepDecalTime >= decalInterval)
             {
                 _footstepDecalTime -= decalInterval;
-                HandleFootstep();
+                HandleFootstep(moveDirection);
             }
 
             if (_lastFootstepTime >= soundInterval)
@@ -390,11 +390,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private void HandleFootstep()
+        private void HandleFootstep(Vector3 moveDirection)
         {
             if ((isOnSand || isOnSnow) && UseFootstepDecals)
             {
-                LeaveFootprintDecals(NavMeshAgent.transform);
+                LeaveFootprintDecals(NavMeshAgent.transform, moveDirection);
             }
             else
             {
@@ -413,7 +413,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        private OperationResult LeaveFootprintDecals(Transform agentTransform)
+        private OperationResult LeaveFootprintDecals(Transform agentTransform, Vector3 moveDirection)
         {
             if (FootstepDecalPool == null || FootstepDecalPool.Length == 0)
             {
@@ -421,6 +421,28 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 $"No decals in pool available. Disable footstep decals or set things up correctly.".LogWarning();
                 return OperationResult.Successful();
             }
+            if (_avatarAnimator == null || !_avatarAnimator.isHuman)
+            {
+                if (!_loggedMissingFootstepBones)
+                {
+                    $"Footstep decals require a Humanoid avatar with foot bones; skipping decals.".LogWarning();
+                    _loggedMissingFootstepBones = true;
+                }
+                return OperationResult.Successful();
+            }
+
+            var leftFoot = _avatarAnimator.GetBoneTransform(HumanBodyBones.LeftFoot);
+            var rightFoot = _avatarAnimator.GetBoneTransform(HumanBodyBones.RightFoot);
+            if (leftFoot == null || rightFoot == null)
+            {
+                if (!_loggedMissingFootstepBones)
+                {
+                    $"Footstep decals require both left and right foot bones; skipping decals.".LogWarning();
+                    _loggedMissingFootstepBones = true;
+                }
+                return OperationResult.Successful();
+            }
+
             if (_footstepDecalIndex >= FootstepDecalPool.Length)
             {
                 ResetFootprintDecals();
@@ -428,40 +450,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var decal = FootstepDecalPool[_footstepDecalIndex];
             if (decal != null && !decal.activeSelf)
             {
-                var position = agentTransform.position;
-                var stride = _hasLastFootstepPosition
-                    ? position - _lastFootstepPosition
-                    : Vector3.zero;
-                if (stride.sqrMagnitude < 0.0001f)
-                {
-                    stride = _lastFootstepPosition - _previousFootstepPosition;
-                }
-
-                float foreAftOffset = 0f;
-                if (stride.sqrMagnitude >= 0.0001f)
-                {
-                    foreAftOffset = stride.magnitude * 0.25f;
-                    stride.Normalize();
-                    if (!_footstepForwardLeft)
-                    {
-                        foreAftOffset *= -1f;
-                    }
-                }
                 decal.SetActive(true);
                 if (decal.TryGetComponent<FootstepDecal>(out var footstepDecal))
                 {
-                    footstepDecal.PlaceSelf(
-                        agentTransform,
-                        _footstepDecalLeft,
-                        FootstepDecalInterspacing,
-                        stride,
-                        foreAftOffset
+                    var forwardProjection = Vector3.Dot(
+                        leftFoot.position - rightFoot.position,
+                        moveDirection.normalized
                     );
-                    _previousFootstepPosition = _lastFootstepPosition;
-                    _lastFootstepPosition = position;
-                    _hasLastFootstepPosition = true;
-                    _footstepDecalLeft = !_footstepDecalLeft;
-                    _footstepForwardLeft = !_footstepForwardLeft;
+                    bool isLeftFoot =
+                        Mathf.Abs(forwardProjection) < 0.001f
+                            ? _footstepDecalLeft
+                            : forwardProjection > 0f;
+                    var steppingFoot = isLeftFoot ? leftFoot : rightFoot;
+
+                    footstepDecal.PlaceSelf(
+                        steppingFoot.position,
+                        agentTransform.rotation,
+                        isLeftFoot
+                    );
+                    _footstepDecalLeft = !isLeftFoot;
                     _footstepDecalIndex++;
                 }
                 else
@@ -479,10 +486,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _footstepDecalTimer = 0f;
             _footstepDecalIndex = 0;
             _footstepDecalLeft = FootStepDecalLeftFirst;
-            _footstepForwardLeft = FootStepDecalLeftFirst;
-            _previousFootstepPosition = Vector3.zero;
-            _lastFootstepPosition = Vector3.zero;
-            _hasLastFootstepPosition = false;
 
             if (FootstepDecalPool == null)
             {
