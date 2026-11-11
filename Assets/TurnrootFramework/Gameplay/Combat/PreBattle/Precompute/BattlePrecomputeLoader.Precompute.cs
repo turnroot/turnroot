@@ -57,8 +57,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             // Only precompute units that were spawned/selected for this battle
             var units = FilterSpawnedUnits(context?.Participants?.GetAllUnits());
-
-            int taskCount = CalculateTaskCount(units, appearanceBrain);
+            int unitTaskCount = CalculateTaskCount(units, appearanceBrain);
+            int taskCount = unitTaskCount;
 
             var enemySupervisor = _brain.battleBrain?.BattleObject?.GetComponent<EnemySupervisor>();
             // If an EnemySupervisor exists we'll reserve the two precompute steps for it —
@@ -82,7 +82,26 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
             if (hasEnemySupervisorWork)
             {
-                yield return PrecomputeEnemySupervisor(context, enemySupervisor);
+                yield return PrecomputeEnemySupervisor(
+                    context,
+                    enemySupervisor,
+                    () =>
+                    {
+                        var updatedUnits = FilterSpawnedUnits(
+                            context.Participants.GetAllUnits()
+                        );
+                        int updatedUnitTaskCount = CalculateTaskCount(
+                            updatedUnits,
+                            appearanceBrain
+                        );
+                        int additionalTaskCount = updatedUnitTaskCount - unitTaskCount;
+                        if (additionalTaskCount > 0)
+                        {
+                            _loadingController?.IncreaseLoadTotalBy(additionalTaskCount);
+                        }
+                        units = updatedUnits;
+                    }
+                );
             }
 
             // LTM unit replacement removed - placements are now managed by BattlePreparationObject
@@ -104,7 +123,8 @@ namespace Turnroot.Gameplay.Combat.Precompute
 
         private IEnumerator PrecomputeEnemySupervisor(
             FundamentalComponents.Battles.BattleContext context,
-            EnemySupervisor enemySupervisor
+            EnemySupervisor enemySupervisor,
+            System.Action onRosterUpdated
         )
         {
             yield return WaitForPlayerRoster();
@@ -120,6 +140,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             yield return new WaitForSeconds(timeBetweenOperations);
 
             InitializeEnemySupervisor(enemySupervisor);
+            onRosterUpdated?.Invoke();
             IncrementProgress();
             yield return new WaitForSeconds(timeBetweenOperations);
         }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.Stats;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
@@ -32,17 +33,18 @@ namespace Turnroot.Skills.Nodes
                 : source switch
                 {
                     CharacterSource.Unit => context.Unit.UnitInstance,
-                    CharacterSource.Enemy => context.Participants.Targets != null
-                    && context.Participants.Targets.Count > 0
-                        ? context.Participants.Targets[0]
-                        : null,
-                    CharacterSource.Ally => context.Participants.Allies != null
-                    && context.Participants.Allies.Count > 0
-                        ? context.Participants.Allies[0]
-                        : null,
+                    CharacterSource.Enemy => GetFirstTarget(
+                        context.GetCurrentTargets(BattleTargetIntent.Offensive)
+                    ),
+                    CharacterSource.Ally => GetFirstTarget(
+                        context.GetCurrentTargets(BattleTargetIntent.Supportive)
+                    ),
                     _ => null,
                 };
         }
+
+        private static CharacterInstance GetFirstTarget(List<CharacterInstance> targets) =>
+            targets != null && targets.Count > 0 ? targets[0] : null;
 
         public static BaseCharacterStat GetStatFromCharacter(
             CharacterInstance character,

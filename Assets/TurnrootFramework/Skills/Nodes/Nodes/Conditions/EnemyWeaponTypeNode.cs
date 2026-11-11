@@ -50,11 +50,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             var context = GetContextFromGraph(skillGraph);
-            if (
-                context == null
-                || context.Participants?.Targets == null
-                || context.Participants.Targets.Count == 0
-            )
+            if (context == null || GetCurrentTargets(context).Count == 0)
             {
                 "EnemyWeaponType: No target in context".LogWarning();
                 return port.fieldName switch
@@ -64,7 +60,7 @@ namespace Turnroot.Skills.Nodes.Conditions
                 };
             }
 
-            var enemy = context.Participants.Targets[0];
+            var enemy = GetCurrentTargets(context)[0];
             var equippedWeapon = enemy?.GetEquippedWeapon();
             var weaponType = equippedWeapon?.Template?.WeaponType;
             var weaponTypeName = weaponType?.Name ?? "";

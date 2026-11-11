@@ -25,7 +25,7 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
+            if (context == null || GetCurrentTargets(context).Count == 0)
             {
 #if UNITY_EDITOR
                 "DisableEnemyFollowup: No target in context".LogWarning();

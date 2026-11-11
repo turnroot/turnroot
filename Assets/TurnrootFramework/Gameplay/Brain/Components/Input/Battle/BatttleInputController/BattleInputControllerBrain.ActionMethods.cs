@@ -83,13 +83,17 @@ namespace Turnroot.Gameplay.Brain
             var defender = _pendingTarget;
             _pendingTarget = null;
 
-            // Set context target so skill graphs (CombatStarts, PostCombat) see the defender
-            BattleContext.Participants.Targets =
-                new System.Collections.Generic.List<CharacterInstance> { defender };
-
-            _playerTurnFlow.ExecuteConfirmedAction();
-            BattleContext.ExecuteCombatExchange(attacker, defender);
-            _playerTurnFlow.EndUnitTurn();
+            BattleContext.SetCurrentTargets(new[] { defender });
+            try
+            {
+                _playerTurnFlow.ExecuteConfirmedAction();
+                BattleContext.ExecuteCombatExchange(attacker, defender);
+                _playerTurnFlow.EndUnitTurn();
+            }
+            finally
+            {
+                BattleContext.ClearCurrentTargets();
+            }
         }
 
         public void ChangeSelectedUnit(CharacterInstance unit)

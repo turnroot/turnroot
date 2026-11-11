@@ -32,17 +32,13 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            if (
-                !ValidationHelper.ValidateNotNullOrEmpty(
-                    context.Participants.Targets,
-                    nameof(context.Participants.Targets)
-                )
-            )
+            var targets = GetCurrentTargets(context);
+            if (!ValidationHelper.ValidateNotNullOrEmpty(targets, "Targets"))
             {
                 return;
             }
 
-            var target = context.Participants.Targets[0];
+            var target = targets[0];
             if (!ValidationHelper.ValidateNotNull(target, nameof(target)))
             {
                 return;

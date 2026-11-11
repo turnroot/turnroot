@@ -83,10 +83,8 @@ namespace Turnroot.Skills.Nodes.Conditions
             bool isRanged = maxRange >= 2;
 
             // Get combat distance to determine counterattack capability
-            var enemy =
-                context.Participants.Targets != null && context.Participants.Targets.Count > 0
-                    ? context.Participants.Targets[0]
-                    : null;
+            var targets = GetCurrentTargets(context);
+            var enemy = targets.Count > 0 ? targets[0] : null;
             int combatDistance = 1;
             if (enemy != null)
             {

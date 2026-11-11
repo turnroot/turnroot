@@ -52,24 +52,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     ? context.Participants.AdjacentUnits
                     : new Locations.Adjacency(unit);
 
-            using var allyIds = PooledHashSet<string>.Get();
-            if (context.Participants.Allies != null)
-            {
-                foreach (var ally in context.Participants.Allies)
-                {
-                    if (ally != null)
-                    {
-                        allyIds.HashSet.Add(ally.Id);
-                    }
-                }
-            }
-
             var adjacentList = ListPool<CharacterInstance>.Get();
             adjacency.GetAllAdjacentNonAlloc(adjacentList);
 
             foreach (var adjacent in adjacentList)
             {
-                if (adjacent == null || adjacent == unit || !allyIds.HashSet.Contains(adjacent.Id))
+                if (adjacent == null || adjacent == unit || !context.AreAllies(unit, adjacent))
                 {
                     continue;
                 }

@@ -179,22 +179,13 @@ namespace Turnroot.Gameplay.Brain
 
         private static Color ParseColorOrFallback(string serializedColor, Color fallback)
         {
-            if (string.IsNullOrWhiteSpace(serializedColor))
-            {
-                return fallback;
-            }
-
-            if (ColorUtility.TryParseHtmlString(serializedColor, out var htmlColor))
-            {
-                return htmlColor;
-            }
-
-            if (TryParseCompactColor(serializedColor, out var compactHtmlColor))
-            {
-                return compactHtmlColor;
-            }
-
-            return TryParseJsonColor(serializedColor, out var jsonColor) ? jsonColor : fallback;
+            return string.IsNullOrWhiteSpace(serializedColor)
+                ? fallback
+                : ColorUtility.TryParseHtmlString(serializedColor, out var htmlColor)
+                ? htmlColor
+                : TryParseCompactColor(serializedColor, out var compactHtmlColor)
+                ? compactHtmlColor
+                : TryParseJsonColor(serializedColor, out var jsonColor) ? jsonColor : fallback;
         }
 
         private static bool TryParseCompactColor(string serializedColor, out Color color)

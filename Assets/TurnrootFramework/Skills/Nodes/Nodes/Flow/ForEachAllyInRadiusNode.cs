@@ -11,7 +11,7 @@ namespace Turnroot.Skills.Nodes.Flow
     /// given Manhattan-distance radius of the skill caster.
     ///
     /// On each iteration <c>context.Unit.UnitInstance</c> is swapped to the current ally
-    /// AND <c>context.Participants.Allies</c> is narrowed to that single ally — identical
+    /// AND <c>context.Participants.CurrentTargetedAllies</c> is narrowed to that single ally — identical
     /// to <see cref="ForEachAllyNode"/> but pre-filtered by proximity.
     ///
     /// This means effect nodes (BuffUnitNode, AffectUnitStatNode, CureDebuffNode) and
@@ -64,33 +64,20 @@ namespace Turnroot.Skills.Nodes.Flow
                 return;
             }
 
-            if (context.Participants.Allies == null || context.Participants.Allies.Count == 0)
-            {
-                "ForEachAllyInRadiusNode: No allies in Participants.Allies".LogWarning();
-                return;
-            }
-
             float maxRadius = GetInputFloat("radius", 1f);
             var casterPos = context.Unit.UnitInstance.MapGridPosition;
 
-            // Snapshot all allies and filter by radius.
-            var allAllies = new List<CharacterInstance>(context.Participants.Allies);
-            var alliesInRadius = new List<CharacterInstance>();
-            foreach (var ally in allAllies)
-            {
-                if (ally == null)
+            var alliesInRadius = GetPotentialTargets(
+                context,
+                ally =>
                 {
-                    continue;
+                    var allyPos = ally.MapGridPosition;
+                    int distance =
+                        Mathf.Abs(casterPos.x - allyPos.x)
+                        + Mathf.Abs(casterPos.y - allyPos.y);
+                    return distance <= maxRadius;
                 }
-
-                var allyPos = ally.MapGridPosition;
-                int distance =
-                    Mathf.Abs(casterPos.x - allyPos.x) + Mathf.Abs(casterPos.y - allyPos.y);
-                if (distance <= maxRadius)
-                {
-                    alliesInRadius.Add(ally);
-                }
-            }
+            );
 
             if (alliesInRadius.Count == 0)
             {
@@ -98,39 +85,43 @@ namespace Turnroot.Skills.Nodes.Flow
                 return;
             }
 
-            var originalAllies = context.Participants.Allies;
+            var originalTargets = context.GetCurrentTargets();
             var originalUnit = context.Unit.UnitInstance;
 
             // Seed the ancestor set with this node to prevent the subchain from looping back.
             var ancestors = new HashSet<SkillNode> { this };
 
-            foreach (var ally in alliesInRadius)
+            try
             {
-                // Swap both so all downstream nodes see this ally as "the unit".
-                context.Unit.UnitInstance = ally;
-                context.Participants.Allies = new List<CharacterInstance> { ally };
+                foreach (var ally in alliesInRadius)
+                {
+                    // Swap both so all downstream nodes see this ally as "the unit".
+                    context.Unit.UnitInstance = ally;
+                    context.SetCurrentTargets(new[] { ally });
 
+                    foreach (var connection in outPort.GetConnections())
+                    {
+                        if (connection.node is SkillNode nextNode)
+                        {
+                            executor.ExecuteSubchain(nextNode, ancestors);
+                        }
+                    }
+                }
+
+                // Mark all OutFlow-connected nodes as visited so ContinueFromNode doesn't re-run them.
                 foreach (var connection in outPort.GetConnections())
                 {
-                    if (connection.node is SkillNode nextNode)
+                    if (connection.node is SkillNode outNode)
                     {
-                        executor.ExecuteSubchain(nextNode, ancestors);
+                        executor.MarkVisited(outNode);
                     }
                 }
             }
-
-            // Mark all OutFlow-connected nodes as visited so ContinueFromNode doesn't re-run them.
-            foreach (var connection in outPort.GetConnections())
+            finally
             {
-                if (connection.node is SkillNode outNode)
-                {
-                    executor.MarkVisited(outNode);
-                }
+                context.Unit.UnitInstance = originalUnit;
+                context.SetCurrentTargets(originalTargets);
             }
-
-            // Restore original state.
-            context.Unit.UnitInstance = originalUnit;
-            context.Participants.Allies = originalAllies;
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 .Current < ((MindlessCunning / 2.5f) + .1f);
 
         private bool IsSurrounded =>
-            _context.Participants.AdjacentUnits.GetAdjacentEnemyCount(_context)
+            _context.Participants.AdjacentUnits.GetAdjacentTrueEnemyCount(_context)
             >= (SoldierLoneWolf >= .6f ? 2 : 3);
 
         private Vector2Int LastTurnPosition;
@@ -60,6 +60,54 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         private readonly Dictionary<MapGridPoint, float> _reusableMoveTiles = new();
         private readonly Dictionary<MapGridPoint, float> _reusableAttackTiles = new();
         private readonly Dictionary<MapGridPoint, float> _reusableHealTiles = new();
+        private readonly List<CharacterInstance> _potentialOffensiveTargets = new();
+        private readonly List<CharacterInstance> _potentialSupportiveTargets = new();
+        private CharacterInstance _potentialTargetsActor;
+        private bool _potentialTargetsCached;
+
+        private List<CharacterInstance> GetPotentialTargetsForCurrentUnit(
+            BattleTargetIntent intent
+        )
+        {
+            var actor = _context.Unit?.UnitInstance;
+            if (!_potentialTargetsCached || actor != _potentialTargetsActor)
+            {
+                _potentialOffensiveTargets.Clear();
+                _potentialSupportiveTargets.Clear();
+
+                if (actor != null)
+                {
+                    _context.GetPotentialTargets(
+                        BattleTargetIntent.Offensive,
+                        static _ => true,
+                        _potentialOffensiveTargets
+                    );
+                    _context.GetPotentialTargets(
+                        BattleTargetIntent.Supportive,
+                        static _ => true,
+                        _potentialSupportiveTargets
+                    );
+                }
+
+                _potentialTargetsActor = actor;
+                _potentialTargetsCached = true;
+            }
+
+            return intent switch
+            {
+                BattleTargetIntent.Offensive => _potentialOffensiveTargets,
+                BattleTargetIntent.Supportive => _potentialSupportiveTargets,
+                _ => throw new System.ArgumentOutOfRangeException(nameof(intent), intent, null),
+            };
+        }
+
+        private void ClearPotentialTargetsCache()
+        {
+            _potentialOffensiveTargets.Clear();
+            _potentialSupportiveTargets.Clear();
+            _potentialTargetsActor = null;
+            _potentialTargetsCached = false;
+        }
 
         public BattleContextAIHelper(BattleContext context)
         {

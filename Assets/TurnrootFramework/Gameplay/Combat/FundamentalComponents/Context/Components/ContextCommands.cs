@@ -101,12 +101,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return OperationResult.Failure("No weapon to attack with");
             }
 
-            // Update Targets so skills that fire during this strike see the correct opponent
-            var originalTargets = Participants.Targets;
-            Participants.Targets = new System.Collections.Generic.List<CharacterInstance>
-            {
-                target,
-            };
+            // Update action targets so skills that fire during this strike see the correct opponent.
+            var originalTargets = GetCurrentTargets();
+            SetCurrentTargets(new[] { target });
 
             bool hit;
             int damage = 0;
@@ -140,7 +137,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     }
                     // Skip the rest of damage processing for this strike
                     Brain?.PublishAttackLogicCompleted(attacker);
-                    Participants.Targets = originalTargets;
+                    SetCurrentTargets(originalTargets);
                     return OperationResult.Successful();
                 }
 
@@ -211,8 +208,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Fire skill trigger whether hit or miss — UnitAttacksNode fires on attempt
             Brain?.PublishAttackLogicCompleted(attacker);
 
-            // Restore original target list so callers see the same state as before this strike
-            Participants.Targets = originalTargets;
+            // Restore action targets so callers see the same state as before this strike.
+            SetCurrentTargets(originalTargets);
 
             return result;
         }
@@ -460,7 +457,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// For third-party allegiance-aware checks, use BattleContext.AreAllies() or CanAttack().
         /// </summary>
         public bool IsTarget(CharacterInstance character) =>
-            Participants?.Targets?.Contains(character) ?? false;
+            Participants?.Enemies?.Contains(character) ?? false;
 
         public int CalculatePotentialDamage(
             CharacterInstance unitInstance,

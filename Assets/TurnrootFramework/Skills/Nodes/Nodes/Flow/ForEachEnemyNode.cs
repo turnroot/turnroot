@@ -49,50 +49,55 @@ namespace Turnroot.Skills.Nodes.Flow
                 return;
             }
 
-            // Snapshot all enemies before iterating — Targets will be replaced per-iteration.
-            var allEnemies = new List<CharacterInstance>(context.Participants.Targets);
+            // Snapshot the roster; only the current action targets change per iteration.
+            var allEnemies = GetPotentialTargets(context, _ => true);
             if (allEnemies.Count == 0)
             {
                 "ForEachEnemyNode: No enemies in Participants.Targets".LogWarning();
                 return;
             }
 
-            var originalTargets = context.Participants.Targets;
+            var originalTargets = context.GetCurrentTargets();
 
             // Seed the ancestor set with this node to prevent the subchain from looping
             // back into the ForEachEnemy node itself.
             var ancestors = new HashSet<SkillNode> { this };
 
-            foreach (var enemy in allEnemies)
+            try
             {
-                if (enemy == null)
+                foreach (var enemy in allEnemies)
                 {
-                    continue;
+                    if (enemy == null)
+                    {
+                        continue;
+                    }
+
+                    context.SetCurrentTargets(new[] { enemy });
+
+                    foreach (var connection in outPort.GetConnections())
+                    {
+                        if (connection.node is SkillNode nextNode)
+                        {
+                            executor.ExecuteSubchain(nextNode, ancestors);
+                        }
+                    }
                 }
 
-                context.Participants.Targets = new List<CharacterInstance> { enemy };
-
+                // Mark all OutFlow-connected nodes as visited in the outer executor so that
+                // ContinueFromNode (called after this Execute() returns) does not re-run them
+                // with the full target list. ForEachEnemyNode exclusively owns its OutFlow.
                 foreach (var connection in outPort.GetConnections())
                 {
-                    if (connection.node is SkillNode nextNode)
+                    if (connection.node is SkillNode outNode)
                     {
-                        executor.ExecuteSubchain(nextNode, ancestors);
+                        executor.MarkVisited(outNode);
                     }
                 }
             }
-
-            // Mark all OutFlow-connected nodes as visited in the outer executor so that
-            // ContinueFromNode (called after this Execute() returns) does not re-run them
-            // with the full target list. ForEachEnemyNode exclusively owns its OutFlow.
-            foreach (var connection in outPort.GetConnections())
+            finally
             {
-                if (connection.node is SkillNode outNode)
-                {
-                    executor.MarkVisited(outNode);
-                }
+                context.SetCurrentTargets(originalTargets);
             }
-
-            context.Participants.Targets = originalTargets;
         }
     }
 }

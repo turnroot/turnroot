@@ -24,7 +24,13 @@ namespace Turnroot.Skills.Nodes.Events
 
         public override void Execute(BattleContext context)
         {
-            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
+            if (context == null)
+            {
+                "BreakWeapon: No target in context".LogWarning();
+                return;
+            }
+            var targets = GetCurrentTargets(context);
+            if (targets.Count == 0)
             {
                 "BreakWeapon: No target in context".LogWarning();
                 return;
@@ -35,7 +41,7 @@ namespace Turnroot.Skills.Nodes.Events
             if (shouldAffectAll)
             {
                 int broken = 0;
-                foreach (var target in context.Participants.Targets)
+                foreach (var target in targets)
                 {
                     if (target != null && BreakEquippedWeapon(target, context))
                     {
@@ -46,7 +52,7 @@ namespace Turnroot.Skills.Nodes.Events
             }
             else
             {
-                var target = context.Participants.Targets[0];
+                var target = targets[0];
                 if (target == null)
                 {
                     "BreakWeapon: First target is null".LogWarning();

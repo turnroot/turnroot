@@ -290,7 +290,7 @@ namespace Turnroot.Characters.Components
 
         #region Equipment Operations
 
-        private void AutoEquipNextWeapon()
+        public void AutoEquipNextWeapon()
         {
             // Find next available weapon and equip it
             foreach (var item in _inventoryItems)

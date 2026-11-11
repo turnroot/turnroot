@@ -102,7 +102,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Check if tile is dangerous (near player units = enemies to this AI)
             float closestPlayerDist = PathfinderHelpers.FindClosestDistanceToUnits(
                 tile.Coordinates(),
-                _context.Participants.Allies
+                GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive)
             );
 
             // Minor penalty for very dangerous tiles (but not as severe as defensive retreat)
@@ -148,7 +148,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Check if enemies nearby make it dangerous
             float closestEnemyDist = PathfinderHelpers.FindClosestDistanceToUnits(
                 featureLocation.Coordinates(),
-                _context.Participants.Targets
+                GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive)
             );
 
             // Dangerous if enemies within 3 tiles
@@ -179,7 +179,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // find the closest enemy to the safe tile
             float closestEnemyDist = PathfinderHelpers.FindClosestDistanceToUnits(
                 safeTile.Coordinates(),
-                _context.Participants.Targets
+                GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive)
             );
 
             // Penalty for proximity to enemies (closer is worse)
@@ -258,7 +258,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (behavior.SoldierLoneWolf < 0.5f)
             {
                 // Exclude self from ally distance calculation
-                var allies = _context.Participants.Allies;
+                var allies = GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Supportive);
                 float closestAllyDist = PathfinderHelpers.FindClosestDistanceToUnits(
                     tile.Coordinates(),
                     allies,

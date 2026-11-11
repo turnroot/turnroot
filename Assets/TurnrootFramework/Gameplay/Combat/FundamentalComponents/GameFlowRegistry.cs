@@ -147,27 +147,15 @@ namespace Turnroot.Gameplay.Combat
         /// </summary>
         public GameSceneKind GetSceneKind(string sceneName)
         {
-            if (string.IsNullOrEmpty(sceneName))
-            {
-                return GameSceneKind.Other;
-            }
-
-            if (sceneName == GameStartSceneName)
-            {
-                return GameSceneKind.GameStart;
-            }
-
-            if (sceneName == HubSceneName)
-            {
-                return GameSceneKind.Hub;
-            }
-
-            if (sceneName == EndOfHubDaySceneName)
-            {
-                return GameSceneKind.EndOfHubDay;
-            }
-
-            return sceneName == CreditsSceneName
+            return string.IsNullOrEmpty(sceneName)
+                ? GameSceneKind.Other
+                : sceneName == GameStartSceneName
+                ? GameSceneKind.GameStart
+                : sceneName == HubSceneName
+                ? GameSceneKind.Hub
+                : sceneName == EndOfHubDaySceneName
+                ? GameSceneKind.EndOfHubDay
+                : sceneName == CreditsSceneName
                 ? GameSceneKind.Credits
                 : TryGetBattle(sceneName, out _) ? GameSceneKind.Battle : GameSceneKind.Other;
         }

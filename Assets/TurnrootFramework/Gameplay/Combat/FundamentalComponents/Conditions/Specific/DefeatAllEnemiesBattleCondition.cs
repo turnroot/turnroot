@@ -22,7 +22,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return;
             }
 
-            if (battleContext.Participants.Targets.All(enemy => enemy.IsDefeatedInCurrentBattle))
+            if (battleContext.Participants.Enemies.All(enemy => enemy.IsDefeatedInCurrentBattle))
             {
                 ConditionMet();
             }

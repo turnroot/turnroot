@@ -45,7 +45,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             bool noEnemiesCrossed = true;
-            foreach (var enemy in battleContext.Participants.Targets)
+            foreach (var enemy in battleContext.Participants.Enemies)
             {
                 if (enemy == null)
                 {
