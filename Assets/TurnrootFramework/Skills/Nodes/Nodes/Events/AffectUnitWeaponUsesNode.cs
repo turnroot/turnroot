@@ -31,13 +31,12 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
+            var targets = GetCurrentTargets(context);
             var targetCharacter = applyToUnit
                 ? context.Unit.UnitInstance
-                : (
-                    context.Participants.Targets != null && context.Participants.Targets.Count > 0
-                        ? context.Participants.Targets[0]
-                        : null
-                );
+                : targets.Count > 0
+                    ? targets[0]
+                    : null;
 
             if (targetCharacter == null)
             {

@@ -24,11 +24,15 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             };
             Participants = new BattleParticipants
             {
-                Targets = new List<CharacterInstance>(),
+                Enemies = new List<CharacterInstance>(),
+                CurrentTargetedEnemies = new List<CharacterInstance>(),
                 Allies = new List<CharacterInstance>(),
+                CurrentTargetedAllies = new List<CharacterInstance>(),
                 ThirdParty = new List<CharacterInstance>(),
-                TargetsInRange = new List<CharacterInstance>(),
+                ThirdPartyTargets = new List<CharacterInstance>(),
+                EnemiesInRange = new List<CharacterInstance>(),
                 AlliesInRange = new List<CharacterInstance>(),
+                ThirdPartyInRange = new List<CharacterInstance>(),
                 AdjacentUnits = new Adjacency(null),
             };
             Flags = new CombatFlags { ActiveUnitFlags = new UnitFlag() };
@@ -101,8 +105,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// This is required so that command lookups (eg. <see cref="SpawnCommand"/>) can find
         /// the unit by id and so the context knows the unit's allegiance for targeting logic.
         /// If the unit is already present no changes are made. We try to infer the correct
-        /// team (allies/third‑party/targets) based on any available rosters and fall back to
-        /// treating the unit as an enemy (Targets) when unsure.
+        /// team (allies/enemies/third-party) based on any available rosters and fall back to
+        /// treating the unit as an enemy when unsure.
         /// </summary>
         public void EnsureUnitIsParticipant(CharacterInstance unit)
         {
@@ -141,7 +145,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             if (!added)
             {
                 // default to treating as an enemy
-                parts.Targets.Add(unit);
+                parts.Enemies.Add(unit);
             }
         }
 

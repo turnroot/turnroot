@@ -62,11 +62,9 @@ namespace Turnroot.Gameplay.Brain
         #endregion
 
         #region Roster Accessors
-        public PlayerTeamRosterInstance PlayerTeamRoster =>
-            BattleObject?.PlayerTeamRoster;
+        public PlayerTeamRosterInstance PlayerTeamRoster => BattleObject?.PlayerTeamRoster;
 
-        public GenericRosterInstance ThirdPartyTeamRoster =>
-            BattleObject?.ThirdPartyTeamRoster;
+        public GenericRosterInstance ThirdPartyTeamRoster => BattleObject?.ThirdPartyTeamRoster;
 
         #endregion
 
@@ -214,12 +212,7 @@ namespace Turnroot.Gameplay.Brain
             BattleObject.Brain = _brain;
 
             var connectionResult = BattleObject.ConnectToBrainEvents(initializePresentation);
-            if (!connectionResult.Success)
-            {
-                return connectionResult;
-            }
-
-            return BattleObject.ConnectBattleConditionsToContext();
+            return !connectionResult.Success ? connectionResult : BattleObject.ConnectBattleConditionsToContext();
         }
 
         private void ClearUnitBattleState()
@@ -536,9 +529,10 @@ namespace Turnroot.Gameplay.Brain
 
             var context = BattleObject.Context;
 
-            context.Participants.Targets.Clear();
+            context.Participants.Enemies.Clear();
             context.Participants.Allies.Clear();
             context.Participants.ThirdParty.Clear();
+            context.ClearParticipantDynamicData();
 
             foreach (var unit in PlayerTeamRoster.Instances)
             {

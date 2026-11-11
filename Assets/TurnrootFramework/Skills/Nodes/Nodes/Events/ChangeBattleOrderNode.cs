@@ -48,16 +48,17 @@ namespace Turnroot.Skills.Nodes.Events
             }
             else
             {
+                var targets = GetCurrentTargets(context);
                 if (
                     !ValidationHelper.ValidateNotNullOrEmpty(
-                        context.Participants.Targets,
+                        targets,
                         "Targets"
                     )
                 )
                 {
                     return;
                 }
-                targetId = context.Participants.Targets[0].Id;
+                targetId = targets[0].Id;
             }
 
             float speedMod = 0f;

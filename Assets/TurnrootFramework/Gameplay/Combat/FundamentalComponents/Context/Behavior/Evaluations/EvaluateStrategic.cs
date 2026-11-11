@@ -83,7 +83,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             using var defensiveGoalsPooled = PooledList<AIGoal>.Get();
             var defensiveGoals = defensiveGoalsPooled.List;
-            var enemyProximity = FindClosestAndFurthestEnemies(_context.Participants.Targets);
+            var enemyProximity = FindClosestAndFurthestEnemies(
+                GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive)
+            );
             foreach (var tile in _reusableMoveTiles.Keys)
             {
                 if (
@@ -304,7 +306,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             using var healMoveGoalsPooled = PooledList<AIGoal>.Get();
             var healMoveGoals = healMoveGoalsPooled.List;
 
-            var enemyProximity = FindClosestAndFurthestEnemies(_context.Participants.Targets);
+            var enemyProximity = FindClosestAndFurthestEnemies(
+                GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive)
+            );
 
             foreach (var tile in _reusableMoveTiles.Keys)
             {

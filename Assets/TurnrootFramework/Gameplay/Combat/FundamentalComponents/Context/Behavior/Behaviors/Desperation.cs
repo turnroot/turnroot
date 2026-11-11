@@ -87,7 +87,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             ref float bestUtility
         )
         {
-            var targets = _context.Participants.Targets;
+            var targets = GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive);
             for (int ti = 0; ti < (targets?.Count ?? 0); ti++)
             {
                 var target = targets[ti];
@@ -199,7 +199,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
 
             var enemyData = FindClosestAndFurthestEnemies(
-                new List<CharacterInstance>(_context.Participants.Targets)
+                GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive)
             );
             float currentDistanceToEnemy = enemyData.closestDist;
 
@@ -218,7 +218,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 if (behavior.SoldierLoneWolf < 0.5f)
                 {
-                    var allies = _context.Participants.Allies;
+                    var allies = GetPotentialTargetsForCurrentUnit(
+                        BattleTargetIntent.Supportive
+                    );
                     for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
                     {
                         var ally = allies[ai];

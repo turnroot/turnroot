@@ -8,7 +8,7 @@ namespace Turnroot.Skills.Nodes.Flow
     /// <summary>
     /// Loop node that executes the downstream graph once for each battlefield ally.
     /// On each iteration <c>context.Unit.UnitInstance</c> is temporarily swapped to the
-    /// current ally AND <c>context.Participants.Allies</c> is narrowed to that single ally,
+    /// current ally AND <c>context.Participants.CurrentTargetedAllies</c> is narrowed to that single ally,
     /// so all downstream nodes operate on that ally individually.
     ///
     /// This means:
@@ -60,53 +60,57 @@ namespace Turnroot.Skills.Nodes.Flow
                 return;
             }
 
-            if (context.Participants.Allies == null || context.Participants.Allies.Count == 0)
+            var allAllies = GetPotentialTargets(context, _ => true);
+            if (allAllies.Count == 0)
             {
-                "ForEachAllyNode: No allies in Participants.Allies".LogWarning();
+                "ForEachAllyNode: No allies in current context".LogWarning();
                 return;
             }
 
-            // Snapshot all allies before iterating — both Allies and Unit.UnitInstance will change per-iteration.
-            var allAllies = new List<CharacterInstance>(context.Participants.Allies);
+            // Snapshot allies before changing Unit.UnitInstance per iteration.
 
-            var originalAllies = context.Participants.Allies;
+            var originalTargets = context.GetCurrentTargets();
             var originalUnit = context.Unit.UnitInstance;
 
             // Seed the ancestor set with this node to prevent the subchain from looping back.
             var ancestors = new HashSet<SkillNode> { this };
 
-            foreach (var ally in allAllies)
+            try
             {
-                if (ally == null)
+                foreach (var ally in allAllies)
                 {
-                    continue;
+                    if (ally == null)
+                    {
+                        continue;
+                    }
+
+                    // Swap both so all downstream nodes see this ally as "the unit".
+                    context.Unit.UnitInstance = ally;
+                    context.SetCurrentTargets(new[] { ally });
+
+                    foreach (var connection in outPort.GetConnections())
+                    {
+                        if (connection.node is SkillNode nextNode)
+                        {
+                            executor.ExecuteSubchain(nextNode, ancestors);
+                        }
+                    }
                 }
 
-                // Swap both so all downstream nodes see this ally as "the unit".
-                context.Unit.UnitInstance = ally;
-                context.Participants.Allies = new List<CharacterInstance> { ally };
-
+                // Mark all OutFlow-connected nodes as visited so ContinueFromNode doesn't re-run them.
                 foreach (var connection in outPort.GetConnections())
                 {
-                    if (connection.node is SkillNode nextNode)
+                    if (connection.node is SkillNode outNode)
                     {
-                        executor.ExecuteSubchain(nextNode, ancestors);
+                        executor.MarkVisited(outNode);
                     }
                 }
             }
-
-            // Mark all OutFlow-connected nodes as visited so ContinueFromNode doesn't re-run them.
-            foreach (var connection in outPort.GetConnections())
+            finally
             {
-                if (connection.node is SkillNode outNode)
-                {
-                    executor.MarkVisited(outNode);
-                }
+                context.Unit.UnitInstance = originalUnit;
+                context.SetCurrentTargets(originalTargets);
             }
-
-            // Restore original state.
-            context.Unit.UnitInstance = originalUnit;
-            context.Participants.Allies = originalAllies;
         }
     }
 }

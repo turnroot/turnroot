@@ -23,7 +23,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 baseWeight += 1f + (behavior.MindlessCunning * 3f);
             }
             // Bonus for attacking same target as allies (focus fire) if solider
-            foreach (var ally in _context.Participants.Allies)
+            foreach (var ally in GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Supportive))
             {
                 if (ally.LastAttackedTarget == target)
                 {

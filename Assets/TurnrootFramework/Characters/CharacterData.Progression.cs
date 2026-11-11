@@ -79,16 +79,11 @@ namespace Turnroot.Characters
         #endregion
 
         [field:
-            SerializeField,
             Tooltip(
                 "If true, use the per-tier class ladder defined below instead of the usual StartingClass. Hidden for unique characters."
             ),
             ShowIf(nameof(CanShowClassProgressionOption))
         ]
-        public bool UseClassProgressionLadder { get; private set; } = false;
-
-        [field: SerializeField]
-        [ShowIf(nameof(ShowClassProgressionFields))]
         public ClassProgressionLadder ProgressionLadder = new();
 
         [field: SerializeField]
@@ -147,10 +142,6 @@ namespace Turnroot.Characters
         // follows the same avatar restriction used by CanShowUnique
         private bool CanShowClassProgressionOption() => !IsUnique && CanShowUnique();
 
-        // the ladder struct itself only shows when the option is enabled and the
-        // character is not unique (guarding against case where option was enabled
-        // then later made unique)
-        private bool ShowClassProgressionFields() => UseClassProgressionLadder && !IsUnique;
 
         public bool IsAllyOrRecruitable() => Which == CharacterWhich.ALLY || IsRecruitable;
 

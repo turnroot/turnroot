@@ -46,9 +46,9 @@ namespace Turnroot.Skills.Nodes.Events
                 return;
             }
 
-            if (context.Participants.Allies == null || context.Participants.Allies.Count == 0)
+            if (context.Unit.UnitInstance == null)
             {
-                "AreaOfEffectBuff: No allies in context".LogWarning();
+                "AreaOfEffectBuff: No caster unit in context".LogWarning();
                 return;
             }
 
@@ -59,37 +59,39 @@ namespace Turnroot.Skills.Nodes.Events
                     : 1f;
             int duration = durationOverride >= 0 ? durationOverride : buffType.DefaultDuration;
 
-            // Apply buff to allies within radius
-            int affectedCount = 0;
-            foreach (var ally in context.Participants.Allies)
-            {
-                // Check if ally is within radius (using Manhattan distance for grid-based)
-                var casterPos = context.Unit.UnitInstance?.MapGridPosition;
-                var allyPos = ally?.MapGridPosition;
-
-                if (casterPos == null || allyPos == null)
+            var casterPos = context.Unit.UnitInstance.MapGridPosition;
+            var targets = GetPotentialTargets(
+                context,
+                ally =>
                 {
-                    continue;
+                    var allyPos = ally.MapGridPosition;
+                    int distance =
+                        Mathf.Abs(casterPos.x - allyPos.x)
+                        + Mathf.Abs(casterPos.y - allyPos.y);
+                    return distance <= radius;
                 }
+            );
+            if (targets.Count == 0)
+            {
+                "AreaOfEffectBuff: No targets in range".LogWarning();
+                return;
+            }
 
-                int distance =
-                    Mathf.Abs(casterPos.Value.x - allyPos.Value.x)
-                    + Mathf.Abs(casterPos.Value.y - allyPos.Value.y);
-                if (distance <= radius)
+            int affectedCount = 0;
+            foreach (var ally in targets)
+            {
+                var effect = context.Brain.battleBrain.ApplyStatusEffect(
+                    ally,
+                    buffType,
+                    sourceCharacterId: context.Unit.UnitInstance.Id,
+                    sourceSkillId: context.Skill.CurrentSkill?.name,
+                    duration: duration,
+                    intensity: intensityValue
+                );
+
+                if (effect != null)
                 {
-                    var effect = context.Brain.battleBrain.ApplyStatusEffect(
-                        ally,
-                        buffType,
-                        sourceCharacterId: context.Unit.UnitInstance?.Id,
-                        sourceSkillId: context.Skill.CurrentSkill?.name,
-                        duration: duration,
-                        intensity: intensityValue
-                    );
-
-                    if (effect != null)
-                    {
-                        affectedCount++;
-                    }
+                    affectedCount++;
                 }
             }
 

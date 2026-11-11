@@ -203,7 +203,13 @@ namespace Turnroot.Gameplay.Brain
                 skill,
                 "Unit-turn-starts"
             );
-            CollectTriggerSkill(skill.HasUnitMovesNode(), _unitMovesSkills, unit, skill, "Unit-moves");
+            CollectTriggerSkill(
+                skill.HasUnitMovesNode(),
+                _unitMovesSkills,
+                unit,
+                skill,
+                "Unit-moves"
+            );
             CollectTriggerSkill(
                 skill.HasUnitAttacksNode(),
                 _unitAttacksSkills,
@@ -354,14 +360,13 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Execute EnemyAttacksNode skills on the defender; temporarily set Targets = [attacker]
-            var originalTargets = context.Participants.Targets;
-            context.Participants.Targets = new List<CharacterInstance>
-            {
-                attacker,
-            };
-            ExecuteTriggerSkills(defender, _enemyAttacksSkills, "EnemyAttacks");
-            context.Participants.Targets = originalTargets;
+            ExecuteTriggerSkillsForTarget(
+                context,
+                defender,
+                _enemyAttacksSkills,
+                "EnemyAttacks",
+                attacker
+            );
         }
 
         /// <summary>
@@ -383,13 +388,13 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            var originalTargets = context.Participants.Targets;
-            context.Participants.Targets = new List<CharacterInstance>
-            {
-                evt.Unit,
-            };
-            ExecuteTriggerSkills(evt.Killer, _enemyDefeatedSkills, "EnemyDefeated");
-            context.Participants.Targets = originalTargets;
+            ExecuteTriggerSkillsForTarget(
+                context,
+                evt.Killer,
+                _enemyDefeatedSkills,
+                "EnemyDefeated",
+                evt.Unit
+            );
         }
 
         /// <summary>
@@ -422,22 +427,26 @@ namespace Turnroot.Gameplay.Brain
             if (attacker != null)
             {
                 context.SetCustomData("IsInitiatingCombat", true);
-                var originalTargets = context.Participants.Targets;
-                context.Participants.Targets =
-                    new List<CharacterInstance> { defender };
-                ExecuteTriggerSkills(attacker, _combatStartSkills, "CombatStarts");
-                context.Participants.Targets = originalTargets;
+                ExecuteTriggerSkillsForTarget(
+                    context,
+                    attacker,
+                    _combatStartSkills,
+                    "CombatStarts",
+                    defender
+                );
             }
 
             // Fire CombatStarts skills for defender (target = attacker, is initiating = false)
             if (defender != null)
             {
                 context.SetCustomData("IsInitiatingCombat", false);
-                var originalTargets = context.Participants.Targets;
-                context.Participants.Targets =
-                    new List<CharacterInstance> { attacker };
-                ExecuteTriggerSkills(defender, _combatStartSkills, "CombatStarts");
-                context.Participants.Targets = originalTargets;
+                ExecuteTriggerSkillsForTarget(
+                    context,
+                    defender,
+                    _combatStartSkills,
+                    "CombatStarts",
+                    attacker
+                );
             }
         }
 
@@ -456,26 +465,50 @@ namespace Turnroot.Gameplay.Brain
             // Fire PostCombat skills for attacker (target = defender)
             if (attacker != null)
             {
-                var originalTargets = context.Participants.Targets;
-                context.Participants.Targets =
-                    new List<CharacterInstance> { defender };
-                ExecuteTriggerSkills(attacker, _postCombatSkills, "PostCombat");
-                context.Participants.Targets = originalTargets;
+                ExecuteTriggerSkillsForTarget(
+                    context,
+                    attacker,
+                    _postCombatSkills,
+                    "PostCombat",
+                    defender
+                );
             }
 
             // Fire PostCombat skills for defender (target = attacker)
             if (defender != null)
             {
-                var originalTargets = context.Participants.Targets;
-                context.Participants.Targets =
-                    new List<CharacterInstance> { attacker };
-                ExecuteTriggerSkills(defender, _postCombatSkills, "PostCombat");
-                context.Participants.Targets = originalTargets;
+                ExecuteTriggerSkillsForTarget(
+                    context,
+                    defender,
+                    _postCombatSkills,
+                    "PostCombat",
+                    attacker
+                );
             }
 
             // Clear combat-scoped bonuses after post-combat skills have fired
             attacker?.ClearCombatBonuses();
             defender?.ClearCombatBonuses();
+        }
+
+        private void ExecuteTriggerSkillsForTarget(
+            BattleContext context,
+            CharacterInstance unit,
+            Dictionary<CharacterInstance, List<Skill>> skillDict,
+            string triggerName,
+            CharacterInstance target
+        )
+        {
+            var originalTargets = context.GetCurrentTargets();
+            context.SetCurrentTargets(new[] { target });
+            try
+            {
+                ExecuteTriggerSkills(unit, skillDict, triggerName);
+            }
+            finally
+            {
+                context.SetCurrentTargets(originalTargets);
+            }
         }
 
         private void ExecuteTriggerSkills(
@@ -500,15 +533,22 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
+            var originalUnit = context.Unit.UnitInstance;
             context.Unit.UnitInstance = unit;
-
-            foreach (var skill in skills)
+            try
             {
-                if (SkillDebug.VerboseExecutionLogs)
+                foreach (var skill in skills)
                 {
-                    $"SkillTriggerRouter: executing {triggerName} skill '{skill.SkillName}' for unit {unit.Id}".LogInfo();
+                    if (SkillDebug.VerboseExecutionLogs)
+                    {
+                        $"SkillTriggerRouter: executing {triggerName} skill '{skill.SkillName}' for unit {unit.Id}".LogInfo();
+                    }
+                    skill.ExecuteSkill(context);
                 }
-                skill.ExecuteSkill(context);
+            }
+            finally
+            {
+                context.Unit.UnitInstance = originalUnit;
             }
         }
 

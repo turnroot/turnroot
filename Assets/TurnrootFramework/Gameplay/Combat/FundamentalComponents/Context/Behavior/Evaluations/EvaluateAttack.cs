@@ -14,7 +14,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             using var attackGoalsPooled = PooledList<AIGoal>.Get();
             var attackGoals = attackGoalsPooled.List;
 
-            var targets = _context.Participants.Targets;
+            var targets = GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive);
             for (int ti = 0; ti < (targets?.Count ?? 0); ti++)
             {
                 attackGoals.Add(CreateAttackGoal(targets[ti], behavior));
@@ -69,7 +69,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             using var killGoalsPooled = PooledList<AIGoal>.Get();
             var killGoals = killGoalsPooled.List;
-            var targets = _context.Participants.Targets;
+            var targets = GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Offensive);
             for (int ti = 0; ti < (targets?.Count ?? 0); ti++)
             {
                 killGoals.Add(CreateKillEnemyGoal(targets[ti], behavior));
@@ -245,7 +245,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             var attackGoals = attackGoalsPooled.List;
             // Attack the closest enemy without regard for strategy
             float utility = 0f;
-            var targetsForSimple = _context.Participants.Targets;
+            var targetsForSimple = GetPotentialTargetsForCurrentUnit(
+                BattleTargetIntent.Offensive
+            );
             var closestEnemy = PathfinderHelpers.FindClosestUnit(
                 _context.Unit.UnitInstance.MapGridPosition,
                 targetsForSimple
@@ -264,8 +266,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
                 // Check if target is in attack range
                 utility +=
-                    (1f - behavior.BloodthirstGreed)
-                    * (IsAttackable(targetGridPoint) ? 5f : 3f);
+                    (1f - behavior.BloodthirstGreed) * (IsAttackable(targetGridPoint) ? 5f : 3f);
 
                 // Use CalculateAttackUtility to pick a preferred weapon
                 var (_, chosenWeapon) = CalculateAttackUtility(closestEnemy, behavior);
@@ -282,7 +283,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         && attackerInfo.HasAnyWeaponEffectiveAgainstSpecies(targetSpecies)
                     )
                     {
-                        utility += (2f * behavior.MindlessCunning) + (3f * behavior.BloodthirstGreed);
+                        utility +=
+                            (2f * behavior.MindlessCunning) + (3f * behavior.BloodthirstGreed);
                     }
 
                     var mySpecies = _context.Unit.UnitInstance.CharacterTemplate?.Species;
@@ -291,7 +293,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         && targetInfo.HasAnyWeaponEffectiveAgainstSpecies(mySpecies)
                     )
                     {
-                        utility -= (3f * behavior.BrashWary) + (2f * (1f - behavior.MindlessCunning));
+                        utility -=
+                            (3f * behavior.BrashWary) + (2f * (1f - behavior.MindlessCunning));
                     }
                 }
 

@@ -79,9 +79,11 @@ namespace Turnroot.Skills
             // Record skill activation for replay
             if (context.Unit.UnitInstance != null)
             {
-                var targetIds =
-                    context.Participants.Targets?.Select(t => t.Id).ToArray()
-                    ?? Array.Empty<string>();
+                var targetIds = context
+                    .GetCurrentTargets()
+                    .Where(target => target != null)
+                    .Select(target => target.Id)
+                    .ToArray();
                 var command = new SkillCommand(
                     context.Unit.UnitInstance.Id,
                     _skillTemplate.SkillName,

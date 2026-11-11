@@ -15,7 +15,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         {
             using var healGoalsPooled = PooledList<AIGoal>.Get();
             var healGoals = healGoalsPooled.List;
-            var allies = _context.Participants.Allies;
+            var allies = GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Supportive);
             for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
             {
                 var ally = allies[ai];
@@ -55,7 +55,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             using var allyLastAttackers =
                 new PooledDictionary<CharacterInstance, CharacterInstance>();
-            var allies = _context.Participants.Allies;
+            var allies = GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Supportive);
             for (int ai = 0; ai < (allies?.Count ?? 0); ai++)
             {
                 var ally = allies[ai];
@@ -74,8 +74,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 }
 
                 var adjacency = new Adjacency(ally);
-                var allySurroundingEnemies = adjacency.GetAdjacentEnemyCount(_context);
-                var allySurroundingAllies = adjacency.GetAdjacentAllyCount(_context);
+                var allySurroundingEnemies = adjacency.GetAdjacentTrueEnemyCount(_context);
+                var allySurroundingAllies = adjacency.GetAdjacentTrueAllyCount(_context);
 
                 // We know everything we need now.
                 float utility = 5f;

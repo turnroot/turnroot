@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.Utilities;
@@ -109,7 +110,7 @@ namespace Turnroot.Skills.Nodes
                 : ValidationSuccess();
 
         protected SkillNodeValidationResult RequireTargets(BattleContext context) =>
-            context.Participants.Targets == null || context.Participants.Targets.Count == 0
+            GetCurrentTargets(context).Count == 0
                 ? ValidationFailure("At least one target is required")
                 : ValidationSuccess();
 
@@ -120,9 +121,21 @@ namespace Turnroot.Skills.Nodes
         }
 
         protected SkillNodeValidationResult RequireAllies(BattleContext context) =>
-            context.Participants.Allies == null || context.Participants.Allies.Count == 0
+            context.GetCurrentTargets(BattleTargetIntent.Supportive).Count == 0
                 ? ValidationFailure("At least one ally is required")
                 : ValidationSuccess();
+
+        protected List<CharacterInstance> GetCurrentTargets(BattleContext context) =>
+            context.GetCurrentTargets(BattleTargetIntentMap.GetIntent(GetType()));
+
+        protected List<CharacterInstance> GetPotentialTargets(
+            BattleContext context,
+            Func<CharacterInstance, bool> isInRange
+        ) =>
+            context.GetPotentialTargets(
+                BattleTargetIntentMap.GetIntent(GetType()),
+                isInRange
+            );
 
         protected bool ValidateContext(BattleContext context, string nodeName = null)
         {
@@ -144,7 +157,7 @@ namespace Turnroot.Skills.Nodes
 
         protected bool ValidateHasTargets(BattleContext context, string nodeName = null)
         {
-            if (context?.Participants?.Targets != null && context.Participants.Targets.Count > 0)
+            if (context != null && GetCurrentTargets(context).Count > 0)
             {
                 return true;
             }
@@ -172,10 +185,11 @@ namespace Turnroot.Skills.Nodes
                 return 0;
             }
 
+            var targets = GetCurrentTargets(context);
             if (affectAll)
             {
                 int count = 0;
-                foreach (var target in context.Participants.Targets)
+                foreach (var target in targets)
                 {
                     if (target != null)
                     {
@@ -186,7 +200,7 @@ namespace Turnroot.Skills.Nodes
                 return count;
             }
 
-            var firstTarget = context.Participants.Targets[0];
+            var firstTarget = targets[0];
             if (firstTarget != null)
             {
                 action(firstTarget);

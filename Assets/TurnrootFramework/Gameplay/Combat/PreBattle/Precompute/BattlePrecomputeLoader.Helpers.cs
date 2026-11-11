@@ -24,7 +24,7 @@ namespace Turnroot.Gameplay.Combat.Precompute
             var lists = new[]
             {
                 context.Participants.Allies,
-                context.Participants.Targets,
+                context.Participants.Enemies,
                 context.Participants.ThirdParty,
             };
 
@@ -97,12 +97,13 @@ namespace Turnroot.Gameplay.Combat.Precompute
             }
 
             // Tasks per unit:
-            // 1) AI init
-            // 2) Pathfinding params
-            // 3) Weapon & inventory summary (cached for AI evaluations)
-            // 4) Tiles computation
+            // 1) Ensure class
+            // 2) AI init
+            // 3) Pathfinding params
+            // 4) Weapon & inventory summary (cached for AI evaluations)
+            // 5) Tiles computation
             // NOTE: Model spawning is NOT a precompute task - models are spawned by SpawnRosterUnitsOntoGrid
-            int tasksPerUnit = 4;
+            int tasksPerUnit = 5;
             return units.Count * tasksPerUnit;
         }
 

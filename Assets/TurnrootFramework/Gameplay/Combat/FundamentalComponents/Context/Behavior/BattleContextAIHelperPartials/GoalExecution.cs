@@ -11,6 +11,19 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     {
         public void PickTileAndAction()
         {
+            ClearPotentialTargetsCache();
+            try
+            {
+                PickTileAndActionCore();
+            }
+            finally
+            {
+                ClearPotentialTargetsCache();
+            }
+        }
+
+        private void PickTileAndActionCore()
+        {
             // 1. Ensure tiles are computed
             EnsureTilesAreComputed();
 
@@ -49,7 +62,9 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return;
             }
 
-            int nearbyAllies = _context.Participants.AdjacentUnits.GetAdjacentAllyCount(_context);
+            int nearbyAllies = _context.Participants.AdjacentUnits.GetAdjacentTrueAllyCount(
+                _context
+            );
             float formationBonus =
                 (nearbyAllies * (2f - modifiedBehaviorSettings.SoldierLoneWolf))
                 + 1f
@@ -64,7 +79,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 _context.MapGrid,
                 _context.Unit.UnitInstance,
                 currentStart,
-                _context.Participants.Allies,
+                GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Supportive),
                 out float currentCost
             )
                 ? currentCost
@@ -81,7 +96,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                         _context.MapGrid,
                         _context.Unit.UnitInstance,
                         destStart,
-                        _context.Participants.Allies,
+                        GetPotentialTargetsForCurrentUnit(BattleTargetIntent.Supportive),
                         out float destCost
                     )
                         ? destCost

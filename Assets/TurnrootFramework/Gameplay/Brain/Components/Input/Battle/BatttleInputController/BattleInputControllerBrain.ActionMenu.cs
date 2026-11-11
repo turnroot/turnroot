@@ -4,6 +4,7 @@ using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
 using Turnroot.UI.Components.ListMenu;
 using Turnroot.UI.Components.Menu;
+using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
@@ -115,7 +116,14 @@ namespace Turnroot.Gameplay.Brain
                 }
             }
             // check if any enemies are in range (already updated after movement)
-            if (BattleContext.Participants.TargetsInRange.Count > 0)
+            if (
+                BattleContext
+                    .GetPotentialTargets(
+                        BattleTargetIntentMap.GetIntent(BattleTargetAction.Attack),
+                        IsAttackTargetInRange
+                    )
+                    .Count > 0
+            )
             {
                 actions.Add("Attack");
             }

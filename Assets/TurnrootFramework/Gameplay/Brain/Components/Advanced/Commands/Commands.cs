@@ -119,19 +119,15 @@ namespace Turnroot.Gameplay.Brain.Commands
                 return context.Unit.UnitInstance;
             }
 
-            foreach (var target in context?.Participants?.Targets ?? new List<CharacterInstance>())
+            var allUnits = context?.Participants?.GetAllUnits();
+            if (allUnits != null)
             {
-                if (target.Id == unitId)
+                foreach (var unit in allUnits)
                 {
-                    return target;
-                }
-            }
-
-            foreach (var ally in context?.Participants?.Allies ?? new List<CharacterInstance>())
-            {
-                if (ally.Id == unitId)
-                {
-                    return ally;
+                    if (unit.Id == unitId)
+                    {
+                        return unit;
+                    }
                 }
             }
 

@@ -269,10 +269,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             IEnumerable<CharacterInstance> instances = _currentPhaseOrder switch
             {
                 BattlePhaseOrder.PlayerPhaseStart => Context.Participants.Allies,
-                BattlePhaseOrder.EnemyPhaseStart => Context.Participants.Targets,
+                BattlePhaseOrder.EnemyPhaseStart => Context.Participants.Enemies,
                 BattlePhaseOrder.ThirdPartyPhaseStart => Context.Participants.ThirdParty,
-                BattlePhaseOrder.PlayerPhaseEnd or BattlePhaseOrder.EnemyPhaseEnd or BattlePhaseOrder.ThirdPartyPhaseEnd =>
-                    new List<CharacterInstance>(),
+                BattlePhaseOrder.PlayerPhaseEnd
+                or BattlePhaseOrder.EnemyPhaseEnd
+                or BattlePhaseOrder.ThirdPartyPhaseEnd => new List<CharacterInstance>(),
                 _ => new List<CharacterInstance>(),
             };
 
@@ -442,12 +443,20 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             // Notify all systems that a new unit's turn has started (player, enemy, or third party).
             Brain.PublishUnitTurnStarted(activeUnit);
 
-            if (_currentPhaseOrder is BattlePhaseOrder.PlayerPhaseStart or BattlePhaseOrder.PlayerPhaseEnd)
+            if (
+                _currentPhaseOrder
+                is BattlePhaseOrder.PlayerPhaseStart
+                    or BattlePhaseOrder.PlayerPhaseEnd
+            )
             {
                 Brain.PublishPlayerControlledUnitActivated(activeUnit);
             }
 
-            if (_currentPhaseOrder is BattlePhaseOrder.EnemyPhaseStart or BattlePhaseOrder.ThirdPartyPhaseStart)
+            if (
+                _currentPhaseOrder
+                is BattlePhaseOrder.EnemyPhaseStart
+                    or BattlePhaseOrder.ThirdPartyPhaseStart
+            )
             {
                 StartCoroutine(ExecuteAITurnCoroutine(activeUnit));
             }
@@ -479,8 +488,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         private bool HasPendingVisualForUnit(CharacterInstance unit)
         {
-            return unit != null && (_unitsWithPendingMoveAnimation.Contains(unit.Id)
-                    || _unitsWithPendingSwapAnimation.Contains(unit.Id));
+            return unit != null
+                && (
+                    _unitsWithPendingMoveAnimation.Contains(unit.Id)
+                    || _unitsWithPendingSwapAnimation.Contains(unit.Id)
+                );
         }
 
         private void TryProgressDeferredEndTurn()

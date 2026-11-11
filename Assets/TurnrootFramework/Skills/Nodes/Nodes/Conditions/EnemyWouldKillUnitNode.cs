@@ -64,8 +64,8 @@ namespace Turnroot.Skills.Nodes.Conditions
         private float GetIncomingDamage(BattleContext context)
         {
             // Targets[0] is the attacker when triggered by EnemyAttacks
-            var attacker =
-                context.Participants?.Targets?.Count > 0 ? context.Participants.Targets[0] : null;
+            var targets = GetCurrentTargets(context);
+            var attacker = targets.Count > 0 ? targets[0] : null;
             if (attacker == null)
             {
                 return 0f;
@@ -74,11 +74,11 @@ namespace Turnroot.Skills.Nodes.Conditions
             return weapon == null
                 ? 0f
                 : DamageCalculator.CalculatePotentialDamage(
-                attacker,
-                context.Unit.UnitInstance,
-                weapon,
-                context
-            );
+                    attacker,
+                    context.Unit.UnitInstance,
+                    weapon,
+                    context
+                );
         }
 
         private float GetUnitCurrentHealth(BattleContext context)

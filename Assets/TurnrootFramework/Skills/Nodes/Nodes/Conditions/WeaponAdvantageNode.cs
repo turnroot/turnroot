@@ -98,10 +98,8 @@ namespace Turnroot.Skills.Nodes.Conditions
             var unitTrianglePos = unitWeaponType?.TrianglePosition;
 
             // Get enemy's equipped weapon type
-            var enemy =
-                context.Participants.Targets != null && context.Participants.Targets.Count > 0
-                    ? context.Participants.Targets[0]
-                    : null;
+            var targets = GetCurrentTargets(context);
+            var enemy = targets.Count > 0 ? targets[0] : null;
             var enemyWeaponType = enemy != null ? GetEquippedWeaponType(enemy) : null;
             var enemyTrianglePos = enemyWeaponType?.TrianglePosition;
 

@@ -188,79 +188,74 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                     ? adjustedLevels[instance]
                     : instance.CurrentLevel;
 
-                if (instance.CharacterTemplate?.UseClassProgressionLadder == true)
+
+                var loadout = LevelUpAsNeeded(instance, adjustedLevel);
+                EquipLoadout(loadout, instance);
+            }
+        }
+
+        private List<CharacterData.LoadoutEntry> LevelUpAsNeeded(
+            CharacterInstance instance,
+            int adjustedLevel
+        )
+        {
+            CharacterClassData selected = null;
+            ProgressionLevel tierUsed = ProgressionLevel.Starter;
+            int bestReq = -1;
+            var ladder = instance.CharacterTemplate.ProgressionLadder;
+            foreach (ProgressionLevel tier in Enum.GetValues(typeof(ProgressionLevel)))
+            {
+                var candidate = ladder.GetClassForTier(tier);
+                if (candidate == null)
                 {
-                    // determine the best-fit class and record the tier used
-                    CharacterClassData selected = null;
-                    ProgressionLevel tierUsed = ProgressionLevel.Starter;
-                    int bestReq = -1;
-                    var ladder = instance.CharacterTemplate.ProgressionLadder;
-                    foreach (ProgressionLevel tier in Enum.GetValues(typeof(ProgressionLevel)))
-                    {
-                        var candidate = ladder.GetClassForTier(tier);
-                        if (candidate == null)
-                        {
-                            continue;
-                        }
-                        int req = candidate.Requirements?.MinimumLevelRequirement ?? 1;
-                        if (req <= adjustedLevel && req > bestReq)
-                        {
-                            bestReq = req;
-                            selected = candidate;
-                            tierUsed = tier;
-                        }
-                    }
-
-                    if (selected != null && selected != instance.CurrentClass?.ClassData)
-                    {
-                        instance.ChangeClass(selected, applyClassChangeBonuses: false);
-                    }
-
-                    // level up to adjustedLevel (rolling growths each time)
-                    int delta = adjustedLevel - instance.CurrentLevel;
-                    for (int lev = 0; lev < delta; lev++)
-                    {
-                        instance.LevelUp();
-                    }
-
-                    // spawn any loadout items for the chosen tier
-                    var loadout = instance.CharacterTemplate.GetLoadoutForProgression(tierUsed);
-                    if (loadout != null && loadout.Count > 0)
-                    {
-                        foreach (var entry in loadout)
-                        {
-                            if (entry.Item == null)
-                            {
-                                continue;
-                            }
-
-                            if (UnityEngine.Random.Range(0f, 100f) <= entry.Chance)
-                            {
-                                var itemInst = new Objects.ObjectItemInstance(entry.Item);
-                                instance.InventoryInstance?.AddToInventory(itemInst);
-                                // optional equip heuristics
-                                if (
-                                    itemInst.Template?.Subtype
-                                        == Objects.Components.ObjectSubtype.Weapon
-                                    && instance.InventoryInstance != null
-                                )
-                                {
-                                    instance.InventoryInstance.EquipItem(itemInst.Slot);
-                                }
-                            }
-                        }
-                    }
+                    continue;
                 }
-                else
+                int req = candidate.Requirements?.MinimumLevelRequirement ?? 1;
+                if (req <= adjustedLevel && req > bestReq)
                 {
-                    // todo: consider adjusting level/stats for non‑ladder templates
+                    bestReq = req;
+                    selected = candidate;
+                    tierUsed = tier;
                 }
             }
 
-            // Models are already spawned via the event-driven architecture:
-            // EnsureAndSpawnEnemyInstance → SpawnAtPosition → SpawnCommand → UnitSpawnedEvent → HandleUnitSpawnedEvent
-            // No need to call PrecomputeSpawnModelAt here - that would duplicate models and corrupt mappings.
-            // SINGLE SOURCE OF TRUTH: SpawnCommand is the only entry point for spawning.
+            if (selected != null && selected != instance.CurrentClass?.ClassData)
+            {
+                instance.ChangeClass(selected, applyClassChangeBonuses: false);
+            }
+
+            // level up to adjustedLevel (rolling growths each time)
+            int delta = adjustedLevel - instance.CurrentLevel;
+            for (int lev = 0; lev < delta; lev++)
+            {
+                instance.LevelUp();
+            }
+
+            return instance.CharacterTemplate.GetLoadoutForProgression(tierUsed);
+        }
+
+        private void EquipLoadout(
+            List<CharacterData.LoadoutEntry> loadout,
+            CharacterInstance instance
+        )
+        {
+            if (loadout != null && loadout.Count > 0)
+            {
+                foreach (var entry in loadout)
+                {
+                    if (entry.Item == null)
+                    {
+                        continue;
+                    }
+
+                    if (UnityEngine.Random.Range(0f, 100f) <= entry.Chance)
+                    {
+                        var itemInst = new Objects.ObjectItemInstance(entry.Item);
+                        instance.InventoryInstance?.AddToInventory(itemInst);
+                    }
+                }
+                instance.InventoryInstance.AutoEquipNextWeapon();
+            }
         }
     }
 }

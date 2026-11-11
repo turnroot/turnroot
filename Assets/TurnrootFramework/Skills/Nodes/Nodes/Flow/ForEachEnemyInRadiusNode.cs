@@ -66,30 +66,17 @@ namespace Turnroot.Skills.Nodes.Flow
             float maxRadius = GetInputFloat("radius", 1f);
             var casterPos = context.Unit.UnitInstance.MapGridPosition;
 
-            // Snapshot all enemies and filter by radius.
-            var allEnemies = new List<CharacterInstance>(context.Participants.Targets);
-            if (allEnemies.Count == 0)
-            {
-                "ForEachEnemyInRadiusNode: No enemies in Participants.Targets".LogWarning();
-                return;
-            }
-
-            var enemiesInRadius = new List<CharacterInstance>();
-            foreach (var enemy in allEnemies)
-            {
-                if (enemy == null)
+            var enemiesInRadius = GetPotentialTargets(
+                context,
+                enemy =>
                 {
-                    continue;
+                    var enemyPos = enemy.MapGridPosition;
+                    int distance =
+                        Mathf.Abs(casterPos.x - enemyPos.x)
+                        + Mathf.Abs(casterPos.y - enemyPos.y);
+                    return distance <= maxRadius;
                 }
-
-                var enemyPos = enemy.MapGridPosition;
-                int distance =
-                    Mathf.Abs(casterPos.x - enemyPos.x) + Mathf.Abs(casterPos.y - enemyPos.y);
-                if (distance <= maxRadius)
-                {
-                    enemiesInRadius.Add(enemy);
-                }
-            }
+            );
 
             if (enemiesInRadius.Count == 0)
             {
@@ -97,34 +84,39 @@ namespace Turnroot.Skills.Nodes.Flow
                 return;
             }
 
-            var originalTargets = context.Participants.Targets;
+            var originalTargets = context.GetCurrentTargets();
 
             // Seed the ancestor set with this node to prevent the subchain from looping back.
             var ancestors = new HashSet<SkillNode> { this };
 
-            foreach (var enemy in enemiesInRadius)
+            try
             {
-                context.Participants.Targets = new List<CharacterInstance> { enemy };
+                foreach (var enemy in enemiesInRadius)
+                {
+                    context.SetCurrentTargets(new[] { enemy });
 
+                    foreach (var connection in outPort.GetConnections())
+                    {
+                        if (connection.node is SkillNode nextNode)
+                        {
+                            executor.ExecuteSubchain(nextNode, ancestors);
+                        }
+                    }
+                }
+
+                // Mark all OutFlow-connected nodes as visited so ContinueFromNode doesn't re-run them.
                 foreach (var connection in outPort.GetConnections())
                 {
-                    if (connection.node is SkillNode nextNode)
+                    if (connection.node is SkillNode outNode)
                     {
-                        executor.ExecuteSubchain(nextNode, ancestors);
+                        executor.MarkVisited(outNode);
                     }
                 }
             }
-
-            // Mark all OutFlow-connected nodes as visited so ContinueFromNode doesn't re-run them.
-            foreach (var connection in outPort.GetConnections())
+            finally
             {
-                if (connection.node is SkillNode outNode)
-                {
-                    executor.MarkVisited(outNode);
-                }
+                context.SetCurrentTargets(originalTargets);
             }
-
-            context.Participants.Targets = originalTargets;
         }
     }
 }

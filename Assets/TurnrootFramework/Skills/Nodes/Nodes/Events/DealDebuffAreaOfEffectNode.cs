@@ -53,24 +53,42 @@ namespace Turnroot.Skills.Nodes.Events
             float radius = GetInputFloat("aoeRadius", 0f);
             int duration = durationOverride > 0 ? durationOverride : debuffType.DefaultDuration;
 
-            // Apply debuff to all targeted enemies in the AoE
-            int affectedCount = ExecuteOnAllTargets(
+            var casterPos = context.Unit.UnitInstance?.MapGridPosition;
+            if (casterPos == null)
+            {
+                "DealDebuffAreaOfEffectNode: No caster unit in context".LogWarning();
+                return;
+            }
+
+            var targets = GetPotentialTargets(
                 context,
                 target =>
                 {
-                    // Apply the debuff using the typed StatusEffect system
-                    var effect = context.Brain.battleBrain.ApplyStatusEffect(
-                        target,
-                        debuffType,
-                        sourceCharacterId: context.Unit.UnitInstance?.Id,
-                        sourceSkillId: context.Skill.CurrentSkill?.name,
-                        duration: duration,
-                        intensity: intensity
-                    );
+                    var targetPos = target.MapGridPosition;
+                    int distance =
+                        Mathf.Abs(casterPos.Value.x - targetPos.x)
+                        + Mathf.Abs(casterPos.Value.y - targetPos.y);
+                    return distance <= radius;
                 }
             );
+            int affectedCount = 0;
+            foreach (var target in targets)
+            {
+                var effect = context.Brain.battleBrain.ApplyStatusEffect(
+                    target,
+                    debuffType,
+                    sourceCharacterId: context.Unit.UnitInstance.Id,
+                    sourceSkillId: context.Skill.CurrentSkill?.name,
+                    duration: duration,
+                    intensity: intensity
+                );
+                if (effect != null)
+                {
+                    affectedCount++;
+                }
+            }
 
-            $"DealDebuffAreaOfEffect: Applied {debuffType.DisplayName} debuff to {affectedCount} enemies in {radius} tile radius".LogInfo();
+            $"DealDebuffAreaOfEffect: Applied {debuffType.DisplayName} debuff to {affectedCount} targets in {radius} tile radius".LogInfo();
         }
     }
 }

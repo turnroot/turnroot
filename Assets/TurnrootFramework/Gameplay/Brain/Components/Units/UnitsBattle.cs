@@ -55,8 +55,7 @@ namespace Turnroot.Gameplay.Brain
 
             SaveBattleOutcomeStatistics();
 
-            $"CharactersBrain: Recorded {exitType}. Total: W{BattlesWon}/L{BattlesLost}/R{BattlesRetreated}"
-        .LogInfo();
+            $"CharactersBrain: Recorded {exitType}. Total: W{BattlesWon}/L{BattlesLost}/R{BattlesRetreated}".LogInfo();
         }
 
         #endregion
@@ -107,7 +106,7 @@ namespace Turnroot.Gameplay.Brain
                 else if (factionType == CharacterWhich.ENEMY)
                 {
                     characters.AddRange(
-                        _battleBrain.BattleObject?.Context?.Participants?.Targets
+                        _battleBrain.BattleObject?.Context?.Participants?.Enemies
                             ?? new List<CharacterInstance>()
                     );
                 }
@@ -203,7 +202,7 @@ namespace Turnroot.Gameplay.Brain
                 characters.AddRange(_battleBrain.PlayerTeamRoster.Instances);
             }
 
-            var enemyTargets = _battleBrain.BattleObject?.Context?.Participants?.Targets;
+            var enemyTargets = _battleBrain.BattleObject?.Context?.Participants?.Enemies;
             if (enemyTargets != null)
             {
                 characters.AddRange(enemyTargets);

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
@@ -10,6 +11,156 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// </summary>
     public partial class BattleContext : MonoBehaviour
     {
+        public List<CharacterInstance> GetCurrentTargets() =>
+            Participants?.GetCurrentTargets() ?? new List<CharacterInstance>();
+
+        public List<CharacterInstance> GetCurrentTargets(BattleTargetIntent intent)
+        {
+            var targets = new List<CharacterInstance>();
+            var actor = Unit?.UnitInstance;
+            if (actor == null)
+            {
+                return targets;
+            }
+
+            foreach (var target in Participants.GetCurrentTargets())
+            {
+                if (target != null && IsEligibleTarget(actor, target, intent))
+                {
+                    targets.Add(target);
+                }
+            }
+            return targets;
+        }
+
+        public List<CharacterInstance> GetPotentialTargets(
+            BattleTargetIntent intent,
+            Func<CharacterInstance, bool> isInRange
+        )
+        {
+            var targets = new List<CharacterInstance>();
+            GetPotentialTargets(intent, isInRange, targets);
+            return targets;
+        }
+
+        public void GetPotentialTargets(
+            BattleTargetIntent intent,
+            Func<CharacterInstance, bool> isInRange,
+            List<CharacterInstance> targets
+        )
+        {
+            if (isInRange == null)
+            {
+                throw new ArgumentNullException(nameof(isInRange));
+            }
+            if (targets == null)
+            {
+                throw new ArgumentNullException(nameof(targets));
+            }
+            if (intent != BattleTargetIntent.Offensive && intent != BattleTargetIntent.Supportive)
+            {
+                throw new ArgumentOutOfRangeException(nameof(intent), intent, null);
+            }
+
+            targets.Clear();
+            var actor = Unit?.UnitInstance;
+            if (actor == null)
+            {
+                this.LogWarning("GetPotentialTargets: No active unit set");
+                return;
+            }
+
+            AddPotentialTargets(Participants.Allies, actor, intent, isInRange, targets);
+            AddPotentialTargets(Participants.Enemies, actor, intent, isInRange, targets);
+            AddPotentialTargets(Participants.ThirdParty, actor, intent, isInRange, targets);
+        }
+
+        private void AddPotentialTargets(
+            List<CharacterInstance> candidates,
+            CharacterInstance actor,
+            BattleTargetIntent intent,
+            Func<CharacterInstance, bool> isInRange,
+            List<CharacterInstance> targets
+        )
+        {
+            if (candidates == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                var target = candidates[i];
+                if (
+                    target != null
+                    && !target.IsDefeatedInCurrentBattle
+                    && IsEligibleTarget(actor, target, intent)
+                    && isInRange(target)
+                )
+                {
+                    targets.Add(target);
+                }
+            }
+        }
+
+        private bool IsEligibleTarget(
+            CharacterInstance actor,
+            CharacterInstance target,
+            BattleTargetIntent intent
+        )
+        {
+            return intent == BattleTargetIntent.Offensive
+                ? CanAttack(actor, target)
+                : intent != BattleTargetIntent.Supportive
+                ? throw new ArgumentOutOfRangeException(nameof(intent), intent, null)
+                : IsPlayerControlledUnit(actor)
+                ? IsPlayerControlledUnit(target)
+                : IsEnemyUnit(actor) ? IsEnemyUnit(target) : IsThirdPartyUnit(actor) && IsThirdPartyUnit(target);
+        }
+
+        public void SetCurrentTargets(IEnumerable<CharacterInstance> targets)
+        {
+            ClearCurrentTargets();
+            if (targets == null)
+            {
+                return;
+            }
+
+            foreach (var target in targets)
+            {
+                if (target == null)
+                {
+                    continue;
+                }
+
+                if (IsEnemyUnit(target))
+                {
+                    Participants.CurrentTargetedEnemies.Add(target);
+                }
+                else if (IsPlayerControlledUnit(target))
+                {
+                    Participants.CurrentTargetedAllies.Add(target);
+                }
+                else if (IsThirdPartyUnit(target))
+                {
+                    Participants.ThirdPartyTargets.Add(target);
+                }
+                else
+                {
+                    this.LogWarning(
+                        $"SetCurrentTargets: {target.CharacterTemplate?.DisplayName} is not registered as a battle participant"
+                    );
+                }
+            }
+        }
+
+        public void ClearCurrentTargets()
+        {
+            Participants.CurrentTargetedEnemies?.Clear();
+            Participants.CurrentTargetedAllies?.Clear();
+            Participants.ThirdPartyTargets?.Clear();
+        }
+
         public void UpdateTargetsInRange()
         {
             if (Unit?.UnitInstance == null)
@@ -23,7 +174,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             if (weapon?.Template == null)
             {
-                Participants.TargetsInRange.Clear();
+                ClearTargetsInRange();
                 return;
             }
 
@@ -32,68 +183,41 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 this.LogWarning(
                     $"UpdateTargetsInRange: Failed to get valid tiles for {activeUnit.CharacterTemplate.DisplayName}"
                 );
-                Participants.TargetsInRange.Clear();
+                ClearTargetsInRange();
                 return;
             }
 
-            Participants.TargetsInRange.Clear();
+            ClearTargetsInRange();
+            var targetsInRange = GetPotentialTargets(
+                BattleTargetIntent.Offensive,
+                target =>
+                {
+                    var targetPoint = target.UnitPositionToMapGridPoint(
+                        target.MapGridPosition,
+                        MapGrid
+                    );
+                    return targetPoint != null && attackTiles.ContainsKey(targetPoint);
+                }
+            );
 
-            // Gather all potential enemies based on unit allegiance and third-party settings
-            var potentialTargets = new List<CharacterInstance>();
-
-            if (IsPlayerControlledUnit(activeUnit))
+            foreach (var target in targetsInRange)
             {
-                // Player can attack enemies
-                potentialTargets.AddRange(Participants.Targets);
-
-                // Player can also attack third party if they fight allies
-                if (Brain.battleBrain.BattleObject.ThirdPartyFightsAllies)
+                if (IsEnemyUnit(target))
                 {
-                    potentialTargets.AddRange(Participants.ThirdParty);
+                    Participants.EnemiesInRange.Add(target);
                 }
-            }
-            else if (IsEnemyUnit(activeUnit))
-            {
-                // Enemies can attack player allies
-                potentialTargets.AddRange(Participants.Allies);
-
-                // Enemies can also attack third party if they fight enemies
-                if (Brain.battleBrain.BattleObject.ThirdPartyFightsEnemies)
+                else if (IsPlayerControlledUnit(target))
                 {
-                    potentialTargets.AddRange(Participants.ThirdParty);
+                    Participants.AlliesInRange.Add(target);
                 }
-            }
-            else if (IsThirdPartyUnit(activeUnit))
-            {
-                // Third party attacks based on allegiance flags
-                if (Brain?.battleBrain.BattleObject.ThirdPartyFightsAllies ?? false)
+                else if (IsThirdPartyUnit(target))
                 {
-                    potentialTargets.AddRange(Participants.Allies);
-                }
-                if (Brain?.battleBrain.BattleObject.ThirdPartyFightsEnemies ?? false)
-                {
-                    potentialTargets.AddRange(Participants.Targets);
-                }
-            }
-
-            // Check which potential targets are on tiles within attack range
-            foreach (var enemy in potentialTargets)
-            {
-                if (enemy == null || enemy.IsDefeatedInCurrentBattle)
-                {
-                    continue;
-                }
-
-                var enemyPoint = enemy.UnitPositionToMapGridPoint(enemy.MapGridPosition, MapGrid);
-
-                if (enemyPoint != null && attackTiles.ContainsKey(enemyPoint))
-                {
-                    Participants.TargetsInRange.Add(enemy);
+                    Participants.ThirdPartyInRange.Add(target);
                 }
             }
 
             this.LogInfo(
-                $"UpdateTargetsInRange: Found {Participants.TargetsInRange.Count} targets in range for {activeUnit.CharacterTemplate.DisplayName}"
+                $"UpdateTargetsInRange: Found {targetsInRange.Count} targets in range for {activeUnit.CharacterTemplate.DisplayName}"
             );
         }
 
@@ -151,14 +275,16 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public void ClearTargetsInRange()
         {
-            Participants.TargetsInRange.Clear();
+            Participants.EnemiesInRange.Clear();
             Participants.AlliesInRange.Clear();
+            Participants.ThirdPartyInRange.Clear();
         }
 
         public void ClearAdjacentUnits() => Participants.AdjacentUnits = new Adjacency(null);
 
         public void ClearParticipantDynamicData()
         {
+            ClearCurrentTargets();
             ClearTargetsInRange();
             ClearAdjacentUnits();
         }
@@ -166,7 +292,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         #region Third-Party Allegiance Helpers
 
         public bool IsEnemyUnit(CharacterInstance unit) =>
-            unit != null && Participants.Targets.Contains(unit);
+            unit != null && Participants.Enemies.Contains(unit);
 
         public bool IsThirdPartyUnit(CharacterInstance unit) =>
             unit != null && Participants.ThirdParty.Contains(unit);

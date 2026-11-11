@@ -218,14 +218,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
         )
         {
             result.Clear();
-            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
+            if (context?.Participants?.Enemies == null || context.Participants.Enemies.Count == 0)
             {
                 return;
             }
 
             // Build HashSet of target IDs for O(1) lookup instead of O(n) Exists
             using var targetIds = PooledHashSet<string>.Get();
-            foreach (var target in context.Participants.Targets)
+            foreach (var target in context.Participants.Enemies)
             {
                 if (target != null)
                 {
@@ -287,13 +287,13 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
         /// </summary>
         public int GetAdjacentEnemyCount(BattleContext context)
         {
-            if (context?.Participants?.Targets == null || context.Participants.Targets.Count == 0)
+            if (context?.Participants?.Enemies == null || context.Participants.Enemies.Count == 0)
             {
                 return 0;
             }
 
             using var targetIds = PooledHashSet<string>.Get();
-            foreach (var target in context.Participants.Targets)
+            foreach (var target in context.Participants.Enemies)
             {
                 if (target != null)
                 {

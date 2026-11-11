@@ -51,25 +51,26 @@ namespace Turnroot.Skills.Nodes.Events
 
             var casterPos = context.Unit.UnitInstance.MapGridPosition;
 
-            int affectedCount = 0;
-            foreach (var target in context.Participants.Targets)
-            {
-                if (target == null)
+            var targets = GetPotentialTargets(
+                context,
+                target =>
                 {
-                    continue;
+                    var targetPos = target.MapGridPosition;
+                    int distance =
+                        Mathf.Abs(casterPos.x - targetPos.x)
+                        + Mathf.Abs(casterPos.y - targetPos.y);
+                    return distance <= radius;
                 }
+            );
 
-                var targetPos = target.MapGridPosition;
-                int distance =
-                    Mathf.Abs(casterPos.x - targetPos.x) + Mathf.Abs(casterPos.y - targetPos.y);
-                if (distance <= radius)
-                {
-                    DealDamage(context, target, damage);
-                    affectedCount++;
-                }
+            int affectedCount = 0;
+            foreach (var target in targets)
+            {
+                DealDamage(context, target, damage);
+                affectedCount++;
             }
 
-            $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} enemies within {radius} tile radius".LogInfo();
+            $"AreaOfEffectDamage: Dealt {damage} damage to {affectedCount} targets within {radius} tile radius".LogInfo();
         }
     }
 }
