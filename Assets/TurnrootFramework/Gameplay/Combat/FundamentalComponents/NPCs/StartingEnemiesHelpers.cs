@@ -12,30 +12,82 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
 {
     public partial class EnemySupervisor : MonoBehaviour
     {
+        private static readonly Vector2Int[] AdjacentSpawnOffsets =
+        {
+            new(-1, -1),
+            new(-1, 0),
+            new(-1, 1),
+            new(0, -1),
+            new(0, 1),
+            new(1, -1),
+            new(1, 0),
+            new(1, 1),
+        };
+
         [System.Serializable]
         public struct GenericEnemyStartingPlacement
         {
             public CharacterData Enemy;
             public Vector2Int StartingPosition;
+
+            [InfoBox(
+                "If true, and the starting position is occupied by another unit, this enemy will attempt to spawn on an adjacent tile instead. If false, the enemy will not spawn if the starting position is occupied"
+            )]
+            public bool SpawnOnAdjacentIfOccupied;
             public GameplayPlayerSettings.DifficultyLevel MinimumDifficultyLevelToSpawn;
-            public bool WeaponsAreStealable;
+
+            [InfoBox(
+                "If set to a positive number, this enemy will respawn every N turns. If set to -1, it will not respawn."
+            )]
+            public int SpawnEveryNTurns;
 
             public GenericEnemyStartingPlacement(CharacterData enemy, Vector2Int startingPosition)
             {
                 Enemy = enemy;
                 StartingPosition = startingPosition;
                 MinimumDifficultyLevelToSpawn = GameplayPlayerSettings.DifficultyLevel.Easy;
-                WeaponsAreStealable = false;
+                SpawnEveryNTurns = -1;
+                SpawnOnAdjacentIfOccupied = false;
             }
         }
 
         [System.Serializable]
         public class GenericEnemyPlacementContainer
         {
-            [InfoBox(
-                "Generic enemies will have their stats, weapons, and classes changed at runtime, based on the battle conditions and player team. If you want an enemy to have a specific class or weapons, you MUST make them unique. Do not add unique enemies to this list"
-            )]
             public GenericEnemyStartingPlacement[] placements;
+        }
+
+        [System.Serializable]
+        public struct UniqueEnemyStartingPlacement
+        {
+            public CharacterData Enemy;
+            public Vector2Int StartingPosition;
+
+            [InfoBox(
+                "If true, and the starting position is occupied by another unit, this enemy will attempt to spawn on an adjacent tile instead. If false, the enemy will not spawn if the starting position is occupied"
+            )]
+            public bool SpawnOnAdjacentIfOccupied;
+
+            [InfoBox(
+                "If true, this unique enemy will only spawn when Brain.PublishUniqueEnemySpawn('EnemyName') is called. If false, it will spawn at the start of the battle."
+            )]
+            public bool SpawnOnlyOnEvent;
+            public GameplayPlayerSettings.DifficultyLevel MinimumDifficultyLevelToSpawn;
+
+            public UniqueEnemyStartingPlacement(CharacterData enemy, Vector2Int startingPosition)
+            {
+                Enemy = enemy;
+                StartingPosition = startingPosition;
+                MinimumDifficultyLevelToSpawn = GameplayPlayerSettings.DifficultyLevel.Easy;
+                SpawnOnAdjacentIfOccupied = false;
+                SpawnOnlyOnEvent = false;
+            }
+        }
+
+        [System.Serializable]
+        public class UniqueEnemyPlacementContainer
+        {
+            public UniqueEnemyStartingPlacement[] placements;
         }
 
         public struct PlayerTeamDetails
@@ -58,28 +110,143 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 );
             }
 
+            var ctx = BattleGameObject.Context;
+            if (ctx == null)
+            {
+                return OperationResult.Failure("BattleContext is not available for enemy spawn");
+            }
+
+            if (
+                !TryResolveSpawnPosition(
+                    placement.StartingPosition,
+                    placement.SpawnOnAdjacentIfOccupied,
+                    out var spawnPosition,
+                    out var positionError
+                )
+            )
+            {
+                return OperationResult.Failure(
+                    $"Could not place {created.CharacterTemplate.DisplayName}: {positionError}"
+                );
+            }
+
+            if (!ctx.SpawnAtPosition(created, spawnPosition))
+            {
+                return OperationResult.Failure(
+                    $"SpawnAtPosition failed for {created.CharacterTemplate.DisplayName} at {spawnPosition}"
+                );
+            }
+
             EnemyInstancesByStartingPlacement ??=
                 new Dictionary<GenericEnemyStartingPlacement, CharacterInstance>();
             EnemyInstancesByStartingPlacement[placement] = created;
+            return OperationResult.Successful();
+        }
 
-            var ctx = BattleGameObject.Context;
-            if (ctx != null)
+        private OperationResult EnsureAndSpawnUniqueEnemyInstance(
+            UniqueEnemyStartingPlacement placement
+        )
+        {
+            var ltm = BattleGameObject.Brain.ltm;
+            var factory = new CharacterFactory(ltm);
+            var persistentInstance = factory.CreateOrRecall(placement.Enemy);
+            if (persistentInstance == null)
             {
-                // make sure the context knows about this unit before we attempt to
-                // spawn it.  SpawnAtPosition already performs a registration step but
-                // we do it explicitly here to ensure precompute logging is clearer.
-                ctx.EnsureUnitIsParticipant(created);
+                return OperationResult.Failure(
+                    $"CharacterFactory failed to create instance for {placement.Enemy.DisplayName}"
+                );
+            }
 
-                var spawned = ctx.SpawnAtPosition(created, placement.StartingPosition);
-                if (!spawned)
+            var created = persistentInstance.CreateBattleCopy();
+            var context = BattleGameObject.Context;
+            if (context == null)
+            {
+                return OperationResult.Failure(
+                    "BattleContext is not available for unique enemy spawn"
+                );
+            }
+
+            if (
+                !TryResolveSpawnPosition(
+                    placement.StartingPosition,
+                    placement.SpawnOnAdjacentIfOccupied,
+                    out var spawnPosition,
+                    out var positionError
+                )
+            )
+            {
+                return OperationResult.Failure(
+                    $"Could not place {created.CharacterTemplate.DisplayName}: {positionError}"
+                );
+            }
+
+            if (!context.SpawnAtPosition(created, spawnPosition))
+            {
+                return OperationResult.Failure(
+                    $"SpawnAtPosition failed for {created.CharacterTemplate.DisplayName} at {spawnPosition}"
+                );
+            }
+
+            UniqueEnemyInstancesByStartingPlacement ??=
+                new Dictionary<UniqueEnemyStartingPlacement, CharacterInstance>();
+            UniqueEnemyInstancesByStartingPlacement[placement] = created;
+            return OperationResult.Successful();
+        }
+
+        private bool TryResolveSpawnPosition(
+            Vector2Int requestedPosition,
+            bool spawnAdjacentIfOccupied,
+            out Vector2Int resolvedPosition,
+            out string error
+        )
+        {
+            resolvedPosition = requestedPosition;
+            error = null;
+
+            var mapGrid = BattleGameObject.Context?.MapGrid;
+            if (mapGrid == null)
+            {
+                error = "MapGrid is not available";
+                return false;
+            }
+
+            var requestedPoint = mapGrid.GetGridPoint(
+                requestedPosition.x,
+                requestedPosition.y
+            );
+            if (requestedPoint == null)
+            {
+                error = $"starting position {requestedPosition} is outside the map";
+                return false;
+            }
+
+            if (requestedPoint.CurrentInstance == null)
+            {
+                return true;
+            }
+
+            if (!spawnAdjacentIfOccupied)
+            {
+                error = $"starting position {requestedPosition} is occupied";
+                return false;
+            }
+
+            foreach (var offset in AdjacentSpawnOffsets)
+            {
+                var candidatePosition = requestedPosition + offset;
+                var candidatePoint = mapGrid.GetGridPoint(
+                    candidatePosition.x,
+                    candidatePosition.y
+                );
+                if (candidatePoint != null && candidatePoint.CurrentInstance == null)
                 {
-                    return OperationResult.Failure(
-                        $"SpawnAtPosition failed for {created.CharacterTemplate.DisplayName} at {placement.StartingPosition}"
-                    );
+                    resolvedPosition = candidatePosition;
+                    return true;
                 }
             }
 
-            return OperationResult.Successful();
+            error = $"starting position {requestedPosition} is occupied and has no free adjacent tile";
+            return false;
         }
 
         private static int StableStringHash(string s)
