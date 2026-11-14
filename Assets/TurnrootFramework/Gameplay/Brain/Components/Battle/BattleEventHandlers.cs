@@ -201,6 +201,13 @@ namespace Turnroot.Gameplay.Brain
         )
         {
             $"BattleBrain: {thief.CharacterTemplate.DisplayName} attempts to steal from {target.CharacterTemplate.DisplayName}".LogInfo();
+            var context = _brain.battleBrain?.BattleObject?.Context;
+            if (context == null)
+            {
+                return OperationResult.Failure(
+                    "BattleBrain: Cannot steal without an active battle context"
+                );
+            }
 
             // Get target's inventory
             var targetInventory = target.InventoryInstance;
@@ -226,19 +233,14 @@ namespace Turnroot.Gameplay.Brain
             Objects.ObjectItemInstance bestItem = null;
             int bestValue = -1;
 
+            if (target.CharacterTemplate?.IsUnique == true)
+            {
+                // TODO: Define stealability metadata and selection rules for unique enemies.
+            }
+
             foreach (var item in targetInventory.InventoryItems)
             {
-                if (item == null || item.Template == null)
-                {
-                    continue;
-                }
-
-                if (item.Template.IsUnequippable)
-                {
-                    continue;
-                }
-
-                if (targetInventory.IsItemEquipped(item))
+                if (!context.IsItemStealable(target, item))
                 {
                     continue;
                 }
@@ -258,7 +260,10 @@ namespace Turnroot.Gameplay.Brain
 
             // Perform the steal via InventoryBrain.TransferItem, which validates, moves the
             // item (restoring on failure), and publishes OnItemTransferred
-            var transferResult = _brain.inventoryBrain.TransferItem(bestItem, thiefInventory);
+            var transferResult = _brain.inventoryBrain.TransferStolenItem(
+                bestItem,
+                thiefInventory
+            );
             if (!transferResult.Success)
             {
                 return transferResult;

@@ -75,6 +75,8 @@ namespace Turnroot.Characters
 
             [Range(0f, 100f)]
             public float Chance;
+
+            public bool Stealable;
         }
         #endregion
 

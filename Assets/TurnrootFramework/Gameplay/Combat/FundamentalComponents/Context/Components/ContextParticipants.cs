@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
+using Turnroot.Gameplay.Objects;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -11,10 +13,21 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// </summary>
     public partial class BattleContext : MonoBehaviour
     {
+        public bool AvatarIsOneUnitAway()
+        {
+            var avatar = Participants.Allies.Find(unit =>
+                unit.CharacterTemplate.Which == CharacterWhich.AVATAR
+            );
+            return avatar != null;
+        }
+
         public List<CharacterInstance> GetCurrentTargets() =>
             Participants?.GetCurrentTargets() ?? new List<CharacterInstance>();
 
-        public List<CharacterInstance> GetCurrentTargets(BattleTargetIntent intent)
+        public List<CharacterInstance> GetCurrentTargets(
+            BattleTargetIntent intent,
+            BattleTargetAction? action = null
+        )
         {
             var targets = new List<CharacterInstance>();
             var actor = Unit?.UnitInstance;
@@ -25,7 +38,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
             foreach (var target in Participants.GetCurrentTargets())
             {
-                if (target != null && IsEligibleTarget(actor, target, intent))
+                if (
+                    target != null
+                    && IsEligibleTarget(actor, target, intent)
+                    && IsValidTargetForAction(target, action)
+                )
                 {
                     targets.Add(target);
                 }
@@ -33,31 +50,41 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             return targets;
         }
 
+        /// <summary>
+        /// Returns eligible, living participants that match the caller's range or other criteria.
+        /// Steal-specific item eligibility is applied when <paramref name="action"/> is Steal.
+        /// </summary>
         public List<CharacterInstance> GetPotentialTargets(
             BattleTargetIntent intent,
-            Func<CharacterInstance, bool> isInRange
+            Func<CharacterInstance, bool> matchesAdditionalCriteria,
+            BattleTargetAction? action = null
         )
         {
             var targets = new List<CharacterInstance>();
-            GetPotentialTargets(intent, isInRange, targets);
+            GetPotentialTargets(intent, matchesAdditionalCriteria, targets, action);
             return targets;
         }
 
+        /// <summary>
+        /// Fills a reusable target list with eligible, living participants.
+        /// Steal-specific item eligibility is applied when <paramref name="action"/> is Steal.
+        /// </summary>
         public void GetPotentialTargets(
             BattleTargetIntent intent,
-            Func<CharacterInstance, bool> isInRange,
-            List<CharacterInstance> targets
+            Func<CharacterInstance, bool> matchesAdditionalCriteria,
+            List<CharacterInstance> targets,
+            BattleTargetAction? action = null
         )
         {
-            if (isInRange == null)
+            if (matchesAdditionalCriteria == null)
             {
-                throw new ArgumentNullException(nameof(isInRange));
+                throw new ArgumentNullException(nameof(matchesAdditionalCriteria));
             }
             if (targets == null)
             {
                 throw new ArgumentNullException(nameof(targets));
             }
-            if (intent != BattleTargetIntent.Offensive && intent != BattleTargetIntent.Supportive)
+            if (intent is not BattleTargetIntent.Offensive and not BattleTargetIntent.Supportive)
             {
                 throw new ArgumentOutOfRangeException(nameof(intent), intent, null);
             }
@@ -70,16 +97,38 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return;
             }
 
-            AddPotentialTargets(Participants.Allies, actor, intent, isInRange, targets);
-            AddPotentialTargets(Participants.Enemies, actor, intent, isInRange, targets);
-            AddPotentialTargets(Participants.ThirdParty, actor, intent, isInRange, targets);
+            AddPotentialTargets(
+                Participants.Allies,
+                actor,
+                intent,
+                matchesAdditionalCriteria,
+                action,
+                targets
+            );
+            AddPotentialTargets(
+                Participants.Enemies,
+                actor,
+                intent,
+                matchesAdditionalCriteria,
+                action,
+                targets
+            );
+            AddPotentialTargets(
+                Participants.ThirdParty,
+                actor,
+                intent,
+                matchesAdditionalCriteria,
+                action,
+                targets
+            );
         }
 
         private void AddPotentialTargets(
             List<CharacterInstance> candidates,
             CharacterInstance actor,
             BattleTargetIntent intent,
-            Func<CharacterInstance, bool> isInRange,
+            Func<CharacterInstance, bool> matchesAdditionalCriteria,
+            BattleTargetAction? action,
             List<CharacterInstance> targets
         )
         {
@@ -95,12 +144,84 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                     target != null
                     && !target.IsDefeatedInCurrentBattle
                     && IsEligibleTarget(actor, target, intent)
-                    && isInRange(target)
+                    && IsValidTargetForAction(target, action)
+                    && matchesAdditionalCriteria(target)
                 )
                 {
                     targets.Add(target);
                 }
             }
+        }
+
+        private bool IsValidTargetForAction(
+            CharacterInstance target,
+            BattleTargetAction? action
+        ) => action != BattleTargetAction.Steal || HasStealableItem(target);
+
+        public bool HasStealableItem(CharacterInstance target)
+        {
+            var inventory = target?.InventoryInstance;
+            if (inventory?.InventoryItems == null)
+            {
+                return false;
+            }
+
+            foreach (var item in inventory.InventoryItems)
+            {
+                if (IsItemStealable(target, item))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool IsItemStealable(CharacterInstance target, ObjectItemInstance item)
+        {
+            var inventory = target?.InventoryInstance;
+            if (
+                inventory == null
+                || inventory.InventoryItems == null
+                || item?.Template == null
+                || !inventory.InventoryItems.Contains(item)
+            )
+            {
+                return false;
+            }
+
+            var characterTemplate = target.CharacterTemplate;
+            if (characterTemplate == null)
+            {
+                return false;
+            }
+
+            if (characterTemplate.IsUnique)
+            {
+                // TODO: Define stealability metadata for unique enemies.
+                return true;
+            }
+
+            if (!target.CurrentProgressionTier.HasValue)
+            {
+                return false;
+            }
+
+            var currentLoadout = characterTemplate.GetLoadoutForProgression(
+                target.CurrentProgressionTier.Value
+            );
+            if (currentLoadout == null)
+            {
+                return false;
+            }
+
+            foreach (var entry in currentLoadout)
+            {
+                if (entry.Stealable && entry.Item == item.Template)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private bool IsEligibleTarget(
@@ -109,13 +230,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             BattleTargetIntent intent
         )
         {
-            return intent == BattleTargetIntent.Offensive
-                ? CanAttack(actor, target)
+            return intent == BattleTargetIntent.Offensive ? CanAttack(actor, target)
                 : intent != BattleTargetIntent.Supportive
-                ? throw new ArgumentOutOfRangeException(nameof(intent), intent, null)
-                : IsPlayerControlledUnit(actor)
-                ? IsPlayerControlledUnit(target)
-                : IsEnemyUnit(actor) ? IsEnemyUnit(target) : IsThirdPartyUnit(actor) && IsThirdPartyUnit(target);
+                    ? throw new ArgumentOutOfRangeException(nameof(intent), intent, null)
+                : IsPlayerControlledUnit(actor) ? IsPlayerControlledUnit(target)
+                : IsEnemyUnit(actor) ? IsEnemyUnit(target)
+                : IsThirdPartyUnit(actor) && IsThirdPartyUnit(target);
         }
 
         public void SetCurrentTargets(IEnumerable<CharacterInstance> targets)

@@ -268,6 +268,12 @@ namespace Turnroot.Characters.Editor
                 DrawAutoPropertyField("BirthdayMonth");
             }
             DrawHeredity(isUnique);
+
+            // Persist custom fields before the base inspector refreshes the serialized object.
+            if (serializedObject.hasModifiedProperties)
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
             base.OnInspectorGUI();
 
             if (!isAvatar)

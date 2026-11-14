@@ -122,9 +122,12 @@ namespace Turnroot.Gameplay.Objects
         public bool CanTransfer(CharacterInventoryInstance targetInventory) =>
             !_template.IsUnequippable && !targetInventory.IsFull;
 
-        internal OperationResult Transfer(CharacterInventoryInstance targetInventory)
+        internal OperationResult Transfer(
+            CharacterInventoryInstance targetInventory,
+            bool allowUnequippable = false
+        )
         {
-            if (_template.IsUnequippable)
+            if (_template.IsUnequippable && !allowUnequippable)
             {
                 return OperationResult.Failure("Cannot transfer an unequippable item.");
             }
@@ -148,8 +151,6 @@ namespace Turnroot.Gameplay.Objects
                 return resAdd;
             }
 
-            // owner & slot set by CharacterInventoryInstance.AddToInventory
-            InventoryBrain?.TransferItem(this, targetInventory);
             return OperationResult.Successful();
         }
 

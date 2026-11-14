@@ -94,19 +94,13 @@ namespace Turnroot.Characters
 
         public CharacterClassData GetClassFromProgression(ProgressionLevel tier)
         {
-            if (UseClassProgressionLadder)
-            {
-                var cls = ProgressionLadder.GetClassForTier(tier);
-                if (cls != null)
-                {
-                    return cls;
-                }
-            }
-            return StartingClass;
+            // this doesn't have any checks because it assumes that the caller has already verified that the enemy is generic
+            var cls = ProgressionLadder.GetClassForTier(tier);
+            return cls != null ? cls : StartingClass;
         }
 
         public List<LoadoutEntry> GetLoadoutForProgression(ProgressionLevel tier) =>
-            UseClassProgressionLadder ? ProgressionLadder.GetLoadoutForTier(tier) : null;
+            ProgressionLadder.GetLoadoutForTier(tier);
 
         /// <summary>
         /// Helper used during instance initialization/persistence to choose an
@@ -116,8 +110,13 @@ namespace Turnroot.Characters
         /// </summary>
         public CharacterClassData GetPreferredStartingClass()
         {
-            var pref = GetClassFromProgression(ProgressionLevel.Starter);
-            return pref != null ? pref : StartingClass;
+            // comment on 97 could trickle here but I'd rather have a check at this point, so
+            if (!IsUnique) // not unique is generic
+            {
+                var pref = GetClassFromProgression(ProgressionLevel.Starter);
+                return pref != null ? pref : StartingClass;
+            }
+            return StartingClass;
         }
 
         private void EnsureDefaultStatsInitialized()
@@ -139,9 +138,7 @@ namespace Turnroot.Characters
             );
 
             var templateId = FullName;
-            foreach (
-                UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType))
-            )
+            foreach (UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType)))
             {
                 StatHelpers.GetOrCreateUnboundedStat(UnboundedStats, statType, templateId);
             }
@@ -167,9 +164,7 @@ namespace Turnroot.Characters
                     || !seenGrowthRates.Add(rate.unboundedStatType);
             });
 
-            foreach (
-                UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType))
-            )
+            foreach (UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType)))
             {
                 if (statType == UnboundedStatType.Movement)
                 {
@@ -262,13 +257,7 @@ namespace Turnroot.Characters
                 }
             }
 
-            if (UseClassProgressionLadder && IsUnique)
-            {
-                UseClassProgressionLadder = false;
-                $"{name}: Unique characters cannot use a class progression ladder; disabling the option.".LogWarning();
-            }
-
-            if (UseClassProgressionLadder)
+            if (!IsUnique)
             {
                 if (
                     ProgressionLadder.Starter.Class == null

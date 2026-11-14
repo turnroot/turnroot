@@ -223,6 +223,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             {
                 instance.ChangeClass(selected, applyClassChangeBonuses: false);
             }
+            instance.CurrentProgressionTier = tierUsed;
 
             // level up to adjustedLevel (rolling growths each time)
             int delta = adjustedLevel - instance.CurrentLevel;

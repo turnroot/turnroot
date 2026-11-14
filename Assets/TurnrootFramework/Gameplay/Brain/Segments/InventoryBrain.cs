@@ -223,6 +223,17 @@ namespace Turnroot.Gameplay.Brain
         public OperationResult TransferItem(
             ObjectItemInstance item,
             CharacterInventoryInstance targetInventory
+        ) => TransferItem(item, targetInventory, allowUnequippable: false);
+
+        public OperationResult TransferStolenItem(
+            ObjectItemInstance item,
+            CharacterInventoryInstance targetInventory
+        ) => TransferItem(item, targetInventory, allowUnequippable: true);
+
+        private OperationResult TransferItem(
+            ObjectItemInstance item,
+            CharacterInventoryInstance targetInventory,
+            bool allowUnequippable
         )
         {
             if (item == null || targetInventory == null)
@@ -230,7 +241,7 @@ namespace Turnroot.Gameplay.Brain
                 return OperationResult.Failure("Invalid item or target inventory.");
             }
 
-            var result = item.Transfer(targetInventory);
+            var result = item.Transfer(targetInventory, allowUnequippable);
             if (result.Success)
             {
                 Brain.PublishItemTransferred(item, targetInventory);
