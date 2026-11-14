@@ -62,6 +62,11 @@ namespace Turnroot.Skills.Nodes
             [typeof(WeaponRangeNode)] = BattleTargetIntent.Offensive,
         };
 
+        private static readonly Dictionary<Type, BattleTargetAction> NodeActions = new()
+        {
+            [typeof(StealNode)] = BattleTargetAction.Steal,
+        };
+
         public static BattleTargetIntent GetIntent(BattleTargetAction action) =>
             ActionIntents[action];
 
@@ -83,6 +88,20 @@ namespace Turnroot.Skills.Nodes
             throw new InvalidOperationException(
                 $"No battle target intent is registered for skill node {nodeType?.FullName ?? "<null>"}."
             );
+        }
+
+        public static bool TryGetAction(Type nodeType, out BattleTargetAction action)
+        {
+            for (var type = nodeType; type != null; type = type.BaseType)
+            {
+                if (NodeActions.TryGetValue(type, out action))
+                {
+                    return true;
+                }
+            }
+
+            action = default;
+            return false;
         }
     }
 }

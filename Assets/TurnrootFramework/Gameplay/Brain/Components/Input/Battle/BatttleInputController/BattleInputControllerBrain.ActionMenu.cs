@@ -1,18 +1,147 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
+using Turnroot.Skills.Nodes;
 using Turnroot.UI.Components.ListMenu;
 using Turnroot.UI.Components.Menu;
-using Turnroot.Skills.Nodes;
 using Turnroot.Utilities;
 
 namespace Turnroot.Gameplay.Brain
 {
     public partial class BattleInputControllerBrain : BrainComponent
     {
-        #region Action Menu Management
+        #region Action Validations
+        public bool CanTrade() =>
+            BattleContext.Participants.AdjacentUnits.GetAdjacentAllyCount(BattleContext) > 0;
 
+        public bool CanAccessStorehouse() =>
+            BattleContext.Unit.UnitInstance.CharacterTemplate.Which == CharacterWhich.AVATAR
+            || BattleContext.AvatarIsOneUnitAway();
+
+        public bool CanMountOrDismount() =>
+            BattleContext.Unit.UnitInstance.CurrentClass.ClassData.Identity.IsMountedClass();
+
+        public bool CanSteal()
+        {
+            if (BattleContext.Unit.UnitCanSteal(BattleContext.Skill))
+            {
+                if (
+                    BattleContext
+                        .GetPotentialTargets(
+                            BattleTargetIntentMap.GetIntent(BattleTargetAction.Steal),
+                            IsStealTargetInRange
+                        )
+                        .Count > 0
+                )
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool CanAttack() =>
+            BattleContext
+                .GetPotentialTargets(
+                    BattleTargetIntentMap.GetIntent(BattleTargetAction.Attack),
+                    IsAttackTargetInRange
+                )
+                .Count > 0;
+
+        #endregion
+
+
+        #region Action Handlers
+        public void HandleActionSelected(string actionName)
+        {
+            switch (actionName.ToLower())
+            {
+                case "wait":
+                    HandleWaitAction();
+                    break;
+                default:
+                    $"Unknown action: {actionName}".LogWarning();
+                    break;
+                // TODO: Implement other actions (Attack, Trade, Storehouse, Mount/Dismount, etc.)
+            }
+        }
+
+        private void HandleWaitAction()
+        {
+            CloseActionMenu();
+
+            var validation = OperationResultGuards.RequireNotNull(SelectedUnit, "SelectedUnit");
+            if (!validation.Success)
+            {
+                validation.ErrorMessage.LogWarning();
+                return;
+            }
+
+            _playerTurnFlow.WaitAndEndUnitTurn();
+            // The unit-turn advance is handled by TurnRotisserie, do not advance the rotisserie here or the unit turn will advance twice
+            Brain.battleBrain.IsInputEnabled = true;
+        }
+
+        public void HandleActionMenuBack()
+        {
+            CloseActionMenu();
+            RequestUndo();
+        }
+        #endregion
+
+        internal string[] PopulateActionMenu()
+        {
+            // TODO: finish this: Heal, Support, Talk, Steal missing
+
+            var actions = new List<string> { "Wait" };
+
+            // Trade
+            if (CanTrade())
+            {
+                actions.Add("Trade");
+            }
+
+            // storehouse
+            if (CanAccessStorehouse())
+            {
+                // storehouse access is only available to the avatar or units adjacent to the avatar
+                actions.Add("Storehouse");
+            }
+
+            // mount/dismount
+            if (CanMountOrDismount())
+            {
+                if (BattleContext.Unit.UnitInstance.IsMounted)
+                {
+                    actions.Add("Dismount");
+                }
+                else
+                {
+                    actions.Add("Mount");
+                }
+            }
+
+            // steal
+            // before rolling GetPotentialTargets check if this unit can even steal
+            // This is skill-dependent- the active unit must have a skill that allows stealing
+            // There is one node for this, the StealNode
+            if (CanSteal())
+            {
+                actions.Add("Steal");
+            }
+
+            // attack
+            if (CanAttack())
+            {
+                actions.Add("Attack");
+            }
+
+            return actions.ToArray();
+        }
+
+        #region Menu Life
         private OperationResult ShowActionMenu()
         {
             Brain.battleBrain.IsInputEnabled = false;
@@ -42,7 +171,6 @@ namespace Turnroot.Gameplay.Brain
                 return validation;
             }
 
-            // TODO: Add more actions (Attack, Item, Trade, etc.)
             var populateResult = battleSelectAction.PopulateList(PopulateActionMenu());
 
             // Wire up button click handlers
@@ -94,78 +222,6 @@ namespace Turnroot.Gameplay.Brain
             }
         }
 
-        internal string[] PopulateActionMenu()
-        {
-            var actions = new List<string> { "Wait" };
-            // Trade with adjacent allies
-            if (BattleContext.Participants.AdjacentUnits.GetAdjacentAllyCount(BattleContext) > 0)
-            {
-                actions.Add("Trade");
-                // TODO: Check talk/support
-            }
-            // mount/dismount
-            if (BattleContext.Unit.UnitInstance.CurrentClass.ClassData.Identity.IsMountedClass())
-            {
-                if (BattleContext.Unit.UnitInstance.IsMounted)
-                {
-                    actions.Add("Dismount");
-                }
-                else
-                {
-                    actions.Add("Mount");
-                }
-            }
-            // check if any enemies are in range (already updated after movement)
-            if (
-                BattleContext
-                    .GetPotentialTargets(
-                        BattleTargetIntentMap.GetIntent(BattleTargetAction.Attack),
-                        IsAttackTargetInRange
-                    )
-                    .Count > 0
-            )
-            {
-                actions.Add("Attack");
-            }
-            return actions.ToArray();
-        }
-
-        public void HandleActionSelected(string actionName)
-        {
-            switch (actionName.ToLower())
-            {
-                case "wait":
-                    HandleWaitAction();
-                    break;
-                default:
-                    $"Unknown action: {actionName}".LogWarning();
-                    break;
-            }
-        }
-
-        private void HandleWaitAction()
-        {
-            CloseActionMenu();
-
-            var validation = OperationResultGuards.RequireNotNull(SelectedUnit, "SelectedUnit");
-            if (!validation.Success)
-            {
-                validation.ErrorMessage.LogWarning();
-                return;
-            }
-
-            _playerTurnFlow.WaitAndEndUnitTurn();
-            // The unit-turn advance is handled by TurnRotisserie.
-            // Do not advance the rotisserie here or the unit turn will advance twice.
-            Brain.battleBrain.IsInputEnabled = true;
-        }
-
-        public void HandleActionMenuBack()
-        {
-            CloseActionMenu();
-            RequestUndo();
-        }
-
         public void OpenActionMenu() =>
             _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
 
@@ -196,7 +252,6 @@ namespace Turnroot.Gameplay.Brain
 
             return OperationResult.Successful();
         }
-
         #endregion
     }
 }

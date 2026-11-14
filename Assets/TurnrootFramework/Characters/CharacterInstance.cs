@@ -6,6 +6,7 @@ using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.StatusEffects;
 using Turnroot.Gameplay.Maps;
+using Turnroot.GameSettings;
 using Turnroot.Skills;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -74,6 +75,9 @@ namespace Turnroot.Characters
 
         [NonSerialized]
         private CharacterClassDataInstance _currentClass;
+
+        [NonSerialized]
+        private ProgressionLevel? _currentProgressionTier;
 
         [NonSerialized]
         public List<CharacterClassData> _equippedClassHistory = new();
@@ -149,6 +153,11 @@ namespace Turnroot.Characters
         public CharacterClassDataInstance CurrentClass => _currentClass;
         public CharacterClassData CurrentClassTemplate =>
             _currentClass?.ClassData ?? _characterTemplate?.StartingClass;
+        public ProgressionLevel? CurrentProgressionTier
+        {
+            get => _currentProgressionTier;
+            set => _currentProgressionTier = value;
+        }
         public IReadOnlyList<StatusEffectInstance> ActiveStatusEffects => _activeStatusEffects;
         public List<BoundedCharacterStat> BoundedStats => _runtimeBoundedStats;
         public List<CharacterStat> UnboundedStats => _runtimeUnboundedStats;

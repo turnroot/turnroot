@@ -125,17 +125,28 @@ namespace Turnroot.Skills.Nodes
                 ? ValidationFailure("At least one ally is required")
                 : ValidationSuccess();
 
-        protected List<CharacterInstance> GetCurrentTargets(BattleContext context) =>
-            context.GetCurrentTargets(BattleTargetIntentMap.GetIntent(GetType()));
+        protected List<CharacterInstance> GetCurrentTargets(BattleContext context)
+        {
+            var action = BattleTargetIntentMap.TryGetAction(GetType(), out var nodeAction)
+                ? nodeAction
+                : (BattleTargetAction?)null;
+            return context.GetCurrentTargets(BattleTargetIntentMap.GetIntent(GetType()), action);
+        }
 
         protected List<CharacterInstance> GetPotentialTargets(
             BattleContext context,
             Func<CharacterInstance, bool> isInRange
-        ) =>
-            context.GetPotentialTargets(
+        )
+        {
+            var action = BattleTargetIntentMap.TryGetAction(GetType(), out var nodeAction)
+                ? nodeAction
+                : (BattleTargetAction?)null;
+            return context.GetPotentialTargets(
                 BattleTargetIntentMap.GetIntent(GetType()),
-                isInRange
+                isInRange,
+                action
             );
+        }
 
         protected bool ValidateContext(BattleContext context, string nodeName = null)
         {

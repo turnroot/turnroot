@@ -3,7 +3,6 @@ using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
-using Turnroot.Gameplay.Objects;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
@@ -19,7 +18,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             public CharacterData Enemy;
             public Vector2Int StartingPosition;
             public GameplayPlayerSettings.DifficultyLevel MinimumDifficultyLevelToSpawn;
-            public ObjectItem StealableItem;
             public bool WeaponsAreStealable;
 
             public GenericEnemyStartingPlacement(CharacterData enemy, Vector2Int startingPosition)
@@ -27,7 +25,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 Enemy = enemy;
                 StartingPosition = startingPosition;
                 MinimumDifficultyLevelToSpawn = GameplayPlayerSettings.DifficultyLevel.Easy;
-                StealableItem = null;
                 WeaponsAreStealable = false;
             }
         }

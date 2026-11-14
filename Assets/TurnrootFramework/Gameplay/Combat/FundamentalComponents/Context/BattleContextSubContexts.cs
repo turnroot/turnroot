@@ -3,17 +3,53 @@ using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Skills;
 using Turnroot.Skills.Nodes;
+using Turnroot.Skills.Nodes.Events;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
     public class UnitContext
     {
         public CharacterInstance UnitInstance { get; set; }
+
+        public bool UnitCanSteal(SkillContext skillContext)
+        {
+            var skills = skillContext.ActiveSkillGraphs;
+            bool hasStealSkill = false;
+            if (skills != null)
+            {
+                foreach (var skill in skills)
+                {
+                    if (skill?.nodes == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var node in skill.nodes)
+                    {
+                        if (node is StealNode)
+                        {
+                            hasStealSkill = true;
+                            break;
+                        }
+                    }
+
+                    if (hasStealSkill)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return hasStealSkill;
+        }
     }
 
     public class SkillContext
     {
         public Skill CurrentSkill { get; set; }
+
+        // TODO: Refresh these from UnitContext.UnitInstance.SkillInstances when the active unit changes.
+        // They currently contain battle-start skills registered by SkillTriggerRouter instead.
         public List<Skill> ActiveSkills { get; set; }
         public List<SkillGraph> ActiveSkillGraphs { get; set; }
         public Dictionary<Skill, int> SkillUseCount { get; set; }
@@ -33,6 +69,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
         /// </summary>
         public List<CharacterInstance> Enemies { get; set; } // all enemies
         public List<CharacterInstance> CurrentTargetedEnemies { get; set; } // targeted enemies for the current action. Usually just one,
+
         // special skills or area of attack affects might target multiple
         public List<CharacterInstance> Allies { get; set; } // all allies
         public List<CharacterInstance> CurrentTargetedAllies { get; set; } // targeted allies for enemy action. same as above

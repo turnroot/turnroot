@@ -54,6 +54,11 @@ namespace Turnroot.Gameplay.Brain
             || BattleContext.Participants.AlliesInRange.Contains(target)
             || BattleContext.Participants.ThirdPartyInRange.Contains(target);
 
+        private bool IsStealTargetInRange(CharacterInstance target) =>
+            BattleContext.Participants.EnemiesInRange.Contains(target)
+            || BattleContext.Participants.AlliesInRange.Contains(target)
+            || BattleContext.Participants.ThirdPartyInRange.Contains(target);
+
         #endregion
     }
 }

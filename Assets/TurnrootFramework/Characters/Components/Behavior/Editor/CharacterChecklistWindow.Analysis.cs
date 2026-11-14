@@ -90,7 +90,7 @@ namespace Turnroot.EditorTools
             }
 
             // Progression ladder summary
-            if (data.UseClassProgressionLadder)
+            if (!data.IsUnique) // generic enemies should have a progression ladder
             {
                 bool any =
                     data.ProgressionLadder.Starter.Class != null

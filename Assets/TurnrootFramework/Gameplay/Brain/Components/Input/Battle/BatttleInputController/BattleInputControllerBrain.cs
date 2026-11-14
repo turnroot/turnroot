@@ -296,12 +296,12 @@ namespace Turnroot.Gameplay.Brain
                 return;
             }
 
-            // Only update previews when in states that can show them
+            // Only update path preview when in states that can show them
             var currentState = _playerTurnFlow?.GetCurrentState();
             if (
-                currentState == PlayerTurnStates.UnitSelected
-                || currentState == PlayerTurnStates.ChoosingDestination
-                || currentState == PlayerTurnStates.AttackActionChosenChoosingTarget
+                currentState is PlayerTurnStates.UnitSelected
+                or PlayerTurnStates.ChoosingDestination
+                or PlayerTurnStates.AttackActionChosenChoosingTarget
             )
             {
                 Path = HandlePathPreview();
@@ -315,16 +315,10 @@ namespace Turnroot.Gameplay.Brain
                     _tileHighlighter.HighlightPath(Path);
                 }
 
-                if (destination != null && SelectedUnit != null)
-                {
-                    _terrainTypeOverlay.Display(destination, SelectedUnit.GetEffectiveMovementType());
-                }
             }
             else
             {
-                // Clear previews/overlays when not relevant
                 _tileHighlighter.ClearPathPreview();
-                _terrainTypeOverlay.ResetDisplay();
             }
         }
 

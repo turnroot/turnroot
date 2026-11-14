@@ -144,10 +144,10 @@ namespace Turnroot.Conversations
 
                 var upper = actionType.ToUpperInvariant();
                 if (
-                    upper != "PLAYERGAINSITEM"
-                    && upper != "GAINSITEM"
-                    && upper != "PLAYERLOSESITEM"
-                    && upper != "LOSESITEM"
+                    upper is not "PLAYERGAINSITEM"
+                    and not "GAINSITEM"
+                    and not "PLAYERLOSESITEM"
+                    and not "LOSESITEM"
                 )
                 {
                     continue;

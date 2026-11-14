@@ -448,7 +448,7 @@ namespace Turnroot.EditorTools
                     data =>
                     {
                         var r = new CharacterCheckResult();
-                        if (data.UseClassProgressionLadder)
+                        if (!data.IsUnique)
                         {
                             bool any =
                                 data.ProgressionLadder.Starter.Class != null
@@ -459,7 +459,7 @@ namespace Turnroot.EditorTools
                             if (!any)
                             {
                                 r.Color = orange;
-                                r.Note = "Ladder enabled but no classes set";
+                                r.Note = "Enemy is generic but progression ladder is not set up";
                             }
                             else
                             {
@@ -533,10 +533,7 @@ namespace Turnroot.EditorTools
                             {
                                 if (
                                     stat == null
-                                    || !Enum.IsDefined(
-                                        typeof(UnboundedStatType),
-                                        stat.StatType
-                                    )
+                                    || !Enum.IsDefined(typeof(UnboundedStatType), stat.StatType)
                                     || stat.StatType
                                         is UnboundedStatType.Movement
                                             or UnboundedStatType.Charm
@@ -727,7 +724,6 @@ namespace Turnroot.EditorTools
                 )
             );
         }
-
     }
 }
 #endif
