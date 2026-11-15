@@ -180,7 +180,10 @@ namespace Turnroot.Characters
 
             foreach (var slot in _characterTemplate.StartingInventory)
             {
-                var itemInstance = new ObjectItemInstance(slot.Item);
+                var itemInstance = new ObjectItemInstance(slot.Item)
+                {
+                    Stealable = slot.Stealable,
+                };
                 _inventoryInstance.AddToInventory(itemInstance);
                 itemInstance.Slot = slot.SlotIndex;
 
@@ -246,6 +249,8 @@ namespace Turnroot.Characters
             {
                 _skillInstances.Add(new SkillInstance(_characterTemplate.PersonalSkill));
             }
+
+            AutoEquipSkillsWithinLimit();
         }
 
         private void AddSkillsFromTemplates(List<Skill> skillTemplates)

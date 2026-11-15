@@ -30,6 +30,7 @@ namespace Turnroot.Gameplay.Objects
 
         public int Slot = -1;
         public bool IsEquipped = false;
+        public bool Stealable;
 
         [NonSerialized]
         private CharacterInventoryInstance _ownerInventory;

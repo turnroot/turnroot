@@ -4,6 +4,7 @@ using Turnroot.Characters;
 using Turnroot.Characters.Components;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Gameplay.Objects;
+using Turnroot.GameSettings;
 using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -153,10 +154,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
             }
         }
 
-        private bool IsValidTargetForAction(
-            CharacterInstance target,
-            BattleTargetAction? action
-        ) => action != BattleTargetAction.Steal || HasStealableItem(target);
+        private bool IsValidTargetForAction(CharacterInstance target, BattleTargetAction? action) =>
+            action != BattleTargetAction.Steal || HasStealableItem(target);
 
         public bool HasStealableItem(CharacterInstance target)
         {
@@ -178,50 +177,11 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 
         public bool IsItemStealable(CharacterInstance target, ObjectItemInstance item)
         {
-            var inventory = target?.InventoryInstance;
-            if (
-                inventory == null
-                || inventory.InventoryItems == null
-                || item?.Template == null
-                || !inventory.InventoryItems.Contains(item)
-            )
-            {
-                return false;
-            }
-
-            var characterTemplate = target.CharacterTemplate;
-            if (characterTemplate == null)
-            {
-                return false;
-            }
-
-            if (characterTemplate.IsUnique)
-            {
-                // TODO: Define stealability metadata for unique enemies.
-                return true;
-            }
-
-            if (!target.CurrentProgressionTier.HasValue)
-            {
-                return false;
-            }
-
-            var currentLoadout = characterTemplate.GetLoadoutForProgression(
-                target.CurrentProgressionTier.Value
-            );
-            if (currentLoadout == null)
-            {
-                return false;
-            }
-
-            foreach (var entry in currentLoadout)
-            {
-                if (entry.Stealable && entry.Item == item.Template)
-                {
-                    return true;
-                }
-            }
-            return false;
+            var inventoryItems = target?.InventoryInstance?.InventoryItems;
+            return item?.Template != null
+                && item.Stealable
+                && inventoryItems != null
+                && inventoryItems.Contains(item);
         }
 
         private bool IsEligibleTarget(
@@ -349,48 +309,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return;
             }
 
-            var activeUnit = Unit.UnitInstance;
-
-            Participants.AdjacentUnits = new Adjacency(activeUnit);
-
-            if (MapGrid == null)
-            {
-                this.LogError("UpdateAdjacentUnits: MapGrid is null");
-                return;
-            }
-
-            var unitPos = activeUnit.MapGridPosition;
-
-            var unitPositions = GetCurrentUnitPositions(invalidateCache: false);
-
-            var adjacentOffsets = new Dictionary<Direction, Vector2Int>
-            {
-                { Direction.TopLeft, new Vector2Int(-1, -1) },
-                { Direction.TopCenter, new Vector2Int(-1, 0) },
-                { Direction.TopRight, new Vector2Int(-1, 1) },
-                { Direction.CenterLeft, new Vector2Int(0, -1) },
-                { Direction.CenterRight, new Vector2Int(0, 1) },
-                { Direction.BottomLeft, new Vector2Int(1, -1) },
-                { Direction.BottomCenter, new Vector2Int(1, 0) },
-                { Direction.BottomRight, new Vector2Int(1, 1) },
-            };
-
-            foreach (var (direction, offset) in adjacentOffsets)
-            {
-                var checkPos = unitPos + offset;
-
-                if (unitPositions.TryGetValue(checkPos, out var adjacentUnit))
-                {
-                    if (
-                        adjacentUnit != null
-                        && !adjacentUnit.IsDefeatedInCurrentBattle
-                        && adjacentUnit != activeUnit
-                    )
-                    {
-                        Participants.AdjacentUnits.SetUnit(direction, adjacentUnit);
-                    }
-                }
-            }
+            Participants.AdjacentUnits = new Adjacency(Unit.UnitInstance);
+            Participants.AdjacentUnits.Populate(this);
         }
 
         public void ClearTargetsInRange()

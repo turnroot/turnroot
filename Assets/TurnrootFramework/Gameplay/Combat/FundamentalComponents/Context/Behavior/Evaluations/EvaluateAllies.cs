@@ -74,6 +74,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 }
 
                 var adjacency = new Adjacency(ally);
+                adjacency.Populate(_context);
                 var allySurroundingEnemies = adjacency.GetAdjacentTrueEnemyCount(_context);
                 var allySurroundingAllies = adjacency.GetAdjacentTrueAllyCount(_context);
 

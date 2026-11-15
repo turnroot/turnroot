@@ -22,6 +22,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 ActiveSkillGraphs = new List<SkillGraph>(),
                 SkillUseCount = new Dictionary<Skill, int>(),
             };
+            Unit.UnitInstanceChanged += RefreshActiveUnitSkills;
             Participants = new BattleParticipants
             {
                 Enemies = new List<CharacterInstance>(),
@@ -36,6 +37,45 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 AdjacentUnits = new Adjacency(null),
             };
             Flags = new CombatFlags { ActiveUnitFlags = new UnitFlag() };
+        }
+
+        public void RefreshActiveSkillsForUnit(CharacterInstance unit)
+        {
+            if (Unit?.UnitInstance == unit)
+            {
+                RefreshActiveUnitSkills(unit);
+            }
+        }
+
+        private void RefreshActiveUnitSkills(CharacterInstance unit)
+        {
+            Skill.ActiveSkills.Clear();
+            Skill.ActiveSkillGraphs.Clear();
+
+            if (unit?.SkillInstances == null)
+            {
+                return;
+            }
+
+            foreach (var skillInstance in unit.SkillInstances)
+            {
+                if (skillInstance?.Equipped != true)
+                {
+                    continue;
+                }
+
+                var skill = skillInstance?.SkillTemplate;
+                if (skill == null)
+                {
+                    continue;
+                }
+
+                Skill.ActiveSkills.Add(skill);
+                if (skill.BehaviorGraph != null)
+                {
+                    Skill.ActiveSkillGraphs.Add(skill.BehaviorGraph);
+                }
+            }
         }
 
         public T GetCustomData<T>(string key, T defaultValue = default) =>

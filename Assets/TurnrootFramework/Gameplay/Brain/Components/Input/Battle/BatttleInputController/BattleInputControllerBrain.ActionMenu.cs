@@ -25,21 +25,23 @@ namespace Turnroot.Gameplay.Brain
 
         public bool CanSteal()
         {
-            if (BattleContext.Unit.UnitCanSteal(BattleContext.Skill))
+            var activeUnit = BattleContext?.Unit?.UnitInstance;
+            if (
+                activeUnit?.InventoryInstance == null
+                || activeUnit.InventoryInstance.IsFull
+                || !BattleContext.Unit.UnitCanSteal()
+            )
             {
-                if (
-                    BattleContext
-                        .GetPotentialTargets(
-                            BattleTargetIntentMap.GetIntent(BattleTargetAction.Steal),
-                            IsStealTargetInRange
-                        )
-                        .Count > 0
-                )
-                {
-                    return true;
-                }
+                return false;
             }
-            return false;
+
+            return BattleContext
+                    .GetPotentialTargets(
+                        BattleTargetIntentMap.GetIntent(BattleTargetAction.Steal),
+                        IsStealTargetInRange,
+                        BattleTargetAction.Steal
+                    )
+                    .Count > 0;
         }
 
         public bool CanAttack() =>
@@ -61,6 +63,9 @@ namespace Turnroot.Gameplay.Brain
                 case "wait":
                     HandleWaitAction();
                     break;
+                case "steal":
+                    HandleStealAction();
+                    break;
                 default:
                     $"Unknown action: {actionName}".LogWarning();
                     break;
@@ -81,6 +86,13 @@ namespace Turnroot.Gameplay.Brain
 
             _playerTurnFlow.WaitAndEndUnitTurn();
             // The unit-turn advance is handled by TurnRotisserie, do not advance the rotisserie here or the unit turn will advance twice
+            Brain.battleBrain.IsInputEnabled = true;
+        }
+
+        private void HandleStealAction()
+        {
+            // TODO: Implement logic for steal action
+            CloseActionMenu();
             Brain.battleBrain.IsInputEnabled = true;
         }
 

@@ -112,7 +112,24 @@ namespace Turnroot.Skills
 
         public void SetReadyToFire(bool ready) => _readyToFire = ready;
 
-        public void SetEquipped(bool equipped, CharacterInstance owner = null) =>
+        public void SetEquipped(bool equipped, CharacterInstance owner = null)
+        {
+            if (!equipped && owner?.IsPersonalSkill(_skillTemplate) == true)
+            {
+                "The personal skill cannot be unequipped.".LogWarning();
+                return;
+            }
+
+            if (_equipped == equipped)
+            {
+                return;
+            }
+
             _equipped = equipped;
+            if (owner != null)
+            {
+                owner.NeedsPersist = true;
+            }
+        }
     }
 }

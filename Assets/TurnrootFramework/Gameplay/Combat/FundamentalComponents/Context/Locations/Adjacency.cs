@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Turnroot.Characters;
+using Turnroot.GameSettings;
 using Turnroot.Utilities;
+using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
 {
@@ -22,6 +24,41 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
     /// </summary>
     public class Adjacency
     {
+        public readonly struct NeighborOffset
+        {
+            public Direction Direction { get; }
+            public Vector2Int Offset { get; }
+
+            public NeighborOffset(Direction direction, Vector2Int offset)
+            {
+                Direction = direction;
+                Offset = offset;
+            }
+        }
+
+        private static readonly NeighborOffset[] CardinalOffsets =
+        {
+            new(Direction.TopCenter, new Vector2Int(-1, 0)),
+            new(Direction.CenterLeft, new Vector2Int(0, -1)),
+            new(Direction.CenterRight, new Vector2Int(0, 1)),
+            new(Direction.BottomCenter, new Vector2Int(1, 0)),
+        };
+
+        private static readonly NeighborOffset[] AllOffsets =
+        {
+            new(Direction.TopLeft, new Vector2Int(-1, -1)),
+            new(Direction.TopCenter, new Vector2Int(-1, 0)),
+            new(Direction.TopRight, new Vector2Int(-1, 1)),
+            new(Direction.CenterLeft, new Vector2Int(0, -1)),
+            new(Direction.CenterRight, new Vector2Int(0, 1)),
+            new(Direction.BottomLeft, new Vector2Int(1, -1)),
+            new(Direction.BottomCenter, new Vector2Int(1, 0)),
+            new(Direction.BottomRight, new Vector2Int(1, 1)),
+        };
+
+        public static IReadOnlyList<NeighborOffset> GetOffsets(bool includeCorners) =>
+            includeCorners ? AllOffsets : CardinalOffsets;
+
         public CharacterInstance Center { get; set; }
         public CharacterInstance TopLeft { get; set; }
         public CharacterInstance TopCenter { get; set; }
@@ -35,6 +72,53 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations
         public Adjacency(CharacterInstance center)
         {
             Center = center;
+        }
+
+        public bool Populate(BattleContext context)
+        {
+            ClearAdjacentUnits();
+            if (context == null || Center == null)
+            {
+                return false;
+            }
+
+            if (context.MapGrid == null)
+            {
+                context.LogError("Adjacency.Populate: MapGrid is null");
+                return false;
+            }
+
+            var unitPositions = context.GetCurrentUnitPositions(invalidateCache: false);
+            bool includeCorners =
+                GameplayGeneralSettings.Instance?.AdjacencyIncludesCorners ?? false;
+
+            foreach (var adjacentOffset in GetOffsets(includeCorners))
+            {
+                var checkPosition = Center.MapGridPosition + adjacentOffset.Offset;
+                if (
+                    unitPositions.TryGetValue(checkPosition, out var adjacentUnit)
+                    && adjacentUnit != null
+                    && !adjacentUnit.IsDefeatedInCurrentBattle
+                    && adjacentUnit != Center
+                )
+                {
+                    SetUnit(adjacentOffset.Direction, adjacentUnit);
+                }
+            }
+
+            return true;
+        }
+
+        private void ClearAdjacentUnits()
+        {
+            TopLeft = null;
+            TopCenter = null;
+            TopRight = null;
+            CenterLeft = null;
+            CenterRight = null;
+            BottomLeft = null;
+            BottomCenter = null;
+            BottomRight = null;
         }
 
         // Get unit at specific direction

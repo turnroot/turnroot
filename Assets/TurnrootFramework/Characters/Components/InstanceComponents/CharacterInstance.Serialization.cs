@@ -29,6 +29,7 @@ namespace Turnroot.Characters
                     NeedsPersist = true;
                 }
             }
+            AutoEquipSkillsWithinLimit();
 
             RegisterUniqueInstance();
             HandleCurrentClass();

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain.Components.Battle;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles;
@@ -55,9 +56,8 @@ namespace Turnroot.Gameplay.Brain
             || BattleContext.Participants.ThirdPartyInRange.Contains(target);
 
         private bool IsStealTargetInRange(CharacterInstance target) =>
-            BattleContext.Participants.EnemiesInRange.Contains(target)
-            || BattleContext.Participants.AlliesInRange.Contains(target)
-            || BattleContext.Participants.ThirdPartyInRange.Contains(target);
+            target != null
+            && BattleContext.Participants?.AdjacentUnits?.GetAllAdjacent().Contains(target) == true;
 
         #endregion
     }

@@ -16,6 +16,7 @@ namespace Turnroot.Skills.Nodes
         private BattleContext context;
         private HashSet<SkillNode> visitedNodes;
         private SkillNode currentNode;
+        private bool _completionPublished;
 
         public SkillGraphExecutor(SkillGraph graph)
         {
@@ -38,13 +39,19 @@ namespace Turnroot.Skills.Nodes
             context.Skill.CurrentSkillGraph = graph;
             context.SetCustomData("_executor", this);
 
-            // Find all entry point nodes (nodes with no input connections)
-            var entryNodes = FindEntryNodes();
-
-            foreach (var entryNode in entryNodes)
+            try
             {
-                ExecuteNode(entryNode);
-                ContinueFromNode(entryNode);
+                // Find all entry point nodes (nodes with no input connections)
+                var entryNodes = FindEntryNodes();
+                foreach (var entryNode in entryNodes)
+                {
+                    ExecuteNode(entryNode);
+                    ContinueFromNode(entryNode);
+                }
+            }
+            finally
+            {
+                PublishExecutionCompleted();
             }
         }
 
@@ -59,6 +66,21 @@ namespace Turnroot.Skills.Nodes
                 ContinueFromNode(currentNode);
                 currentNode = null;
             }
+        }
+
+        private void PublishExecutionCompleted()
+        {
+            if (_completionPublished)
+            {
+                return;
+            }
+
+            _completionPublished = true;
+            context?.Brain?.PublishSkillExecutionCompleted(
+                context.Unit?.UnitInstance,
+                context.Skill?.CurrentSkill,
+                graph
+            );
         }
 
         /// <summary>
