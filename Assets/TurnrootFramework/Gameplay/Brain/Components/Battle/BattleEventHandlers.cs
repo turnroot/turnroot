@@ -233,11 +233,6 @@ namespace Turnroot.Gameplay.Brain
             Objects.ObjectItemInstance bestItem = null;
             int bestValue = -1;
 
-            if (target.CharacterTemplate?.IsUnique == true)
-            {
-                // TODO: Define stealability metadata and selection rules for unique enemies.
-            }
-
             foreach (var item in targetInventory.InventoryItems)
             {
                 if (!context.IsItemStealable(target, item))

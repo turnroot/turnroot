@@ -3,6 +3,7 @@ using System.Linq;
 using NaughtyAttributes;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Brain;
+using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
 using Turnroot.Gameplay.PlayerSettings;
 using Turnroot.GameSettings;
 using Turnroot.Utilities;
@@ -12,18 +13,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
 {
     public partial class EnemySupervisor : MonoBehaviour
     {
-        private static readonly Vector2Int[] AdjacentSpawnOffsets =
-        {
-            new(-1, -1),
-            new(-1, 0),
-            new(-1, 1),
-            new(0, -1),
-            new(0, 1),
-            new(1, -1),
-            new(1, 0),
-            new(1, 1),
-        };
-
         [System.Serializable]
         public struct GenericEnemyStartingPlacement
         {
@@ -231,9 +220,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 return false;
             }
 
-            foreach (var offset in AdjacentSpawnOffsets)
+            bool includeCorners = GameplayGeneralSettings.Instance?.AdjacencyIncludesCorners ?? false;
+            foreach (var adjacentOffset in Adjacency.GetOffsets(includeCorners))
             {
-                var candidatePosition = requestedPosition + offset;
+                var candidatePosition = requestedPosition + adjacentOffset.Offset;
                 var candidatePoint = mapGrid.GetGridPoint(
                     candidatePosition.x,
                     candidatePosition.y

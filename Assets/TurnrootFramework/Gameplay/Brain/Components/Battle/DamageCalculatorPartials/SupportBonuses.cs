@@ -47,10 +47,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return total;
             }
 
-            var adjacency =
-                (context.Participants.AdjacentUnits?.Center == unit)
-                    ? context.Participants.AdjacentUnits
-                    : new Locations.Adjacency(unit);
+            var cachedAdjacency = context.Participants.AdjacentUnits;
+            Locations.Adjacency adjacency;
+            if (cachedAdjacency?.Center == unit)
+            {
+                adjacency = cachedAdjacency;
+            }
+            else
+            {
+                adjacency = new Locations.Adjacency(unit);
+                adjacency.Populate(context);
+            }
 
             var adjacentList = ListPool<CharacterInstance>.Get();
             adjacency.GetAllAdjacentNonAlloc(adjacentList);

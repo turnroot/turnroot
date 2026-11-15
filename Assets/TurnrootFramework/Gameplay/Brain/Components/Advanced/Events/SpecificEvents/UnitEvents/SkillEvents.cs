@@ -1,6 +1,7 @@
 using System;
 using Turnroot.Characters;
 using Turnroot.Skills;
+using Turnroot.Skills.Nodes;
 
 namespace Turnroot.Gameplay.Brain
 {
@@ -9,6 +10,7 @@ namespace Turnroot.Gameplay.Brain
         #region Skill Events
 
         public event Action<CharacterInstance, Skill> OnSkillTriggered;
+        public event Action<CharacterInstance, Skill, SkillGraph> OnSkillExecutionCompleted;
         public event Action<CharacterInstance, Skill> OnSkillEquipped;
         public event Action<CharacterInstance, Skill> OnSkillUnequipped;
 
@@ -19,6 +21,12 @@ namespace Turnroot.Gameplay.Brain
 
         public void PublishSkillTriggered(CharacterInstance character, Skill skill) =>
             OnSkillTriggered?.Invoke(character, skill);
+
+        public void PublishSkillExecutionCompleted(
+            CharacterInstance character,
+            Skill skill,
+            SkillGraph graph
+        ) => OnSkillExecutionCompleted?.Invoke(character, skill, graph);
 
         public void PublishSkillEquipped(CharacterInstance character, Skill skill) =>
             OnSkillEquipped?.Invoke(character, skill);

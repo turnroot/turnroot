@@ -81,6 +81,10 @@ namespace Turnroot.GameSettings
         public int DoubleAttackSpeedThreshold = 4;
 
         [BoxGroup("Combat Mechanics")]
+        [Tooltip("Include diagonal tiles in unit adjacency")]
+        public bool AdjacencyIncludesCorners = false;
+
+        [BoxGroup("Combat Mechanics")]
         public SupportBonus SupportBonusC = new()
         {
             Hit = 2,

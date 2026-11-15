@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Gameplay.Combat.FundamentalComponents.Battles.Locations;
@@ -9,47 +10,58 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
 {
     public class UnitContext
     {
-        public CharacterInstance UnitInstance { get; set; }
+        private CharacterInstance _unitInstance;
 
-        public bool UnitCanSteal(SkillContext skillContext)
+        public event Action<CharacterInstance> UnitInstanceChanged;
+
+        public CharacterInstance UnitInstance
         {
-            var skills = skillContext.ActiveSkillGraphs;
-            bool hasStealSkill = false;
-            if (skills != null)
+            get => _unitInstance;
+            set
             {
-                foreach (var skill in skills)
+                _unitInstance = value;
+                UnitInstanceChanged?.Invoke(value);
+            }
+        }
+
+        public bool UnitCanSteal()
+        {
+            var skillInstances = UnitInstance?.SkillInstances;
+            if (skillInstances == null)
+            {
+                return false;
+            }
+
+            foreach (var skillInstance in skillInstances)
+            {
+                if (skillInstance?.Equipped != true)
                 {
-                    if (skill?.nodes == null)
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    foreach (var node in skill.nodes)
-                    {
-                        if (node is StealNode)
-                        {
-                            hasStealSkill = true;
-                            break;
-                        }
-                    }
+                var nodes = skillInstance?.SkillTemplate?.BehaviorGraph?.nodes;
+                if (nodes == null)
+                {
+                    continue;
+                }
 
-                    if (hasStealSkill)
+                foreach (var node in nodes)
+                {
+                    if (node is StealNode)
                     {
-                        break;
+                        return true;
                     }
                 }
             }
 
-            return hasStealSkill;
+            return false;
         }
     }
 
     public class SkillContext
     {
         public Skill CurrentSkill { get; set; }
-
-        // TODO: Refresh these from UnitContext.UnitInstance.SkillInstances when the active unit changes.
-        // They currently contain battle-start skills registered by SkillTriggerRouter instead.
+        // These are refreshed from UnitContext.UnitInstance.SkillInstances whenever the context unit changes.
         public List<Skill> ActiveSkills { get; set; }
         public List<SkillGraph> ActiveSkillGraphs { get; set; }
         public Dictionary<Skill, int> SkillUseCount { get; set; }

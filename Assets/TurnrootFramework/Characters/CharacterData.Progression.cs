@@ -180,8 +180,12 @@ namespace Turnroot.Characters
             [SerializeField]
             private int _slotIndex = 1;
 
+            [SerializeField]
+            private bool _stealable;
+
             public ObjectItem Item => _item;
             public int SlotIndex => _slotIndex;
+            public bool Stealable => _stealable;
         }
 
         /// <summary>
