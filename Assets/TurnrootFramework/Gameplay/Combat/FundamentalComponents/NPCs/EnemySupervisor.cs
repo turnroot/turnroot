@@ -12,13 +12,15 @@ using UnityEngine;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
 {
-    [RequireComponent(typeof(BattleGameObject))]
     /// <summary>
     /// Controls when and where enemies spawn. Handles pre-battle setup for enemy units, such as setting their initial positions and stats, and
     /// mid-battle reinforcement
     /// </summary>
+    [RequireComponent(typeof(BattleGameObject))]
     public partial class EnemySupervisor : MonoBehaviour
     {
+        #region Configuration
+
         [HideInInspector]
         public BattleGameObject BattleGameObject => GetComponent<BattleGameObject>();
 
@@ -27,11 +29,22 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
         )]
         public GenericEnemyPlacementContainer GenericEnemyStartingPlacements;
 
+        [InfoBox(
+            "Unique enemies will spawn exactly once, exactly as they are configured, with no changes to stats, weapons, or classes."
+        )]
+        public UniqueEnemyPlacementContainer UniqueEnemyStartingPlacements;
+
         [HideInInspector]
         public Dictionary<
             GenericEnemyStartingPlacement,
             CharacterInstance
         > EnemyInstancesByStartingPlacement;
+
+        [HideInInspector]
+        public Dictionary<
+            UniqueEnemyStartingPlacement,
+            CharacterInstance
+        > UniqueEnemyInstancesByStartingPlacement;
 
         [HideInInspector]
         public GameplayPlayerSettings.DifficultyLevel CurrentDifficulty;
@@ -46,16 +59,49 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
         ]
         public float GenericEnemyDifficultyMultiplierForThisBattle = 1f;
 
+        #endregion
+
+        #region Player Team Details
+
         public PlayerTeamDetails ComputeCurrentPlayerTeamDetails(
             PlayerTeamRosterInstance CurrentPlayerTeamRosterInstance
         ) => ComputeCurrentPlayerTeamDetails(CurrentPlayerTeamRosterInstance?.Instances);
 
+        #endregion
+
+        #region Pre-Battle Enemy Initialization
+
         public OperationResult InitializePreBattleEnemies()
         {
             var failures = new List<string>();
+            EnemyInstancesByStartingPlacement ??=
+                new Dictionary<GenericEnemyStartingPlacement, CharacterInstance>();
+            UniqueEnemyInstancesByStartingPlacement =
+                new Dictionary<UniqueEnemyStartingPlacement, CharacterInstance>();
 
-            foreach (var placement in GenericEnemyStartingPlacements.placements)
+            SpawnGenericEnemyPlacements(failures);
+            SpawnUniqueEnemyPlacements(failures);
+
+            UpdateGenericEnemiesBasedOnPlayerTeamDetails();
+
+            return failures.Count == 0
+                ? OperationResult.Successful()
+                : OperationResult.Failure(string.Join("; ", failures));
+        }
+
+        private void SpawnGenericEnemyPlacements(List<string> failures)
+        {
+            foreach (
+                var placement in GenericEnemyStartingPlacements?.placements
+                    ?? Array.Empty<GenericEnemyStartingPlacement>()
+            )
             {
+                if (placement.Enemy == null)
+                {
+                    failures.Add("Generic enemy placement has no CharacterData assigned");
+                    continue;
+                }
+
                 if (placement.MinimumDifficultyLevelToSpawn > CurrentDifficulty)
                 {
                     continue;
@@ -75,13 +121,57 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                     );
                 }
             }
-
-            UpdateGenericEnemiesBasedOnPlayerTeamDetails();
-
-            return failures.Count == 0
-                ? OperationResult.Successful()
-                : OperationResult.Failure(string.Join("; ", failures));
         }
+
+        private void SpawnUniqueEnemyPlacements(List<string> failures)
+        {
+            foreach (
+                var placement in UniqueEnemyStartingPlacements?.placements
+                    ?? Array.Empty<UniqueEnemyStartingPlacement>()
+            )
+            {
+                if (placement.Enemy == null)
+                {
+                    failures.Add("Unique enemy placement has no CharacterData assigned");
+                    continue;
+                }
+
+                if (!placement.Enemy.IsUnique)
+                {
+                    $"{placement.Enemy.DisplayName} is not unique but is in UniqueEnemyStartingPlacements. Skipping this placement.".LogWarning();
+                    continue;
+                }
+
+                if (placement.MinimumDifficultyLevelToSpawn > CurrentDifficulty)
+                {
+                    continue;
+                }
+
+                // TODO: Respect SpawnOnlyOnEvent by deferring this placement to its event.
+                if (
+                    UniqueEnemyInstancesByStartingPlacement.Values.Any(instance =>
+                        instance?.CharacterTemplate == placement.Enemy
+                    )
+                )
+                {
+                    $"Unique enemy {placement.Enemy.DisplayName} is configured more than once. Skipping duplicate placement.".LogWarning();
+                    continue;
+                }
+
+                var createResult = EnsureAndSpawnUniqueEnemyInstance(placement);
+                if (!createResult.Success)
+                {
+                    failures.Add(
+                        createResult.ErrorMessage
+                            ?? $"Failed to create/spawn unique enemy {placement.Enemy.name}"
+                    );
+                }
+            }
+        }
+
+        #endregion
+
+        #region Generic Enemy Scaling and Loadouts
 
         private Dictionary<CharacterInstance, int> CalculateAdjustedLevels()
         {
@@ -188,7 +278,6 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                     ? adjustedLevels[instance]
                     : instance.CurrentLevel;
 
-
                 var loadout = LevelUpAsNeeded(instance, adjustedLevel);
                 EquipLoadout(loadout, instance);
             }
@@ -258,5 +347,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 instance.InventoryInstance.AutoEquipNextWeapon();
             }
         }
+
+        #endregion
     }
 }
