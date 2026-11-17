@@ -35,7 +35,7 @@ namespace Turnroot.Gameplay.Brain
                     HandleAttackActionChoosingTargetState();
                     break;
 
-                case PlayerTurnStates.ChoosingAction:
+                case PlayerTurnStates.ChoosingActionAfterMove:
                     HandleChoosingActionState();
                     break;
 
@@ -117,7 +117,7 @@ namespace Turnroot.Gameplay.Brain
             if (IsDestinationSameAsUnitPosition(_pendingDestination))
             {
                 _pendingDestination = null;
-                _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
+                _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingActionAfterMove);
                 return;
             }
 
@@ -155,7 +155,6 @@ namespace Turnroot.Gameplay.Brain
             _validMoveTiles.Clear();
             _validAttackTiles.Clear();
             Brain.cursorBrain.ClearAllowedPositions();
-
         }
 
         #endregion

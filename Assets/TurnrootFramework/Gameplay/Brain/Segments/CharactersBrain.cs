@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Turnroot.Characters;
 using Turnroot.Characters.CharacterClass;
+using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
 using UnityEngine;
@@ -75,6 +76,7 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnStateChanged += HandleStateChanged;
             _brain.OnHubCharacterInteracted += HandleHubCharacterInteracted;
             _brain.OnHubCharacterTalked += HandleHubCharacterTalked;
+            _brain.OnSupportConversationCompleted += HandleSupportConversationCompleted;
             SubscribeBlacksmithItemEvents();
         }
 
@@ -93,9 +95,41 @@ namespace Turnroot.Gameplay.Brain
             _brain.OnStateChanged -= HandleStateChanged;
             _brain.OnHubCharacterInteracted -= HandleHubCharacterInteracted;
             _brain.OnHubCharacterTalked -= HandleHubCharacterTalked;
+            _brain.OnSupportConversationCompleted -= HandleSupportConversationCompleted;
             UnsubscribeBlacksmithItemEvents();
         }
         #endregion
+
+        private void HandleSupportConversationCompleted(
+            CharacterInstance source,
+            CharacterData partner,
+            string supportLevel,
+            Conversation conversation
+        )
+        {
+            try
+            {
+                var relationship = source.GetSupportRelationship(partner);
+                if (
+                    relationship == null
+                    || !relationship.IncreaseSupportLevel(source, Brain.conversationalBrain)
+                )
+                {
+                    $"CharactersBrain: Could not advance support rank for {source.CharacterTemplate?.name}/{partner.name}.".LogWarning();
+                    return;
+                }
+
+                source.NeedsPersist = true;
+                if (source.HasSupportConversationAvailable(partner))
+                {
+                    Brain.PublishSupportConversationAvailable(relationship);
+                }
+            }
+            catch (Exception ex)
+            {
+                $"CharactersBrain: Exception in HandleSupportConversationCompleted: {ex}".LogError();
+            }
+        }
 
         #region Inventory Event Handlers
         private void HandleItemEquipped(
@@ -103,10 +137,6 @@ namespace Turnroot.Gameplay.Brain
             Objects.ObjectItemInstance item
         )
         {
-            if (character == null)
-            {
-                return;
-            }
             character.GetAvailableWeapons();
 
             $"CharactersBrain: Updated weapon cache for {character.Id} after equip.".LogInfo();
@@ -117,10 +147,6 @@ namespace Turnroot.Gameplay.Brain
             Objects.ObjectItemInstance item
         )
         {
-            if (character == null)
-            {
-                return;
-            }
             character.GetAvailableWeapons();
 
             $"CharactersBrain: Updated weapon cache for {character.Id} after unequip.".LogInfo();

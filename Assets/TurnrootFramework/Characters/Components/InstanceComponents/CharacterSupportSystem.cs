@@ -1,4 +1,6 @@
 using Turnroot.Characters.Components.Support;
+using Turnroot.Characters.Subclasses;
+using Turnroot.Conversations;
 using Turnroot.Utilities;
 
 namespace Turnroot.Characters
@@ -11,6 +13,63 @@ namespace Turnroot.Characters
         #region Support Relationships
         public SupportRelationshipInstance GetSupportRelationship(CharacterData character) =>
             _supportRelationships.Find(s => s.Character.Matches(character));
+
+        public bool HasSupportConversationAvailable(CharacterData character) =>
+            TryGetAvailableSupportConversation(character, out _, out _);
+
+        public bool TryGetAvailableSupportConversation(
+            CharacterData character,
+            out Conversation conversation,
+            out string supportLevel
+        )
+        {
+            conversation = null;
+            supportLevel = null;
+
+            if (character == null || _characterTemplate == null)
+            {
+                return false;
+            }
+
+            var relationship = GetSupportRelationship(character);
+            if (
+                relationship == null
+                || relationship.SupportPoints < 100f
+                || !CommonAncestors.LeveledLetteredField.IsValid(relationship.CurrentLevel)
+                || !CommonAncestors.LeveledLetteredField.IsValid(relationship.MaxLevel)
+            )
+            {
+                return false;
+            }
+
+            var nextLevel = new SupportLevels { Value = relationship.CurrentLevel };
+            nextLevel.Increase();
+            if (
+                nextLevel.Value == relationship.CurrentLevel
+                || new SupportLevels { Value = relationship.MaxLevel }.CompareTo(nextLevel.Value)
+                    < 0
+            )
+            {
+                return false;
+            }
+
+            var table = SupportRelationshipTable.Instance;
+            if (
+                !table.TryGetSupportConversation(
+                    _characterTemplate,
+                    character,
+                    nextLevel.Value,
+                    out conversation
+                )
+            )
+            {
+                conversation = null;
+                return false;
+            }
+
+            supportLevel = nextLevel.Value;
+            return true;
+        }
 
         public OperationResult AddSupportRelationship(SupportRelationship template)
         {

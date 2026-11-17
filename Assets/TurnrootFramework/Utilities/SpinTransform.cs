@@ -32,6 +32,6 @@ namespace Turnroot.Utilities
             }
         }
 
-        private void Update() => transform.Rotate(spinAxis, spinSpeed * UnityEngine.Time.deltaTime);
+        private void Update() => transform.Rotate(spinAxis, spinSpeed * Time.deltaTime);
     }
 }

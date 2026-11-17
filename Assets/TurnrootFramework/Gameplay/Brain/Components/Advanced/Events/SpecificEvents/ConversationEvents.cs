@@ -1,4 +1,5 @@
 using System;
+using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Conversations;
 
@@ -11,6 +12,13 @@ namespace Turnroot.Gameplay.Brain
         public event Action<SupportRelationshipInstance> OnSupportPointsChanged;
         public event Action<SupportRelationshipInstance> OnSupportConversationAvailable;
         public event Action<SupportRelationshipInstance> OnSLevelSupportConversationAvailable;
+        public event Action<
+            CharacterInstance,
+            CharacterData,
+            string,
+            Conversation
+        > OnSupportConversationCompleted;
+        public event Action<CharacterData, CharacterData, string> OnSupportConversationMarkedCompleted;
         public event Action<Conversation> OnConversationStarted;
         public event Action<Conversation> OnConversationEnded;
         public event Action<ConversationLayer> OnConversationLayerStarted;
@@ -30,6 +38,25 @@ namespace Turnroot.Gameplay.Brain
         public void PublishSLevelSupportConversationAvailable(
             SupportRelationshipInstance relationship
         ) => OnSLevelSupportConversationAvailable?.Invoke(relationship);
+
+        public void PublishSupportConversationCompleted(
+            CharacterInstance source,
+            CharacterData partner,
+            string supportLevel,
+            Conversation conversation
+        ) =>
+            OnSupportConversationCompleted?.Invoke(
+                source,
+                partner,
+                supportLevel,
+                conversation
+            );
+
+        public void PublishSupportConversationMarkedCompleted(
+            CharacterData character1,
+            CharacterData character2,
+            string supportLevel
+        ) => OnSupportConversationMarkedCompleted?.Invoke(character1, character2, supportLevel);
 
         public void PublishConversationStarted(Conversation conversation) =>
             OnConversationStarted?.Invoke(conversation);

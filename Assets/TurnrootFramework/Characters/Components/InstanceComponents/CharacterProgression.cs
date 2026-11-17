@@ -20,80 +20,26 @@ namespace Turnroot.Characters
         /// Internal method - use CharactersBrain.LevelUpCharacter() to publish events.
         public OperationResult LevelUp()
         {
-            bool ok = ValidationHelper.ValidateNotNull(
-                "CharacterInstance.LevelUp",
-                out var missing,
-                (_currentClass, nameof(_currentClass)),
-                (_currentClass?.ClassData, "classData")
-            );
-
-            if (!ok)
+            var validationResult = ValidateLevelUp();
+            if (!validationResult.Success)
             {
-                var msg = $"CharacterInstance.LevelUp failed: missing {string.Join(", ", missing)}";
-                return OperationResult.Failure(msg);
+                return validationResult;
             }
 
             _currentLevel++;
+            UpdateLevelStat();
 
-            // keep the bounded Level stat in sync with our internal level counter.
-            var levelStat = GetBoundedStat(BoundedStatType.Level);
-            if (levelStat != null)
+            var hpStatResult = GetHealthStatForLevelUp(out var hpStat);
+            if (!hpStatResult.Success)
             {
-                // make sure max is at least as high as the new level so it can increase
-                if (levelStat.Max < _currentLevel)
-                {
-                    levelStat.SetMax(_currentLevel);
-                }
-
-                levelStat.SetCurrent(_currentLevel);
+                return hpStatResult;
             }
 
-            var hpStat = GetBoundedStat(BoundedStatType.Health);
-            if (hpStat == null)
-            {
-                return OperationResult.Failure("CharacterInstance.LevelUp: HP stat not found");
-            }
-
-            // HP growth roll based on combined personal + class rates
-            float hpGrowth = GetEffectiveHpGrowthRate();
-            float roll = UnityEngine.Random.Range(0f, 100f);
-            if (hpGrowth > 100f && GameplayGeneralSettings.Instance.LevelUpExtraGrowthChance)
-            {
-                // auto +1 then roll for extra; increase both max and current so stat can grow
-                hpStat.SetMax(hpStat.Max + 1f);
-                hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
-                hpGrowth -= 100f; // remaining chance for the extra roll
-            }
-            if (roll < hpGrowth)
-            {
-                // grow HP normally (max and current)
-                hpStat.SetMax(hpStat.Max + 1f);
-                hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
-            }
+            ApplyHpGrowth(hpStat);
 
             var growthRates = GetEffectiveGrowthRates();
-
-            var caps =
-                _currentClass?.ClassData.Stats?.StatCaps ?? new List<UnboundedStatModifier>();
-
-            var increasedStats = StatApplicationHelper.ApplyStatGrowths(
-                growthRates,
-                new List<UnboundedStatModifier>(),
-                this,
-                caps
-            );
-
-            // old behaviour of bonus HP when every unbounded stat increased can be preserved
-            if (
-                Enum.GetValues(typeof(UnboundedStatType))
-                    .Cast<UnboundedStatType>()
-                    .Where(statType => statType != UnboundedStatType.Movement)
-                    .All(increasedStats.Contains)
-            )
-            {
-                hpStat.SetMax(hpStat.Max + 1f);
-                hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
-            }
+            var increasedStats = ApplyUnboundedGrowth(growthRates);
+            ApplyBonusHpForFullGrowth(hpStat, increasedStats);
 
             // Persist the new stat values immediately so they survive the session.
             PersistStatsToLtm();
@@ -101,25 +47,132 @@ namespace Turnroot.Characters
             return OperationResult.Successful();
         }
 
+        private OperationResult ValidateLevelUp()
+        {
+            bool ok = ValidationHelper.ValidateNotNull(
+                "CharacterInstance.LevelUp",
+                out var missing,
+                (_currentClass, nameof(_currentClass)),
+                (_currentClass?.ClassData, "classData")
+            );
+
+            return ok
+                ? OperationResult.Successful()
+                : OperationResult.Failure(
+                    $"CharacterInstance.LevelUp failed: missing {string.Join(", ", missing)}"
+                );
+        }
+
+        private OperationResult GetHealthStatForLevelUp(out BoundedCharacterStat hpStat)
+        {
+            hpStat = GetBoundedStat(BoundedStatType.Health);
+            return hpStat != null
+                ? OperationResult.Successful()
+                : OperationResult.Failure("CharacterInstance.LevelUp: HP stat not found");
+        }
+
+        private void UpdateLevelStat()
+        {
+            var levelStat = GetBoundedStat(BoundedStatType.Level);
+            if (levelStat == null)
+            {
+                return;
+            }
+
+            if (levelStat.Max < _currentLevel)
+            {
+                levelStat.SetMax(_currentLevel);
+            }
+
+            levelStat.SetCurrent(_currentLevel);
+        }
+
+        private void ApplyHpGrowth(BoundedCharacterStat hpStat)
+        {
+            float hpGrowth = GetEffectiveHpGrowthRate();
+            float roll = UnityEngine.Random.Range(0f, 100f);
+            if (hpGrowth > 100f && GameplayGeneralSettings.Instance.LevelUpExtraGrowthChance)
+            {
+                IncreaseHp(hpStat);
+                hpGrowth -= 100f;
+            }
+
+            if (roll < hpGrowth)
+            {
+                IncreaseHp(hpStat);
+            }
+        }
+
+        private List<UnboundedStatType> ApplyUnboundedGrowth(
+            List<UnboundedStatModifier> growthRates
+        )
+        {
+            var caps =
+                _currentClass?.ClassData.Stats?.StatCaps ?? new List<UnboundedStatModifier>();
+            return StatApplicationHelper.ApplyStatGrowths(
+                growthRates,
+                new List<UnboundedStatModifier>(),
+                this,
+                caps
+            );
+        }
+
+        private void ApplyBonusHpForFullGrowth(
+            BoundedCharacterStat hpStat,
+            List<UnboundedStatType> increasedStats
+        )
+        {
+            if (
+                Enum.GetValues(typeof(UnboundedStatType))
+                    .Cast<UnboundedStatType>()
+                    .Where(statType => statType != UnboundedStatType.Movement)
+                    .All(increasedStats.Contains)
+            )
+            {
+                IncreaseHp(hpStat);
+            }
+        }
+
+        private static void IncreaseHp(BoundedCharacterStat hpStat)
+        {
+            hpStat.SetMax(hpStat.Max + 1f);
+            hpStat.SetCurrent(hpStat.GetCurrent() + 1f);
+        }
+
         private List<UnboundedStatModifier> GetEffectiveGrowthRates()
         {
+            var effectiveRates = GetPersonalGrowthRates();
+            AddMissingGrowthRates(effectiveRates);
+            ApplyCustomGrowthRates(effectiveRates, LoadCustomGrowthRatesFromLtm());
+            ApplyClassGrowthRateModifiers(effectiveRates);
+            return effectiveRates;
+        }
+
+        private List<UnboundedStatModifier> GetPersonalGrowthRates()
+        {
             var effectiveRates = new List<UnboundedStatModifier>();
+            if (_characterTemplate?.PersonalGrowthRates == null)
+            {
+                return effectiveRates;
+            }
+
+            effectiveRates.AddRange(
+                _characterTemplate.PersonalGrowthRates.FindAll(r =>
+                    !r.isBounded
+                    && Enum.IsDefined(typeof(UnboundedStatType), r.unboundedStatType)
+                    && r.unboundedStatType != UnboundedStatType.Movement
+                )
+            );
+            return effectiveRates;
+        }
+
+        private void AddMissingGrowthRates(List<UnboundedStatModifier> effectiveRates)
+        {
             var growthStatTypes = Enum
                 .GetValues(typeof(UnboundedStatType))
                 .Cast<UnboundedStatType>()
                 .Where(statType => statType != UnboundedStatType.Movement)
                 .ToArray();
-
-            if (_characterTemplate?.PersonalGrowthRates != null)
-            {
-                effectiveRates.AddRange(
-                    _characterTemplate.PersonalGrowthRates.FindAll(r =>
-                        !r.isBounded
-                        && Enum.IsDefined(typeof(UnboundedStatType), r.unboundedStatType)
-                        && r.unboundedStatType != UnboundedStatType.Movement
-                    )
-                );
-            }
 
             foreach (var statType in growthStatTypes)
             {
@@ -128,97 +181,103 @@ namespace Turnroot.Characters
                     effectiveRates.Add(new UnboundedStatModifier(statType, 0f));
                 }
             }
+        }
 
-            // LTM may override growth values, but never changes which stats grow.
-            var customRates = LoadCustomGrowthRatesFromLtm();
-            if (customRates != null)
+        private static void ApplyCustomGrowthRates(
+            List<UnboundedStatModifier> effectiveRates,
+            List<UnboundedStatModifier> customRates
+        )
+        {
+            if (customRates == null)
             {
-                foreach (var customRate in customRates)
-                {
-                    int index = effectiveRates.FindIndex(e =>
-                        e.unboundedStatType == customRate.unboundedStatType
-                    );
-                    if (index >= 0)
-                    {
-                        effectiveRates[index] = customRate;
-                    }
-                    else
-                    {
-                        effectiveRates.Add(customRate);
-                    }
-                }
+                return;
             }
 
+            foreach (var customRate in customRates)
+            {
+                int index = effectiveRates.FindIndex(e =>
+                    e.unboundedStatType == customRate.unboundedStatType
+                );
+                if (index >= 0)
+                {
+                    effectiveRates[index] = customRate;
+                }
+                else
+                {
+                    effectiveRates.Add(customRate);
+                }
+            }
+        }
+
+        private void ApplyClassGrowthRateModifiers(List<UnboundedStatModifier> effectiveRates)
+        {
             var classMods = _currentClass?.ClassData.Stats?.GrowthRateModifiers;
-            if (classMods != null)
+            if (classMods == null)
             {
-                foreach (var classMod in classMods)
-                {
-                    if (
-                        classMod.isBounded
-                        || !Enum.IsDefined(typeof(UnboundedStatType), classMod.unboundedStatType)
-                        || classMod.unboundedStatType == UnboundedStatType.Movement
-                    )
-                    {
-                        continue;
-                    }
-
-                    int index = effectiveRates.FindIndex(e =>
-                        e.unboundedStatType == classMod.unboundedStatType
-                    );
-                    if (index != -1)
-                    {
-                        var existing = effectiveRates[index];
-                        effectiveRates[index] = new UnboundedStatModifier(
-                            classMod.unboundedStatType,
-                            existing.value + classMod.value
-                        );
-                    }
-                    else
-                    {
-                        effectiveRates.Add(classMod);
-                    }
-                }
+                return;
             }
 
-            return effectiveRates;
+            foreach (var classMod in classMods)
+            {
+                if (
+                    classMod.isBounded
+                    || !Enum.IsDefined(typeof(UnboundedStatType), classMod.unboundedStatType)
+                    || classMod.unboundedStatType == UnboundedStatType.Movement
+                )
+                {
+                    continue;
+                }
+
+                int index = effectiveRates.FindIndex(e =>
+                    e.unboundedStatType == classMod.unboundedStatType
+                );
+                if (index != -1)
+                {
+                    var existing = effectiveRates[index];
+                    effectiveRates[index] = new UnboundedStatModifier(
+                        classMod.unboundedStatType,
+                        existing.value + classMod.value
+                    );
+                }
+                else
+                {
+                    effectiveRates.Add(classMod);
+                }
+            }
         }
 
         private float GetEffectiveHpGrowthRate()
         {
-            float hpRate = 0f;
-
-            // First, check LTM for custom HP growth rate
             var customHpRate = LoadCustomHpGrowthRateFromLtm();
-            if (customHpRate.HasValue)
+            float hpRate = customHpRate ?? GetPersonalHpGrowthRate();
+            return hpRate + GetClassHpGrowthRate();
+        }
+
+        private float GetPersonalHpGrowthRate()
+        {
+            if (_characterTemplate?.PersonalGrowthRates == null)
             {
-                hpRate = customHpRate.Value;
-            }
-            else if (_characterTemplate?.PersonalGrowthRates != null)
-            {
-                // Fall back to template HP growth rate
-                var entry = _characterTemplate.PersonalGrowthRates.Find(r =>
-                    r.isBounded && r.boundedStatType == BoundedStatType.Health
-                );
-                if (entry.value != 0f)
-                {
-                    hpRate += entry.value;
-                }
+                return 0f;
             }
 
+            var entry = _characterTemplate.PersonalGrowthRates.Find(r =>
+                r.isBounded && r.boundedStatType == BoundedStatType.Health
+            );
+            return entry.value != 0f ? entry.value : 0f;
+        }
+
+        private float GetClassHpGrowthRate()
+        {
             var classMods = _currentClass?.ClassData.Stats?.GrowthRateModifiers;
-            if (classMods != null)
+            if (classMods == null)
             {
-                var centry = classMods.Find(r =>
-                    r.isBounded && r.boundedStatType == BoundedStatType.Health
-                );
-                if (centry.value != 0f)
-                {
-                    hpRate += centry.value;
-                }
+                return 0f;
             }
 
-            return hpRate;
+            var entry = classMods.Find(r =>
+                r.isBounded && r.boundedStatType == BoundedStatType.Health
+            );
+            return entry.value != 0f ? entry.value : 0f;
         }
 
         private List<UnboundedStatModifier> LoadCustomGrowthRatesFromLtm()
@@ -244,38 +303,40 @@ namespace Turnroot.Characters
                     return null;
                 }
 
-                var rates = new List<UnboundedStatModifier>();
-                foreach (var kvp in data.growthRates)
-                {
-                    // Skip HP, it's handled separately
-                    if (kvp.Key == "Health")
-                    {
-                        continue;
-                    }
-
-                    if (System.Enum.TryParse<UnboundedStatType>(kvp.Key, out var statType))
-                    {
-                        if (
-                            !Enum.IsDefined(typeof(UnboundedStatType), statType)
-                            || statType == UnboundedStatType.Movement
-                        )
-                        {
-                            continue;
-                        }
-
-                        rates.Add(new UnboundedStatModifier(statType, kvp.Value));
-                    }
-                }
-
-                return rates.Count > 0 ? rates : null;
+                return ConvertCustomGrowthRates(data.growthRates);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 $"Failed to load custom growth rates from LTM: {ex.Message}".LogWarning(
                     "CharacterInstance"
                 );
                 return null;
             }
+        }
+
+        private static List<UnboundedStatModifier> ConvertCustomGrowthRates(
+            Dictionary<string, float> growthRates
+        )
+        {
+            var rates = new List<UnboundedStatModifier>();
+            foreach (var kvp in growthRates)
+            {
+                if (kvp.Key == "Health")
+                {
+                    continue;
+                }
+
+                if (
+                    Enum.TryParse<UnboundedStatType>(kvp.Key, out var statType)
+                    && Enum.IsDefined(typeof(UnboundedStatType), statType)
+                    && statType != UnboundedStatType.Movement
+                )
+                {
+                    rates.Add(new UnboundedStatModifier(statType, kvp.Value));
+                }
+            }
+
+            return rates.Count > 0 ? rates : null;
         }
 
         private float? LoadCustomHpGrowthRateFromLtm()
@@ -301,7 +362,7 @@ namespace Turnroot.Characters
                     ? null
                     : data.growthRates["Health"];
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 $"Failed to load custom HP growth rate from LTM: {ex.Message}".LogWarning(
                     "CharacterInstance"
@@ -310,7 +371,7 @@ namespace Turnroot.Characters
             }
         }
 
-        [System.Serializable]
+        [Serializable]
         private class GrowthRatesDto
         {
             public Dictionary<string, float> growthRates;

@@ -92,11 +92,6 @@ namespace Turnroot.Characters.Components.Support
         public void Increase(float points)
         {
             _supportPoints += points * _supportSpeed * _supportGainMultiplier;
-            while (_supportPoints >= 100f)
-            {
-                _supportLevels.Increase();
-                _supportPoints -= 100f;
-            }
         }
 
         public void Decrease(float points)
@@ -114,19 +109,36 @@ namespace Turnroot.Characters.Components.Support
         /// Call only when <see cref="SupportPoints"/> >= 100.
         /// Fires <see cref="Brain.PublishSupportLevelIncreased"/> via the conversational brain.
         /// </summary>
-        public void IncreaseSupportLevel(
+        public bool IncreaseSupportLevel(
             CharacterInstance owner,
             Gameplay.Brain.ConversationalBrain conversationalBrain
         )
         {
-            _supportPoints -= 100f;
-            if (_supportPoints < 0f)
+            if (
+                owner == null
+                || conversationalBrain == null
+                || _supportPoints < 100f
+                || !CommonAncestors.LeveledLetteredField.IsValid(CurrentLevel)
+                || !CommonAncestors.LeveledLetteredField.IsValid(_maxLevel)
+            )
             {
-                _supportPoints = 0f;
+                return false;
             }
 
-            _supportLevels.Increase();
+            var nextLevel = new SupportLevels { Value = CurrentLevel };
+            nextLevel.Increase();
+            if (
+                nextLevel.Value == CurrentLevel
+                || new SupportLevels { Value = _maxLevel }.CompareTo(nextLevel.Value) < 0
+            )
+            {
+                return false;
+            }
+
+            _supportPoints -= 100f;
+            CurrentLevel = nextLevel.Value;
             conversationalBrain?.NotifySupportLevelIncreased(owner, this);
+            return true;
         }
     }
 }

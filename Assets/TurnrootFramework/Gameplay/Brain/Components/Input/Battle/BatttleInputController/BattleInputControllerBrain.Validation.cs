@@ -58,6 +58,14 @@ namespace Turnroot.Gameplay.Brain
         private bool IsStealTargetInRange(CharacterInstance target) =>
             target != null
             && BattleContext.Participants?.AdjacentUnits?.GetAllAdjacent().Contains(target) == true;
+        
+        private bool IsHealTargetInRange(CharacterInstance target) =>
+            target != null
+            && BattleContext.Participants?.AdjacentUnits?.GetAllAdjacent().Contains(target) == true;
+
+        private bool IsSupportTargetInRange(CharacterInstance target) =>
+            target != null
+            && BattleContext.Participants?.AdjacentUnits?.GetAllAdjacent().Contains(target) == true;
 
         #endregion
     }

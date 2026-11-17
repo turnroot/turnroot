@@ -29,6 +29,16 @@ namespace Turnroot.Gameplay.Brain
             character.IncreaseSupport(targetCharacter, amount);
             Brain.PublishSupportIncreased(character, targetCharacter, amount);
 
+            var relationship = character.GetSupportRelationship(targetCharacter);
+            if (relationship != null)
+            {
+                Brain.PublishSupportPointsChanged(relationship);
+                if (character.HasSupportConversationAvailable(targetCharacter))
+                {
+                    Brain.PublishSupportConversationAvailable(relationship);
+                }
+            }
+
             $"Support increased between {character.CharacterTemplate?.DisplayName} and {targetCharacter.DisplayName}".LogInfo();
         }
 

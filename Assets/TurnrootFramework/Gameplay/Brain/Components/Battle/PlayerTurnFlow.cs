@@ -180,7 +180,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         public void CompleteMove()
         {
             TransitionAndPublish(
-                PlayerTurnStates.ChoosingAction,
+                PlayerTurnStates.ChoosingActionAfterMove,
                 () =>
                 {
                     // Re-enable input now that visuals/animation are finished
@@ -256,7 +256,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         {
             // Allow undoing the last move if we're currently in the ChoosingAction state immediately after a move.
             var current = GetCurrentState();
-            if (current == PlayerTurnStates.ChoosingAction)
+            if (current == PlayerTurnStates.ChoosingActionAfterMove)
             {
                 var undone = TryUndoLastMove();
                 if (undone)
