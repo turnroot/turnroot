@@ -94,6 +94,48 @@ namespace Turnroot.Gameplay.Brain
             return OperationResult.Successful();
         }
 
+        public void HandleBattleUnitMounts(CharacterInstance unit)
+        {
+            try
+            {
+                var unitModel = GetModelForUnit(unit.Id);
+
+                if (unit.IsMounted)
+                {
+                    return;
+                }
+
+                AttachMountToUnit(unit, unitModel);
+            }
+            catch (System.Exception ex)
+            {
+                LogError(
+                    $"HandleBattleUnitMounts: Exception occurred while mounting {unit?.Id}: {ex}"
+                );
+            }
+        }
+
+        public void HandleBattleUnitDismounts(CharacterInstance unit)
+        {
+            try
+            {
+                var unitModel = GetModelForUnit(unit.Id);
+
+                if (!unit.IsMounted)
+                {
+                    return;
+                }
+
+                DismountUnit(unit, unitModel);
+            }
+            catch (System.Exception ex)
+            {
+                LogError(
+                    $"HandleBattleUnitDismounts: Exception occurred while dismounting {unit?.Id}: {ex}"
+                );
+            }
+        }
+
         public OperationResult DismountUnit(CharacterInstance unit, GameObject unitModel)
         {
             var validation = OperationResultGuards.All(

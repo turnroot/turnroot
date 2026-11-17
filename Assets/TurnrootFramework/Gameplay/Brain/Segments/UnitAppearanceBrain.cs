@@ -45,6 +45,9 @@ namespace Turnroot.Gameplay.Brain
             {
                 HandleBattleObjectSet(Brain.battleBrain.BattleObject);
             }
+
+            Brain.OnBattleUnitMounts += HandleBattleUnitMounts;
+            Brain.OnBattleUnitDismounts += HandleBattleUnitDismounts;
         }
 
         protected override void UnsubscribeFromBrainEvents()
@@ -58,6 +61,8 @@ namespace Turnroot.Gameplay.Brain
                 Brain.OnItemUnequipped -= HandleItemUnequipped;
                 Brain.Unsubscribe<UnitSpawnedEvent>(HandleUnitSpawnedEvent);
                 Brain.Unsubscribe<ModelSwappedEvent>(HandleModelSwappedEvent);
+                Brain.OnBattleUnitMounts -= HandleBattleUnitMounts;
+                Brain.OnBattleUnitDismounts -= HandleBattleUnitDismounts;
             }
         }
 

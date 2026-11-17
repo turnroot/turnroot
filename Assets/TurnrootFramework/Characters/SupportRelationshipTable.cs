@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using Turnroot.Characters.Components.Support;
 using Turnroot.Characters.Subclasses;
+using Turnroot.Conversations;
 using Turnroot.Utilities;
 using Turnroot.Utilities.AbstractScripts;
 using UnityEngine;
@@ -16,6 +17,16 @@ namespace Turnroot.Characters
     public class SupportRelationshipTable : SingletonScriptableObject<SupportRelationshipTable>
     {
         [Serializable]
+        public struct SupportConversation
+        {
+            [Tooltip("The rank this conversation unlocks (for example, D unlocks E-to-D).")]
+            public SupportLevels SupportLevel;
+
+            [Tooltip("Conversation asset played to unlock this rank.")]
+            public Conversation Conversation;
+        }
+
+        [Serializable]
         public struct SupportPairing
         {
             [HorizontalLine(color: EColor.Gray)]
@@ -28,6 +39,11 @@ namespace Turnroot.Characters
             [Tooltip("The maximum support rank this pair can achieve (E/D/C/B/A/S).")]
             public SupportLevels MaxSupportLevel;
             public float SupportGainMultiplier;
+
+            [Tooltip(
+                "Assign one conversation per rank this pairing can reach. The rank is the destination rank unlocked by that conversation."
+            )]
+            public List<SupportConversation> SupportConversations;
         }
 
         [InfoBox(
@@ -67,6 +83,46 @@ namespace Turnroot.Characters
         /// Returns true if a support pairing exists between the two characters.
         /// </summary>
         public bool HasPairing(CharacterData a, CharacterData b) => TryGetPairing(a, b, out _);
+
+        /// <summary>
+        /// Finds the support conversation that unlocks <paramref name="supportLevel"/> for this pair.
+        /// </summary>
+        public bool TryGetSupportConversation(
+            CharacterData a,
+            CharacterData b,
+            string supportLevel,
+            out Conversation conversation
+        )
+        {
+            conversation = null;
+            if (
+                !CommonAncestors.LeveledLetteredField.IsValid(supportLevel)
+                || !TryGetPairing(a, b, out var pairing)
+                || pairing.SupportConversations == null
+            )
+            {
+                return false;
+            }
+
+            foreach (var supportConversation in pairing.SupportConversations)
+            {
+                if (
+                    supportConversation.Conversation != null
+                    && supportConversation.SupportLevel != null
+                    && string.Equals(
+                        supportConversation.SupportLevel.Value,
+                        supportLevel,
+                        StringComparison.Ordinal
+                    )
+                )
+                {
+                    conversation = supportConversation.Conversation;
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Returns a list of initialized <see cref="SupportRelationshipInstance"/> objects for all

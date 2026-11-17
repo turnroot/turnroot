@@ -103,13 +103,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             }
 
             var avatar = CharacterManager._brain?.gamewideContextBrain?.GetOrCreateAvatarInstance();
-            if (avatar == null)
-            {
-                return false;
-            }
-
-            var rel = avatar.GetSupportRelationship(ActiveCharacter.CharacterTemplate);
-            return rel != null && rel.SupportPoints >= 100;
+            return avatar != null
+                && avatar.HasSupportConversationAvailable(ActiveCharacter.CharacterTemplate);
         }
 
         public bool CanGoToMeal;

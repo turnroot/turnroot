@@ -13,20 +13,23 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
         ChoosingDestination, // choosing where to move
         DestinationSelected, // destination confirmed, will execute move
         ExecutingMove, // move in progress; input locked until move/animation completes
-        ChoosingAction, // choose an action after moving
-        WaitActionChosen,
-        AttackActionChosenChoosingTarget,
-        AttackActionChosenTargetSelected,
-        UseItemActionChosenChoosingItem,
-        UseItemActionChosenItemSelected,
-        HealActionChosenChoosingTarget,
-        HealActionChosenTargetSelected,
-        TalkActionChosenChoosingTarget,
-        TalkActionChosenTargetSelected,
-        TradeActionChosenChoosingTarget,
-        TradeActionChosenTargetSelected,
-        ChoosingTarget,
-        TargetSelected,
+        ChoosingActionAfterMove, // choose an action after moving
+        WaitActionChosen, // wait-> end turn
+        AttackActionChosenChoosingTarget, // Attack was chosen, now choosing target
+        AttackActionChosenTargetSelected, // Attack target selected, now confirming action
+        UseItemActionChosenChoosingItem, // Use Item was chosen, now choosing item
+        UseItemActionChosenItemSelected, // Use Item target selected, now confirming action
+        HealActionChosenChoosingTarget, // Heal was chosen, now choosing target
+        HealActionChosenTargetSelected, // Heal target selected, now confirming action
+        TalkActionChosenChoosingTarget, // Talk was chosen, now choosing target
+        TalkActionChosenTargetSelected, // Talk target selected, now confirming action
+        SupportActionChosenChoosingTarget, // Support was chosen, now choosing target
+        SupportActionChosenTargetSelected, // Support target selected, now confirming action
+        TradeActionChosenChoosingTarget, // Trade was chosen, now choosing target
+        TradeActionChosenTargetSelected, // Trade target selected, now confirming action
+        DismountActionChosen, // these don't need confirmation
+        MountActionChosen,
+        StorehouseActionChosen,
         ConfirmAction,
         ExecutingAction, // Command/animation in progress; input locked
         UnitTurnEnded,
@@ -50,6 +53,7 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             [PlayerTurnStates.NoUnitSelected] = new() { PlayerTurnStates.UnitSelected },
             [PlayerTurnStates.UnitSelected] = new()
             {
+                // Once a unit is selected, you can deselect, move, wait, attack, use item, heal, talk, trade, support, dismount, mount, or access storehouse
                 PlayerTurnStates.NoUnitSelected,
                 PlayerTurnStates.ChoosingDestination,
                 PlayerTurnStates.DestinationSelected,
@@ -59,31 +63,42 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 PlayerTurnStates.HealActionChosenChoosingTarget,
                 PlayerTurnStates.TalkActionChosenChoosingTarget,
                 PlayerTurnStates.TradeActionChosenChoosingTarget,
+                PlayerTurnStates.SupportActionChosenChoosingTarget,
+                PlayerTurnStates.DismountActionChosen,
+                PlayerTurnStates.MountActionChosen,
+                PlayerTurnStates.StorehouseActionChosen,
             },
             [PlayerTurnStates.ChoosingDestination] = new()
             {
+                // Once you're moving, you can either cancel and go back to unit selected or confirm the destination
                 PlayerTurnStates.UnitSelected,
                 PlayerTurnStates.DestinationSelected,
             },
             [PlayerTurnStates.DestinationSelected] = new()
             {
+                // Once the destination is selected, you can either go back to choosing destination or proceed to executing the move
                 PlayerTurnStates.ChoosingDestination,
                 PlayerTurnStates.ExecutingMove,
-                PlayerTurnStates.ChoosingAction,
+                PlayerTurnStates.ChoosingActionAfterMove,
                 PlayerTurnStates.ConfirmAction,
             },
-            [PlayerTurnStates.ExecutingMove] = new() { PlayerTurnStates.ChoosingAction },
-            [PlayerTurnStates.ChoosingAction] = new()
+            [PlayerTurnStates.ExecutingMove] = new() { PlayerTurnStates.ChoosingActionAfterMove },
+            // ExecutingMove -> ChoosingActionAfterMove
+            [PlayerTurnStates.ChoosingActionAfterMove] = new()
             {
+                // After moving, you can choose to wait, attack, use an item, heal, talk, trade, support, dismount, mount, or access the storehouse
                 PlayerTurnStates.WaitActionChosen,
                 PlayerTurnStates.AttackActionChosenChoosingTarget,
                 PlayerTurnStates.UseItemActionChosenChoosingItem,
                 PlayerTurnStates.HealActionChosenChoosingTarget,
                 PlayerTurnStates.TalkActionChosenChoosingTarget,
                 PlayerTurnStates.TradeActionChosenChoosingTarget,
+                PlayerTurnStates.SupportActionChosenChoosingTarget,
+                PlayerTurnStates.DismountActionChosen,
             },
             [PlayerTurnStates.WaitActionChosen] = new()
             {
+                // after wait no actions can be taken
                 PlayerTurnStates.UnitSelected,
                 PlayerTurnStates.UnitTurnEnded,
             },
@@ -146,6 +161,18 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
             {
                 PlayerTurnStates.UnitSelected,
                 PlayerTurnStates.UnitTurnEnded,
+            },
+            [PlayerTurnStates.DismountActionChosen] = new()
+            {
+                PlayerTurnStates.UnitSelected, // no need to confirm this one
+            },
+            [PlayerTurnStates.MountActionChosen] = new()
+            {
+                PlayerTurnStates.UnitSelected, // no need to confirm this one
+            },
+            [PlayerTurnStates.StorehouseActionChosen] = new()
+            {
+                PlayerTurnStates.UnitSelected, // no need to confirm this one
             },
             [PlayerTurnStates.UnitTurnEnded] = new() { PlayerTurnStates.NoUnitSelected },
         };

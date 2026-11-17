@@ -1,5 +1,6 @@
 using Turnroot.Characters;
 using Turnroot.Characters.Components.Support;
+using Turnroot.Characters.Subclasses;
 using Turnroot.Conversations;
 using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Utilities;
@@ -22,11 +23,19 @@ namespace Turnroot.Gameplay.Brain
             _ltm = GetComponent<LongTermMemory>();
         }
 
-        protected override void SubscribeToBrainEvents() =>
+        protected override void SubscribeToBrainEvents()
+        {
             _brain.OnConversationEnded += HandleConversationEnded;
+            _brain.OnSupportConversationCompleted += HandleSupportConversationCompleted;
+            _brain.OnSupportConversationMarkedCompleted += PersistSupportConversationCompleted;
+        }
 
-        protected override void UnsubscribeFromBrainEvents() =>
+        protected override void UnsubscribeFromBrainEvents()
+        {
             _brain.OnConversationEnded -= HandleConversationEnded;
+            _brain.OnSupportConversationCompleted -= HandleSupportConversationCompleted;
+            _brain.OnSupportConversationMarkedCompleted -= PersistSupportConversationCompleted;
+        }
 
         private void HandleConversationEnded(Conversation conversation)
         {
@@ -101,7 +110,45 @@ namespace Turnroot.Gameplay.Brain
             string supportLevel
         )
         {
-            if (character1 == null || character2 == null || _ltm == null)
+            if (
+                character1 == null
+                || character2 == null
+                || !CommonAncestors.LeveledLetteredField.IsValid(supportLevel)
+            )
+            {
+                return;
+            }
+
+            Brain.PublishSupportConversationMarkedCompleted(character1, character2, supportLevel);
+        }
+
+        private void HandleSupportConversationCompleted(
+            CharacterInstance source,
+            CharacterData partner,
+            string supportLevel,
+            Conversation conversation
+        )
+        {
+            if (source?.CharacterTemplate == null || partner == null || conversation == null)
+            {
+                return;
+            }
+
+            MarkSupportConversationCompleted(source.CharacterTemplate, partner, supportLevel);
+        }
+
+        private void PersistSupportConversationCompleted(
+            CharacterData character1,
+            CharacterData character2,
+            string supportLevel
+        )
+        {
+            if (
+                character1 == null
+                || character2 == null
+                || _ltm == null
+                || !CommonAncestors.LeveledLetteredField.IsValid(supportLevel)
+            )
             {
                 return;
             }

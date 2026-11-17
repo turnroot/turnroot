@@ -176,7 +176,25 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             InputProvider.OnInput += HandleItemInput;
         }
 
-        private void HandleSupport() { }
+        private void HandleSupport()
+        {
+            InputProvider.OnInput -= HandleInput;
+            var avatar = CharacterManager._brain.gamewideContextBrain.GetOrCreateAvatarInstance();
+            var controller = FindFirstObjectByType<ConversationController>();
+
+            HubManager.GetCurrent()?.SetInputMode(HubManager.HubInputMode.None);
+            if (
+                !controller.PlaySupportConversationDirect(
+                    avatar,
+                    ActiveCharacter.CharacterTemplate,
+                    OnSupportConversationFinished
+                )
+            )
+            {
+                HubManager.GetCurrent()?.RevertToPreviousInputMode();
+                ReturnToActionsMenu();
+            }
+        }
 
         private void HandleRecruit()
         {
@@ -277,6 +295,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             }
 
             CharacterManager._brain.PublishHubCharacterTalked(ActiveCharacter);
+            ReturnToActionsMenu(false);
+            HubManager.GetCurrent()?.RevertToPreviousInputMode();
+        }
+
+        private void OnSupportConversationFinished()
+        {
+            PersistAvatarSupportPoints();
             ReturnToActionsMenu(false);
             HubManager.GetCurrent()?.RevertToPreviousInputMode();
         }

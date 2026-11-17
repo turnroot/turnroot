@@ -279,10 +279,7 @@ namespace Turnroot.Gameplay.Brain
             // terrain type overlay
             if (destination != null)
             {
-                _terrainTypeOverlay.Display(
-                    destination,
-                    SelectedUnit.GetEffectiveMovementType()
-                );
+                _terrainTypeOverlay.Display(destination, SelectedUnit.GetEffectiveMovementType());
             }
         }
 
@@ -299,9 +296,10 @@ namespace Turnroot.Gameplay.Brain
             // Only update path preview when in states that can show them
             var currentState = _playerTurnFlow?.GetCurrentState();
             if (
-                currentState is PlayerTurnStates.UnitSelected
-                or PlayerTurnStates.ChoosingDestination
-                or PlayerTurnStates.AttackActionChosenChoosingTarget
+                currentState
+                is PlayerTurnStates.UnitSelected
+                    or PlayerTurnStates.ChoosingDestination
+                    or PlayerTurnStates.AttackActionChosenChoosingTarget
             )
             {
                 Path = HandlePathPreview();
@@ -314,7 +312,6 @@ namespace Turnroot.Gameplay.Brain
                 {
                     _tileHighlighter.HighlightPath(Path);
                 }
-
             }
             else
             {
@@ -383,7 +380,7 @@ namespace Turnroot.Gameplay.Brain
                     _playerTurnFlow.CancelTargetOrDestinationChoice(PlayerTurnStates.UnitSelected);
                     Brain.cursorBrain.ClearAllowedPositions();
                     break;
-                case PlayerTurnStates.ChoosingAction:
+                case PlayerTurnStates.ChoosingActionAfterMove:
                     // After a move completed, Back undoes the move
                     HandleActionMenuBack();
                     break;
@@ -456,7 +453,7 @@ namespace Turnroot.Gameplay.Brain
                     if (unitPoint != null && unitPoint.Equals(cursorPos))
                     {
                         // Stay in place - open action menu directly
-                        _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingAction);
+                        _playerTurnFlow.ActionChosen(PlayerTurnStates.ChoosingActionAfterMove);
                     }
                     else
                     {

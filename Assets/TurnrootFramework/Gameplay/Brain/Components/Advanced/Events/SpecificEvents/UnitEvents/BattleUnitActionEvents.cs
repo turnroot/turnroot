@@ -27,6 +27,9 @@ namespace Turnroot.Gameplay.Brain
         public event Action<CharacterInstance, CharacterInstance> OnItemStolen;
         public event Action<CharacterInstance, BattleEmotion> OnUnitEmotionChanged;
 
+        public event Action<CharacterInstance> OnBattleUnitMounts;
+        public event Action<CharacterInstance> OnBattleUnitDismounts;
+
         public void PublishPlayerControlledUnitActivated(CharacterInstance unit)
         {
             var handlers = OnPlayerControlledUnitActivated;
@@ -159,6 +162,12 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance unit,
             BattleEmotion emotion
         ) => OnUnitEmotionChanged?.Invoke(unit, emotion);
+
+        public void PublishBattleUnitMounts(CharacterInstance unit) =>
+            OnBattleUnitMounts?.Invoke(unit);
+
+        public void PublishBattleUnitDismounts(CharacterInstance unit) =>
+            OnBattleUnitDismounts?.Invoke(unit);
 
         #endregion
     }

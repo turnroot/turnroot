@@ -337,11 +337,13 @@ namespace Turnroot.Conversations
             if (currentNode.Kind == MermaidNodeKind.Condition)
             {
                 return string.Equals(
-                        currentNode.ConditionName,
-                        conditionName,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                    ? outgoing.Count > 0 ? outgoing[0].ToId : null
+                    currentNode.ConditionName,
+                    conditionName,
+                    StringComparison.OrdinalIgnoreCase
+                )
+                    ? outgoing.Count > 0
+                        ? outgoing[0].ToId
+                        : null
                     : ResolveConditionTargetFromOutgoing(outgoing, conditionName);
             }
 
@@ -519,6 +521,46 @@ namespace Turnroot.Conversations
         }
 
         /// <summary>
+        /// Plays the next available support conversation for a character pair. Support progression
+        /// is committed through Brain events only after the conversation finishes.
+        /// </summary>
+        public bool PlaySupportConversationDirect(
+            CharacterInstance source,
+            CharacterData partner,
+            Action onFinished = null
+        )
+        {
+            if (
+                source == null
+                || partner == null
+                || !source.TryGetAvailableSupportConversation(
+                    partner,
+                    out var conversation,
+                    out var supportLevel
+                )
+            )
+            {
+                return false;
+            }
+
+            return BeginConversation(
+                conversation,
+                () =>
+                {
+                    Brain.Instance.PublishSupportConversationCompleted(
+                        source,
+                        partner,
+                        supportLevel,
+                        conversation
+                    );
+                    onFinished?.Invoke();
+                },
+                null,
+                nameof(PlaySupportConversationDirect)
+            );
+        }
+
+        /// <summary>
         /// Plays a <see cref="Conversation"/> starting at a specific node id. Use this to resume
         /// sub-conversations split across scenes (e.g. PART2_Start after a scene transition).
         /// </summary>
@@ -657,56 +699,56 @@ namespace Turnroot.Conversations
                 switch (currentNode.Kind)
                 {
                     case MermaidNodeKind.Dialogue:
-                    {
-                        _conversationUi._uiFade.Show();
-                        var layer = BuildLayerFromNode(currentNode, conversation.People);
-                        if (layer != null)
                         {
-                            yield return ProcessLayer(layer);
-                        }
+                            _conversationUi._uiFade.Show();
+                            var layer = BuildLayerFromNode(currentNode, conversation.People);
+                            if (layer != null)
+                            {
+                                yield return ProcessLayer(layer);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
 
                     case MermaidNodeKind.Action:
-                    {
-                        _conversationUi._uiFade.Hide();
-                        $"[Conversation] Executing action node '{currentNode.Id}' type='{currentNode.ActionType}' target='{currentNode.ActionTarget}'".LogInfo(
-                            "ConversationController"
-                        );
-
-                        var actionResult = ConversationActionExecutor.Execute(
-                            currentNode,
-                            conversation,
-                            this
-                        );
-
-                        $"[Conversation] Action '{currentNode.Id}' result: success={actionResult.Success}".LogInfo(
-                            "ConversationController"
-                        );
-
-                        if (actionResult.Success)
                         {
-                            _brain?.PublishConversationActionNotificationRequested(currentNode.Id);
-                            yield return WaitForActionNotification(currentNode.Id);
+                            _conversationUi._uiFade.Hide();
+                            $"[Conversation] Executing action node '{currentNode.Id}' type='{currentNode.ActionType}' target='{currentNode.ActionTarget}'".LogInfo(
+                                "ConversationController"
+                            );
+
+                            var actionResult = ConversationActionExecutor.Execute(
+                                currentNode,
+                                conversation,
+                                this
+                            );
+
+                            $"[Conversation] Action '{currentNode.Id}' result: success={actionResult.Success}".LogInfo(
+                                "ConversationController"
+                            );
+
+                            if (actionResult.Success)
+                            {
+                                _brain?.PublishConversationActionNotificationRequested(currentNode.Id);
+                                yield return WaitForActionNotification(currentNode.Id);
+                            }
+
+                            break;
                         }
 
-                        break;
-                    }
-
                     case MermaidNodeKind.Condition:
-                    {
-                        _conversationUi._uiFade.Show();
-                        yield return WaitForConditionNode();
-                        currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
-                        continue;
-                    }
+                        {
+                            _conversationUi._uiFade.Show();
+                            yield return WaitForConditionNode();
+                            currentNode = _currentGraph.GetNode(_resolvedConditionTarget);
+                            continue;
+                        }
 
                     case MermaidNodeKind.Start:
-                    {
-                        _conversationUi._uiFade.Show();
-                        break;
-                    }
+                        {
+                            _conversationUi._uiFade.Show();
+                            break;
+                        }
                     case MermaidNodeKind.Choice:
                         {
                             _conversationUi._uiFade.Show();
