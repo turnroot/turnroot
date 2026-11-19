@@ -21,8 +21,10 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
     {
         #region Configuration
 
+        private bool _isSubscribedToUniqueEnemySpawnEvents;
+
         [HideInInspector]
-        public BattleGameObject BattleGameObject => GetComponent<BattleGameObject>();
+        public BattleGameObject battleGameObject => GetComponent<BattleGameObject>();
 
         [InfoBox(
             "Generic enemies will have their stats, weapons, and classes changed at runtime, based on the battle conditions and player team. If you want an enemy to have a specific class or weapons, you MUST make them unique. Do not add unique enemies to this list!"
@@ -130,31 +132,17 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                     ?? Array.Empty<UniqueEnemyStartingPlacement>()
             )
             {
-                if (placement.Enemy == null)
-                {
-                    failures.Add("Unique enemy placement has no CharacterData assigned");
-                    continue;
-                }
-
-                if (!placement.Enemy.IsUnique)
-                {
-                    $"{placement.Enemy.DisplayName} is not unique but is in UniqueEnemyStartingPlacements. Skipping this placement.".LogWarning();
-                    continue;
-                }
-
-                if (placement.MinimumDifficultyLevelToSpawn > CurrentDifficulty)
-                {
-                    continue;
-                }
-
-                // TODO: Respect SpawnOnlyOnEvent by deferring this placement to its event.
                 if (
-                    UniqueEnemyInstancesByStartingPlacement.Values.Any(instance =>
+                    placement.Enemy == null
+                    || placement.Enemy.IsUnique
+                    || placement.MinimumDifficultyLevelToSpawn > CurrentDifficulty
+                    || placement.SpawnOnlyOnEvent
+                    || UniqueEnemyInstancesByStartingPlacement.Values.Any(instance =>
                         instance?.CharacterTemplate == placement.Enemy
                     )
                 )
                 {
-                    $"Unique enemy {placement.Enemy.DisplayName} is configured more than once. Skipping duplicate placement.".LogWarning();
+                    $"Unique enemy {placement.Enemy.DisplayName} is not suitable for spawning. Skipping this placement.".LogWarning();
                     continue;
                 }
 
@@ -169,6 +157,84 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             }
         }
 
+        public OperationResult SubscribeToUniqueEnemySpawnEvents()
+        {
+            if (_isSubscribedToUniqueEnemySpawnEvents)
+            {
+                return OperationResult.Successful();
+            }
+
+            battleGameObject.Brain.OnUniqueEnemySpawnRequested +=
+                HandleUniqueEnemySpawnRequestedEvent;
+            _isSubscribedToUniqueEnemySpawnEvents = true;
+            return OperationResult.Successful();
+        }
+
+        public void UnsubscribeFromUniqueEnemySpawnEvents()
+        {
+            var brain = battleGameObject.Brain;
+            if (brain != null)
+            {
+                brain.OnUniqueEnemySpawnRequested -= HandleUniqueEnemySpawnRequestedEvent;
+            }
+            _isSubscribedToUniqueEnemySpawnEvents = false;
+        }
+
+        private void HandleUniqueEnemySpawnRequestedEvent(string enemyName)
+        {
+            var result = HandleUniqueEnemySpawnRequested(enemyName);
+            if (!result.Success)
+            {
+                $"Unique enemy spawn event failed: {result.ErrorMessage}".LogWarning();
+            }
+        }
+
+        public OperationResult HandleUniqueEnemySpawnRequested(string enemyName)
+        {
+            if (string.IsNullOrWhiteSpace(enemyName))
+            {
+                return OperationResult.Failure("Unique enemy spawn event name is empty");
+            }
+
+            var failures = new List<string>();
+            foreach (
+                var placement in UniqueEnemyStartingPlacements?.placements
+                    ?? Array.Empty<UniqueEnemyStartingPlacement>()
+            )
+            {
+                if (
+                    !placement.SpawnOnlyOnEvent
+                    || placement.Enemy == null
+                    || !placement.Enemy.IsUnique
+                    || placement.MinimumDifficultyLevelToSpawn > CurrentDifficulty
+                    || !MatchesUniqueEnemyName(placement.Enemy, enemyName)
+                    || UniqueEnemyInstancesByStartingPlacement?.Values.Any(instance =>
+                        instance?.CharacterTemplate == placement.Enemy
+                    ) == true
+                )
+                {
+                    continue;
+                }
+
+                var createResult = EnsureAndSpawnUniqueEnemyInstance(placement);
+                if (!createResult.Success)
+                {
+                    failures.Add(
+                        createResult.ErrorMessage
+                            ?? $"Failed to create/spawn event enemy {placement.Enemy.name}"
+                    );
+                }
+            }
+
+            return failures.Count == 0
+                ? OperationResult.Successful()
+                : OperationResult.Failure(string.Join("; ", failures));
+        }
+
+        private static bool MatchesUniqueEnemyName(CharacterData enemy, string enemyName) =>
+            string.Equals(enemy.DisplayName, enemyName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(enemy.FullName, enemyName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(enemy.name, enemyName, StringComparison.OrdinalIgnoreCase);
         #endregion
 
         #region Generic Enemy Scaling and Loadouts
@@ -209,12 +275,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             int battleSeed = 0;
             try
             {
-                var prep = BattleGameObject.Brain.battleBrain.PreparationObject;
+                var prep = battleGameObject.Brain.battleBrain.PreparationObject;
                 var mapName = prep.MapGrid.MapName ?? "<unknown>";
                 var battleKey =
-                    prep != null ? $"{prep.name}.{mapName}" : BattleGameObject?.name ?? mapName;
+                    prep != null ? $"{prep.name}.{mapName}" : battleGameObject?.name ?? mapName;
                 battleSeed =
-                    BattleGameObject.Brain?.ltm?.RecallInt(LtmKeys.BattleSeedKey(battleKey)) ?? 0;
+                    battleGameObject.Brain?.ltm?.RecallInt(LtmKeys.BattleSeedKey(battleKey)) ?? 0;
             }
             catch { }
 
@@ -258,14 +324,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
 
         private void UpdateGenericEnemiesBasedOnPlayerTeamDetails()
         {
-            // Post-spawn adjustments go here
             var adjustedLevels = CalculateAdjustedLevels();
 
-            // if a character template supplies a class progression ladder, choose
-            // the most advanced class whose minimum level requirement does not
-            // exceed the unit's adjusted battle level and apply it.  afterwards roll
-            // level-ups to push the instance to that level using the chosen class's
-            // growth rates.
             foreach (var kv in EnemyInstancesByStartingPlacement)
             {
                 var instance = kv.Value;

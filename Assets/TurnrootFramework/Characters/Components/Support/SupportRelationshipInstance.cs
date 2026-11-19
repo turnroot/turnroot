@@ -89,10 +89,7 @@ namespace Turnroot.Characters.Components.Support
             }
         }
 
-        public void Increase(float points)
-        {
-            _supportPoints += points * _supportSpeed * _supportGainMultiplier;
-        }
+        public void Increase(float points) => _supportPoints += points * _supportSpeed * _supportGainMultiplier;
 
         public void Decrease(float points)
         {

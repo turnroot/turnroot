@@ -119,10 +119,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
         }
 
-        public void SetBadgeVisible(bool visible)
-        {
-            Badge?.SetActive(visible);
-        }
+        public void SetBadgeVisible(bool visible) => Badge?.SetActive(visible);
 
         public void SetBadgeTexture(Texture texture)
         {

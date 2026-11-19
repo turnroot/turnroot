@@ -152,6 +152,15 @@ Shader "Turnroot/StylizedSkybox"
         _HazeDayColor("Haze Day Color", Color) = (0.8,0.85,1.0,1)
         _HazeNightColor("Haze Night Color", Color) = (0.1,0.15,0.3,1)
         _CloudShadowIntensity("Cloud Shadow Intensity",  Range(0, 1)) = 0.3
+        [Toggle(GOD_RAYS)] _GodRaysEnabled("Enable God Rays", Float) = 0
+        _GodRayColor("God Ray Color", Color) = (1,0.95,0.75,1)
+        _GodRayIntensity("God Ray Intensity", Range(0, 5)) = 1
+        _GodRayLength("God Ray Length", Range(0.05, 1.5)) = 0.65
+        _GodRayInnerRadius("God Ray Inner Radius", Range(0, 0.5)) = 0.08
+        _GodRayDensity("God Ray Density", Range(2, 32)) = 12
+        _GodRayWidth("God Ray Width", Range(0.001, 1)) = 0.2
+        _GodRaySharpness("God Ray Sharpness", Range(0.1, 16)) = 4
+        _GodRaySpeed("God Ray Motion Speed", Range(0, 2)) = 0.15
         
         [Header(Rainbow Settings)]
         [Toggle(RAINBOW)] _RainbowEnabled("Enable Rainbow", Float) = 0
@@ -181,6 +190,7 @@ Shader "Turnroot/StylizedSkybox"
             #pragma shader_feature LIGHTNING
             #pragma shader_feature DISTANT_LIGHTNING
             #pragma shader_feature RAINBOW
+            #pragma shader_feature GOD_RAYS
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -259,6 +269,9 @@ Shader "Turnroot/StylizedSkybox"
                 // Atmospheric effects
                 float _HazeIntensity, _HazeHeight, _CloudShadowIntensity;
                 float4 _HazeDayColor, _HazeNightColor;
+                float _GodRaysEnabled, _GodRayIntensity, _GodRayLength, _GodRayInnerRadius;
+                float _GodRayDensity, _GodRayWidth, _GodRaySharpness, _GodRaySpeed;
+                float4 _GodRayColor;
                 
                 // Rainbow
                 float _RainbowIntensity, _RainbowWidth, _RainbowRadius, _RainbowAngleOffset;
@@ -1000,12 +1013,53 @@ Shader "Turnroot/StylizedSkybox"
                 rainbow *= cloudsNegative;
                 #endif
 
+                // Procedural god rays from the skybox sun, visible only through
+                // gaps in the same cloud layers used to render the sky.
+                float3 godRays = float3(0, 0, 0);
+                #ifdef GOD_RAYS
+                if (_GodRaysEnabled > 0.5)
+                {
+                    float3 projected = worldDir - lightDir * dot(worldDir, lightDir);
+                    float projectedLength = length(projected);
+
+                    float3 rayRight = normalize(cross(lightDir, float3(0, 1, 0)));
+                    if (abs(dot(lightDir, float3(0, 1, 0))) > 0.999)
+                    {
+                        rayRight = float3(1, 0, 0);
+                    }
+                    float3 rayUp = normalize(cross(rayRight, lightDir));
+
+                    float rayAngle = atan2(dot(projected, rayUp), dot(projected, rayRight));
+                    float spoke = cos(rayAngle * _GodRayDensity);
+                    spoke = saturate(spoke * 0.5 + 0.5);
+                    float widthScale = lerp(2.0, 0.5, saturate(_GodRayWidth));
+                    spoke = pow(spoke, max(_GodRaySharpness * widthScale, 0.001));
+
+                    float outerRadius = _GodRayInnerRadius + _GodRayLength;
+                    float radial = 1.0 - smoothstep(_GodRayInnerRadius, outerRadius, projectedLength);
+                    radial *= smoothstep(_GodRayInnerRadius * 0.25, _GodRayInnerRadius, projectedLength);
+
+                    float ripple = sin(projectedLength * 28.0 - rayAngle * 3.0 + _Time.y * _GodRaySpeed);
+                    float noiseMask = lerp(0.45, 1.0, ripple * 0.5 + 0.5);
+
+                    float rayVisibility =
+                        spoke *
+                        radial *
+                        noiseMask *
+                        saturate(lightDir.y * 2.0) *
+                        cloudsNegative *
+                        _GodRayIntensity;
+
+                    godRays = _GodRayColor.rgb * rayVisibility;
+                }
+                #endif
+
                 // Horizon glow
                 float3 horizonGlow = saturate((1 - horizon * 5) * saturate(lightDir.y * 10)) * _HorizonColorDay.rgb;
                 float3 horizonGlowNight = saturate((1 - horizon * 5) * saturate(-lightDir.y * 10)) * _HorizonColorNight.rgb;
                 horizonGlow += horizonGlowNight;
 
-                float3 combined = skyGradients + atmosphericHaze + sunAndMoon + celestialGlow + halo + sunsetColoured + stars + aurora + rainbow + cloudsColoredCombined + horizonGlow + distantLightningBolts;
+                float3 combined = skyGradients + atmosphericHaze + sunAndMoon + celestialGlow + halo + sunsetColoured + stars + aurora + rainbow + godRays + cloudsColoredCombined + horizonGlow + distantLightningBolts;
                 
                 return float4(combined, 1);
             }

@@ -15,10 +15,7 @@ namespace Turnroot.Graphics3D
         private float _lifetimeTimer;
         private bool _isLeftFoot;
 
-        private void OnEnable()
-        {
-            _lifetimeTimer = Lifetime;
-        }
+        private void OnEnable() => _lifetimeTimer = Lifetime;
 
         private void Update()
         {

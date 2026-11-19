@@ -71,10 +71,7 @@ namespace Turnroot.Utilities.SceneFlows
             }
         }
 
-        protected override void SubscribeToBrainEvents()
-        {
-            _brain.OnBattleCompleted += HandleBattleCompleted;
-        }
+        protected override void SubscribeToBrainEvents() => _brain.OnBattleCompleted += HandleBattleCompleted;
 
         protected override void UnsubscribeFromBrainEvents()
         {

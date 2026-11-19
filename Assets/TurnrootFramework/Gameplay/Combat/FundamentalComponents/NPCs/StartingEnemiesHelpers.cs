@@ -88,7 +88,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
 
         private OperationResult EnsureAndSpawnEnemyInstance(GenericEnemyStartingPlacement placement)
         {
-            var ltm = BattleGameObject.Brain.ltm;
+            var ltm = battleGameObject.Brain.ltm;
 
             var factory = new CharacterFactory(ltm);
             var created = factory.CreateOrRecall(placement.Enemy);
@@ -99,7 +99,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 );
             }
 
-            var ctx = BattleGameObject.Context;
+            var ctx = battleGameObject.Context;
             if (ctx == null)
             {
                 return OperationResult.Failure("BattleContext is not available for enemy spawn");
@@ -136,7 +136,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             UniqueEnemyStartingPlacement placement
         )
         {
-            var ltm = BattleGameObject.Brain.ltm;
+            var ltm = battleGameObject.Brain.ltm;
             var factory = new CharacterFactory(ltm);
             var persistentInstance = factory.CreateOrRecall(placement.Enemy);
             if (persistentInstance == null)
@@ -147,7 +147,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             }
 
             var created = persistentInstance.CreateBattleCopy();
-            var context = BattleGameObject.Context;
+            var context = battleGameObject.Context;
             if (context == null)
             {
                 return OperationResult.Failure(
@@ -192,17 +192,14 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
             resolvedPosition = requestedPosition;
             error = null;
 
-            var mapGrid = BattleGameObject.Context?.MapGrid;
+            var mapGrid = battleGameObject.Context?.MapGrid;
             if (mapGrid == null)
             {
                 error = "MapGrid is not available";
                 return false;
             }
 
-            var requestedPoint = mapGrid.GetGridPoint(
-                requestedPosition.x,
-                requestedPosition.y
-            );
+            var requestedPoint = mapGrid.GetGridPoint(requestedPosition.x, requestedPosition.y);
             if (requestedPoint == null)
             {
                 error = $"starting position {requestedPosition} is outside the map";
@@ -220,14 +217,12 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 return false;
             }
 
-            bool includeCorners = GameplayGeneralSettings.Instance?.AdjacencyIncludesCorners ?? false;
+            bool includeCorners =
+                GameplayGeneralSettings.Instance?.AdjacencyIncludesCorners ?? false;
             foreach (var adjacentOffset in Adjacency.GetOffsets(includeCorners))
             {
                 var candidatePosition = requestedPosition + adjacentOffset.Offset;
-                var candidatePoint = mapGrid.GetGridPoint(
-                    candidatePosition.x,
-                    candidatePosition.y
-                );
+                var candidatePoint = mapGrid.GetGridPoint(candidatePosition.x, candidatePosition.y);
                 if (candidatePoint != null && candidatePoint.CurrentInstance == null)
                 {
                     resolvedPosition = candidatePosition;
@@ -235,7 +230,8 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles.NPCs
                 }
             }
 
-            error = $"starting position {requestedPosition} is occupied and has no free adjacent tile";
+            error =
+                $"starting position {requestedPosition} is occupied and has no free adjacent tile";
             return false;
         }
 

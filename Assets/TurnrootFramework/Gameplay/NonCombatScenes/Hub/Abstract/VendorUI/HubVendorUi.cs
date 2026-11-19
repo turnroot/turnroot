@@ -240,9 +240,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Abstract
 
         public void HandleConfirmInput(string action) => HandlePurchaseConfirmationInput();
 
-        public void HandleBackInput(string action)
-        {
-            Vendor?.HandleBackInput(action);
-        }
+        public void HandleBackInput(string action) => Vendor?.HandleBackInput(action);
     }
 }

@@ -59,10 +59,7 @@ namespace Turnroot.UI.Components
             }
         }
 
-        private void OnEnable()
-        {
-            _fade?.OnHidden.AddListener(HandleFadeHidden);
-        }
+        private void OnEnable() => _fade?.OnHidden.AddListener(HandleFadeHidden);
 
         private void OnDisable()
         {
