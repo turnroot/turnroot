@@ -160,9 +160,6 @@ namespace Turnroot.Graphics3D
             return inViewport;
         }
 
-        private void OnDestroy()
-        {
-            Brain.Instance.OnGraphicsQualityChanged -= OnGraphicsQualityChanged;
-        }
+        private void OnDestroy() => Brain.Instance.OnGraphicsQualityChanged -= OnGraphicsQualityChanged;
     }
 }

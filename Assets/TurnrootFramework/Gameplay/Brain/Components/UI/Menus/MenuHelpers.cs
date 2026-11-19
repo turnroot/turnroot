@@ -13,7 +13,11 @@ namespace Turnroot.Gameplay.Brain.Segments
         {
             if (uiSettings == null)
             {
-                "UiBrain: GamewideUiSettings not found!".LogWarning(); // TODO: For prod these need to be errors, for testing they are warnings
+#if UNITY_EDITOR
+                $"UiBrain: GamewideUiSettings not found! Please ensure a GamewideUiSettings asset is present in the project and assigned to the UiBrain component.".LogWarning();
+#else
+                "UiBrain: GamewideUiSettings not found!".LogError();
+#endif
                 return null;
             }
 

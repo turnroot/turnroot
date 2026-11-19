@@ -149,9 +149,6 @@ namespace Turnroot.Gameplay.Brain.Components.Battle
                 : BadColor;
         }
 
-        public void ResetDisplay()
-        {
-            displayObj?.SetActive(false);
-        }
+        public void ResetDisplay() => displayObj?.SetActive(false);
     }
 }

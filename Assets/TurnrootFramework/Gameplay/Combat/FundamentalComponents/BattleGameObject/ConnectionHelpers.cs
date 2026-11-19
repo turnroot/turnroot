@@ -37,13 +37,17 @@ namespace Turnroot.Gameplay.Combat
                 return initializationResult;
             }
 
-            SubscribeToBrainEvents();
+            var subscriptionResult = SubscribeToBrainEvents();
+            if (!subscriptionResult.Success)
+            {
+                return subscriptionResult;
+            }
 
             _isConnectedToBrain = true;
             return OperationResult.Successful();
         }
 
-        private void SubscribeToBrainEvents()
+        private OperationResult SubscribeToBrainEvents()
         {
             Brain.OnBattleRoundEnded += HandleBattleRoundEnded;
             Brain.OnAllyDamaged += HandleAllyDamaged;
@@ -55,6 +59,16 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnBattleInputEnabled += HandleBattleInputEnabled;
             Brain.OnBattleInputDisabled += HandleBattleInputDisabled;
 
+            if (EnemySupervisor != null)
+            {
+                var enemySubscriptionResult = EnemySupervisor.SubscribeToUniqueEnemySpawnEvents();
+                if (!enemySubscriptionResult.Success)
+                {
+                    return enemySubscriptionResult;
+                }
+            }
+
+            return OperationResult.Successful();
         }
 
         public void DisconnectFromBrainEvents()
@@ -73,26 +87,15 @@ namespace Turnroot.Gameplay.Combat
             Brain.OnBattleCompleted -= HandleExitBattle;
             Brain.OnBattleInputEnabled -= HandleBattleInputEnabled;
             Brain.OnBattleInputDisabled -= HandleBattleInputDisabled;
+            EnemySupervisor?.UnsubscribeFromUniqueEnemySpawnEvents();
 
             UnsubscribeFromMapChanges();
             _isConnectedToBrain = false;
         }
 
-        private void HandleBattleInputEnabled()
-        {
-            if (Brain?.battleBrain != null)
-            {
-                Brain.battleBrain.IsInputEnabled = true;
-            }
-        }
+        private void HandleBattleInputEnabled() => Brain.battleBrain.IsInputEnabled = true;
 
-        private void HandleBattleInputDisabled()
-        {
-            if (Brain?.battleBrain != null)
-            {
-                Brain.battleBrain.IsInputEnabled = false;
-            }
-        }
+        private void HandleBattleInputDisabled() => Brain.battleBrain.IsInputEnabled = false;
 
         private void UnsubscribeFromMapChanges()
         {

@@ -231,17 +231,10 @@ namespace Turnroot.Gameplay.Brain.Segments
 
             var currentState = Brain?.stateBrain?.CurrentState?.Name;
 
-            // TODO: Implement root level back behavior based on state
             switch (currentState)
             {
                 case BrainStateNames.PreBattle:
                     // TODO: Return to previous state or world map
-                    break;
-                case BrainStateNames.Paused:
-                    Brain.stateBrain.Resume();
-                    break;
-                case BrainStateNames.MainMenu:
-                    // TODO: Exit game or return to previous screen
                     break;
                 default:
                     break;

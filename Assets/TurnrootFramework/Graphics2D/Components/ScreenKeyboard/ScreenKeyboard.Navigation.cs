@@ -242,10 +242,7 @@ namespace Turnroot.Graphics2D
             }
         }
 
-        private void HighlightCurrentButton()
-        {
-            buttons[currentRow, currentCol]?.SetHighlighted(true);
-        }
+        private void HighlightCurrentButton() => buttons[currentRow, currentCol]?.SetHighlighted(true);
 
         private void MoveUp()
         {

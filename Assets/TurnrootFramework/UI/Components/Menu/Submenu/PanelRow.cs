@@ -192,10 +192,7 @@ namespace Turnroot.UI.Components.Menu.Submenu
             }
         }
 
-        private void UpdateCarouselVisuals()
-        {
-            carouselComponent?.UpdateDisplay();
-        }
+        private void UpdateCarouselVisuals() => carouselComponent?.UpdateDisplay();
 
         #endregion
 

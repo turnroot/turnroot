@@ -10,6 +10,7 @@ namespace Turnroot.Gameplay.Brain
 
         public event Action<CharacterInstance, Vector2Int> OnCharacterSpawned;
         public event Action<CharacterInstance, Vector2Int> OnCharacterRemovedFromSpawn;
+        public event Action<string> OnUniqueEnemySpawnRequested;
 
         public void PublishCharacterSpawned(CharacterInstance character, Vector2Int position) =>
             OnCharacterSpawned?.Invoke(character, position);
@@ -18,6 +19,9 @@ namespace Turnroot.Gameplay.Brain
             CharacterInstance character,
             Vector2Int position
         ) => OnCharacterRemovedFromSpawn?.Invoke(character, position);
+
+        public void PublishUniqueEnemySpawn(string enemyName) =>
+            OnUniqueEnemySpawnRequested?.Invoke(enemyName);
 
         #endregion
     }
