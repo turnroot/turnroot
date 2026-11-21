@@ -33,6 +33,12 @@ namespace Turnroot.Graphics3D
                 return;
             }
 
+            var mf = GetComponent<MeshFilter>();
+            if (mf != null)
+            {
+                RefreshDrawBounds(mf.sharedMesh);
+            }
+
             DrawMainGrass(cam);
 
             if (_extraGroups != null)

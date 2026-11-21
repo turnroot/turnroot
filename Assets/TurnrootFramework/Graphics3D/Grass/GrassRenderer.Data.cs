@@ -69,17 +69,57 @@ namespace Turnroot.Graphics3D
             );
             SetArgsFromMesh(_bladeMesh);
             SetInstanceCount(0);
+            RefreshDrawBounds(mesh);
+        }
 
-            // Draw bounds: world-space mesh bounds expanded by maxDistance so the
-            // DrawMeshInstancedIndirect call is never wrongly frustum-culled by Unity.
-            Bounds mb = mesh.bounds;
-            Vector3 worldCenter = transform.TransformPoint(mb.center);
-            Vector3 worldExtents = new Vector3(
-                mb.extents.x * transform.lossyScale.x + maxDistance,
-                mb.extents.y * transform.lossyScale.y + maxHeight,
-                mb.extents.z * transform.lossyScale.z + maxDistance
-            );
-            _drawBounds = new Bounds(worldCenter, worldExtents * 2f);
+        private void RefreshDrawBounds(Mesh mesh)
+        {
+            if (mesh == null)
+            {
+                return;
+            }
+
+            // Transform all eight local bounds corners instead of scaling only the
+            // local extents. This keeps DrawMeshInstancedIndirect from being culled
+            // when the surface mesh is rotated or the camera looks along odd angles.
+            Bounds localBounds = mesh.bounds;
+            Vector3 min = localBounds.min;
+            Vector3 max = localBounds.max;
+            Bounds worldBounds = new Bounds();
+            bool hasPoint = false;
+
+            for (int x = 0; x < 2; x++)
+            {
+                for (int y = 0; y < 2; y++)
+                {
+                    for (int z = 0; z < 2; z++)
+                    {
+                        Vector3 corner = new Vector3(
+                            x == 0 ? min.x : max.x,
+                            y == 0 ? min.y : max.y,
+                            z == 0 ? min.z : max.z
+                        );
+                        Vector3 worldCorner = transform.TransformPoint(corner);
+                        if (!hasPoint)
+                        {
+                            worldBounds = new Bounds(worldCorner, Vector3.zero);
+                            hasPoint = true;
+                        }
+                        else
+                        {
+                            worldBounds.Encapsulate(worldCorner);
+                        }
+                    }
+                }
+            }
+
+            // Add enough world-space margin for GPU-generated blades and distance culling.
+            worldBounds.Expand(new Vector3(
+                maxDistance * 2f,
+                Mathf.Max(maxHeight * 2f, maxDistance * 2f),
+                maxDistance * 2f
+            ));
+            _drawBounds = worldBounds;
         }
 
         // ── Extra group placement ─────────────────────────────────────────────────
