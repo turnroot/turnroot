@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Turnroot.Graphics3D
 {
     public partial class GrassRenderer
@@ -33,8 +35,7 @@ namespace Turnroot.Graphics3D
                 return;
             }
 
-            var mf = GetComponent<MeshFilter>();
-            if (mf != null)
+            if (TryGetComponent<MeshFilter>(out var mf))
             {
                 RefreshDrawBounds(mf.sharedMesh);
             }
@@ -49,9 +50,6 @@ namespace Turnroot.Graphics3D
                 }
             }
         }
-
-        // ── Public API ────────────────────────────────────────────────────────────
-        public void SetGrassEnabled(bool enabled) => grassEnabled = enabled;
 
         // ── Camera resolution ─────────────────────────────────────────────────────
         private UnityEngine.Camera GetRenderCamera()
