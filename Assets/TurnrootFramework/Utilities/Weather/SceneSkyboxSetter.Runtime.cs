@@ -4,6 +4,7 @@ using Turnroot.Gameplay.Brain.Components;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering.Universal;
 
 namespace Turnroot.Utilities.Weather
 {
@@ -203,6 +204,8 @@ namespace Turnroot.Utilities.Weather
                 HubDayStateStore.HasSkyboxIndex ? HubDayStateStore.SkyboxIndex : null
             );
 
+            SetSmhVolumeSettings(CurrentWeatherType);
+
             // Always refresh overlay weather after scene change
             var ltm2 = FindFirstObjectByType<LongTermMemory>();
             if (ltm2 != null)
@@ -219,6 +222,42 @@ namespace Turnroot.Utilities.Weather
 
             CacheWaterBaseColors();
             CacheCelMaterialBaseColors();
+        }
+
+        public void SetSmhVolumeSettings(WeatherType weatherType)
+        {
+            if (!EnableShadowsMidtonesHighlights || WeatherVolume == null)
+            {
+                return;
+            }
+
+            if (EnableShadowsMidtonesHighlights)
+            {
+                var smh =
+                    WeatherVolume.profile.components.Find(c => c is ShadowsMidtonesHighlights)
+                    as ShadowsMidtonesHighlights;
+                switch (weatherType)
+                {
+                    case WeatherType.Sunny:
+                        SunnyShadowsMidtonesHighlightsSettings.SetVolumeComponentSettings(smh);
+                        break;
+                    case WeatherType.Rainy:
+                        RainyShadowsMidtonesHighlightsSettings.SetVolumeComponentSettings(smh);
+                        break;
+                    case WeatherType.Snowy:
+                        SnowyShadowsMidtonesHighlightsSettings.SetVolumeComponentSettings(smh);
+                        break;
+                    case WeatherType.Cloudy:
+                        CloudyShadowsMidtonesHighlightsSettings.SetVolumeComponentSettings(smh);
+                        break;
+                    case WeatherType.Stormy:
+                        StormyShadowsMidtonesHighlightsSettings.SetVolumeComponentSettings(smh);
+                        break;
+                    case WeatherType.Volcanic:
+                        VolcanicShadowsMidtonesHighlightsSettings.SetVolumeComponentSettings(smh);
+                        break;
+                }
+            }
         }
     }
 }

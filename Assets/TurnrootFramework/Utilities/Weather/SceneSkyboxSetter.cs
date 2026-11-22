@@ -17,9 +17,10 @@ namespace Turnroot.Utilities.Weather
     public partial class SceneSkyboxSetter : MonoBehaviour
     {
         [HorizontalLine(2, EColor.Gray)]
-        [BoxGroup("Fog Settings")]
+        [BoxGroup("Volume Settings")]
         public bool EnableFog = true;
-        public Volume FogVolume;
+        public bool EnableShadowsMidtonesHighlights = false;
+        public Volume WeatherVolume;
         private Color _currentFogColor;
 
         public float fogGrayAmount;
@@ -83,6 +84,30 @@ namespace Turnroot.Utilities.Weather
         )]
         [Range(0.5f, 4f)]
         public float NightTintCurveExponent = 2f;
+
+        [BoxGroup("Volume Tinting")]
+        [ShowIf(nameof(EnableShadowsMidtonesHighlights))]
+        public ShadowsMidtonesHighlightsSettings SunnyShadowsMidtonesHighlightsSettings;
+
+        [BoxGroup("Volume Tinting")]
+        [ShowIf(nameof(EnableShadowsMidtonesHighlights))]
+        public ShadowsMidtonesHighlightsSettings CloudyShadowsMidtonesHighlightsSettings;
+
+        [BoxGroup("Volume Tinting")]
+        [ShowIf(nameof(EnableShadowsMidtonesHighlights))]
+        public ShadowsMidtonesHighlightsSettings RainyShadowsMidtonesHighlightsSettings;
+
+        [BoxGroup("Volume Tinting")]
+        [ShowIf(nameof(EnableShadowsMidtonesHighlights))]
+        public ShadowsMidtonesHighlightsSettings SnowyShadowsMidtonesHighlightsSettings;
+
+        [BoxGroup("Volume Tinting")]
+        [ShowIf(nameof(EnableShadowsMidtonesHighlights))]
+        public ShadowsMidtonesHighlightsSettings StormyShadowsMidtonesHighlightsSettings;
+
+        [BoxGroup("Volume Tinting")]
+        [ShowIf(nameof(EnableShadowsMidtonesHighlights))]
+        public ShadowsMidtonesHighlightsSettings VolcanicShadowsMidtonesHighlightsSettings;
 
         [HorizontalLine(2, EColor.Blue)]
         [Header("Night Timing")]

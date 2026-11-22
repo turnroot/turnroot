@@ -10,58 +10,60 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
     [RequireComponent(typeof(NavMeshObstacle))]
     public class HubDoor : MonoBehaviour
     {
-        [SerializeField]
-        private UnityEvent onDoorApproached;
+        public UnityEvent onDoorApproached;
 
-        [SerializeField]
-        private UnityEvent onDoorEntered;
+        public UnityEvent onDoorEntered;
 
-        [SerializeField]
-        private UnityEvent goingInside;
+        public UnityEvent goingInside;
 
-        [SerializeField]
-        private UnityEvent goingOutside;
+        public UnityEvent goingOutside;
         private bool _open = false;
 
-        private bool _goingInside = false;
-
-        [SerializeField]
         public bool Locked;
 
-        [SerializeField]
         public bool AutoCloseBehindPlayer;
         private NavMeshObstacle DoorObstacle;
 
-        [SerializeField]
-        private Collider PlayerCollider;
+        public Collider PlayerCollider;
         private BoxCollider DoorCollider;
 
-        [SerializeField]
-        private Transform DoorTransformOpen;
+        public Transform DoorTransformOpen;
 
-        [SerializeField]
-        private Transform DoorTransformClosed;
-        private IEnumerator _doorCoroutine;
+        public Transform DoorTransformClosed;
 
-        [SerializeField]
-        private float OpenSpeed = 1f;
+        public float OpenSpeed = 1f;
 
-        [SerializeField]
-        private AudioClip DoorOpenSfx;
+        public AudioClip DoorOpenSfx;
 
-        [SerializeField]
-        private AudioClip DoorCloseSfx;
+        public AudioClip DoorCloseSfx;
 
-        [SerializeField]
-        private AudioSource AudioSource;
+        public AudioSource AudioSource;
 
-        [SerializeField]
-        private UIFade LockedWarningUi;
+        public UIFade LockedWarningUi;
+
+        private enum DoorState
+        {
+            Closed,
+            Opening,
+            Open,
+            Closing,
+        }
+
+        private DoorState _doorState = DoorState.Closed;
+        private Coroutine _doorCoroutine;
+        private bool _isInside;
 
         private void Awake()
         {
             DoorCollider = GetComponent<BoxCollider>();
             DoorObstacle = GetComponent<NavMeshObstacle>();
+        }
+
+        private void OnDisable()
+        {
+            StopDoorRoutine();
+            _doorState = DoorState.Closed;
+            _open = false;
         }
 
         private void OnTriggerEnter(Collider other)
@@ -76,12 +78,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             if (other == PlayerCollider)
             {
-                if (!_open)
+                if (_doorState == DoorState.Closed || _doorState == DoorState.Closing)
                 {
-                    _doorCoroutine = ApproachDoor();
-                    StartCoroutine(_doorCoroutine);
+                    StartDoorRoutine(ApproachDoor());
                 }
-                else
+                else if (_doorState == DoorState.Open)
                 {
                     onDoorEntered.Invoke();
                 }
@@ -93,20 +94,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             LockedWarningUi?.Hide();
             if (other == PlayerCollider)
             {
-                if (_doorCoroutine != null)
+                if (_doorState == DoorState.Opening || _doorState == DoorState.Open)
                 {
-                    StopCoroutine(_doorCoroutine);
+                    StartDoorRoutine(CloseDoor(commitOutside: _doorState == DoorState.Open));
                 }
-                if (_open)
-                {
-                    _doorCoroutine = CloseDoor();
-                    StartCoroutine(_doorCoroutine);
-                }
+            }
+        }
+
+        private void StartDoorRoutine(IEnumerator routine)
+        {
+            StopDoorRoutine();
+            _doorCoroutine = StartCoroutine(routine);
+        }
+
+        private void StopDoorRoutine()
+        {
+            if (_doorCoroutine != null)
+            {
+                StopCoroutine(_doorCoroutine);
+                _doorCoroutine = null;
             }
         }
 
         private IEnumerator ApproachDoor()
         {
+            _doorState = DoorState.Opening;
             AudioSource.PlayOneShot(DoorOpenSfx);
             onDoorApproached.Invoke();
             // lerp door transform open
@@ -124,26 +136,39 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // after lerp, disable NavMeshObstacle
             DoorObstacle.enabled = false;
             _open = true;
+            _doorState = DoorState.Open;
+
+            if (!_isInside)
+            {
+                _isInside = true;
+                goingInside?.Invoke();
+            }
+
             // once player collider is no longer colliding with door collider lerp closed if AutoCloseBehindPlayer is true
             if (AutoCloseBehindPlayer)
             {
-                _goingInside = !_goingInside;
-                if (_goingInside)
-                {
-                    goingInside?.Invoke();
-                }
-
                 while (DoorCollider.bounds.Intersects(PlayerCollider.bounds))
                 {
                     yield return null;
                 }
-                _doorCoroutine = CloseDoor();
-                StartCoroutine(_doorCoroutine);
+
+                if (_doorState == DoorState.Open)
+                {
+                    StartDoorRoutine(CloseDoor(commitOutside: true));
+                }
             }
         }
 
-        private IEnumerator CloseDoor()
+        private IEnumerator CloseDoor(bool commitOutside)
         {
+            _doorState = DoorState.Closing;
+
+            if (commitOutside && _isInside)
+            {
+                _isInside = false;
+                goingOutside?.Invoke();
+            }
+
             // lerp door transform closed
             float elapsed = 0f;
             while (elapsed < 2f)
@@ -167,10 +192,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             // after lerp enable NavMeshObstacle
             DoorObstacle.enabled = true;
             _open = false;
-            if (!_goingInside)
-            {
-                goingOutside?.Invoke();
-            }
+            _doorState = DoorState.Closed;
+            _doorCoroutine = null;
         }
     }
 }

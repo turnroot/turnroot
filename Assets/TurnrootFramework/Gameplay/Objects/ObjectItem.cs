@@ -42,7 +42,6 @@ namespace Turnroot.Gameplay.Objects
         public string Name => _name;
 
         [Foldout("Identity")]
-        [SerializeField]
         private readonly string _id = System.Guid.NewGuid().ToString();
 
         public string Id => _id;
@@ -106,7 +105,6 @@ namespace Turnroot.Gameplay.Objects
 
         [field:
             Foldout("Repair"),
-            SerializeField,
             ShowIf(nameof(IsWeaponOrMagicSubtypeAndIsRepairableAndNeedsItems)),
             InfoBox(
                 "If true, one repair item fully repairs the object regardless of remaining durability. If false, the repair item is consumed per use as normal."
@@ -228,7 +226,6 @@ namespace Turnroot.Gameplay.Objects
 
         [
             Foldout("Aptitude"),
-            SerializeField,
             HorizontalLine(color: EColor.Violet),
             ShowIf(nameof(IsCombatSectionVisible))
         ]
@@ -319,7 +316,6 @@ namespace Turnroot.Gameplay.Objects
 
         [field:
             Foldout("Consumable Effects"),
-            SerializeField,
             ShowIf(nameof(IsConsumableWithEffectAndAffectsDebuffs))
         ]
         public StatusEffectType DebuffTypeRemoved;
@@ -333,7 +329,6 @@ namespace Turnroot.Gameplay.Objects
 
         [field:
             Foldout("Consumable Effects"),
-            SerializeField,
             ShowIf(nameof(IsConsumableWithEffectAndAffectsBuffs))
         ]
         public StatusEffectType BuffTypeAdded;

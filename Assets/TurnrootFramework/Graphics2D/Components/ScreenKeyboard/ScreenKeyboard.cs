@@ -9,7 +9,6 @@ namespace Turnroot.Graphics2D
         public System.Action<string> OnSubmit;
 
         [Header("References")]
-        [SerializeField]
         public TextMeshProUGUI displayText;
 
         [SerializeField]
