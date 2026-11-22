@@ -134,8 +134,7 @@ namespace Turnroot.Gameplay.Brain
                             prep.SetBattleSelected(
                                 inst,
                                 desired,
-                                publish: true,
-                                markChanged: false
+                                publish: true
                             );
                             appliedCount++;
                         }

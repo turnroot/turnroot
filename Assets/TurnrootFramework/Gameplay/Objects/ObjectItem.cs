@@ -159,6 +159,27 @@ namespace Turnroot.Gameplay.Objects
         ]
         private int _rangeAdjustedByStatAmount = 0;
 
+        public bool RangeAdjustedByStat => _rangeAdjustedByStat;
+        public UnboundedStatType RangeAdjustedByStatName => _rangeAdjustedByStatName;
+        public int RangeAdjustedByStatAmount => _rangeAdjustedByStatAmount;
+
+        /// <summary>
+        /// Returns the weapon's upper range including stat-based range adjustment.
+        /// Amount is the number of stat points required for each additional tile.
+        /// A zero or negative amount disables the adjustment.
+        /// </summary>
+        public int GetAdjustedUpperRange(CharacterInstance unit)
+        {
+            if (!_rangeAdjustedByStat || unit == null || _rangeAdjustedByStatAmount <= 0)
+            {
+                return UpperRange;
+            }
+
+            int statValue = unit.GetUnboundedStat(_rangeAdjustedByStatName)?.Get() ?? 0;
+            int statRangeBonus = Mathf.Max(0, statValue) / _rangeAdjustedByStatAmount;
+            return Mathf.Max(LowerRange, UpperRange + statRangeBonus);
+        }
+
         [field:
             Foldout("Durability"),
             HideInInspector,

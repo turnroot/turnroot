@@ -29,233 +29,226 @@ namespace Turnroot.Characters.CharacterClass
                 return;
             }
 
-            // Required blendshape names must match CharacterModelBlendshapeSet.BlendshapeNames
+            ValidateDefaultClassModelPrefab();
+            ValidatePronounClassModelPrefabs();
+        }
 
-            // Helper: validate a mesh for required blendshapes. Returns list of missing blendshape names (empty => ok)
-            List<string> ValidateMeshBlendshapes(Mesh mesh, string source)
+        private List<string> ValidateMeshBlendshapes(Mesh mesh, string source)
+        {
+            var missing = new List<string>();
+            if (mesh == null)
             {
-                var missing = new List<string>();
-                if (mesh == null)
-                {
-                    $"{name}: {source} has no mesh assigned.".LogError();
-                    return missing;
-                }
-
-                foreach (var b in RequiredBlendshapeNames)
-                {
-                    if (mesh.GetBlendShapeIndex(b) < 0)
-                    {
-                        missing.Add(b);
-                    }
-                }
-
-                if (missing.Count > 0)
-                {
-
-                    $"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}".LogError();
-                }
+                $"{name}: {source} has no mesh assigned.".LogError();
                 return missing;
             }
 
-            // Helper: check whether any material in the array exposes class texture properties
-            bool MaterialsExposeClassTextures(Material[] mats)
+            foreach (var blendshapeName in RequiredBlendshapeNames)
             {
-                if (mats == null)
+                if (mesh.GetBlendShapeIndex(blendshapeName) < 0)
                 {
-                    return false;
+                    missing.Add(blendshapeName);
                 }
+            }
 
-                foreach (var mat in mats)
-                {
-                    if (mat == null)
-                    {
-                        continue;
-                    }
+            if (missing.Count > 0)
+            {
+                $"{name}: {source} is missing blendshapes: {string.Join(", ", missing)}".LogError();
+            }
+            return missing;
+        }
 
-                    if (
-                        mat.HasProperty("_Base")
-                        || mat.HasProperty("_MSE")
-                        || mat.HasProperty("_Tint_Mask")
-                    )
-                    {
-                        return true;
-                    }
-                }
+        private static bool MaterialsExposeClassTextures(Material[] materials)
+        {
+            if (materials == null)
+            {
                 return false;
             }
 
-            // Helper: detect explicit 'Hair' child or renderer whose name contains 'hair'
-            bool PrefabContainsHairRenderer(GameObject prefab)
+            foreach (var material in materials)
             {
-                if (prefab == null)
-                {
-                    return false;
-                }
-
-                if (prefab.transform.Find("Hair") != null)
+                if (
+                    material != null
+                    && (
+                        material.HasProperty("_Base")
+                        || material.HasProperty("_MSE")
+                        || material.HasProperty("_Tint_Mask")
+                    )
+                )
                 {
                     return true;
                 }
+            }
+            return false;
+        }
 
-                var smrs =
-                    prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true)
-                    ?? new SkinnedMeshRenderer[0];
-                return Array.Find(
-                        smrs,
-                        s =>
-                            s != null
-                            && (s.gameObject.name ?? string.Empty).IndexOf(
-                                "hair",
-                                StringComparison.OrdinalIgnoreCase
-                            ) >= 0
-                    ) != null;
+        private static bool PrefabContainsHairRenderer(GameObject prefab)
+        {
+            if (prefab == null)
+            {
+                return false;
             }
 
-            // Validate prefab if assigned (prefab should contain a SkinnedMeshRenderer)
-            if (Identity.ClassModelPrefab != null)
+            if (prefab.transform.Find("Hair") != null)
             {
-                var prefab = Identity.ClassModelPrefab;
-                var smrs = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-                if (smrs == null || smrs.Length == 0)
-                {
-                    $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment.".LogError();
-                    Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
-                    Identity.ClassModelPrefab = null;
-                    EditorUtility.SetDirty(this);
-                }
-                else
-                {
-                    var missingAny = new List<string>();
-                    foreach (var smr in smrs)
-                    {
-                        var missing = ValidateMeshBlendshapes(
-                            smr.sharedMesh,
-                            $"ClassModelPrefab '{prefab.name}' - {smr.gameObject.name}"
-                        );
-                        if (missing.Count > 0)
-                        {
-                            missingAny.AddRange(missing);
-                        }
-                    }
-                    if (missingAny.Count > 0)
-                    {
+                return true;
+            }
 
-                        $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing assignment.".LogError();
-                        Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
-                        Identity.ClassModelPrefab = null;
-                        EditorUtility.SetDirty(this);
-                    }
-                    else
-                    {
-                        // Enforce: class model prefabs must not include hair. Clear assignment if a 'Hair' renderer exists.
-                        if (PrefabContainsHairRenderer(prefab))
-                        {
-                            $"{name}: ClassModelPrefab '{prefab.name}' contains a 'Hair' renderer. Class models must not include hair; clearing assignment.".LogError();
-                            Undo.RecordObject(this, "Clear invalid ClassModelPrefab");
-                            Identity.ClassModelPrefab = null;
-                            EditorUtility.SetDirty(this);
-                        }
-                    }
+            foreach (
+                var renderer in prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+            )
+            {
+                if (
+                    renderer != null
+                    && renderer.gameObject.name.IndexOf(
+                        "hair",
+                        StringComparison.OrdinalIgnoreCase
+                    ) >= 0
+                )
+                {
+                    return true;
                 }
+            }
+            return false;
+        }
 
-                // Warn if none of the renderer materials expose class texture properties (_Base/_MSE/_Tint_Mask)
-                bool classMatFound = false;
-                var classSmrs =
-                    prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true)
-                    ?? new SkinnedMeshRenderer[0];
-                foreach (var smr in classSmrs)
+        private void ClearDefaultClassModelPrefab(string undoName)
+        {
+            Undo.RecordObject(this, undoName);
+            Identity.ClassModelPrefab = null;
+            EditorUtility.SetDirty(this);
+        }
+
+        private void ValidateDefaultClassModelPrefab()
+        {
+            var prefab = Identity.ClassModelPrefab;
+            if (prefab == null)
+            {
+                return;
+            }
+
+            var renderers = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            if (renderers == null || renderers.Length == 0)
+            {
+                $"{name}: ClassModelPrefab '{prefab.name}' does not contain a SkinnedMeshRenderer. Clearing assignment.".LogError();
+                ClearDefaultClassModelPrefab("Clear invalid ClassModelPrefab");
+            }
+            else
+            {
+                var missing = GetMissingBlendshapes(
+                    renderers,
+                    $"ClassModelPrefab '{prefab.name}'"
+                );
+                if (missing.Count > 0)
                 {
-                    var mats = smr.sharedMaterials ?? new Material[0];
-                    if (MaterialsExposeClassTextures(mats))
-                    {
-                        classMatFound = true;
-                        break;
-                    }
+                    $"{name}: ClassModelPrefab '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missing)}. Clearing assignment.".LogError();
+                    ClearDefaultClassModelPrefab("Clear invalid ClassModelPrefab");
                 }
-                if (!classMatFound)
+                else if (PrefabContainsHairRenderer(prefab))
                 {
-                    $"{name}: ClassModelPrefab '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied at runtime.".LogWarning();
-                    EditorUtility.SetDirty(this);
+                    $"{name}: ClassModelPrefab '{prefab.name}' contains a 'Hair' renderer. Class models must not include hair; clearing assignment.".LogError();
+                    ClearDefaultClassModelPrefab("Clear invalid ClassModelPrefab");
                 }
             }
 
-            // Validate any pronoun-specific class model prefabs (same rules as ClassModelPrefab)
-            if (Identity.PronounClassModelPrefabs != null)
+            if (!PrefabHasClassTextures(prefab))
             {
-                foreach (var pp in Identity.PronounClassModelPrefabs)
+                $"{name}: ClassModelPrefab '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied at runtime.".LogWarning();
+                EditorUtility.SetDirty(this);
+            }
+        }
+
+        private List<string> GetMissingBlendshapes(
+            SkinnedMeshRenderer[] renderers,
+            string source
+        )
+        {
+            var missing = new List<string>();
+            foreach (var renderer in renderers)
+            {
+                if (renderer != null)
                 {
-                    if (pp.prefab == null)
-                    {
-                        continue;
-                    }
+                    missing.AddRange(
+                        ValidateMeshBlendshapes(
+                            renderer.sharedMesh,
+                            $"{source} - {renderer.gameObject.name}"
+                        )
+                    );
+                }
+            }
+            return missing;
+        }
 
-                    var prefab = pp.prefab;
-                    var smrs = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-                    if (smrs == null || smrs.Length == 0)
+        private static bool PrefabHasClassTextures(GameObject prefab)
+        {
+            if (prefab == null)
+            {
+                return false;
+            }
+
+            foreach (var renderer in prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                if (MaterialsExposeClassTextures(renderer.sharedMaterials))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void ValidatePronounClassModelPrefabs()
+        {
+            if (Identity.PronounClassModelPrefabs == null)
+            {
+                return;
+            }
+
+            foreach (var entry in Identity.PronounClassModelPrefabs)
+            {
+                var prefab = entry.prefab;
+                if (prefab == null)
+                {
+                    continue;
+                }
+
+                var renderers = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                if (renderers == null || renderers.Length == 0)
+                {
+                    $"{name}: PronounClassModelPrefabs entry for '{entry.pronounKey}' points to prefab '{prefab.name}' which does not contain a SkinnedMeshRenderer. Clearing that entry.".LogError();
+                    Undo.RecordObject(
+                        this,
+                        $"Clear invalid PronounClassModelPrefabs[{entry.pronounKey}]"
+                    );
+                    EditorUtility.SetDirty(this);
+                    continue;
+                }
+
+                var missing = GetMissingBlendshapes(
+                    renderers,
+                    $"PronounClassModelPrefabs '{entry.pronounKey}' -> '{prefab.name}'"
+                );
+                if (missing.Count > 0)
+                {
+                    $"{name}: PronounClassModelPrefabs entry for '{entry.pronounKey}' -> '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missing)}. Clearing that entry.".LogError();
+                    Undo.RecordObject(
+                        this,
+                        $"Clear invalid PronounClassModelPrefabs[{entry.pronounKey}]"
+                    );
+                    EditorUtility.SetDirty(this);
+                }
+
+                if (PrefabContainsHairRenderer(prefab))
+                {
+                    $"{name}: PronounClassModelPrefabs entry for '{entry.pronounKey}' -> '{prefab.name}' contains a 'Hair' renderer. Pronoun-specific class models must not include hair.".LogError();
+                    Undo.RecordObject(
+                        this,
+                        $"PronounClassModelPrefabs contains invalid hair renderer [{entry.pronounKey}]"
+                    );
+                    EditorUtility.SetDirty(this);
+
+                    if (!PrefabHasClassTextures(prefab))
                     {
-                        $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' points to prefab '{prefab.name}' which does not contain a SkinnedMeshRenderer. Clearing that entry.".LogError();
-                        Undo.RecordObject(
-                            this,
-                            $"Clear invalid PronounClassModelPrefabs[{pp.pronounKey}]"
-                        );
-                        // Cannot clear struct array element automatically here; notify author and leave for manual fix in inspector
+                        $"{name}: PronounClassModelPrefabs entry for '{entry.pronounKey}' -> '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied.".LogWarning();
                         EditorUtility.SetDirty(this);
-                        continue;
-                    }
-
-                    var missingAny = new List<string>();
-                    foreach (var smr in smrs)
-                    {
-                        var missing = ValidateMeshBlendshapes(
-                            smr.sharedMesh,
-                            $"PronounClassModelPrefabs '{pp.pronounKey}' -> '{prefab.name}' - {smr.gameObject.name}"
-                        );
-                        if (missing.Count > 0)
-                        {
-                            missingAny.AddRange(missing);
-                        }
-                    }
-
-                    if (missingAny.Count > 0)
-                    {
-
-                        $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' is missing required blendshapes on submeshes: {string.Join(", ", missingAny)}. Clearing that entry.".LogError();
-                        Undo.RecordObject(
-                            this,
-                            $"Clear invalid PronounClassModelPrefabs[{pp.pronounKey}]"
-                        );
-                        // Cannot clear struct array element automatically here; notify author and leave for manual fix in inspector
-                        EditorUtility.SetDirty(this);
-                    }
-
-                    // Recommend: prefer a dedicated child renderer named 'Hair' for hair meshes so the runtime
-                    // preserves hair materials and avoids relying on material-name heuristics.
-                    if (PrefabContainsHairRenderer(prefab))
-                    {
-                        $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains a 'Hair' renderer. Pronoun-specific class models must not include hair.".LogError();
-                        Undo.RecordObject(
-                            this,
-                            $"PronounClassModelPrefabs contains invalid hair renderer [{pp.pronounKey}]"
-                        );
-                        // Notify author for manual fix in inspector (cannot auto-clear struct array element reliably)
-                        EditorUtility.SetDirty(this);
-
-                        // Warn if none of the renderer materials expose class texture properties (_Base/_MSE/_Tint_Mask)
-                        bool pronounHasClassMat = false;
-                        foreach (var smr2 in smrs)
-                        {
-                            var mats2 = smr2.sharedMaterials ?? new Material[0];
-                            if (MaterialsExposeClassTextures(mats2))
-                            {
-                                pronounHasClassMat = true;
-                                break;
-                            }
-                        }
-                        if (!pronounHasClassMat)
-                        {
-                            $"{name}: PronounClassModelPrefabs entry for '{pp.pronounKey}' -> '{prefab.name}' contains no materials exposing class texture properties (_Base/_MSE/_Tint_Mask). Class textures will not be applied.".LogWarning();
-                            EditorUtility.SetDirty(this);
-                        }
                     }
                 }
             }
@@ -263,5 +256,4 @@ namespace Turnroot.Characters.CharacterClass
 #endif
     }
 }
-
 

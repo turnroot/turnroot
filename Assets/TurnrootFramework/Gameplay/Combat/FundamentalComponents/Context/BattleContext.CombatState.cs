@@ -78,7 +78,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
                 return false;
             }
 
-            var targetAttackRange = targetWeapon.Template.UpperRange;
+            var targetAttackRange = targetWeapon.Template.GetAdjustedUpperRange(target);
 
             var targetGridPoint = target.UnitPositionToMapGridPoint(
                 target.MapGridPosition,

@@ -82,3 +82,4 @@ Packages/UnityMarkdownViewer/
 'Assets/Demos/' 
 *.md
 /Assets/TurnrootFramework/Tests
+*.pyc

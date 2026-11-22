@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
@@ -5,6 +6,7 @@ namespace Turnroot.Gameplay.Combat.FundamentalComponents.Battles
     /// <summary>
     /// Condition to defeat all enemies.
     /// </summary>
+    [Serializable]
     public class DefeatAllEnemiesBattleCondition : BattleCondition
     {
         public DefeatAllEnemiesBattleCondition()
