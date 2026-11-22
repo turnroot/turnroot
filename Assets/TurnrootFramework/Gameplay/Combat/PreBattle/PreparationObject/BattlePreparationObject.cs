@@ -231,13 +231,10 @@ namespace Turnroot.Gameplay.Combat.PreBattle
         public bool IsBattleSelected(CharacterInstance inst) =>
             inst != null && _battleSelectedIds.Contains(inst.Id);
 
-        private bool _battleSelectionsChanged = false;
-
         public void SetBattleSelected(
             CharacterInstance inst,
             bool selected,
-            bool publish = true,
-            bool markChanged = true
+            bool publish = true
         )
         {
             if (!ValidationHelper.ValidateNotNull(inst, nameof(inst)))
@@ -257,11 +254,6 @@ namespace Turnroot.Gameplay.Combat.PreBattle
             // CRITICAL: Set the flag on the CharacterInstance object itself
             // so that GetSelectedForBattlePlayerTeamUnits() can find it
             inst.IsSelectedForBattle = selected;
-
-            if (markChanged)
-            {
-                _battleSelectionsChanged = true;
-            }
 
             try
             {

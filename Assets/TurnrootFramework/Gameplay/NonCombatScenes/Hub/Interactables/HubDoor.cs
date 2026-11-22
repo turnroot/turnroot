@@ -17,8 +17,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public UnityEvent goingInside;
 
         public UnityEvent goingOutside;
-        private bool _open = false;
-
         public bool Locked;
 
         public bool AutoCloseBehindPlayer;
@@ -63,7 +61,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             StopDoorRoutine();
             _doorState = DoorState.Closed;
-            _open = false;
         }
 
         private void OnTriggerEnter(Collider other)
@@ -135,7 +132,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             // after lerp, disable NavMeshObstacle
             DoorObstacle.enabled = false;
-            _open = true;
             _doorState = DoorState.Open;
 
             if (!_isInside)
@@ -191,7 +187,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             // after lerp enable NavMeshObstacle
             DoorObstacle.enabled = true;
-            _open = false;
             _doorState = DoorState.Closed;
             _doorCoroutine = null;
         }

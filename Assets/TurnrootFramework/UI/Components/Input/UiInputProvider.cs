@@ -78,62 +78,61 @@ namespace Turnroot.UI
 
         private void Subscribe()
         {
+            if (_subscribed && SubscribedActionsAreCurrent())
+            {
+                return;
+            }
+
             if (_subscribed)
             {
-                // If the shared actions were re-created (new instances), re-subscribe.
-                if (
-                    _subscribedSelect == UiChoice.SelectAction
-                    && _subscribedStart == UiChoice.StartAction
-                    && _subscribedBack == UiChoice.BackAction
-                    && _subscribedNavigateUp == UiChoice.NavigateUpAction
-                    && _subscribedNavigateDown == UiChoice.NavigateDownAction
-                    && _subscribedNavigateLeft == UiChoice.NavigateLeftAction
-                    && _subscribedNavigateRight == UiChoice.NavigateRightAction
-                    && _subscribedScrollLeft == UiChoice.ScrollLeftAction
-                    && _subscribedScrollRight == UiChoice.ScrollRightAction
-                    && _subscribedRightStickMove == UIInputActionDefaults.RightStickMove
-                    && _subscribedToggleDetails == UiChoice.ToggleDetailsAction
-                )
-                {
-                    return;
-                }
-
                 Unsubscribe();
             }
 
-            // Subscribe regardless of whether this component is currently enabled.
-            // The subscription is just an event handler and can safely run while disabled.
-
-            // If the shared input actions are not yet initialized, wait for the initialization callback.
             if (!UIInputActionDefaults.Initialized)
             {
                 return;
             }
 
-            // Ensure any previous subscriptions are cleared (useful if actions were re-created).
             Unsubscribe();
 
             if (UiChoice.SelectAction == null && UiChoice.StartAction == null)
             {
-                "UiInputProvider: Neither Select nor Start input actions are assigned. Check UIInputActionBootstrap configuration.".LogWarning(
-                    "UiInputProvider.Subscribe"
-                );
-
-                $"UiInputProvider: UIInputActionDefaults.Initialized={UIInputActionDefaults.Initialized} Select={UiChoice.SelectAction} Start={UiChoice.StartAction}".LogWarning(
-                    "UiInputProvider.Subscribe"
-                );
-
-                // If these actions are still null, keep waiting for initialization.
-                // The initialization callback is already registered in OnEnable.
-
+                WarnAboutMissingPrimaryActions();
                 return;
             }
 
-            // Keep listening for re-initialization so we can re-subscribe if the
-            // shared actions are recreated (e.g., on scene reload).
+            CaptureSubscribedActions();
+            SubscribeToActions();
+        }
 
+        private bool SubscribedActionsAreCurrent()
+        {
+            return _subscribedSelect == UiChoice.SelectAction
+                && _subscribedStart == UiChoice.StartAction
+                && _subscribedBack == UiChoice.BackAction
+                && _subscribedNavigateUp == UiChoice.NavigateUpAction
+                && _subscribedNavigateDown == UiChoice.NavigateDownAction
+                && _subscribedNavigateLeft == UiChoice.NavigateLeftAction
+                && _subscribedNavigateRight == UiChoice.NavigateRightAction
+                && _subscribedScrollLeft == UiChoice.ScrollLeftAction
+                && _subscribedScrollRight == UiChoice.ScrollRightAction
+                && _subscribedRightStickMove == UIInputActionDefaults.RightStickMove
+                && _subscribedToggleDetails == UiChoice.ToggleDetailsAction;
+        }
+
+        private void WarnAboutMissingPrimaryActions()
+        {
+            "UiInputProvider: Neither Select nor Start input actions are assigned. Check UIInputActionBootstrap configuration.".LogWarning(
+                "UiInputProvider.Subscribe"
+            );
+            $"UiInputProvider: UIInputActionDefaults.Initialized={UIInputActionDefaults.Initialized} Select={UiChoice.SelectAction} Start={UiChoice.StartAction}".LogWarning(
+                "UiInputProvider.Subscribe"
+            );
+        }
+
+        private void CaptureSubscribedActions()
+        {
             _subscribed = true;
-
             _subscribedSelect = UiChoice.SelectAction;
             _subscribedBack = UiChoice.BackAction;
             _subscribedNavigateUp = UiChoice.NavigateUpAction;
@@ -145,6 +144,10 @@ namespace Turnroot.UI
             _subscribedScrollRight = UiChoice.ScrollRightAction;
             _subscribedRightStickMove = UIInputActionDefaults.RightStickMove;
             _subscribedToggleDetails = UiChoice.ToggleDetailsAction;
+        }
+
+        private void SubscribeToActions()
+        {
             if (_subscribedSelect != null)
             {
                 _subscribedSelect.performed += HandleSelect;

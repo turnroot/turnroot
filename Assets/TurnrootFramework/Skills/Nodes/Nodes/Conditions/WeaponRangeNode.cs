@@ -78,7 +78,7 @@ namespace Turnroot.Skills.Nodes.Conditions
             }
 
             int minRange = template.LowerRange;
-            int maxRange = template.UpperRange;
+            int maxRange = template.GetAdjustedUpperRange(context.Unit.UnitInstance);
             bool isMelee = maxRange <= 1;
             bool isRanged = maxRange >= 2;
 

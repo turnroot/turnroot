@@ -18,13 +18,16 @@ namespace Turnroot.Gameplay.Brain
 
         public event Action OnBattleStarted;
         public event Action<BattleExitType> OnBattleCompleted;
-        public event Action OnBattleContextInitialized;
         public event Action OnPreBattlePrepare;
         public event Action OnPreBattleStarted;
         public event Action OnBeforePreBattleCompleted;
         public event Action OnPreBattleCompleted;
 
         public void PublishBattleStarted() => OnBattleStarted?.Invoke();
+
+        // TODO: Route every centralized battle exit through PublishBattleCompleted.
+        public void PublishBattleCompleted(BattleExitType exitType) =>
+            OnBattleCompleted?.Invoke(exitType);
 
         public void PublishPreBattlePrepare() => OnPreBattlePrepare?.Invoke();
 

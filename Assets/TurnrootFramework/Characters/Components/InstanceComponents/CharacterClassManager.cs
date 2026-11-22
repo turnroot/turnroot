@@ -122,7 +122,7 @@ namespace Turnroot.Characters
             {
                 foreach (var weapon in RangeWeaponsCache)
                 {
-                    maxRange = Mathf.Max(maxRange, weapon.Template.UpperRange);
+                    maxRange = Mathf.Max(maxRange, weapon.Template.GetAdjustedUpperRange(this));
                 }
             }
             else

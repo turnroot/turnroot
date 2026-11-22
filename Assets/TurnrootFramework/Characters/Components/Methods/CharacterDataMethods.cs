@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Turnroot.Characters.CharacterClass;
+using Turnroot.Characters.Components;
 using Turnroot.Characters.Stats;
 using Turnroot.Characters.Subclasses;
 using Turnroot.GameSettings;
@@ -121,15 +122,44 @@ namespace Turnroot.Characters
 
         private void EnsureDefaultStatsInitialized()
         {
+            EnsureCharacterNames();
+            EnsureStatLists();
+            EnsureBoundedStats();
+            EnsureUnboundedStats();
+            EnsurePersonalGrowthRates();
+        }
+
+        private void EnsureCharacterNames()
+        {
+            if (string.IsNullOrWhiteSpace(DisplayName))
+            {
+                DisplayName = "New Unit";
+            }
+
+            if (string.IsNullOrWhiteSpace(FullName))
+            {
+                FullName = DisplayName;
+            }
+        }
+
+        private void EnsureStatLists()
+        {
             BoundedStats ??= new List<BoundedCharacterStat>();
             UnboundedStats ??= new List<CharacterStat>();
+            PersonalGrowthRates ??= new List<UnboundedStatModifier>();
+        }
 
+        private void EnsureBoundedStats()
+        {
             var gs = GameplayGeneralSettings.Instance;
             if (BoundedStats.Count == 0 && gs != null)
             {
                 BoundedStats = gs.CreateDefaultBoundedStats();
             }
+        }
 
+        private void EnsureUnboundedStats()
+        {
             var seenStats = new HashSet<UnboundedStatType>();
             UnboundedStats.RemoveAll(stat =>
                 stat == null
@@ -137,13 +167,14 @@ namespace Turnroot.Characters
                 || !seenStats.Add(stat.StatType)
             );
 
-            var templateId = FullName;
-            foreach (UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType)))
+            foreach (var statType in Enum.GetValues(typeof(UnboundedStatType)).Cast<UnboundedStatType>())
             {
-                StatHelpers.GetOrCreateUnboundedStat(UnboundedStats, statType, templateId);
+                StatHelpers.GetOrCreateUnboundedStat(UnboundedStats, statType, FullName);
             }
+        }
 
-            PersonalGrowthRates ??= new List<UnboundedStatModifier>();
+        private void EnsurePersonalGrowthRates()
+        {
             var seenGrowthRates = new HashSet<UnboundedStatType>();
             bool healthGrowthSeen = false;
             PersonalGrowthRates.RemoveAll(rate =>
@@ -164,28 +195,22 @@ namespace Turnroot.Characters
                     || !seenGrowthRates.Add(rate.unboundedStatType);
             });
 
-            foreach (UnboundedStatType statType in Enum.GetValues(typeof(UnboundedStatType)))
+            foreach (var statType in Enum.GetValues(typeof(UnboundedStatType)).Cast<UnboundedStatType>())
             {
                 if (statType == UnboundedStatType.Movement)
                 {
                     continue;
                 }
 
-                if (
-                    !PersonalGrowthRates.Exists(rate =>
-                        !rate.isBounded && rate.unboundedStatType == statType
-                    )
-                )
+                if (!PersonalGrowthRates.Any(rate =>
+                    !rate.isBounded && rate.unboundedStatType == statType))
                 {
                     PersonalGrowthRates.Add(new UnboundedStatModifier(statType, 0f));
                 }
             }
 
-            if (
-                !PersonalGrowthRates.Exists(rate =>
-                    rate.isBounded && rate.boundedStatType == BoundedStatType.Health
-                )
-            )
+            if (!PersonalGrowthRates.Any(rate =>
+                rate.isBounded && rate.boundedStatType == BoundedStatType.Health))
             {
                 PersonalGrowthRates.Add(new UnboundedStatModifier(BoundedStatType.Health, 0f));
             }
@@ -196,79 +221,58 @@ namespace Turnroot.Characters
         private void OnValidate()
         {
             EnsureDefaultStatsInitialized();
-
-            // Reset cached portrait array so changes in the inspector are reflected
             _portraitArrayCache = null;
+            SynchronizeExperienceRanks();
+            WarnAboutUnconfiguredProgression();
+        }
 
-            // warn if asset contains duplicate unbounded stats (should be fixed manually)
-            if (UnboundedStats != null)
+        private void SynchronizeExperienceRanks()
+        {
+            if (!Application.isEditor)
             {
-                var seen = new HashSet<UnboundedStatType>();
-                foreach (var s in UnboundedStats)
+                return;
+            }
+
+            ExperienceRanks ??= new List<ExperienceRank>();
+            var gs = GameplayGeneralSettings.Instance;
+            if (gs == null)
+            {
+                return;
+            }
+
+            var synchronizedRanks = new List<ExperienceRank>();
+            foreach (var experienceType in gs.GetAllExperienceTypes())
+            {
+                if (experienceType == null)
                 {
-                    if (s == null)
-                    {
-                        continue;
-                    }
-
-                    if (seen.Contains(s.StatType))
-                    {
-                        $"CharacterData.OnValidate: duplicate unbounded stat {s.StatType} in {name}".LogWarning();
-                        break;
-                    }
-                    seen.Add(s.StatType);
+                    continue;
                 }
-            }
-            // Ensure that the character's name is not empty
-            if (string.IsNullOrWhiteSpace(DisplayName))
-            {
-                DisplayName = "New Unit";
-            }
 
-            // Ensure that the full name is not empty
-            if (string.IsNullOrWhiteSpace(FullName))
-            {
-                FullName = DisplayName;
+                var existing = ExperienceRanks.Find(rank =>
+                    rank != null && rank.ExperienceTypeId == experienceType.Name
+                );
+                synchronizedRanks.Add(existing ?? new ExperienceRank(experienceType.Name, "E"));
             }
 
-            // synchronize ExperienceRanks list with available types from settings
-            if (Application.isEditor)
-            {
-                ExperienceRanks ??= new List<ExperienceRank>();
+            ExperienceRanks = synchronizedRanks;
+        }
 
-                var gs = GameplayGeneralSettings.Instance;
-                if (gs != null)
-                {
-                    var types = gs.GetAllExperienceTypes();
-                    var newList = new List<ExperienceRank>();
-                    foreach (var et in types)
-                    {
-                        var existing = ExperienceRanks.Find(r => r.ExperienceTypeId == et.Name);
-                        if (existing != null)
-                        {
-                            newList.Add(existing);
-                        }
-                        else
-                        {
-                            newList.Add(new ExperienceRank(et.Name, "E"));
-                        }
-                    }
-                    ExperienceRanks = newList;
-                }
+        private void WarnAboutUnconfiguredProgression()
+        {
+            if (IsUnique || Which.Equals(CharacterWhich.NPC))
+            {
+                return;
             }
 
-            if (!IsUnique)
+            if (
+                ProgressionLadder.Starter.Class == null
+                && ProgressionLadder.Base.Class == null
+                && ProgressionLadder.Advanced.Class == null
+                && ProgressionLadder.Master.Class == null
+                && ProgressionLadder.Expert.Class == null
+            )
             {
-                if (
-                    ProgressionLadder.Starter.Class == null
-                    && ProgressionLadder.Base.Class == null
-                    && ProgressionLadder.Advanced.Class == null
-                    && ProgressionLadder.Master.Class == null
-                    && ProgressionLadder.Expert.Class == null
-                )
-                {
-                    $"{name}: progression ladder enabled but no classes are assigned".LogWarning();
-                }
+                $"{name}: progression ladder enabled but no classes are assigned".LogWarning();
             }
         }
     }

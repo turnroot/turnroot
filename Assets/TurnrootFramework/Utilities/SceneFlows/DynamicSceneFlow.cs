@@ -51,7 +51,7 @@ namespace Turnroot.Utilities.AbstractScripts
     /// <summary>
     /// Manages sequential scene flow progression through defined state segments.
     /// </summary>
-    public class DynamicSceneFlow : MonoBehaviour
+    public partial class DynamicSceneFlow : MonoBehaviour
     {
         public List<FlowSegment> segments = new();
 
@@ -224,88 +224,6 @@ namespace Turnroot.Utilities.AbstractScripts
             FlowBrain.SetCurrentSceneByName(sceneName);
         }
 
-        #region Event Subscriptions
-        protected virtual void SubscribeToBrainEvents()
-        {
-            if (brain != null && !_brainEventsSubscribed)
-            {
-                brain.OnStateChanged += HandleStateChanged;
-                brain.OnSceneLoadProgress += HandleSceneLoadProgress;
-                brain.OnSceneChanged += HandleSceneChanged;
-                brain.OnSceneTransitionStarted += HandleSceneTransitionStarted;
-                brain.OnSceneTransitionCompleted += HandleSceneTransitionCompleted;
-                brain.OnBattleCompleted += HandleBattleCompleted;
-                brain.OnHubCharacterRecruitCompleted += HandleHubCharacterRecruitCompleted;
-                brain.OnSupportLevelIncreased += HandleSupportLevelIncreased;
-                _brainEventsSubscribed = true;
-            }
-        }
-
-        protected virtual void UnsubscribeFromBrainEvents()
-        {
-            if (brain != null && _brainEventsSubscribed)
-            {
-                brain.OnStateChanged -= HandleStateChanged;
-                brain.OnSceneLoadProgress -= HandleSceneLoadProgress;
-                brain.OnSceneChanged -= HandleSceneChanged;
-                brain.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
-                brain.OnSceneTransitionCompleted -= HandleSceneTransitionCompleted;
-                brain.OnBattleCompleted -= HandleBattleCompleted;
-                brain.OnHubCharacterRecruitCompleted -= HandleHubCharacterRecruitCompleted;
-                brain.OnSupportLevelIncreased -= HandleSupportLevelIncreased;
-                _brainEventsSubscribed = false;
-            }
-        }
-
-        protected void SubscribeToLoadingController()
-        {
-            if (loadingController != null && !_loadingControllerSubscribed)
-            {
-                loadingController.OnProgressChanged += HandleLoadingProgressChanged;
-                _loadingControllerSubscribed = true;
-            }
-        }
-
-        protected void UnsubscribeFromLoadingController()
-        {
-            if (loadingController != null && _loadingControllerSubscribed)
-            {
-                loadingController.OnProgressChanged -= HandleLoadingProgressChanged;
-                _loadingControllerSubscribed = false;
-            }
-        }
-
-        protected void HandleLoadingProgressChanged(float percentage) =>
-            ReportLoadingProgress(percentage);
-
-        protected void HandleSceneLoadProgress(float progress) => ReportLoadingProgress(progress);
-
-        protected void HandleSceneChanged(string sceneName, string displayName) => StartScene();
-
-        protected void HandleSceneTransitionStarted(string sceneName, string displayName) =>
-            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SceneEnd);
-
-        protected void HandleSceneTransitionCompleted(string sceneName, string displayName)
-        {
-            if (_pendingLoadingScreenRestore != null)
-            {
-                _pendingLoadingScreenRestore.showOnSceneTransitionStart = true;
-                _pendingLoadingScreenRestore = null;
-            }
-            SceneReadyAfterLoad?.Invoke();
-        }
-
-        protected void HandleBattleCompleted(Gameplay.Combat.BattleExitType exitType) =>
-            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.BattleCompleted);
-
-        protected void HandleHubCharacterRecruitCompleted(CharacterInstance character) =>
-            ApplyFlagTriggers(SceneFlowFlagTriggerTiming.UnitRecruited);
-
-        protected void HandleSupportLevelIncreased(
-            CharacterInstance source,
-            SupportRelationshipInstance relationship
-        ) => ApplyFlagTriggers(SceneFlowFlagTriggerTiming.SupportLevelChanged);
-        #endregion
 
         protected virtual void ApplyFlagTriggers(SceneFlowFlagTriggerTiming timing)
         {
@@ -349,67 +267,8 @@ namespace Turnroot.Utilities.AbstractScripts
             OnLoadedAmountChangedAction?.Invoke(percentage);
         }
 
-        #region Save File Management Reroutes
-        public void UpdateSaveFileName(string fileName) =>
-            brain.PublishUpdateSaveFileName(fileName);
 
-        public void UpdateSaveFileProgress(int progress) =>
-            brain.PublishUpdateSaveFileProgress(progress);
 
-        public void SetSaveFileCurrentScene(string sceneName) =>
-            brain.PublishSetSaveFileCurrentScene(sceneName);
-
-        public void SwitchActiveSaveFile(SaveFileSubfolders subfolder) =>
-            brain.PublishSwitchActiveSaveFile(subfolder);
-
-        #endregion
-
-        #region Conversation Management Reroutes
-
-        public void StartConversation(string conversationId) =>
-            conversationController?.PlayConversationById(conversationId);
-
-        public void AdvanceConversation() => conversationController?.NextLayer();
-
-        public void ChooseBranch(string targetNodeId) =>
-            conversationController?.ChooseBranchTarget(targetNodeId);
-
-        public void StartConversationFromNode(string conversationId, string nodeId) =>
-            conversationController?.StartConversationById(conversationId, nodeId);
-
-        #endregion
-
-        #region Scene Flow Completion
-        public void MarkSceneCompleteAndAdvance(bool showLoadingScreen = true)
-        {
-            var loadingScreen = FindFirstObjectByType<LoadingScreenController>();
-
-            if (!showLoadingScreen)
-            {
-                if (loadingScreen != null)
-                {
-                    loadingScreen.showOnSceneTransitionStart = false;
-                    _pendingLoadingScreenRestore = loadingScreen;
-                }
-            }
-            else
-            {
-                loadingScreen?.Show();
-            }
-
-            FlowBrain.AdvanceToNextScene();
-        }
-
-        public void MarkSceneCompleteAndAdvanceLoadingScreen() =>
-            MarkSceneCompleteAndAdvance(showLoadingScreen: true);
-
-        public void GoToCredits()
-        {
-            FindFirstObjectByType<LoadingScreenController>()?.Show();
-            FlowBrain.GoToCredits();
-        }
-
-        #endregion
 
         protected void StartScene()
         {
