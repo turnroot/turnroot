@@ -19,7 +19,6 @@ namespace Turnroot.UI.Components.RadialMenu
         public List<MenuItemBase> menuItems = new();
 
         [Header("Layout Settings")]
-        [SerializeField]
         public MenuItemBase centerItem;
 
         [SerializeField]

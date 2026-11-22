@@ -13,10 +13,8 @@ namespace Turnroot.UI.Components.GridMenu
         [HideInInspector]
         public MenuBase parentMenu;
 
-        [SerializeField]
         public int Row;
 
-        [SerializeField]
         public int Column;
 
         public override string ItemName => itemName;

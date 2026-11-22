@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
 using Turnroot.Gameplay.Brain;
 using Turnroot.Gameplay.NonCombatScenes.Hub;
 using Turnroot.GameSettings;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace Turnroot.Utilities.Weather
 {
@@ -310,12 +313,12 @@ namespace Turnroot.Utilities.Weather
 
         private void UpdateFog()
         {
-            if (FogVolume == null)
+            if (WeatherVolume == null)
             {
                 return;
             }
 
-            var profile = FogVolume.profile;
+            var profile = WeatherVolume.profile;
 
             if (profile.TryGet<Meryuhi.Rendering.FullScreenFog>(out var fog))
             {
@@ -347,5 +350,42 @@ namespace Turnroot.Utilities.Weather
                 }
             }
         }
+    }
+}
+
+[Serializable]
+public struct ShadowsMidtonesHighlightsSettings
+{
+    public bool active;
+    public Vector4Parameter shadows;
+    public Vector4Parameter midtones;
+    public Vector4Parameter highlights;
+    public MinFloatParameter shadowsStart;
+    public MinFloatParameter shadowsEnd;
+    public MinFloatParameter highlightsStart;
+    public MinFloatParameter highlightsEnd;
+
+    public readonly void SetVolumeComponentSettings(ShadowsMidtonesHighlights volumeComponent)
+    {
+        volumeComponent.active = active;
+        volumeComponent.shadows = shadows;
+        volumeComponent.midtones = midtones;
+        volumeComponent.highlights = highlights;
+        volumeComponent.shadowsStart = shadowsStart;
+        volumeComponent.shadowsEnd = shadowsEnd;
+        volumeComponent.highlightsStart = highlightsStart;
+        volumeComponent.highlightsEnd = highlightsEnd;
+    }
+
+    public void GetVolumeComponentSettings(ShadowsMidtonesHighlights volumeComponent)
+    {
+        active = volumeComponent.active;
+        shadows = volumeComponent.shadows;
+        midtones = volumeComponent.midtones;
+        highlights = volumeComponent.highlights;
+        shadowsStart = volumeComponent.shadowsStart;
+        shadowsEnd = volumeComponent.shadowsEnd;
+        highlightsStart = volumeComponent.highlightsStart;
+        highlightsEnd = volumeComponent.highlightsEnd;
     }
 }

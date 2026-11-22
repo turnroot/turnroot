@@ -10,7 +10,6 @@ namespace Turnroot.Utilities.AbstractScripts
     [RequireComponent(typeof(CanvasGroup))]
     public class UIFade : MonoBehaviour
     {
-        [SerializeField]
         public float lerpTime = 0.3f;
         private float visibleAlpha;
         private CanvasGroup canvasGroup;
