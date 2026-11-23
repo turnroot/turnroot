@@ -259,7 +259,7 @@ namespace Turnroot.Characters
 
         private void WarnAboutUnconfiguredProgression()
         {
-            if (IsUnique || Which.Equals(CharacterWhich.NPC))
+            if (IsUnique || Which == CharacterWhich.NPC)
             {
                 return;
             }
