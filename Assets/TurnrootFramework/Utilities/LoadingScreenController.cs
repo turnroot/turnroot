@@ -42,6 +42,7 @@ namespace Turnroot.Utilities
         public float hideDelayAfterReady = 0.1f;
 
         private LoadingController _loadingController;
+        private Brain _brain;
         private float _visibleSinceTime;
 
         private void Awake()
@@ -60,7 +61,13 @@ namespace Turnroot.Utilities
 
         private void Start()
         {
-            _loadingController = Brain.Instance.GetComponent<LoadingController>();
+            _brain = Brain.Instance;
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _loadingController = _brain.GetComponent<LoadingController>();
             SubscribeToBrainEvents();
             SubscribeToLoadingController();
 
@@ -78,16 +85,27 @@ namespace Turnroot.Utilities
 
         private void SubscribeToBrainEvents()
         {
-            Brain.Instance.OnSceneTransitionStarted += HandleSceneTransitionStarted;
-            Brain.Instance.OnSceneLoadProgress += HandleSceneLoadProgress;
-            Brain.Instance.OnSceneReadyToDisplay += HandleSceneReadyToDisplay;
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _brain.OnSceneTransitionStarted += HandleSceneTransitionStarted;
+            _brain.OnSceneLoadProgress += HandleSceneLoadProgress;
+            _brain.OnSceneReadyToDisplay += HandleSceneReadyToDisplay;
         }
 
         private void UnsubscribeFromBrainEvents()
         {
-            Brain.Instance.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
-            Brain.Instance.OnSceneLoadProgress -= HandleSceneLoadProgress;
-            Brain.Instance.OnSceneReadyToDisplay -= HandleSceneReadyToDisplay;
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _brain.OnSceneTransitionStarted -= HandleSceneTransitionStarted;
+            _brain.OnSceneLoadProgress -= HandleSceneLoadProgress;
+            _brain.OnSceneReadyToDisplay -= HandleSceneReadyToDisplay;
+            _brain = null;
         }
 
         private void SubscribeToLoadingController()

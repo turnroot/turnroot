@@ -32,7 +32,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     }
                 }
 
-                return OperationResult.Failure("No characters assigned to this location");
+                return OperationResult.Successful();
             }
 
             if (location.UnitSpawnPoints == null || location.UnitSpawnPoints.Length == 0)
@@ -47,6 +47,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (!ValidateSpawnability(location, brain).Success)
             {
+                if (location != null && location.UnitSpawnPoints != null)
+                {
+                    foreach (var entry in location.UnitSpawnPoints)
+                    {
+                        if (entry.UnitSpawnPoint == null)
+                        {
+                            continue;
+                        }
+
+                        entry.UnitSpawnPoint.gameObject.SetActive(false);
+                        FindPoiUi(location, entry.UnitSpawnPoint)?.ClearUnitCharacter();
+                    }
+                }
                 return;
             }
 
@@ -131,11 +144,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             model.transform.SetPositionAndRotation(spawnPosition, spawnPoint.rotation);
             model.transform.SetParent(location.transform, worldPositionStays: true);
             _spawnedCharacterIds.Add(character.Id);
-            brain.unitAppearanceBrain.SetupHubIdleAnimation(model, character);
-            if (isNewModel && poiUi != null)
+            brain.unitAppearanceBrain?.SetupHubIdleAnimation(model, character);
+            if (poiUi != null)
             {
                 poiUi.SetUnitCharacter(character);
                 poiUi.AvatarPoint = entry.AvatarPoint;
+                poiUi.CanSelect = true;
             }
         }
 
@@ -200,6 +214,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 if (entry.UnitSpawnPoint != null && !usedSpawnPoints.Contains(entry.UnitSpawnPoint))
                 {
                     entry.UnitSpawnPoint.gameObject.SetActive(false);
+                    var poiUi = FindPoiUi(location, entry.UnitSpawnPoint);
+                    poiUi?.ClearUnitCharacter();
                 }
             }
         }

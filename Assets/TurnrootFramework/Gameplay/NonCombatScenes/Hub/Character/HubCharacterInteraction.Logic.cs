@@ -256,14 +256,26 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
 
         private void OnDisable()
         {
-            CharacterManager
-                ?._brain?.audioBrain?.GetComponent<OneShotPlayer>()
-                ?.ClearPendingCallback();
-            if (CharacterManager._brain != null)
+            if (
+                !TryGetComponent(out HubCharacterManager characterManager)
+                || characterManager == null
+                || characterManager._brain == null
+            )
             {
-                CharacterManager._brain.OnHubCharacterRecruitCompleted -=
-                    OnRecruitCompleteSequenceFinished;
+                return;
             }
+
+            var brain = characterManager._brain;
+            var audioBrain = brain.audioBrain;
+            if (audioBrain != null)
+            {
+                if (audioBrain.TryGetComponent(out OneShotPlayer player))
+                {
+                    player?.ClearPendingCallback();
+                }
+            }
+
+            brain.OnHubCharacterRecruitCompleted -= OnRecruitCompleteSequenceFinished;
         }
 
         #endregion

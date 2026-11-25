@@ -9,16 +9,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private HubManager _activeHubManager;
         private Brain.Brain _brain;
         private bool _subscribedToSceneChanged;
+        private bool _subscribedToSceneReady;
         private string _lastActivatedSceneName;
 
         private void Awake()
         {
             TrySubscribeToBrainSceneChanged();
+            TrySubscribeToBrainSceneReady();
         }
 
         private void OnEnable()
         {
             TrySubscribeToBrainSceneChanged();
+            TrySubscribeToBrainSceneReady();
         }
 
         private void Start()
@@ -27,9 +30,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             TryActivateHubManagerForCurrentScene();
         }
 
-        private void OnDisable() => UnsubscribeFromBrainSceneChanged();
+        private void OnDisable()
+        {
+            UnsubscribeFromBrainSceneChanged();
+            UnsubscribeFromBrainSceneReady();
+        }
 
-        private void OnDestroy() => UnsubscribeFromBrainSceneChanged();
+        private void OnDestroy()
+        {
+            UnsubscribeFromBrainSceneChanged();
+            UnsubscribeFromBrainSceneReady();
+        }
 
         private void TrySubscribeToBrainSceneChanged()
         {
@@ -63,10 +74,49 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             _subscribedToSceneChanged = false;
         }
 
-        private void OnSceneChanged(string sceneName, string displayName) =>
-            TryActivateHubManagerForCurrentScene();
+        private void OnSceneReadyToDisplay(string sceneName, string displayName) =>
+            TryActivateHubManagerForScene(sceneName);
 
-        private void TryActivateHubManagerForCurrentScene()
+        private void OnSceneChanged(string sceneName, string displayName) =>
+            TryActivateHubManagerForScene(sceneName);
+
+        private void TrySubscribeToBrainSceneReady()
+        {
+            if (_subscribedToSceneReady)
+            {
+                return;
+            }
+
+            _brain ??= Brain.Brain.Instance;
+            if (_brain == null)
+            {
+                return;
+            }
+
+            _brain.OnSceneReadyToDisplay += OnSceneReadyToDisplay;
+            _subscribedToSceneReady = true;
+        }
+
+        private void UnsubscribeFromBrainSceneReady()
+        {
+            if (!_subscribedToSceneReady)
+            {
+                return;
+            }
+
+            if (_brain != null)
+            {
+                _brain.OnSceneReadyToDisplay -= OnSceneReadyToDisplay;
+            }
+            _subscribedToSceneReady = false;
+        }
+
+        private void TryActivateHubManagerForCurrentScene() =>
+            TryActivateHubManagerForScene(
+                _brain?.sceneFlowBrain?.CurrentSceneName
+            );
+
+        private void TryActivateHubManagerForScene(string sceneName)
         {
             _brain ??= Brain.Brain.Instance;
             if (_brain?.sceneFlowBrain == null)
@@ -74,10 +124,19 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
-            if (_brain.sceneFlowBrain.CurrentSceneKind != GameSceneKind.Hub)
+            var registry = GameFlowRegistry.Instance;
+            if (
+                string.IsNullOrEmpty(sceneName)
+                || registry == null
+                || registry.GetSceneKind(sceneName) != GameSceneKind.Hub
+            )
             {
                 if (_activeHubManager != null)
                 {
+                    if (HubManager.Current == _activeHubManager)
+                    {
+                        HubManager.SetCurrent(null);
+                    }
                     _activeHubManager.gameObject.SetActive(false);
                 }
                 return;
@@ -93,7 +152,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (
                 _activeHubManager == selectedHubManager
                 && selectedHubManager.gameObject.activeInHierarchy
-                && _lastActivatedSceneName == _brain.sceneFlowBrain.CurrentSceneName
+                && _lastActivatedSceneName == sceneName
             )
             {
                 HubManager.SetCurrent(selectedHubManager);
@@ -102,6 +161,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (_activeHubManager != null && _activeHubManager != selectedHubManager)
             {
+                if (HubManager.Current == _activeHubManager)
+                {
+                    HubManager.SetCurrent(null);
+                }
                 _activeHubManager.gameObject.SetActive(false);
             }
 
@@ -112,7 +175,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _activeHubManager.gameObject.SetActive(true);
             }
 
-            _lastActivatedSceneName = _brain.sceneFlowBrain.CurrentSceneName;
+            _lastActivatedSceneName = sceneName;
             _activeHubManager.ActivateHubManager();
         }
 
