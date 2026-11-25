@@ -152,6 +152,20 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     changed = true;
                 }
 
+                var capacityLocation = spawnAreas.FirstOrDefault(l =>
+                    l != null && l.LocationName == desiredLocation
+                );
+                if (
+                    capacityLocation != null
+                    && capacityLocation.CharactersPresent != null
+                    && capacityLocation.CharactersPresent.Length >= maxPerLocation
+                )
+                {
+                    desiredLocation = PickRandomValidLocation(spawnAreas, maxPerLocation);
+                    placementMap[i] = desiredLocation;
+                    changed = true;
+                }
+
                 AssignUnitToLocation(roster, i, unit, desiredLocation, spawnAreas, maxPerLocation);
             }
 
@@ -281,7 +295,17 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 location.CharactersPresent ??= new CharacterInstance[0];
                 if (location.CharactersPresent.Length >= maxPerLocation)
                 {
-                    continue;
+                    desiredLocation = PickRandomValidLocation(spawnAreas, maxPerLocation);
+                    placementMap[characterKey] = desiredLocation;
+                    changed = true;
+                    location = spawnAreas.FirstOrDefault(s =>
+                        s.LocationName == desiredLocation
+                    );
+                    if (location == null)
+                    {
+                        continue;
+                    }
+                    location.CharactersPresent ??= new CharacterInstance[0];
                 }
 
                 var instance = _charFactory.CreateOrRecall(info.Character);

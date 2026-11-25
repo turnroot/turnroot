@@ -26,6 +26,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             gameDate = new GameDate(year, month, day);
             _brain.charactersBrain.CheckBirthdays();
             $"HubManager: Game date changed to {gameDate.year}/{gameDate.month}/{gameDate.day}".LogInfo();
+
+            _hubInitialized = false;
+            HubDayRandom.Reset();
+            InitializeHubForCurrentDate();
         }
 
         public void HandleCharacterBirthdayThisWeek(CharacterInstance character, GameDate date)

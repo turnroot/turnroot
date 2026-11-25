@@ -1,4 +1,5 @@
 using UnityEngine;
+using Turnroot.Gameplay.Combat;
 
 namespace Turnroot.Gameplay.NonCombatScenes.Hub
 {
@@ -8,10 +9,23 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private HubManager _activeHubManager;
         private Brain.Brain _brain;
         private bool _subscribedToSceneChanged;
+        private string _lastActivatedSceneName;
 
-        private void Awake() => TrySubscribeToBrainSceneChanged();
+        private void Awake()
+        {
+            TrySubscribeToBrainSceneChanged();
+        }
 
-        private void Start() => TryActivateHubManagerForCurrentScene();
+        private void OnEnable()
+        {
+            TrySubscribeToBrainSceneChanged();
+        }
+
+        private void Start()
+        {
+            // Fallback for scenes that arrive before the switcher's subscription.
+            TryActivateHubManagerForCurrentScene();
+        }
 
         private void OnDisable() => UnsubscribeFromBrainSceneChanged();
 
@@ -60,6 +74,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            if (_brain.sceneFlowBrain.CurrentSceneKind != GameSceneKind.Hub)
+            {
+                if (_activeHubManager != null)
+                {
+                    _activeHubManager.gameObject.SetActive(false);
+                }
+                return;
+            }
+
             var currentChapterNumber = _brain.sceneFlowBrain.CurrentChapterNumber;
             var selectedHubManager = GetHubManagerForChapter(currentChapterNumber);
             if (selectedHubManager == null)
@@ -70,10 +93,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             if (
                 _activeHubManager == selectedHubManager
                 && selectedHubManager.gameObject.activeInHierarchy
+                && _lastActivatedSceneName == _brain.sceneFlowBrain.CurrentSceneName
             )
             {
                 HubManager.SetCurrent(selectedHubManager);
                 return;
+            }
+
+            if (_activeHubManager != null && _activeHubManager != selectedHubManager)
+            {
+                _activeHubManager.gameObject.SetActive(false);
             }
 
             _activeHubManager = selectedHubManager;
@@ -83,6 +112,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _activeHubManager.gameObject.SetActive(true);
             }
 
+            _lastActivatedSceneName = _brain.sceneFlowBrain.CurrentSceneName;
             _activeHubManager.ActivateHubManager();
         }
 

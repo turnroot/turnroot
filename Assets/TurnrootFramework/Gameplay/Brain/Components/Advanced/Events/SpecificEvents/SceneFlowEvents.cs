@@ -46,6 +46,12 @@ namespace Turnroot.Gameplay.Brain
         /// </summary>
         public event Action OnHubDayCompleted;
 
+        /// <summary>
+        /// Fired after the per-day hub state has been initialized for the active game date.
+        /// Systems that consume deterministic hub data should wait for this event.
+        /// </summary>
+        public event Action OnHubDayStateInitialized;
+
         public void PublishSceneTransitionStarted(string sceneName, string displayName) =>
             OnSceneTransitionStarted?.Invoke(sceneName, displayName);
 
@@ -68,6 +74,8 @@ namespace Turnroot.Gameplay.Brain
             OnGameDateChanged?.Invoke(year, month, day);
 
         public void PublishHubDayCompleted() => OnHubDayCompleted?.Invoke();
+
+        public void PublishHubDayStateInitialized() => OnHubDayStateInitialized?.Invoke();
 
         #endregion
     }

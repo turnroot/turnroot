@@ -67,8 +67,6 @@ namespace Turnroot.Utilities.Weather
 
         private string _lastSceneName;
 
-        private bool _handledSceneChange = false;
-
         public void Update()
         {
             if (ProgressTimeOfDay)
@@ -99,7 +97,6 @@ namespace Turnroot.Utilities.Weather
         public void Awake()
         {
             // one time inits
-            RandomizeTimeOfDay();
             ApplyDirectionalLightRotation();
             InitializeWater();
             InitializeAudio();
@@ -110,12 +107,24 @@ namespace Turnroot.Utilities.Weather
             // constant update
             StartCoroutine(UpdateWorld());
 
-            Brain.Instance.OnSceneChanged += HandleSceneChanged;
+            var brain = Brain.Instance;
+            if (brain != null)
+            {
+                brain.OnSceneChanged += HandleSceneChanged;
+                brain.OnHubDayStateInitialized += HandleHubDayStateInitialized;
+                brain.OnLongTermMemoryInitialized += HandleLongTermMemoryInitialized;
+            }
         }
 
         public void OnDestroy()
         {
-            Brain.Instance.OnSceneChanged -= HandleSceneChanged;
+            var brain = Brain.Instance;
+            if (brain != null)
+            {
+                brain.OnSceneChanged -= HandleSceneChanged;
+                brain.OnHubDayStateInitialized -= HandleHubDayStateInitialized;
+                brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
+            }
 
             CurrentWeatherType = WeatherType.Sunny;
 
@@ -156,15 +165,32 @@ namespace Turnroot.Utilities.Weather
 
         private void HandleSceneChanged(string sceneName, string displayName)
         {
-            if (_handledSceneChange)
-            {
-                return;
-            }
-
-            _handledSceneChange = true;
-            // unsubscribe since we don't want to run again
-            Brain.Instance.OnSceneChanged -= HandleSceneChanged;
             SetupForScene(sceneName);
+        }
+
+        private void HandleHubDayStateInitialized()
+        {
+            RandomizeTimeOfDay();
+
+            var brain = Brain.Instance;
+            if (brain?.sceneFlowBrain != null)
+            {
+                SetupForScene(brain.sceneFlowBrain.CurrentSceneName);
+            }
+        }
+
+        private void HandleLongTermMemoryInitialized()
+        {
+            var brain = Brain.Instance;
+            var date = brain?.ltm?.GetGameDate() ?? GameDate.Default;
+            if (brain != null && date != GameDate.Default)
+            {
+                HubDayStateStore.Initialize(brain, date);
+                if (HubDayStateStore.IsInitializedForDate(date))
+                {
+                    HubDayRandom.Initialize(HubDayStateStore.Seed);
+                }
+            }
         }
 
         public void SetupForScene(string sceneName)
