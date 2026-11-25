@@ -20,6 +20,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         public bool Locked;
 
         public bool AutoCloseBehindPlayer;
+        public bool IsBetweenInsideAndOutside = true;
         private NavMeshObstacle DoorObstacle;
 
         public Collider PlayerCollider;
@@ -49,12 +50,24 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         private DoorState _doorState = DoorState.Closed;
         private Coroutine _doorCoroutine;
-        private bool _isInside;
+        private static bool _playerIsInside;
+        private int _playerEntrySide;
+        private bool _insideEventInvokedForPass;
+        private Vector3 _doorwayCenter;
+        private Vector3 _doorwayNormal;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetPlayerLocation()
+        {
+            _playerIsInside = false;
+        }
 
         private void Awake()
         {
             DoorCollider = GetComponent<BoxCollider>();
             DoorObstacle = GetComponent<NavMeshObstacle>();
+            _doorwayCenter = DoorCollider.bounds.center;
+            _doorwayNormal = transform.forward;
         }
 
         private void OnDisable()
@@ -75,6 +88,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             if (other == PlayerCollider)
             {
+                _playerEntrySide = GetPlayerDoorSide();
+                _insideEventInvokedForPass = false;
                 if (_doorState == DoorState.Closed || _doorState == DoorState.Closing)
                 {
                     StartDoorRoutine(ApproachDoor());
@@ -91,10 +106,51 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             LockedWarningUi?.Hide();
             if (other == PlayerCollider)
             {
+                if (IsBetweenInsideAndOutside)
+                {
+                    HandlePlayerCrossing();
+                }
+
                 if (_doorState == DoorState.Opening || _doorState == DoorState.Open)
                 {
-                    StartDoorRoutine(CloseDoor(commitOutside: _doorState == DoorState.Open));
+                    StartDoorRoutine(CloseDoor());
                 }
+            }
+        }
+
+        private int GetPlayerDoorSide()
+        {
+            return Vector3.Dot(
+                PlayerCollider.bounds.center - _doorwayCenter,
+                _doorwayNormal
+            ) >= 0f ? 1 : -1;
+        }
+
+        private void HandlePlayerCrossing()
+        {
+            bool crossedDoor = _playerEntrySide != GetPlayerDoorSide();
+            if (crossedDoor)
+            {
+                if (_playerIsInside)
+                {
+                    _playerIsInside = false;
+                    goingOutside?.Invoke();
+                }
+                else
+                {
+                    if (!_insideEventInvokedForPass)
+                    {
+                        goingInside?.Invoke();
+                    }
+                    _playerIsInside = true;
+                }
+
+                _insideEventInvokedForPass = false;
+            }
+            else if (_insideEventInvokedForPass && !_playerIsInside)
+            {
+                goingOutside?.Invoke();
+                _insideEventInvokedForPass = false;
             }
         }
 
@@ -134,10 +190,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             DoorObstacle.enabled = false;
             _doorState = DoorState.Open;
 
-            if (!_isInside)
+            if (IsBetweenInsideAndOutside && !_playerIsInside)
             {
-                _isInside = true;
                 goingInside?.Invoke();
+                _insideEventInvokedForPass = true;
             }
 
             // once player collider is no longer colliding with door collider lerp closed if AutoCloseBehindPlayer is true
@@ -150,20 +206,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
                 if (_doorState == DoorState.Open)
                 {
-                    StartDoorRoutine(CloseDoor(commitOutside: true));
+                    StartDoorRoutine(CloseDoor());
                 }
             }
         }
 
-        private IEnumerator CloseDoor(bool commitOutside)
+        private IEnumerator CloseDoor()
         {
             _doorState = DoorState.Closing;
-
-            if (commitOutside && _isInside)
-            {
-                _isInside = false;
-                goingOutside?.Invoke();
-            }
 
             // lerp door transform closed
             float elapsed = 0f;
