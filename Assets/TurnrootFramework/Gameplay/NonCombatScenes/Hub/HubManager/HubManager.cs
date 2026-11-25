@@ -35,12 +35,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
         public static HubManager GetCurrent()
         {
-            if (Current != null)
+            if (
+                Current != null
+                && Current.gameObject.activeInHierarchy
+            )
             {
                 return Current;
             }
 
-            Current = FindFirstObjectByType<HubManager>(FindObjectsInactive.Include);
+            Current = FindFirstObjectByType<HubManager>();
             return Current;
         }
 

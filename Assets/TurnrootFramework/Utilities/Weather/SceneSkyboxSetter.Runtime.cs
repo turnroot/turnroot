@@ -111,6 +111,7 @@ namespace Turnroot.Utilities.Weather
             if (brain != null)
             {
                 brain.OnSceneChanged += HandleSceneChanged;
+                brain.OnSceneReadyToDisplay += HandleSceneReadyToDisplay;
                 brain.OnHubDayStateInitialized += HandleHubDayStateInitialized;
                 brain.OnLongTermMemoryInitialized += HandleLongTermMemoryInitialized;
             }
@@ -122,6 +123,7 @@ namespace Turnroot.Utilities.Weather
             if (brain != null)
             {
                 brain.OnSceneChanged -= HandleSceneChanged;
+                brain.OnSceneReadyToDisplay -= HandleSceneReadyToDisplay;
                 brain.OnHubDayStateInitialized -= HandleHubDayStateInitialized;
                 brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
             }
@@ -164,6 +166,11 @@ namespace Turnroot.Utilities.Weather
         }
 
         private void HandleSceneChanged(string sceneName, string displayName)
+        {
+            SetupForScene(sceneName);
+        }
+
+        private void HandleSceneReadyToDisplay(string sceneName, string displayName)
         {
             SetupForScene(sceneName);
         }
@@ -216,6 +223,7 @@ namespace Turnroot.Utilities.Weather
                 else if (
                     PossibleWeatherTypes.Length > 0
                     && HubDayStateStore.IsInitializedForDate(date)
+                    && HubDayRandom.IsInitialized
                 )
                 {
                     int index = HubDayRandom.Range(0, PossibleWeatherTypes.Length);

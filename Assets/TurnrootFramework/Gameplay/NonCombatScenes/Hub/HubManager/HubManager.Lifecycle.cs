@@ -306,6 +306,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
             }
 
+            if (HubManager.Current == this)
+            {
+                HubManager.SetCurrent(null);
+            }
+
             EndSettingsMenu();
         }
 

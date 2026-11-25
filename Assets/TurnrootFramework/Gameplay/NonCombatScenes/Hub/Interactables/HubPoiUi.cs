@@ -96,6 +96,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private HubManager hubmanager;
 
         private bool ChildReferencesSet = false;
+        private bool _subLocationHandled;
 
         #endregion
 
@@ -117,6 +118,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 SetLabel(character.CharacterTemplate.DisplayName);
             }
+        }
+
+        public void ClearUnitCharacter()
+        {
+            UnitCharacter = null;
+            AvatarPoint = null;
+            SetLabel(string.Empty);
+            CanSelect = false;
         }
 
         public void SetBadgeVisible(bool visible) => Badge?.SetActive(visible);
@@ -191,6 +200,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             Hide();
         }
 
+        private void OnEnable()
+        {
+            hubmanager = GetCurrent();
+            if (hubmanager != null)
+            {
+                HandleSubLocationType();
+                _subLocationHandled = true;
+            }
+        }
+
         private void Update()
         {
             FaceCamera();
@@ -198,19 +217,36 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 return;
             }
+
+            hubmanager = GetCurrent();
+            if (hubmanager == null || hubmanager._brain == null)
+            {
+                return;
+            }
+
+            var brain = hubmanager._brain;
+            if (!_subLocationHandled)
+            {
+                HandleSubLocationType();
+                _subLocationHandled = true;
+            }
             if (
                 NonShopType == NonShopPoiType.Blacksmith
                 && !IsShop
                 && _blacksmith != null
-                && hubmanager != null
             )
             {
-                _blacksmith._inventoryBrain = hubmanager._brain.inventoryBrain;
-                _blacksmith._storehouseBrain = hubmanager._brain.storehouseBrain;
-                _blacksmith._charactersBrain = hubmanager._brain.charactersBrain;
+                _blacksmith._inventoryBrain = brain.inventoryBrain;
+                _blacksmith._storehouseBrain = brain.storehouseBrain;
+                _blacksmith._charactersBrain = brain.charactersBrain;
 
-                bool hasRepairWork = hubmanager._brain.charactersBrain.RepairWorkAvailable;
-                bool hasForgeWork = hubmanager._brain.charactersBrain.ForgeWorkAvailable;
+                if (brain.charactersBrain == null)
+                {
+                    return;
+                }
+
+                bool hasRepairWork = brain.charactersBrain.RepairWorkAvailable;
+                bool hasForgeWork = brain.charactersBrain.ForgeWorkAvailable;
                 $"Blacksmith work available - repair: {hasRepairWork}, forge: {hasForgeWork}".LogInfo();
                 if (!hasRepairWork && !hasForgeWork)
                 {

@@ -104,6 +104,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     continue;
                 }
 
+                if (unit.CharacterData == null)
+                {
+                    continue;
+                }
+
                 // don't ever spawn avatar
                 if (unit.CharacterData != null && !unit.CharacterData.IsNotAvatar)
                 {
@@ -232,7 +237,12 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
 
                 // Skip characters in the roster — SetTeamLocations handles those
-                if (roster.characters.Any(u => u.CharacterData.Matches(info.Character)))
+                if (
+                    roster.characters.Any(u =>
+                        u.CharacterData != null
+                        && u.CharacterData.Matches(info.Character)
+                    )
+                )
                 {
                     continue;
                 }
