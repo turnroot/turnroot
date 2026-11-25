@@ -61,6 +61,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                     }
                 }
             }
+            if (pool.Count == 0)
+            {
+                return default;
+            }
 
             int pickIndex = HubDayRandom.Range(0, pool.Count);
             int attempts = 0;

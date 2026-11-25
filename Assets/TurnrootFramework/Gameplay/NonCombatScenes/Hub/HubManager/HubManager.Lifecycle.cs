@@ -27,11 +27,31 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 InputProvider.OnInput -= HandleInput;
             }
 
+            if (_hubEventsSubscribed)
+            {
+                if (_brain != null)
+                {
+                    _brain.OnGameDateChanged -= HandleGameDateChanged;
+                    _brain.OnCharacterBirthdayThisWeek -= HandleCharacterBirthdayThisWeek;
+                }
+                _hubEventsSubscribed = false;
+            }
+
+            if (_longTermMemorySubscription && _brain != null)
+            {
+                _brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
+                _longTermMemorySubscription = false;
+            }
+
+            _hubInitialized = false;
+
             // Reset cursor state in case look mode was active when this component disabled.
             RestoreLookCursorState();
         }
 
         private bool _hubInitialized = false;
+        private bool _hubEventsSubscribed;
+        private bool _longTermMemorySubscription;
 
         public void ActivateHubManager()
         {
@@ -68,13 +88,18 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             }
             else
             {
-                _brain.OnLongTermMemoryInitialized += HandleLongTermMemoryInitialized;
+                if (!_longTermMemorySubscription)
+                {
+                    _brain.OnLongTermMemoryInitialized += HandleLongTermMemoryInitialized;
+                    _longTermMemorySubscription = true;
+                }
             }
         }
 
         private void HandleLongTermMemoryInitialized()
         {
             _brain.OnLongTermMemoryInitialized -= HandleLongTermMemoryInitialized;
+            _longTermMemorySubscription = false;
             InitializeHubForCurrentDate();
         }
 
@@ -94,8 +119,6 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             {
                 return;
             }
-
-            _hubInitialized = true;
 
             var ltm = _brain.ltm;
             if (ltm != null && ltm.Initialized)
@@ -146,16 +169,33 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
             var hasProcessed = HubDayStateStore.HasProcessedDailyUpdates;
             if (!hasProcessed)
             {
-                dock.UpdateDailyVoyageStatuses();
-                CheckShipsDocked();
-                CheckRareItems();
-                HubDayStateStore.MarkDailyUpdatesProcessed(_brain);
+                if (dock != null)
+                {
+                    dock.UpdateDailyVoyageStatuses();
+                    CheckShipsDocked();
+                }
+
+                if (shopsManager != null)
+                {
+                    CheckRareItems();
+                }
+
+                if (dock != null && shopsManager != null)
+                {
+                    HubDayStateStore.MarkDailyUpdatesProcessed(_brain);
+                }
             }
 
-            Initialize();
+            if (!Initialize())
+            {
+                return;
+            }
+
+            _hubInitialized = true;
+            _brain.PublishHubDayStateInitialized();
         }
 
-        public void Initialize()
+        public bool Initialize()
         {
             if (
                 !ValidateRequired(
@@ -167,11 +207,15 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 )
             )
             {
-                return;
+                return false;
             }
 
-            _brain.OnGameDateChanged += HandleGameDateChanged;
-            _brain.OnCharacterBirthdayThisWeek += HandleCharacterBirthdayThisWeek;
+            if (!_hubEventsSubscribed)
+            {
+                _brain.OnGameDateChanged += HandleGameDateChanged;
+                _brain.OnCharacterBirthdayThisWeek += HandleCharacterBirthdayThisWeek;
+                _hubEventsSubscribed = true;
+            }
             UpdateDateText();
             _brain.charactersBrain.CheckBirthdays();
 
@@ -179,15 +223,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             pastShipDockedStatuses = LoadDockShipStatuses();
 
-            if (!HubDayStateStore.HasProcessedDailyUpdates)
-            {
-                dock.UpdateDailyVoyageStatuses();
-
-                CheckShipsDocked();
-
-                CheckRareItems();
-            }
-            else
+            if (HubDayStateStore.HasProcessedDailyUpdates && dock != null)
             {
                 dock.EnforceCapacityOnLoad();
             }
@@ -234,12 +270,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (GeneralCamera == null || cameraPoints == null || cameraPoints.Length == 0)
             {
-                return;
+                return true;
             }
 
             int idx = HubDayRandom.Range(0, cameraPoints.Length);
             Transform dest = cameraPoints[idx];
             GeneralCamera.transform.SetPositionAndRotation(dest.position, dest.rotation);
+            return true;
         }
 
         private void InvokeChapterHubEvents(int currentChapter)

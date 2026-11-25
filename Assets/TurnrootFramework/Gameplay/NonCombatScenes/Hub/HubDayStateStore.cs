@@ -20,6 +20,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private const string ExploreTutorialSeenKey = "HubExploreTutorialSeen";
 
         private static HubDayState _currentState;
+        private static Brain.Brain _initializedBrain;
+        private static LongTermMemory _initializedLtm;
+        private static GameDate _initializedDate;
+        private static int _initializedKeyCacheVersion = -1;
 
         public static bool IsInitialized => _currentState != null;
 
@@ -293,6 +297,10 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 }
             );
             ltm.Remember(key, brain.EncodeString(JsonUtility.ToJson(_currentState)));
+            if (_initializedLtm == ltm)
+            {
+                _initializedKeyCacheVersion = ltm.KeyCacheVersion;
+            }
         }
 
         public static void Initialize(Brain.Brain brain, GameDate date)
@@ -302,6 +310,21 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 return;
             }
 
+            int keyCacheVersion = ltm.KeyCacheVersion;
+            if (
+                IsInitializedForDate(date)
+                && _initializedBrain == brain
+                && _initializedLtm == ltm
+                && _initializedDate.year == date.year
+                && _initializedDate.month == date.month
+                && _initializedDate.day == date.day
+                && _initializedKeyCacheVersion == keyCacheVersion
+            )
+            {
+                return;
+            }
+
+            _currentState = null;
             string key = GetKey(date);
             string json = ltm.Recall(key);
 
@@ -360,6 +383,11 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 string outJson = brain.EncodeString(JsonUtility.ToJson(_currentState));
                 ltm.Remember(key, outJson);
             }
+
+            _initializedBrain = brain;
+            _initializedLtm = ltm;
+            _initializedDate = date;
+            _initializedKeyCacheVersion = ltm.KeyCacheVersion;
         }
 
         private static bool TryGetLongTermMemory(

@@ -24,21 +24,6 @@ namespace Turnroot.Utilities
             {
                 return;
             }
-
-            var brain = Brain.Instance;
-            if (brain.ltm == null)
-            {
-                return;
-            }
-
-            var date = brain.ltm.GetGameDate();
-            if (date == GameDate.Default)
-            {
-                return;
-            }
-
-            HubDayStateStore.Initialize(brain, date);
-            Initialize(HubDayStateStore.Seed);
         }
 
         /// <summary>
