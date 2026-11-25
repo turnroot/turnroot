@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1043325133918655418}
-  - component: {fileID: 390885503956766981}
   - component: {fileID: 2343528905324862518}
   - component: {fileID: 1338044930430952168}
   - component: {fileID: 7839615313252157204}
@@ -31,6 +30,7 @@ GameObject:
   - component: {fileID: 1334300584497967249}
   - component: {fileID: 721508286950535514}
   - component: {fileID: 3539048153752126742}
+  - component: {fileID: 7632238296912812047}
   m_Layer: 0
   m_Name: = Brain
   m_TagString: DoNotModify
@@ -53,18 +53,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &390885503956766981
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7008609217747025589}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c10e624373270034ab70adabc9a811fd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &2343528905324862518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,7 +171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4f1ed36196161d4e93871b31933d7c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _storedItems: []
+  PlayerGold: 0
   GoldDisplayNames:
     OneLetter: 
     FullName: 
@@ -199,9 +187,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0589a18ac2e53ab458d4dc35d062ded8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  destination: {fileID: 0}
   _tileHighlighter: {fileID: 0}
   _terrainTypeOverlay: {fileID: 0}
-  destination: {fileID: 0}
 --- !u!114 &917229521806148209
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -216,49 +204,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiSettings: {fileID: 0}
   settingsMenuLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
     prefab: {fileID: 0}
   gameSettingsGraphicsLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
+    prefab: {fileID: 0}
+  gameSettingsExploreLocation:
+    menuName: 0
     prefab: {fileID: 0}
   gameSettingsGameplayLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
     prefab: {fileID: 0}
   gameSettingsAudioLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
     prefab: {fileID: 0}
   gameSettingsControlsLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
     prefab: {fileID: 0}
   preBattleMenuLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
     prefab: {fileID: 0}
   prebattleMapMenuLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
     prefab: {fileID: 0}
   prebattleUnitsMenuLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
     prefab: {fileID: 0}
   battleActionSelectMenuLocation:
-    parentMenuName: 0
     menuName: 0
-    style: 0
     prefab: {fileID: 0}
   _isTransitioning: 0
 --- !u!114 &1624026086350377503
@@ -401,15 +374,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7062835bba5384499d14c0580d51f90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Turnroot.Utilities.SceneFlows.SceneFlowBrain
-  sceneFlowGraph: {fileID: 11400000, guid: f890dcb37c2dd7044a8e1dad03e6f308, type: 2}
-  _currentScene:
-    id: 
-    sceneAsset: {fileID: 0}
-    sceneName: 
-    displayName: 
-    isHub: 0
-    persistWhenLeaving: 0
-    editorPosition: {x: 0, y: 0}
-    notes: 
-  useLoadingScreen: 1
-  minimumLoadingTime: 0.5
+--- !u!114 &7632238296912812047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7008609217747025589}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd4f205f1611faf4f94058b7d87e94e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TurnrootFramework.Runtime::Turnroot.Gameplay.Brain.StateBrain
