@@ -14,6 +14,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
+            var hubManager = GetHubManager();
+            if (hubManager == null || !hubManager.IsInitialized)
+            {
+                $"HubCharacterManager: Traversal enter rejected. The active hub is not initialized.".LogError();
+                return;
+            }
+
             _activeAvatarPoint = spawnPoint;
             SpawnAvatarModel();
             _activeAvatarPoint = null;
@@ -142,7 +149,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
-            _hubManager.BindAvatar(model);
+            _hubManager = HubManager.GetCurrent();
+            _hubManager?.BindAvatar(model);
         }
 
         private void ClearThirdPersonAdapterAvatarIfMatches(GameObject model)
@@ -152,12 +160,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
                 return;
             }
 
-            _hubManager.ClearAvatarBindingIfMatches(model);
+            _hubManager = HubManager.GetCurrent();
+            _hubManager?.ClearAvatarBindingIfMatches(model);
         }
 
         private HubManager GetHubManager()
         {
-            _hubManager ??= HubManager.GetCurrent();
+            _hubManager = HubManager.GetCurrent();
             return _hubManager;
         }
     }
