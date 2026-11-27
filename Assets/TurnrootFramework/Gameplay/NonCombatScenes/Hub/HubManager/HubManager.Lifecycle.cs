@@ -53,6 +53,8 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private bool _hubEventsSubscribed;
         private bool _longTermMemorySubscription;
 
+        public bool IsInitialized => _hubInitialized;
+
         public void ActivateHubManager()
         {
             InitializeTraversal();

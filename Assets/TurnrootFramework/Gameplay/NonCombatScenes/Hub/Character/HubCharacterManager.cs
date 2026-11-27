@@ -62,12 +62,22 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
         private void Awake()
         {
             _brain = Brain.Brain.Instance;
-            _audioBrain = _brain.audioBrain;
+            _audioBrain = _brain?.audioBrain;
             _hubManager = HubManager.GetCurrent();
 
             if (CharacterInteraction == null)
             {
                 CharacterInteraction = GetComponent<HubCharacterInteraction>();
+            }
+        }
+
+        private void OnEnable()
+        {
+            _hubManager = HubManager.GetCurrent();
+            if (_brain == null)
+            {
+                _brain = Brain.Brain.Instance;
+                _audioBrain = _brain?.audioBrain;
             }
         }
 
@@ -96,6 +106,16 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub.Character
             )
             {
                 _brain ??= Brain.Brain.Instance;
+                yield return null;
+            }
+
+            while (true)
+            {
+                var hubManager = GetHubManager();
+                if (hubManager != null && hubManager.IsInitialized)
+                {
+                    break;
+                }
                 yield return null;
             }
 
