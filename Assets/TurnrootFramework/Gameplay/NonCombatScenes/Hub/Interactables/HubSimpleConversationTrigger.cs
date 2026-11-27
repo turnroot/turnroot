@@ -38,9 +38,14 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
 
             if (!conversationPlayOnInteraction.CanRepeat)
             {
-                var conversationalBrain =
-                    _hubManager._brain?.conversationalBrain
-                    ?? Brain.Brain.Instance.conversationalBrain;
+                var hubBrain = _hubManager != null ? _hubManager._brain : null;
+                var brain = hubBrain ?? Brain.Brain.Instance;
+                var conversationalBrain = brain?.conversationalBrain;
+                if (conversationalBrain == null)
+                {
+                    return;
+                }
+
                 if (conversationalBrain.HasSeenConversation(conversationPlayOnInteraction))
                 {
                     gameObject.SetActive(false);
@@ -53,6 +58,13 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         {
             if (_isConversationActive || conversationPlayOnInteraction == null)
             {
+                return;
+            }
+
+            _hubManager ??= HubManager.GetCurrent();
+            if (_hubManager == null)
+            {
+                $"HubSimpleConversationTrigger on {gameObject.name}: No HubManager available.".LogWarning();
                 return;
             }
 
@@ -77,7 +89,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
         private void OnConversationFinished()
         {
             _isConversationActive = false;
-            _hubManager.RevertToPreviousInputMode();
+            _hubManager?.RevertToPreviousInputMode();
 
             if (conversationPlayOnInteraction != null && !conversationPlayOnInteraction.CanRepeat)
             {

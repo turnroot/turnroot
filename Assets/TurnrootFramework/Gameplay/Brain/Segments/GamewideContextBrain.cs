@@ -243,7 +243,10 @@ namespace Turnroot.Gameplay.Brain
 
             foreach (var instance in rosterInstance.Instances)
             {
-                PersistIfNeeded(instance);
+                if (instance != null)
+                {
+                    PersistIfNeeded(instance);
+                }
             }
         }
 

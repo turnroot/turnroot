@@ -131,7 +131,7 @@ namespace Turnroot.Gameplay.NonCombatScenes.Hub
                 _specificUiHandler.ActivePageHandler = null;
             }
 
-            _hubManager.RevertToPreviousInputMode();
+            _hubManager?.RevertToPreviousInputMode();
         }
     }
 }
